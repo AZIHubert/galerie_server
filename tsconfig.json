@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "baseUrl": "src",
+        "paths": {
+            "@root/*" : ["../*"],
+            "@interfaces/*": ["interfaces/*"]
+        }
+    }
+}
