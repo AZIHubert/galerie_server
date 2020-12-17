@@ -1,3 +1,5 @@
+# Galerie REST Server
+
 #### TODLIST
 
 1. initialise git/github
@@ -65,26 +67,26 @@
         22. delete all PP from this user if he delete his account
         23. need a way to become a admin
             - all admin can have the possibility to delete any users
-    2. gallerie
-        - create gallerie and become the admin of this gallerie
-            - name of the gallerie
-            - update name of the gallerie
-            - picture of the gallerie
-            - update picture of the gallerie
-        - delete gallerie if your an admin
-        - add user to the gallerie
-        - delete none admin user to this gallerie
-        - level up a user to be an admin to this gallerie
-        - add image to this gallerie
-        - add multiple image to this gallerie
-        - share image to an other gallerie
-        - add an image to multiple gallerie
-        - delete image to this gallerie
-        - like an image to this gallerie
-        - delete any gallerie if your a high level admin
+    2. galerie
+        - create galerie and become the admin of this galerie
+            - name of the galerie
+            - update name of the galerie
+            - picture of the galerie
+            - update picture of the galerie
+        - delete galerie if your an admin
+        - add user to the galerie
+        - delete none admin user to this galerie
+        - level up a user to be an admin to this galerie
+        - add image to this galerie
+        - add multiple image to this galerie
+        - share image to an other galerie
+        - add an image to multiple galerie
+        - delete image to this galerie
+        - like an image to this galerie
+        - delete any galerie if your a high level admin
         - accept an invitation to a gallerie
-        - get all galleries
-        - unsubscribe to a gallerie
+        - get all galeries
+        - unsubscribe to a galerie
     3. interact with other user
         - black list users
-        - black list galleries
+        - black list galeries
