@@ -3,6 +3,10 @@
       "src"
     ],
     "ext": "ts",
+    "verbose": true,
+    "execMap": {
+      "ts": "babel-node"
+    },
     "ignore": [
       "src/**/*.spec.ts",
       "dist",

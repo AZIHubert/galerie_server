@@ -6,8 +6,9 @@
   "author": "Allan Aoudji <allan.aoudji@protonmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --quiet --fix"
+    "babel-node": "babel-node --presets='@babel/preset-env'",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --quiet --fix",
+    "start": "nodemon src/server.ts"
   },
   "_moduleAliases": {},
   "dependencies": {
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",
+    "@babel/node": "^7.12.10",
     "@babel/plugin-proposal-class-properties": "^7.12.1",
     "@babel/plugin-proposal-object-rest-spread": "^7.12.1",
     "@babel/plugin-transform-runtime": "^7.12.10",
