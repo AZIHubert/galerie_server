@@ -1,6 +1,24 @@
 {
     "compilerOptions": {
         "target": "es5",
+        "outDir": "./dist/",
+        "strictNullChecks": true,
+        "allowJs": true,
+        "noEmit": true,
+        "strict": true,
+        "esModuleInterop": true,
+        "lib": [
+            "ES2015",
+            "DOM.Iterable",
+            "ES2016.Array.Include",
+            "ES2017.Object",
+            "dom"
+        ],
+        "module": "es6",
+        "removeComments": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
         "moduleResolution": "node",
         "baseUrl": "src",
         "paths": {
