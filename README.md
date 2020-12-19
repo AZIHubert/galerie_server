@@ -3,7 +3,7 @@
 #### TODLIST
 
 Install in dev :
-@type/express, @types/node
+Install webpack and use it with babel
 
 1. initialise git/github
 2. **DONE** install eslint/pretify and initialize it **DONE**
