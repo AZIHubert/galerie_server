@@ -2,6 +2,9 @@
 
 #### TODLIST
 
+Install in dev :
+@type/express, @types/node
+
 1. initialise git/github
 2. **DONE** install eslint/pretify and initialize it **DONE**
 3. install sequilize and initialize it

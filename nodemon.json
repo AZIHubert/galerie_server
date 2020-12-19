@@ -4,12 +4,16 @@
     ],
     "ext": "ts",
     "verbose": true,
-    "execMap": {
-      "ts": "babel-node"
-    },
+    "exec": "ts-node src/server.ts",
     "ignore": [
       "src/**/*.spec.ts",
+      "src/**/*.test.ts",
       "dist",
+      ".git",
       "node_modules"
-    ]
+    ],
+    "env": {
+      "NODE_ENV": "development",
+      "PORT": "8000"
+  }
 }

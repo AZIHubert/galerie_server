@@ -6,9 +6,9 @@
   "author": "Allan Aoudji <allan.aoudji@protonmail.com>",
   "license": "MIT",
   "scripts": {
-    "babel-node": "babel-node --presets='@babel/preset-env'",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --quiet --fix",
-    "start": "nodemon src/server.ts"
+    "dev": "nodemon",
+    "build": "tsc"
   },
   "_moduleAliases": {},
   "dependencies": {
