@@ -2,6 +2,9 @@
 
 #### TODLIST
 
+Install in dev :
+Install webpack and use it with babel
+
 1. initialise git/github
 2. **DONE** install eslint/pretify and initialize it **DONE**
 3. install sequilize and initialize it
