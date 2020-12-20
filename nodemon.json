@@ -4,7 +4,7 @@
     ],
     "ext": "ts",
     "verbose": true,
-    "exec": "ts-node src/server.ts",
+    "exec": "ts-node src/index.ts",
     "ignore": [
       "src/**/*.spec.ts",
       "src/**/*.test.ts",
