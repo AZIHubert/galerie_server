@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "target": "es5",
+        "target": "es6",
         "outDir": "./dist/",
         "strictNullChecks": true,
         "allowJs": true,
@@ -14,7 +14,7 @@
             "ES2017.Object",
             "dom"
         ],
-        "module": "es6",
+        "module": "commonJs",
         "removeComments": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,

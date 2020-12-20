@@ -16,6 +16,13 @@
         "@typescript-eslint",
         "prettier"
     ],
+    "settings": {
+        "import/resolver": {
+            "node": {
+                "extensions": [".js", ".jsx", ".ts", ".tsx"]
+            }
+        }
+    },
     "rules": {
         "no-console": "off",
         "indent": "off",
@@ -24,6 +31,15 @@
             "error", {
                 "selector": ["interface"],
                 "format": ["PascalCase"]
+            }
+        ],
+        "import/extensions": [
+            "error",
+            {
+                "js": "never",
+                "jsx": "never",
+                "ts": "never",
+                "tsx": "never"
             }
         ]
     }
