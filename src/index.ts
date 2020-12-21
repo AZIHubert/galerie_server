@@ -1,3 +1,3 @@
-import startApp from './server';
+import appListen from './server';
 
-startApp();
+appListen();
