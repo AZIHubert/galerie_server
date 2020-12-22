@@ -11,7 +11,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --quiet --fix",
     "db:migrate": "sequelize db:migrate",
     "db:migrate:undo": "sequelize db:migrate:undo",
-    "test": "cross-env NODE_ENV=test && yarn db:migrate:undo && yarn db:migrate && mocha -r ts-node/register src/**/*.test.ts --exit"
+    "test": "yarn db:migrate:undo --env test && yarn db:migrate --env test && mocha -r ts-node/register src/**/*.test.ts --exit"
   },
   "_moduleAliases": {
     "@sequelize": "./sequelize",
