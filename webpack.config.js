@@ -25,6 +25,10 @@ module.exports = {
   },
   resolve: {
     extensions: ['.ts', '.js'],
+    alias: {
+      '@sequelize': path.resolve(__dirname, './sequelize'),
+      '@src': path.resolve(__dirname, './src'),
+    },
   },
   plugins: [
     new CleanWebpackPlugin(),
@@ -33,7 +37,10 @@ module.exports = {
     rules: [
       {
         test: /\.(js|ts)$/,
-        exclude: /node_modules/,
+        exclude: [
+          /node_modules/,
+          /\.(test.js|test.jsx)$/,
+        ],
         include: /src/,
         use: [
           {
