@@ -1,6 +1,7 @@
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
+import userRouter from '@src/routes/user';
 
 const initApp: () => express.Application = () => {
   const app: express.Application = express();
@@ -19,6 +20,7 @@ const initApp: () => express.Application = () => {
       optionsSuccessStatus: 200,
     }),
   );
+  app.use('/users', userRouter);
   return app;
 };
 
