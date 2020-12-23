@@ -14,20 +14,20 @@ Install webpack and use it with babel
         2. test if server is running on default port
         3. test to add a new user
             - check if his username is valid (_need to be unique_)
-                - 2-15 (_15 or more ?_) chars
-                    - if not, receive an error code
+                - 2-15 (_15 or more ?_) chars **DONE**
+                    - if not, receive an error code **DONE**
             - check if his username doesn't already exist yet
                 - if not, receive an error code
             - check if his email doesn't already exist yet (_need to be unique_)
                 - if not, receive an error code
             - check if his email doesn't already exist yet
                 - if not, receive an error code
-            - check if his password is valid
+            - check if his password is valid **DONE**
                 - 8-20 chars
                 - need 1 uppercase
                 - need 1 special char
                     - if not, receive an error code
-            - double check his password
+            - double check his password **DONE**
                 - if not, receive an error code
         4. test to get this user
         5. test to get a user who doesn't exist
