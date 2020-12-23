@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import Joi from 'joi';
 
+import User from '@src/db/models/users';
+
 const router = Router();
 
 const userSchema = Joi.object({
@@ -29,13 +31,25 @@ const options: Joi.ValidationOptions = {
   stripUnknown: true,
 };
 
+router.get('/', async (_, res) => {
+  try {
+    const users = await User.findAll();
+    res.status(200).send(users);
+  } catch (err) {
+    console.log(err);
+    res.status(500).end();
+  }
+});
+
 router.post('/', (req, res) => {
   const { error } = userSchema.validate(req.body, options);
   if (error) res.status(400).end();
 
   res.status(200).send({
     id: 0,
-    ...req.body,
+    userName: req.body.userName,
+    email: req.body.email,
+    password: req.body.password,
   });
 });
 

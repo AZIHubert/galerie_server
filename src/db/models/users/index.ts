@@ -8,6 +8,13 @@ import {
 
 import Galerie from '@src/db/models/galeries';
 
+interface UserI {
+  userName: string;
+  email: string;
+  password: string;
+  galeries?: Galerie[];
+}
+
 @Table({
   defaultScope: {
     attributes: { exclude: ['deletedAt'] },
@@ -15,7 +22,7 @@ import Galerie from '@src/db/models/galeries';
   paranoid: true,
   tableName: 'users',
 })
-export default class Chef extends Model {
+export default class User extends Model implements UserI {
   @Column({
     allowNull: false,
     autoIncrement: true,
@@ -41,7 +48,7 @@ export default class Chef extends Model {
     allowNull: false,
     type: DataType.STRING,
   })
-  passwordd!: string;
+  password!: string;
 
   @HasMany(() => Galerie)
   galeries!: Galerie[];

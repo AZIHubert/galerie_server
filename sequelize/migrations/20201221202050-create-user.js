@@ -19,7 +19,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
     allowNul: true,
     type: DataTypes.STRING,
   },
-  createAt: {
+  createdAt: {
     allowNull: false,
     type: DataTypes.DATE,
   },
@@ -27,7 +27,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
     allowNull: false,
     type: DataTypes.DATE,
   },
-  deleteAt: {
+  deletedAt: {
     allowNull: true,
     type: DataTypes.DATE,
   },
