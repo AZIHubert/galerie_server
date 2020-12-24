@@ -1,28 +1,38 @@
 import request from 'supertest';
+import 'dotenv/config';
 
+import '@src/db';
+import { User } from '@src/db/models';
 import initApp from '@src/server';
 
-interface User {
+interface UserI {
   userName: string;
   email: string;
   password: string;
   confirmPassword: string;
 }
 
-const newUser: User = {
+const newUser: UserI = {
   userName: 'user',
   email: 'user@email.com',
   password: 'Aaoudjiuvhds9!',
   confirmPassword: 'Aaoudjiuvhds9!',
 };
 
-const sendPostRequest = async (user: User) => request(initApp()).post('/users').send(user);
+const sendPostRequest = async (user: UserI) => request(initApp()).post('/users').send(user);
+
 describe('users', () => {
   describe('POST', () => {
     let response: request.Response;
 
-    beforeEach(async () => {
-      response = await sendPostRequest(newUser);
+    beforeEach(async (done) => {
+      try {
+        await User.sync({ force: true });
+        response = await sendPostRequest(newUser);
+        done();
+      } catch (err) {
+        done(err);
+      }
     });
 
     it('should return 200', () => {
@@ -42,7 +52,6 @@ describe('users', () => {
 
     it('should have one user after posting', async () => {
       const { body } = await request(initApp()).get('/users');
-      console.log(body);
       expect(body.length).toBe(1);
     });
 
@@ -53,10 +62,10 @@ describe('users', () => {
 
     describe('should return 400', () => {
       describe('if username', () => {
-        const newUserWithEmptyUserName: User = { ...newUser, userName: '' };
-        const newUserWithUserNameWithSpaces: User = { ...newUser, userName: 'Allan Aoudji' };
-        const newUserWithUserNameLessThanThree: User = { ...newUser, userName: 'ab' };
-        const newUserWithUserNameMoreThanThirty: User = { ...newUser, userName: 'a'.repeat(31) };
+        const newUserWithEmptyUserName: UserI = { ...newUser, userName: '' };
+        const newUserWithUserNameWithSpaces: UserI = { ...newUser, userName: 'Allan Aoudji' };
+        const newUserWithUserNameLessThanThree: UserI = { ...newUser, userName: 'ab' };
+        const newUserWithUserNameMoreThanThirty: UserI = { ...newUser, userName: 'a'.repeat(31) };
 
         it('is empty', async () => {
           const { status } = await sendPostRequest(newUserWithEmptyUserName);
@@ -76,8 +85,8 @@ describe('users', () => {
         });
       });
       describe('if email', () => {
-        const newUserWithEmptyEmail: User = { ...newUser, email: '' };
-        const newUserWithEmailNotValid: User = { ...newUser, email: 'notValid' };
+        const newUserWithEmptyEmail: UserI = { ...newUser, email: '' };
+        const newUserWithEmailNotValid: UserI = { ...newUser, email: 'notValid' };
 
         it('is empty', async () => {
           const { status } = await sendPostRequest(newUserWithEmptyEmail);
@@ -96,33 +105,33 @@ describe('users', () => {
         const passwordWithoutNumber = 'Aaoudjiuvhds!';
         const passwordWithoutSpecialChar = 'Aaoudjiuvhds9';
 
-        const newUserWithEmptyPassword: User = { ...newUser, password: '' };
-        const newUserWithPasswordLessThanHeightChars: User = {
+        const newUserWithEmptyPassword: UserI = { ...newUser, password: '' };
+        const newUserWithPasswordLessThanHeightChars: UserI = {
           ...newUser,
           password: passwordLessThanHeightChar,
           confirmPassword: passwordLessThanHeightChar,
         };
-        const newUserWithPasswordWithoutLowercase: User = {
+        const newUserWithPasswordWithoutLowercase: UserI = {
           ...newUser,
           password: passwordWithoutLowercase,
           confirmPassword: passwordWithoutLowercase,
         };
-        const newUserWithPasswordMoreThanThirtyChars: User = {
+        const newUserWithPasswordMoreThanThirtyChars: UserI = {
           ...newUser,
           password: passwordMoreThanThirtyChar,
           confirmPassword: passwordMoreThanThirtyChar,
         };
-        const newUserWithPasswordWithoutNumber: User = {
+        const newUserWithPasswordWithoutNumber: UserI = {
           ...newUser,
           password: passwordWithoutNumber,
           confirmPassword: passwordWithoutNumber,
         };
-        const newUserWithPasswordWithoutChar: User = {
+        const newUserWithPasswordWithoutChar: UserI = {
           ...newUser,
           password: passwordWithoutSpecialChar,
           confirmPassword: passwordWithoutSpecialChar,
         };
-        const newUserWithPasswordWithoutUppercase: User = {
+        const newUserWithPasswordWithoutUppercase: UserI = {
           ...newUser,
           password: passwordWithoutUppercase,
           confirmPassword: passwordWithoutUppercase,
@@ -158,8 +167,8 @@ describe('users', () => {
         });
       });
       describe('if confirmPassword', () => {
-        const newUserWithEmptyConfirmPassword: User = { ...newUser, confirmPassword: '' };
-        const newUserWithPasswordsNotMatch: User = { ...newUser, confirmPassword: 'passwor' };
+        const newUserWithEmptyConfirmPassword: UserI = { ...newUser, confirmPassword: '' };
+        const newUserWithPasswordsNotMatch: UserI = { ...newUser, confirmPassword: 'passwor' };
         it('is empty', async () => {
           const { status } = await sendPostRequest(newUserWithEmptyConfirmPassword);
           expect(status).toBe(400);

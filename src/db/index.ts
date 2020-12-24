@@ -15,7 +15,9 @@ const sequelize = new Sequelize({
   password: DB_PASSWORD,
   storage: ':memory:',
   logging: false,
-  models: [User, Galerie],
+  // validateOnly: true,
 });
+
+sequelize.addModels([User, Galerie]);
 
 export default sequelize;

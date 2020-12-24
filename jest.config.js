@@ -2,29 +2,31 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   clearMocks: true,
-  coverageDirectory: 'coverage',
-  coveragePathIgnorePatterns: [
-    '<rootDir>/node_modules/(?!@foo)',
-  ],
   globals: {
     'ts-jest': {
       tsConfig: 'tsconfig.json',
-      diagnostics: {
-        warnOnly: true,
-      },
+      // diagnostics: {
+      //   warnOnly: true,
+      // },
     },
+  },
+  transform: {
+    '\\.ts$': '<rootDir>/node_modules/ts-jest/preprocessor.js',
+    // eslint-disable-next-line no-dupe-keys
+    '\\.ts$': 'ts-jest',
   },
   moduleFileExtensions: [
     'js',
     'ts',
     'tsx',
   ],
+  testMatch: null,
+  testRegex: '(/tests/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
   moduleNameMapper: {
     '@src/(.*)': '<rootDir>/src/$1',
   },
-  testRegex: '(/tests/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
-  transformIgnorePatterns: [
-    '<rootDir>/node_modules/(?!@foo)',
-  ],
-  testMatch: null,
+  // transformIgnorePatterns: [
+  //   '<rootDir>/node_modules/(?!@foo)',
+  // ],
+  // testMatch: null,
 };
