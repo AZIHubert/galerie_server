@@ -17,19 +17,17 @@ Install webpack and use it with babel
                 - 2-15 (_15 or more ?_) chars **DONE**
                     - if not, receive an error code **DONE**
             - check if his username doesn't already exist yet
-                - if not, receive an error code
-            - check if his email doesn't already exist yet (_need to be unique_)
-                - if not, receive an error code
+                - if not, receive an error code **DONE**
             - check if his email doesn't already exist yet
-                - if not, receive an error code
+                - if not, receive an error code **DONE**
             - check if his password is valid **DONE**
-                - 8-20 chars
-                - need 1 uppercase
-                - need 1 special char
-                    - if not, receive an error code
+                - 8-20 chars **DONE**
+                - need 1 uppercase **DONE**
+                - need 1 special char **DONE**
+                    - if not, receive an error code **DONE**
             - double check his password **DONE**
                 - if not, receive an error code
-        4. test to get this user
+        4. test to get this user **DONE**
         5. test to get a user who doesn't exist
         6. test to delete this user
         7. test to delete a user who doesn't exist

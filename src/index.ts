@@ -1,18 +1,17 @@
-import 'dotenv/config';
 import 'module-alias/register';
 
-import sequelize from '@src/db';
-import accessEnv from '@src/helpers';
-import initApp from '@src/server';
+import './helpers/env';
+import initSequelize from './helpers/initSequelize.js';
+import accessEnv from './helpers/accEnv';
+import initApp from './server';
 
-const PORT = accessEnv('PORT', 8000);
-sequelize.authenticate()
-  .then(() => {
-    console.log('db conntected...');
-    initApp().listen(PORT, () => {
-      console.log(`App starte on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.log('Error: ', err);
+const PORT = accessEnv('PORT');
+
+console.log(PORT);
+
+initSequelize(() => {
+  console.log('DB connected...');
+  initApp().listen(PORT, () => {
+    console.log(`App starte on port ${PORT}`);
   });
+});

@@ -34,6 +34,7 @@ export default class User extends Model implements UserI {
   @Column({
     allowNull: false,
     type: DataType.STRING,
+    unique: true,
   })
   userName!: string;
 

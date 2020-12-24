@@ -5,14 +5,9 @@ module.exports = {
   globals: {
     'ts-jest': {
       tsConfig: 'tsconfig.json',
-      // diagnostics: {
-      //   warnOnly: true,
-      // },
     },
   },
   transform: {
-    '\\.ts$': '<rootDir>/node_modules/ts-jest/preprocessor.js',
-    // eslint-disable-next-line no-dupe-keys
     '\\.ts$': 'ts-jest',
   },
   moduleFileExtensions: [
@@ -25,8 +20,4 @@ module.exports = {
   moduleNameMapper: {
     '@src/(.*)': '<rootDir>/src/$1',
   },
-  // transformIgnorePatterns: [
-  //   '<rootDir>/node_modules/(?!@foo)',
-  // ],
-  // testMatch: null,
 };
