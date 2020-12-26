@@ -19,5 +19,7 @@ module.exports = {
   testRegex: '(/tests/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
   moduleNameMapper: {
     '@src/(.*)': '<rootDir>/src/$1',
+    '@sequelize/(.*)': '<rootDir>/sequelize/$1',
+    '@root/(.*)': '<rootDir>/$1',
   },
 };

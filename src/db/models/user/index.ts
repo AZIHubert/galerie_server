@@ -6,7 +6,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 
-import Galerie from '@src/db/models/galeries';
+import Galerie from '../galerie';
 
 interface UserI {
   userName: string;

@@ -7,7 +7,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 
-import User from '@src/db/models/users';
+import User from '../user';
 
 @Table({
   defaultScope: {

@@ -1,6 +1,6 @@
 import 'module-alias/register';
 
-import './helpers/env';
+import './helpers/initEnv';
 import initSequelize from './helpers/initSequelize.js';
 import accessEnv from './helpers/accEnv';
 import initApp from './server';

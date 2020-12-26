@@ -1,9 +1,10 @@
 import request from 'supertest';
-import '@src/helpers/env';
 
+import User from '@root/src/db/models/user';
+import '@src/helpers/initEnv';
 import initSequelize from '@src/helpers/initSequelize.js';
-import { User } from '@src/db/models';
 import initApp from '@src/server';
+
 import { users, UserI } from './test.helper';
 
 const sequelize = initSequelize();
@@ -12,12 +13,9 @@ const sendPostRequest = async (user: UserI) => request(initApp()).post('/users')
 
 describe('users', () => {
   describe('POST', () => {
-    let response: request.Response;
-
     beforeEach(async (done) => {
       try {
         await User.sync({ force: true });
-        response = await sendPostRequest(users.newUser);
         done();
       } catch (err) {
         done(err);
@@ -29,40 +27,34 @@ describe('users', () => {
       done();
     });
 
-    it('should return 200', () => {
-      const { status } = response;
+    it('should return a user from post with 200 status code', async () => {
+      const { status, body } = await sendPostRequest(users.newUser);
       expect(status).toBe(200);
-    });
-
-    it('should return a user from get', () => {
-      const { body } = response;
+      expect(body).toHaveProperty('id');
+      expect(body).toHaveProperty('createdAt');
+      expect(body).toHaveProperty('updatedAt');
       expect(body.userName).toEqual(users.newUser.userName);
       expect(body.email).toEqual(users.newUser.email);
       expect(body.password).toEqual(users.newUser.password);
+      expect(body.deletedAt).toEqual(null);
     });
+
     describe('should have', () => {
       it('one user after posting', async () => {
+        await sendPostRequest(users.newUser);
         const { body } = await request(initApp()).get('/users');
         expect(body.length).toBe(1);
       });
 
       it('two users after posting twice', async () => {
-        sendPostRequest(users.newUserTwo);
+        await sendPostRequest(users.newUser);
+        await sendPostRequest(users.newUserTwo);
         const { body } = await request(initApp()).get('/users');
         expect(body.length).toBe(2);
       });
     });
 
-    describe('should return 400', () => {
-      beforeEach(async (done) => {
-        try {
-          await User.sync({ force: true });
-          done();
-        } catch (err) {
-          done(err);
-        }
-      });
-
+    describe('should return error 400', () => {
       describe('if username', () => {
         it('is not a string', async () => {
           const { status, body } = await sendPostRequest(users.newUserWithUserNameNotString);

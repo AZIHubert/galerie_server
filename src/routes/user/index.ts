@@ -1,16 +1,16 @@
 import { Router } from 'express';
 import Joi from 'joi';
 
-import User from '@src/db/models/users';
+import User from '@root/src/db/models/user';
 
 const router = Router();
 
 const userSchema = Joi.object({
   userName: Joi.string()
     .alphanum()
+    .empty()
     .min(3)
     .max(30)
-    .empty()
     .required()
     .messages({
       'string.base': 'should be a type of \'text\'',
@@ -56,15 +56,27 @@ const normalizeJoiErrors = (errors: Joi.ValidationError) => {
   return normalizeErrors;
 };
 
-router.get('/', async (_, res) => {
+const normalizeSequelizeErrors = (errors: any) => {
+  const normalizeErrors: any = {
+    errors: {},
+  };
+  if (errors.original.constraint === 'users_userName_key') {
+    normalizeErrors.errors.userName = 'already taken';
+  }
+  return normalizeErrors;
+};
+
+router.get('/', async (_, res, next) => {
   try {
     const users = await User.findAll();
     res.status(200).send(users);
   } catch (err) {
+    console.log(err);
     res.status(500).send({
       message: 'Something went wrong.',
     });
   }
+  return next();
 });
 
 router.post('/', async (req, res, next) => {
@@ -81,13 +93,12 @@ router.post('/', async (req, res, next) => {
     });
     res.status(200).send(newUser);
   } catch (err) {
-    const errors: any = {
-      errors: {},
-    };
-    if (err.original.constraint === 'users_userName_key') {
-      errors.errors.userName = 'already taken';
+    const errors = normalizeSequelizeErrors(err);
+    if (Object.keys(errors.errors).length) {
+      res.status(400).send(errors);
+      return next();
     }
-    res.status(400).send(errors);
+    res.status(500).send('Something went wrong.');
   }
   return next();
 });

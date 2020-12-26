@@ -1,7 +1,6 @@
 node_modules
 yarn-error.log
 dist
-src/db/config
 .env.production
 .env.test
 .env.development

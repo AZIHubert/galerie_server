@@ -7,15 +7,24 @@
   "license": "MIT",
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack --config webpack.config.js",
+    "db:migrate:development": "cross-env NODE_ENV=development sequelize db:migrate",
+    "db:migrate:production": "cross-env NODE_ENV=production sequelize db:migrate",
+    "db:migrate:test": "cross-env NODE_ENV=test sequelize db:migrate",
+    "db:migrate": "yarn db:migrate:development && yarn db:migrate:production && yarn db:migrate:test",
+    "db:migrate:undo:development": "cross-env NODE_ENV=development sequelize db:migrate:undo",
+    "db:migrate:undo:production": "cross-env NODE_ENV=production sequelize db:migrate:undo",
+    "db:migrate:undo:test": "cross-env NODE_ENV=test sequelize db:migrate:undo",
+    "db:migrate:undo": "yarn db:migrate:undo:development && yarn db:migrate:undo:production && yarn db:migrate:undo:test",
     "dev": "nodemon",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --quiet --fix",
-    "db:migrate": "sequelize db:migrate",
-    "db:migrate:undo": "sequelize db:migrate:undo",
-    "test": "cross-env NODE_ENV=test PORT=5000 yarn jest"
+    "start": "cross-env NODE_ENV=development PORT=2000 ts-node src/index.ts",
+    "test": "cross-env NODE_ENV=test PORT=5000 yarn jest",
+    "migration:generate": "sequelize migration:generate --name"
   },
   "_moduleAliases": {
     "@sequelize": "./sequelize",
-    "@src": "./src"
+    "@src": "./src",
+    "@root": "./"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
