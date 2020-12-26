@@ -29,7 +29,7 @@ describe('users', () => {
 
     it('should return a user from post with 200 status code', async () => {
       const { status, body } = await sendPostRequest(users.newUser);
-      expect(status).toBe(200);
+      expect(status).toBe(201);
       expect(body).toHaveProperty('id');
       expect(body).toHaveProperty('createdAt');
       expect(body).toHaveProperty('updatedAt');

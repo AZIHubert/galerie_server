@@ -91,7 +91,7 @@ router.post('/', async (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
     });
-    res.status(200).send(newUser);
+    res.status(201).send(newUser);
   } catch (err) {
     const errors = normalizeSequelizeErrors(err);
     if (Object.keys(errors.errors).length) {
