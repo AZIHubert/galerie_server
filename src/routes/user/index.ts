@@ -1,9 +1,12 @@
+import bcrypt from 'bcrypt';
 import { Router } from 'express';
 import Joi from 'joi';
 
 import User from '@root/src/db/models/user';
 
 const router = Router();
+
+const saltRounds = 10;
 
 const userSchema = Joi.object({
   userName: Joi.string()
@@ -103,10 +106,11 @@ router.post('/', async (req, res, next) => {
     return next();
   }
   try {
+    const hashPassword = await bcrypt.hash(req.body.password, saltRounds);
     const newUser = await User.create({
       userName: req.body.userName,
       email: req.body.email,
-      password: req.body.password,
+      password: hashPassword,
     });
     res.status(201).send(newUser);
   } catch (err) {

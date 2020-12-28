@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import request from 'supertest';
 
 import User from '@root/src/db/models/user';
@@ -33,10 +34,16 @@ describe('users', () => {
       expect(body).toHaveProperty('id');
       expect(body).toHaveProperty('createdAt');
       expect(body).toHaveProperty('updatedAt');
+      expect(body).toHaveProperty('password');
       expect(body.userName).toEqual(users.newUser.userName);
       expect(body.email).toEqual(users.newUser.email);
-      expect(body.password).toEqual(users.newUser.password);
       expect(body.deletedAt).toEqual(null);
+    });
+
+    it('should have an encrypted password', async () => {
+      const { body: { password } } = await sendPostRequest(users.newUser);
+      const passwordMatch = await bcrypt.compare(users.newUser.password, password);
+      expect(passwordMatch).toBe(true);
     });
 
     describe('should have', () => {
