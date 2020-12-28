@@ -123,53 +123,114 @@ describe('users', () => {
           });
         });
         it('is not valid', async () => {
-          const { status } = await sendPostRequest(users.newUserWithEmailNotValid);
+          const { status, body } = await sendPostRequest(users.newUserWithEmailNotValid);
           expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              email: 'should be a valid email',
+            },
+          });
         });
         it('already taken', async () => {
           await sendPostRequest(users.newUser);
-          const { status } = await sendPostRequest(users.newUserWithSameEmail);
+          const { status, body } = await sendPostRequest(users.newUserWithSameEmail);
           expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              email: 'already taken',
+            },
+          });
         });
       });
       describe('if password', () => {
         it('is empty', async () => {
-          const { status } = await sendPostRequest(users.newUserWithEmptyPassword);
+          const { status, body } = await sendPostRequest(users.newUserWithEmptyPassword);
           expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              password: 'cannot be an empty field',
+            },
+          });
         });
         it('contain less than 8 chars', async () => {
-          const { status } = await sendPostRequest(users.newUserWithPasswordLessThanHeightChars);
+          const {
+            status,
+            body,
+          } = await sendPostRequest(users.newUserWithPasswordLessThanHeightChars);
           expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              password: 'should have a minimum length of 8',
+            },
+          });
         });
         it('contain more than 30 chars', async () => {
-          const { status } = await sendPostRequest(users.newUserWithPasswordMoreThanThirtyChars);
+          const {
+            status,
+            body,
+          } = await sendPostRequest(users.newUserWithPasswordMoreThanThirtyChars);
           expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              password: 'should have a maximum length of 30',
+            },
+          });
         });
         it('doesn\'t contain any uppercase', async () => {
-          const { status } = await sendPostRequest(users.newUserWithPasswordWithoutUppercase);
+          const { status, body } = await sendPostRequest(users.newUserWithPasswordWithoutUppercase);
           expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              password: 'need at least on lowercase, one uppercase, one number and one special char',
+            },
+          });
         });
         it('doesn\'t contain any lowercase', async () => {
-          const { status } = await sendPostRequest(users.newUserWithPasswordWithoutLowercase);
+          const { status, body } = await sendPostRequest(users.newUserWithPasswordWithoutLowercase);
           expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              password: 'need at least on lowercase, one uppercase, one number and one special char',
+            },
+          });
         });
         it('doesn\'t contain any number', async () => {
-          const { status } = await sendPostRequest(users.newUserWithPasswordWithoutNumber);
+          const { status, body } = await sendPostRequest(users.newUserWithPasswordWithoutNumber);
           expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              password: 'need at least on lowercase, one uppercase, one number and one special char',
+            },
+          });
         });
         it('doesn\'t contain any special char', async () => {
-          const { status } = await sendPostRequest(users.newUserWithPasswordWithoutChar);
+          const { status, body } = await sendPostRequest(users.newUserWithPasswordWithoutChar);
           expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              password: 'need at least on lowercase, one uppercase, one number and one special char',
+            },
+          });
         });
       });
       describe('if confirmPassword', () => {
         it('is empty', async () => {
-          const { status } = await sendPostRequest(users.newUserWithEmptyConfirmPassword);
+          const { status, body } = await sendPostRequest(users.newUserWithEmptyConfirmPassword);
           expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              confirmPassword: 'cannot be an empty field',
+            },
+          });
         });
         it('and password not match', async () => {
-          const { status } = await sendPostRequest(users.newUserWithPasswordsNotMatch);
+          const { status, body } = await sendPostRequest(users.newUserWithPasswordsNotMatch);
           expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              confirmPassword: 'must match password',
+            },
+          });
         });
       });
     });

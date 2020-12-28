@@ -19,7 +19,7 @@ const newUser: UserI = {
   confirmPassword: 'Aaoudjiuvhds90!',
 };
 
-export const users = {
+export const users: { [key:string]: UserI } = {
   newUser: { ...newUser },
   newUserTwo: {
     ...newUser,
@@ -65,6 +65,7 @@ export const users = {
   newUserWithEmptyPassword: {
     ...newUser,
     password: '',
+    confirmPassword: '',
   },
   newUserWithPasswordLessThanHeightChars: {
     ...newUser,

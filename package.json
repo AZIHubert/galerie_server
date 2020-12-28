@@ -17,9 +17,9 @@
     "db:migrate:undo": "yarn db:migrate:undo:development && yarn db:migrate:undo:production && yarn db:migrate:undo:test",
     "dev": "nodemon",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --quiet --fix",
+    "migration:generate": "sequelize migration:generate --name",
     "start": "cross-env NODE_ENV=development PORT=2000 ts-node src/index.ts",
-    "test": "cross-env NODE_ENV=test PORT=5000 yarn jest",
-    "migration:generate": "sequelize migration:generate --name"
+    "test": "cross-env NODE_ENV=test PORT=5000 yarn jest"
   },
   "_moduleAliases": {
     "@sequelize": "./sequelize",
