@@ -4,6 +4,7 @@ import {
   HasMany,
   Model,
   Table,
+  Default,
 } from 'sequelize-typescript';
 
 import Galerie from '../galerie';
@@ -13,6 +14,7 @@ interface UserI {
   email: string;
   password: string;
   galeries?: Galerie[];
+  confirmed: boolean;
 }
 
 @Table({
@@ -50,6 +52,13 @@ export default class User extends Model implements UserI {
     type: DataType.STRING,
   })
   password!: string;
+
+  @Default(false)
+  @Column({
+    allowNull: false,
+    type: DataType.BOOLEAN,
+  })
+  confirmed!: boolean;
 
   @HasMany(() => Galerie)
   galeries!: Galerie[];

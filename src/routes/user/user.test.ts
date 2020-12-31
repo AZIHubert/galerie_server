@@ -1,33 +1,41 @@
 import bcrypt from 'bcrypt';
 import request from 'supertest';
+import jwt from 'jsonwebtoken';
 
-import User from '@root/src/db/models/user';
+import User from '@src/db/models/user';
 import '@src/helpers/initEnv';
+import accEnv from '@src/helpers/accEnv';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
 
 import { users, UserI } from './test.helper';
 
+const EMAIL_SECRET = accEnv('EMAIL_SECRET');
+
 const sequelize = initSequelize();
 
 const sendPostRequest = async (user: UserI) => request(initApp()).post('/users').send(user);
 
+// TODO:
+// Verify multiples user errors, need multiple error fields
+// Set confirm token to the headers
+// Login with cookie
+
 describe('users', () => {
-  describe('POST', () => {
-    beforeEach(async (done) => {
-      try {
-        await User.sync({ force: true });
-        done();
-      } catch (err) {
-        done(err);
-      }
-    });
-
-    afterAll((done) => {
-      sequelize.close();
+  beforeEach(async (done) => {
+    try {
+      await User.sync({ force: true });
       done();
-    });
+    } catch (err) {
+      done(err);
+    }
+  });
 
+  afterAll((done) => {
+    sequelize.close();
+    done();
+  });
+  describe('POST', () => {
     it('should return a user from post with 200 status code', async () => {
       const { status, body } = await sendPostRequest(users.newUser);
       expect(status).toBe(201);
@@ -38,6 +46,7 @@ describe('users', () => {
       expect(body.userName).toEqual(users.newUser.userName);
       expect(body.email).toEqual(users.newUser.email);
       expect(body.deletedAt).toEqual(null);
+      expect(body.confirmed).toEqual(false);
     });
 
     it('should have an encrypted password', async () => {
@@ -240,6 +249,85 @@ describe('users', () => {
           });
         });
       });
+      describe('if all field', () => {
+        it('are empty', async () => {
+          const { status, body } = await sendPostRequest({
+            email: '',
+            userName: '',
+            password: '',
+            confirmPassword: '',
+          });
+          expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              email: 'cannot be an empty field',
+              userName: 'cannot be an empty field',
+              password: 'cannot be an empty field',
+            },
+          });
+        });
+      });
+      describe('if userName and email', () => {
+        it('already exists', async () => {
+          await sendPostRequest(users.newUser);
+          const { status, body } = await sendPostRequest(users.newUser);
+          expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              email: 'already taken',
+              userName: 'already taken',
+            },
+          });
+        });
+      });
+    });
+  });
+  describe('CONFIRMATION', () => {
+    let jwtMock: jest.SpyInstance;
+    let id: string;
+
+    beforeEach(async () => {
+      await User.sync({ force: true });
+      const { body } = await sendPostRequest(users.newUser);
+      id = body.id;
+      jwtMock = jest.spyOn(jwt, 'verify');
+      jwtMock.mockImplementationOnce(() => ({
+        user: { id },
+      }));
+    });
+
+    afterEach(() => {
+      jwtMock.mockRestore();
+    });
+    describe('should return error 400 if confirmation token', () => {
+      it('not found', async () => {
+        const { body, status } = await request(initApp()).get('/users/confirmation');
+        expect(status).toBe(400);
+        console.log(body);
+        expect(body).toStrictEqual({
+          errors: 'confirmation token not found',
+        });
+        expect(jwtMock).toHaveBeenCalledTimes(0);
+      });
+      it('is not "Bearer ..."', async () => {
+        const { body, status } = await request(initApp())
+          .get('/users/confirmation')
+          .set('confirmation', 'abcde');
+        expect(status).toBe(400);
+        expect(body).toStrictEqual({
+          errors: 'wrong token',
+        });
+        expect(jwtMock).toHaveBeenCalledTimes(0);
+      });
+    });
+    it('should confirm his email', async () => {
+      const { status } = await request(initApp())
+        .get('/users/confirmation')
+        .set('confirmation', 'Bearer abcd');
+      const user = await User.findByPk(id, { raw: true });
+      expect(status).toBe(200);
+      expect(jwtMock).toHaveBeenCalledWith('abcd', EMAIL_SECRET);
+      expect(user?.confirmed).toBe(true);
     });
   });
 });

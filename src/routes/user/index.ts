@@ -1,12 +1,46 @@
 import bcrypt from 'bcrypt';
 import { Router } from 'express';
 import Joi from 'joi';
+import jwt from 'jsonwebtoken';
+import _ from 'lodash';
+import nodemailer from 'nodemailer';
 
-import User from '@root/src/db/models/user';
+import User from '@src/db/models/user';
+import accEnv from '@src/helpers/accEnv';
 
 const router = Router();
 
 const saltRounds = 10;
+
+const MAIL_USERNAME = accEnv('MAIL_USERNAME');
+const MAIL_PASSWORD = accEnv('MAIL_PASSWORD');
+const EMAIL_SECRET = accEnv('EMAIL_SECRET');
+
+const mailConfig = {
+  host: 'smtp.ethereal.email',
+  port: 587,
+  auth: {
+    user: MAIL_USERNAME,
+    pass: MAIL_PASSWORD,
+  },
+};
+const transporter = nodemailer.createTransport(mailConfig);
+
+const message = (email: string, token: string) => ({
+  from: 'Galeries <sender@mail.com>',
+  to: email,
+  subject: 'validate your account',
+  text: 'Hello',
+  html: `<html>
+    <body>
+      <h1>Galeries</h1>
+      <p>Please click this link to confirm your email:</p>
+      <a href='https://www.localhost:3000/confirmation/${token}'>
+        https://www.localhost:3000/confirmation/${token}
+      </a>
+    </body>
+  </html>`,
+});
 
 const userSchema = Joi.object({
   userName: Joi.string()
@@ -63,29 +97,27 @@ const options: Joi.ValidationOptions = {
 };
 
 const normalizeJoiErrors = (errors: Joi.ValidationError) => {
-  const normalizeErrors: any = {
-    errors: {},
-  };
+  const normalizeErrors: any = {};
   errors.details.forEach((e) => {
-    normalizeErrors.errors[e.path[0]] = e.message;
+    normalizeErrors[e.path[0]] = e.message;
   });
   return normalizeErrors;
 };
 
-const normalizeSequelizeErrors = (errors: any) => {
-  const normalizeErrors: any = {
-    errors: {},
-  };
-  if (errors.original.constraint === 'users_userName_key') {
-    normalizeErrors.errors.userName = 'already taken';
+const normalizeSequelizeErrors = async (email: string, userName: string) => {
+  const normalizeErrors: any = {};
+  const emailAlreadyUse = await User.findOne({ where: { email } });
+  if (emailAlreadyUse) {
+    normalizeErrors.email = 'already taken';
   }
-  if (errors.original.constraint === 'users_email_key') {
-    normalizeErrors.errors.email = 'already taken';
+  const userNameAlreadyUse = await User.findOne({ where: { userName } });
+  if (userNameAlreadyUse) {
+    normalizeErrors.userName = 'already taken';
   }
   return normalizeErrors;
 };
 
-router.get('/', async (_, res, next) => {
+router.get('/', async (__, res, next) => {
   try {
     const users = await User.findAll();
     res.status(200).send(users);
@@ -98,31 +130,65 @@ router.get('/', async (_, res, next) => {
   return next();
 });
 
-router.post('/', async (req, res, next) => {
-  const { error } = userSchema.validate(req.body, options);
-  // console.log(error?.details[0]);
-  if (error) {
-    res.status(400).send(normalizeJoiErrors(error));
-    return next();
-  }
+router.post('/', async (req, res) => {
   try {
+    const { error } = userSchema.validate(req.body, options);
+    if (error) {
+      return res.status(400).send({
+        errors: normalizeJoiErrors(error),
+      });
+    }
+    const errors = await normalizeSequelizeErrors(req.body.email, req.body.userName);
+    if (Object.keys(errors).length) {
+      return res.status(400).send({
+        errors,
+      });
+    }
+
     const hashPassword = await bcrypt.hash(req.body.password, saltRounds);
     const newUser = await User.create({
       userName: req.body.userName,
       email: req.body.email,
       password: hashPassword,
     });
-    res.status(201).send(newUser);
+    jwt.sign(
+      {
+        user: _.pick(newUser, 'id'),
+      },
+      EMAIL_SECRET,
+      {
+        expiresIn: '2d',
+      },
+      (err, emailToken) => {
+        if (err) throw new Error(`something went wrong: ${err}`);
+        if (emailToken) transporter.sendMail(message(req.body.email, emailToken));
+      },
+    );
+    return res.status(201).send(newUser);
   } catch (err) {
-    // console.log(err.original.constraint);
-    const errors = normalizeSequelizeErrors(err);
-    if (Object.keys(errors.errors).length) {
-      res.status(400).send(errors);
-      return next();
-    }
-    res.status(500).send('Something went wrong.');
+    return res.status(500).send('Something went wrong.');
   }
-  return next();
+});
+
+router.get('/confirmation/', async (req, res) => {
+  try {
+    const { confirmation } = req.headers;
+    if (confirmation) {
+      const token = (<string>confirmation).split(' ')[1];
+      if (token) {
+        const { user: { id } } = jwt.verify(
+          token,
+          EMAIL_SECRET,
+        ) as {user: { id: string; }};
+        await User.update({ confirmed: true }, { where: { id } });
+        return res.status(200).end();
+      }
+      return res.status(400).send({ errors: 'wrong token' });
+    }
+    return res.status(400).send({ errors: 'confirmation token not found' });
+  } catch (err) {
+    return res.status(400).send(err);
+  }
 });
 
 export default router;
