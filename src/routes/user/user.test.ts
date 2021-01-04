@@ -147,7 +147,7 @@ describe('users', () => {
             },
           });
         });
-        it('already taken', async () => {
+        it('is already taken', async () => {
           await sendPostRequest(users.newUser);
           const { status, body } = await sendPostRequest(users.newUserWithSameEmail);
           expect(status).toBe(400);
@@ -291,7 +291,7 @@ describe('users', () => {
       const { body } = await sendPostRequest(users.newUser);
       id = body.id;
       jwtMock = jest.spyOn(jwt, 'verify');
-      jwtMock.mockImplementationOnce(() => ({
+      jwtMock.mockImplementation(() => ({
         user: { id },
       }));
     });
@@ -299,11 +299,68 @@ describe('users', () => {
     afterEach(() => {
       jwtMock.mockRestore();
     });
+
+    it('should confirm his email', async () => {
+      const { status } = await request(initApp())
+        .get('/users/confirmation')
+        .set('confirmation', 'Bearer abcd');
+      const user = await User.findByPk(id, { raw: true });
+      expect(status).toBe(200);
+      expect(jwtMock).toHaveBeenCalledWith('abcd', EMAIL_SECRET);
+      expect(user?.confirmed).toBe(true);
+    });
+    it('should set cookie', async () => {
+      const { header } = await request(initApp())
+        .get('/users/confirmation')
+        .set('confirmation', 'Bearer abcd');
+      expect(header).toHaveProperty('set-cookie');
+    });
+    it('should not be able to create an account if is already logged in', async () => {
+      const { header } = await request(initApp())
+        .get('/users/confirmation')
+        .set('confirmation', 'Bearer abcd');
+      const accessToken = header['set-cookie'];
+      const { body, status } = await request(initApp())
+        .post('/users')
+        .send(users.newUser)
+        .set('Cookie', accessToken);
+      expect(status).toBe(401);
+      expect(body).toStrictEqual({
+        errors: 'you already logged in',
+      });
+    });
+    describe('should not be able to confirm twice if', () => {
+      it('accessToken is set', async () => {
+        const { header } = await request(initApp())
+          .get('/users/confirmation')
+          .set('confirmation', 'Bearer abcd');
+        const accessToken = header['set-cookie'];
+        const { body, status } = await request(initApp())
+          .get('/users/confirmation')
+          .set('confirmation', 'Bearer abcd')
+          .set('Cookie', accessToken);
+        expect(status).toBe(401);
+        expect(body).toStrictEqual({
+          errors: 'you already logged in',
+        });
+      });
+      it('should not be able to confirm twice if user is already active', async () => {
+        await request(initApp())
+          .get('/users/confirmation')
+          .set('confirmation', 'Bearer abcd');
+        const { body, status } = await request(initApp())
+          .get('/users/confirmation')
+          .set('confirmation', 'Bearer abcd');
+        expect(status).toBe(400);
+        expect(body).toStrictEqual({
+          errors: 'Your account is already confirmed',
+        });
+      });
+    });
     describe('should return error 400 if confirmation token', () => {
       it('not found', async () => {
         const { body, status } = await request(initApp()).get('/users/confirmation');
         expect(status).toBe(400);
-        console.log(body);
         expect(body).toStrictEqual({
           errors: 'confirmation token not found',
         });
@@ -319,15 +376,6 @@ describe('users', () => {
         });
         expect(jwtMock).toHaveBeenCalledTimes(0);
       });
-    });
-    it('should confirm his email', async () => {
-      const { status } = await request(initApp())
-        .get('/users/confirmation')
-        .set('confirmation', 'Bearer abcd');
-      const user = await User.findByPk(id, { raw: true });
-      expect(status).toBe(200);
-      expect(jwtMock).toHaveBeenCalledWith('abcd', EMAIL_SECRET);
-      expect(user?.confirmed).toBe(true);
     });
   });
 });

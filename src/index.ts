@@ -7,8 +7,6 @@ import initApp from './server';
 
 const PORT = accessEnv('PORT');
 
-console.log(PORT);
-
 initSequelize(() => {
   console.log('DB connected...');
   initApp().listen(PORT, () => {
