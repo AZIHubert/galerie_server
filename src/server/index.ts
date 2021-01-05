@@ -2,7 +2,6 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-// import csrf from 'csurf';
 
 import userRouter from '@src/routes/user';
 
@@ -10,9 +9,6 @@ const initApp: () => express.Application = () => {
   const app: express.Application = express();
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true, limit: '5m' }));
-  // app.use(csrf({
-  //   cookie: true,
-  // }));
   app.use(cookieParser());
   app.use(
     cors({

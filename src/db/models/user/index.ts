@@ -60,6 +60,13 @@ export default class User extends Model implements UserI {
   })
   confirmed!: boolean;
 
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  tokenVersion!: number;
+
   @HasMany(() => Galerie)
   galeries!: Galerie[];
 }
