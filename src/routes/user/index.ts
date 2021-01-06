@@ -48,6 +48,8 @@ router.put('/me/updatePassword', shouldBeAuth, shouldBeConfirmed); // should get
 router.put('/me/profilePicture', shouldBeAuth, shouldBeConfirmed); // Need to be logged in and new picture OR old picture
 router.delete('/me', shouldBeAuth, shouldBeConfirmed); // need to be login, confirmed and id match
 router.get('/:userName/', shouldBeAuth, shouldBeConfirmed); // Find multiples users by userName
+// TODO:
+// sendRefreshToken(req, '')
 router.get('/logout/', shouldBeAuth, shouldBeConfirmed); // need to be login and confirmed
 router.delete('/user/:id/blacklist', shouldBeAuth, shouldBeConfirmed); // need to be login, confirmed and admin
 router.put('/:id/admin', shouldBeAuth, shouldBeConfirmed); // need admin_password and be login and confirmed
