@@ -6,14 +6,13 @@ import _ from 'lodash';
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
 import { sendConfirmAccount } from '@src/helpers/email';
+import saltRounds from '@src/helpers/saltRounds';
 import {
   validateSignIn,
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
 
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
-
-const saltRounds = 10;
 
 const normalizeSequelizeErrors = async (email: string, userName: string) => {
   const normalizeErrors: any = {};

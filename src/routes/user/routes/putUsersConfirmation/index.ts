@@ -12,8 +12,8 @@ import {
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 
 export default async (req: Request, res: Response) => {
+  const { confirmation } = req.headers;
   try {
-    const { confirmation } = req.headers;
     if (confirmation) {
       const confirmationToken = (<string>confirmation).split(' ')[1];
       if (confirmationToken) {
