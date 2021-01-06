@@ -34,6 +34,7 @@ export const shouldBeConfirmed = async (__: Request, res: Response, next: Functi
         errors: 'You\'re account need to be confimed',
       });
     }
+    res.locals.user = user;
     return next();
   } catch (err) {
     console.log(err);

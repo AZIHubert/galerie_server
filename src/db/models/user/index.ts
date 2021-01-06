@@ -67,6 +67,13 @@ export default class User extends Model implements UserI {
   })
   tokenVersion!: number;
 
+  @Default(false)
+  @Column({
+    allowNull: false,
+    type: DataType.BOOLEAN,
+  })
+  admin!: boolean;
+
   @HasMany(() => Galerie)
   galeries!: Galerie[];
 }

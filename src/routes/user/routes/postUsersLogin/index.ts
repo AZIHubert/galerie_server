@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import { Op } from 'sequelize';
 
 import User from '@src/db/models/user';
-import accEnv from '@src/helpers/accEnv';
 import {
   createAccessToken,
   createRefreshToken,

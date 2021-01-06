@@ -16,11 +16,15 @@ import {
 
 const router = Router();
 
-router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers); // need to be admin
-router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
-router.get('/login', shouldNotBeAuth, postUsersLogin);
-router.post('/refreshToken', postUsersRefreshToken);
-router.post('/signin/', shouldNotBeAuth, postUsersSignin);
+router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers); // Get all users, need to be admin
+router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation); // Confirm account
+router.get('/login', shouldNotBeAuth, postUsersLogin); // Login, send accessToken and refreshToken
+router.post('/refreshToken', postUsersRefreshToken); // Refresh a token
+router.post('/signin/', shouldNotBeAuth, postUsersSignin); // Sign in, create a user and send a confirm email
+router.get('/me', shouldBeAuth, shouldBeConfirmed, (__, res) => {
+  const { user } = res.locals;
+  res.status(200).send(user);
+});
 
 // TODO:
 router.get('/:userName/', shouldBeAuth, shouldBeConfirmed); // Find multiples users by userName
@@ -39,3 +43,8 @@ router.put('/:id/admin', shouldBeAuth, shouldBeConfirmed); // need admin_passwor
 // Login with Google
 
 export default router;
+
+// To log in, create an global accessToken = ''
+// After logged in/confirm => accessToken = res.accessToken
+// https://www.youtube.com/watch?v=25GS0MLT8JU&ab_channel=BenAwad
+// 2:11:42
