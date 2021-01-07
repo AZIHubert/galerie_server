@@ -23,32 +23,34 @@ const router = Router();
 
 // TODO: need to be admin
 router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers); // Get all users
-// TODO: check if token is not expired
+router.post('/signin/', shouldNotBeAuth, postUsersSignin);
 // TODO: confirm version auth
 router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation); // Confirm account
-// TODO: need confirm token version auth in token
 router.get('/login', shouldNotBeAuth, postUsersLogin);
 router.post('/refreshToken', postUsersRefreshToken);
-router.post('/signin/', shouldNotBeAuth, postUsersSignin);
-router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
-router.get('/me/sendUpdateEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeSendUpdateEmail);
-router.get('/me/sendUpdateNewEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeSendUpdateNewEmail);
-router.get('/me/updateEmail', shouldBeAuth, shouldBeConfirmed);
+// TODO: rename get sendResetPassword
 router.get('/sendResetPassword/', shouldNotBeAuth, getUsersSendResetPassword);
 router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
+router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
+// TODO: rename root => me/updateEmail
+router.get('/me/sendUpdateEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeSendUpdateEmail);
+// TODO: sign in token newEmailTokenVersion, rename route => get me/updateEmail/confirm
+router.get('/me/sendUpdateNewEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeSendUpdateNewEmail);
+router.put('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, () => {
+  // should verify if logged
+  // should verify if confirmed
+  // should verify token -> id, tokenversion, email
+});
 
 // TODO:
 router.get('/reSendConfirmPassword', shouldNotBeAuth); // route if user want to resend password, should get body.email, check if user exist and not confirm
 router.get('/me/reSendUpdateEmail'); // route if user want to resend to current email
 router.get('/me/reSendUpdateNewEmail');
-router.put('/me/updateEmail', shouldBeAuth, shouldBeConfirmed); // should update email
 router.put('/me/updatePassword', shouldBeAuth, shouldBeConfirmed); // should get current password, new password, confirm new password
 router.put('/me/profilePicture', shouldBeAuth, shouldBeConfirmed); // Need to be logged in and new picture OR old picture
 router.delete('/me', shouldBeAuth, shouldBeConfirmed); // need to be login, confirmed and id match
 router.get('/:userName/', shouldBeAuth, shouldBeConfirmed); // Find multiples users by userName
-// TODO:
-// sendRefreshToken(req, '')
-router.get('/logout/', shouldBeAuth, shouldBeConfirmed); // need to be login and confirmed
+router.get('/logout/', shouldBeAuth, shouldBeConfirmed); // need to be login and confirmed => sendRefreshToken(req, '')
 router.delete('/user/:id/blacklist', shouldBeAuth, shouldBeConfirmed); // need to be login, confirmed and admin
 router.put('/:id/admin', shouldBeAuth, shouldBeConfirmed); // need admin_password and be login and confirmed
 
@@ -63,3 +65,9 @@ export default router;
 // 2:11:42
 // https://medium.com/swlh/authentication-using-jwt-and-refresh-token-part-1-aca5522c14c8
 // https://medium.com/swlh/authentication-using-jwt-and-refresh-token-part-2-a86150d25152
+
+// TODO:
+// Change user field's name tokenVersion by authTokenVersion
+// add user field newEmailTokenVersion
+// add user field confirmTokenVersion
+// update name's route

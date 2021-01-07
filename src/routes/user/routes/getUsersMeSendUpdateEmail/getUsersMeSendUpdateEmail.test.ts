@@ -185,55 +185,31 @@ describe('users', () => {
             });
           });
         });
-        describe('should return error 500 if', () => {
-          beforeEach(async (done) => {
-            try {
-              await User.sync({ force: true });
-              const hashedPassword = await bcrypt.hash('Aaoudjiuvhds9!', saltRounds);
-              const { id } = await User.create({
-                userName: 'userFailed',
-                email: 'user@email.com',
-                password: hashedPassword,
-                confirmed: true,
-                admin: false,
-                tokenVersion: 0,
-              });
-              jwtMocked.mockImplementation(() => ({
-                id,
-              }));
-            } catch (err) {
-              done(err);
-            }
-            done();
+        it('should return error 500 if compare password fail', async () => {
+          const hashedPassword = await bcrypt.hash('Aaoudjiuvhds9!', saltRounds);
+          const { id } = await User.create({
+            userName: 'userFailed',
+            email: 'user@email.com',
+            password: hashedPassword,
+            confirmed: true,
+            admin: false,
+            tokenVersion: 0,
           });
-          it('compare password fail', async () => {
-            const compareMocked = jest.spyOn(bcrypt, 'compare')
-              .mockImplementationOnce(() => {
-                throw new Error('something went wrong');
-              });
-            const { status } = await request(initApp())
-              .get('/users/me/sendUpdateEmail')
-              .set('authorization', 'Bearer token')
-              .send({
-                password: 'Aaoudjiuvhds9!',
-              });
-            expect(compareMocked).toHaveBeenCalledTimes(1);
-            expect(status).toBe(500);
-          });
-          it('sign token fail', async () => {
-            const signMocked = jest.spyOn(jwt, 'sign')
-              .mockImplementationOnce(() => {
-                throw new Error('something went wrong');
-              });
-            const { status } = await request(initApp())
-              .get('/users/me/sendUpdateEmail')
-              .set('authorization', 'Bearer token')
-              .send({
-                password: 'Aaoudjiuvhds9!',
-              });
-            expect(signMocked).toHaveBeenCalledTimes(1);
-            expect(status).toBe(500);
-          });
+          jwtMocked.mockImplementation(() => ({
+            id,
+          }));
+          const compareMocked = jest.spyOn(bcrypt, 'compare')
+            .mockImplementationOnce(() => {
+              throw new Error('something went wrong');
+            });
+          const { status } = await request(initApp())
+            .get('/users/me/sendUpdateEmail')
+            .set('authorization', 'Bearer token')
+            .send({
+              password: 'Aaoudjiuvhds9!',
+            });
+          expect(compareMocked).toHaveBeenCalledTimes(1);
+          expect(status).toBe(500);
         });
       });
     });

@@ -24,28 +24,31 @@ export default async (req: Request, res: Response) => {
       errors: 'wrong token',
     });
   }
+  let user: User | null;
+  let id: string;
   try {
-    const { id } = verify(
+    const tokenVerified = verify(
       token,
       CONFIRM_SECRET,
     ) as { id: string; };
-    const user = await User.findOne({ where: { id } });
-    if (!user) {
-      return res.status(404).send({
-        errors: 'user not found',
-      });
-    }
-    if (user.confirmed) {
-      return res.status(401).send({
-        errors: 'your account is already confirmed',
-      });
-    }
-    await User.update({ confirmed: true }, { where: { id } });
-    sendRefreshToken(res, createRefreshToken(user));
-    return res
-      .status(200)
-      .send({ accessToken: createAccessToken(user) });
+    id = tokenVerified.id;
+    user = await User.findByPk(id);
   } catch (err) {
     return res.status(500).send(err);
   }
+  if (!user) {
+    return res.status(404).send({
+      errors: 'user not found',
+    });
+  }
+  if (user.confirmed) {
+    return res.status(401).send({
+      errors: 'your account is already confirmed',
+    });
+  }
+  await User.update({ confirmed: true }, { where: { id } });
+  sendRefreshToken(res, createRefreshToken(user));
+  return res
+    .status(200)
+    .send({ accessToken: createAccessToken(user) });
 };

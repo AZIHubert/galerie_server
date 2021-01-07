@@ -27,40 +27,46 @@ const normalizeSequelizeErrors = async (email: string, userName: string) => {
 };
 
 export default async (req: Request, res: Response) => {
+  const { error } = validateSignIn(req.body);
+  if (error) {
+    return res.status(400).send({
+      errors: normalizeJoiErrors(error),
+    });
+  }
+  let errors: any;
   try {
-    const { error } = validateSignIn(req.body);
-    if (error) {
-      return res.status(400).send({
-        errors: normalizeJoiErrors(error),
-      });
-    }
-    const errors = await normalizeSequelizeErrors(req.body.email, req.body.userName);
-    if (Object.keys(errors).length) {
-      return res.status(400).send({
-        errors,
-      });
-    }
+    errors = await normalizeSequelizeErrors(req.body.email, req.body.userName);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  if (Object.keys(errors).length) {
+    return res.status(400).send({
+      errors,
+    });
+  }
+  let newUser: User;
+  try {
     const hashPassword = await bcrypt.hash(req.body.password, saltRounds);
-    const newUser = await User.create({
+    newUser = await User.create({
       userName: req.body.userName,
       email: req.body.email,
       password: hashPassword,
     });
-    sign(
-      {
-        id: newUser.id,
-      },
-      CONFIRM_SECRET,
-      {
-        expiresIn: '2d',
-      },
-      (err, emailToken) => {
-        if (err) throw new Error(`something went wrong: ${err}`);
-        if (emailToken) sendConfirmAccount(req.body.email, emailToken);
-      },
-    );
-    return res.status(201).send(newUser);
   } catch (err) {
     return res.status(500).send(err);
   }
+  sign(
+    {
+      id: newUser.id,
+    },
+    CONFIRM_SECRET,
+    {
+      expiresIn: '2d',
+    },
+    (err, emailToken) => {
+      if (err) throw new Error(`something went wrong: ${err}`);
+      if (emailToken) sendConfirmAccount(req.body.email, emailToken);
+    },
+  );
+  return res.status(201).send(newUser);
 };

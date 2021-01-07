@@ -65,22 +65,6 @@ describe('users', () => {
         expect(resetPasswordMessageMocked).toHaveBeenCalledTimes(1);
         jest.restoreAllMocks();
       });
-      it('should return error 500 if jwt fail to sign', async () => {
-        jest.spyOn(jwt, 'sign').mockImplementation(() => {
-          throw new Error('something went wrong');
-        });
-        const { email: userEmail } = await User.create({
-          userName: 'user',
-          email: 'user@email.com',
-          password: 'Aaoudjiuvhds9!',
-          admin: false,
-          confirmed: true,
-        });
-        const { status } = await request(initApp()).get('/users/sendResetPassword').send({
-          email: userEmail,
-        });
-        expect(status).toBe(500);
-      });
       describe('should return error 400 if', () => {
         it('not a valid email', async () => {
           const { body, status } = await request(initApp()).get('/users/sendResetPassword').send({
