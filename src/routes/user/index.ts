@@ -8,7 +8,8 @@ import {
 
 import {
   getUsers,
-  getsUsersMe,
+  getUsersMe,
+  getUsersMeSendUpdateEmail,
   getUsersSendResetPassword,
   postUsersSignin,
   postUsersLogin,
@@ -25,24 +26,20 @@ router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers); // Get all users
 // TODO: confirm version auth
 router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation); // Confirm account
 // TODO: need confirm token version auth in token
-router.get('/login', shouldNotBeAuth, postUsersLogin); // Login, send accessToken and refreshToken
-router.post('/refreshToken', postUsersRefreshToken); // Refresh a token
-router.post('/signin/', shouldNotBeAuth, postUsersSignin); // Sign in, create a user and send a confirm email
-router.get('/me', shouldBeAuth, shouldBeConfirmed, getsUsersMe); // Get own account
-router.get('/me/sendUpdateEmail', shouldBeAuth, shouldBeConfirmed, () => {
-// TODO:
-// should be logged in
-// should require password
-// should be confirmed
-// should confirm password
-// should send an email
-});
-router.get('/sendResetPassword/', shouldNotBeAuth, getUsersSendResetPassword); // Send an email when a user forget his password, increment confirm version auth
-router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword); // need body password and token match
+router.get('/login', shouldNotBeAuth, postUsersLogin);
+router.post('/refreshToken', postUsersRefreshToken);
+router.post('/signin/', shouldNotBeAuth, postUsersSignin);
+router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
+router.get('/me/sendUpdateEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeSendUpdateEmail);
+router.get('/me/sendUpdateNewEmail', shouldBeAuth, shouldBeConfirmed);
+router.get('/me/updateEmail', shouldBeAuth, shouldBeConfirmed);
+router.get('/sendResetPassword/', shouldNotBeAuth, getUsersSendResetPassword);
+router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
 
 // TODO:
-
-router.get('/sendConfirmPassword', shouldNotBeAuth); // route if user want to resend password, should get body.email, check if user exist and not confirm
+router.get('/reSendConfirmPassword', shouldNotBeAuth); // route if user want to resend password, should get body.email, check if user exist and not confirm
+router.get('/me/reSendUpdateEmail'); // route if user want to resend to current email
+router.get('/me/reSendUpdateNewEmail');
 router.put('/me/updateEmail', shouldBeAuth, shouldBeConfirmed); // should update email
 router.put('/me/updatePassword', shouldBeAuth, shouldBeConfirmed); // should get current password, new password, confirm new password
 router.put('/me/profilePicture', shouldBeAuth, shouldBeConfirmed); // Need to be logged in and new picture OR old picture

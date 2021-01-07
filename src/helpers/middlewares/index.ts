@@ -18,7 +18,6 @@ export const shouldBeAuth = (req: Request, res: Response, next: Function) => {
     const payload = verify(token, ACCES_SECRET);
     res.locals.payload = payload;
   } catch (err) {
-    console.log(err);
     return res.status(500).send({
       errors: err,
     });
@@ -29,15 +28,19 @@ export const shouldBeAuth = (req: Request, res: Response, next: Function) => {
 export const shouldBeConfirmed = async (__: Request, res: Response, next: Function) => {
   try {
     const user = await User.findByPk(res.locals.payload.id, { raw: true });
-    if (user && !user.confirmed) {
-      return res.status(401).send({
-        errors: 'You\'re account need to be confimed',
-      });
+    if (user) {
+      if (!user.confirmed) {
+        return res.status(401).send({
+          errors: 'You\'re account need to be confimed',
+        });
+      }
+      res.locals.user = user;
+      return next();
     }
-    res.locals.user = user;
-    return next();
+    return res.status(404).send({
+      errors: 'user not found',
+    });
   } catch (err) {
-    console.log(err);
     return res.status(500).send({
       errors: err,
     });

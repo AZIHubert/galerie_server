@@ -6,19 +6,19 @@ interface UserSignIn {
   password: string;
   confirmPassword: string;
 }
-
 interface UserLogIn {
   userNameOrEmail: string;
   password: string;
 }
-
 interface Email {
   email: string;
 }
-
 interface Passwords {
   password: string;
   confirmPassword: string;
+}
+interface Password {
+  password: string;
 }
 
 const userSignInSchema = Joi.object({
@@ -128,18 +128,33 @@ const modifyPasswordSchema = Joi.object({
     }),
 });
 
+const sendUpdateEmailSchema = Joi.object({
+  password: Joi.string()
+    .required()
+    .empty()
+    .messages({
+      'string.base': 'should be a type of \'text\'',
+      'string.empty': 'cannot be an empty field',
+      'any.required': 'is required',
+    }),
+});
+
 const options: Joi.ValidationOptions = {
   abortEarly: false,
   allowUnknown: true,
   stripUnknown: true,
 };
 
-export const validateSignIn = (user: UserSignIn) => userSignInSchema.validate(user, options);
-export const validateLogIn = (user: UserLogIn) => userLogInSchema.validate(user, options);
+export const validateSignIn = (user: UserSignIn) => userSignInSchema
+  .validate(user, options);
+export const validateLogIn = (user: UserLogIn) => userLogInSchema
+  .validate(user, options);
 export const validateResetPasswordSchema = (email: Email) => resetPasswordSchema
   .validate(email, options);
 export const validateModifyPasswordSchema = (passwords: Passwords) => modifyPasswordSchema
   .validate(passwords, options);
+export const validateSendUpdateEmailSchema = (password: Password) => sendUpdateEmailSchema
+  .validate(password);
 
 export const normalizeJoiErrors = (errors: Joi.ValidationError) => {
   const normalizeErrors: {[key:string]: string} = {};

@@ -58,7 +58,6 @@ export default async (req: Request, res: Response) => {
       .status(200)
       .send({ accessToken: createAccessToken(user) });
   } catch (err) {
-    console.log(err);
     return res.status(500).send({
       errors: err,
     });

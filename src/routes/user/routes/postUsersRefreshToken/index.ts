@@ -23,7 +23,6 @@ export default async (req: Request, res: Response) => {
   try {
     payload = verify(token, REFRESH_SECRET);
   } catch (err) {
-    console.log(err);
     return res.status(500).send({
       errors: err,
     });

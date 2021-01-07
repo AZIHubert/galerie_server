@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import request from 'supertest';
 
 import '@src/helpers/initEnv';
@@ -6,7 +7,6 @@ import User from '@src/db/models/user';
 import * as email from '@src/helpers/email';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
-import jwt from 'jsonwebtoken';
 
 const sequelize = initSequelize();
 

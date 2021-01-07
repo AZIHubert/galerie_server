@@ -25,7 +25,6 @@ export default async (req: Request, res: Response) => {
           RESET_PASSWORD_SECRET,
         ) as object;
       } catch (err) {
-        console.log(err);
         return res.status(500).send(err);
       }
       const { user: { id }, exp } = token;
@@ -39,7 +38,6 @@ export default async (req: Request, res: Response) => {
         const validation = validateModifyPasswordSchema(req.body);
         error = validation.error;
       } catch (err) {
-        console.log(err);
         return res.status(500).send(err);
       }
       if (error) {
@@ -59,7 +57,6 @@ export default async (req: Request, res: Response) => {
         await user.update({ password: hashPassword });
         return res.status(204).end();
       } catch (err) {
-        console.log(err);
         return res.status(500).send(err);
       }
     }

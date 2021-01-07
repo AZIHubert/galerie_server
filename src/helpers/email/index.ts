@@ -47,9 +47,28 @@ const resetPasswordMessage = (email: string, token: string) => ({
   </html>`,
 });
 
-export const sendConfirmAccount = (email: string, emailToken: string) => transporter.sendMail(
-  confirmAccountMessage(email, emailToken),
+const updateEmailMessage = (email: string, token: string) => ({
+  from: 'Galeries <sender@mail.com>',
+  to: email,
+  subject: 'reset your password',
+  text: 'Hello',
+  html: `<html>
+    <body>
+      <h1>Galeries</h1>
+      <p>Please click this link to update your email:</p>
+      <a href='https://www.localhost:3000/updateEmail/${token}'>
+        https://www.localhost:3000/updateEmail/${token}
+      </a>
+    </body>
+  </html>`,
+});
+
+export const sendConfirmAccount = (email: string, token: string) => transporter.sendMail(
+  confirmAccountMessage(email, token),
 );
-export const sendResetPassword = (email: string, emailToken: string) => transporter.sendMail(
-  resetPasswordMessage(email, emailToken),
+export const sendResetPassword = (email: string, token: string) => transporter.sendMail(
+  resetPasswordMessage(email, token),
+);
+export const sendUpdateEmailMessage = (email: string, token: string) => transporter.sendMail(
+  updateEmailMessage(email, token),
 );
