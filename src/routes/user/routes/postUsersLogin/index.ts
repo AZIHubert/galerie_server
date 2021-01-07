@@ -15,13 +15,15 @@ import {
 
 export default async (req: Request, res: Response) => {
   const { error } = validateLogIn(req.body);
+  let user: User | null;
+  let PasswordsMatch: boolean;
+  if (error) {
+    return res.status(400).send({
+      errors: normalizeJoiErrors(error),
+    });
+  }
   try {
-    if (error) {
-      return res.status(400).send({
-        errors: normalizeJoiErrors(error),
-      });
-    }
-    const user = await User.findOne({
+    user = await User.findOne({
       where: {
         [Op.or]: [
           {
@@ -33,33 +35,35 @@ export default async (req: Request, res: Response) => {
         ],
       },
     });
-    if (!user) {
-      return res.status(404).send({
-        errors: {
-          userNameOrEmail: 'user not found',
-        },
-      });
-    }
-    if (!user.confirmed) {
-      return res.status(401).send({
-        errors: 'need to confirm account',
-      });
-    }
-    const password = await compare(req.body.password, user.password);
-    if (!password) {
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  if (!user) {
+    return res.status(404).send({
+      errors: {
+        userNameOrEmail: 'user not found',
+      },
+    });
+  }
+  if (!user.confirmed) {
+    return res.status(401).send({
+      errors: 'need to confirm account',
+    });
+  }
+  try {
+    PasswordsMatch = await compare(req.body.password, user.password);
+    if (!PasswordsMatch) {
       return res.status(400).send({
         errors: {
           password: 'wrong password',
         },
       });
     }
-    sendRefreshToken(res, createRefreshToken(user));
-    return res
-      .status(200)
-      .send({ accessToken: createAccessToken(user) });
   } catch (err) {
-    return res.status(500).send({
-      errors: err,
-    });
+    return res.status(500).send(err);
   }
+  sendRefreshToken(res, createRefreshToken(user));
+  return res
+    .status(200)
+    .send({ accessToken: createAccessToken(user) });
 };

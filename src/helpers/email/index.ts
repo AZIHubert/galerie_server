@@ -50,12 +50,28 @@ const resetPasswordMessage = (email: string, token: string) => ({
 const updateEmailMessage = (email: string, token: string) => ({
   from: 'Galeries <sender@mail.com>',
   to: email,
-  subject: 'reset your password',
+  subject: 'update your email',
   text: 'Hello',
   html: `<html>
     <body>
       <h1>Galeries</h1>
       <p>Please click this link to update your email:</p>
+      <a href='https://www.localhost:3000/updateEmail/${token}'>
+        https://www.localhost:3000/updateEmail/${token}
+      </a>
+    </body>
+  </html>`,
+});
+
+const validateEmailMessage = (email: string, token: string) => ({
+  from: 'Galeries <sender@mail.com>',
+  to: email,
+  subject: 'validate your email',
+  text: 'Hello',
+  html: `<html>
+    <body>
+      <h1>Galeries</h1>
+      <p>Please click this link to validate your email:</p>
       <a href='https://www.localhost:3000/updateEmail/${token}'>
         https://www.localhost:3000/updateEmail/${token}
       </a>
@@ -71,4 +87,8 @@ export const sendResetPassword = (email: string, token: string) => transporter.s
 );
 export const sendUpdateEmailMessage = (email: string, token: string) => transporter.sendMail(
   updateEmailMessage(email, token),
+);
+
+export const sendValidateEmailMessage = (email: string, token: string) => transporter.sendMail(
+  validateEmailMessage(email, token),
 );

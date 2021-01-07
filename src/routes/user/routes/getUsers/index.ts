@@ -7,8 +7,6 @@ export default async (__: Request, res: Response) => {
     const users = await User.findAll();
     return res.status(200).send(users);
   } catch (err) {
-    return res.status(500).send({
-      errors: 'Something went wrong.',
-    });
+    return res.status(500).send(err);
   }
 };

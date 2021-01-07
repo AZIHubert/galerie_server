@@ -139,6 +139,19 @@ const sendUpdateEmailSchema = Joi.object({
     }),
 });
 
+const sendUpdateNewEmailSchema = Joi.object({
+  email: Joi.string()
+    .email({ minDomainSegments: 2 })
+    .required()
+    .empty()
+    .messages({
+      'string.base': 'should be a type of \'text\'',
+      'string.email': 'should be a valid email',
+      'string.empty': 'cannot be an empty field',
+      'any.required': 'is required',
+    }),
+});
+
 const options: Joi.ValidationOptions = {
   abortEarly: false,
   allowUnknown: true,
@@ -155,6 +168,8 @@ export const validateModifyPasswordSchema = (passwords: Passwords) => modifyPass
   .validate(passwords, options);
 export const validateSendUpdateEmailSchema = (password: Password) => sendUpdateEmailSchema
   .validate(password);
+export const validatesendUpdateNewEmailSchema = (email: Email) => sendUpdateNewEmailSchema
+  .validate(email, options);
 
 export const normalizeJoiErrors = (errors: Joi.ValidationError) => {
   const normalizeErrors: {[key:string]: string} = {};

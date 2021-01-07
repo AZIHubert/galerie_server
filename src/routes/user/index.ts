@@ -10,6 +10,7 @@ import {
   getUsers,
   getUsersMe,
   getUsersMeSendUpdateEmail,
+  getUsersMeSendUpdateNewEmail,
   getUsersSendResetPassword,
   postUsersSignin,
   postUsersLogin,
@@ -31,7 +32,7 @@ router.post('/refreshToken', postUsersRefreshToken);
 router.post('/signin/', shouldNotBeAuth, postUsersSignin);
 router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
 router.get('/me/sendUpdateEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeSendUpdateEmail);
-router.get('/me/sendUpdateNewEmail', shouldBeAuth, shouldBeConfirmed);
+router.get('/me/sendUpdateNewEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeSendUpdateNewEmail);
 router.get('/me/updateEmail', shouldBeAuth, shouldBeConfirmed);
 router.get('/sendResetPassword/', shouldNotBeAuth, getUsersSendResetPassword);
 router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);

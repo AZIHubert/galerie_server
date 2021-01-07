@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { sign } from 'jsonwebtoken';
-import _ from 'lodash';
 
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
@@ -23,7 +22,7 @@ export default async (req: Request, res: Response) => {
     }
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      res.status(404).send({
+      return res.status(404).send({
         errors: {
           email: 'user not found',
         },
@@ -31,11 +30,11 @@ export default async (req: Request, res: Response) => {
     }
     sign(
       {
-        user: _.pick(user, 'id'),
+        id: user.id,
       },
       RESET_PASSWORD_SECRET,
       {
-        expiresIn: '2d',
+        expiresIn: '30m',
       },
       (err, emailToken) => {
         if (err) throw new Error(`something went wrong: ${err}`);

@@ -10,6 +10,8 @@ import User from '@src/db/models/user';
 
 const sequelize = initSequelize();
 
+const EXPIRED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjowfSwiZXhwIjowfQ.sM6G1FpEelcrwmKMlvWLfBk9rSBHLTPhHhZmgPOJXJg';
+
 describe('users', () => {
   let jwtMock: jest.SpyInstance;
 
@@ -47,10 +49,7 @@ describe('users', () => {
         });
         const bcryptMock = jest.spyOn(bcrypt, 'hash');
         jwtMock.mockImplementationOnce(() => ({
-          user: {
-            id,
-          },
-          exp: Date.now(),
+          id,
         }));
         const { status } = await request(initApp())
           .put('/users/resetPassword')
@@ -75,10 +74,7 @@ describe('users', () => {
           admin: false,
         });
         jwtMock.mockImplementationOnce(() => ({
-          user: {
-            id,
-          },
-          exp: Date.now(),
+          id,
         }));
         const { status } = await request(initApp())
           .put('/users/resetPassword')
@@ -107,10 +103,7 @@ describe('users', () => {
       });
       it('should return error 404 if user not found', async () => {
         jwtMock.mockImplementationOnce(() => ({
-          user: {
-            id: 1,
-          },
-          exp: Date.now(),
+          id: 1,
         }));
         const { body, status } = await request(initApp())
           .put('/users/resetPassword')
@@ -123,6 +116,16 @@ describe('users', () => {
         expect(body).toStrictEqual({
           errors: 'user not found',
         });
+      });
+      it('should return 500 is expired', async () => {
+        const { status } = await request(initApp())
+          .put('/users/resetPassword')
+          .send({
+            password: 'Aaoudjiuvhds9!',
+            confirmPassword: 'Aaoudjiuvhds9!',
+          })
+          .set('confirmation', `Bearer ${EXPIRED_TOKEN}`);
+        expect(status).toBe(500);
       });
       describe('should return error 400', () => {
         describe('if token', () => {
@@ -153,26 +156,6 @@ describe('users', () => {
             });
             expect(jwtMock).toHaveBeenCalledTimes(0);
           });
-          it('is expired', async () => {
-            jwtMock.mockImplementationOnce(() => ({
-              user: {
-                id: 1,
-              },
-              exp: 0,
-            }));
-            const { body, status } = await request(initApp())
-              .put('/users/resetPassword')
-              .send({
-                password: 'Aaoudjiuvhds9!',
-                confirmPassword: 'Aaoudjiuvhds9!',
-              })
-              .set('confirmation', 'Bearer token');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: 'expired token',
-            });
-            expect(jwtMock).toHaveBeenCalledTimes(1);
-          });
         });
         describe('if password', () => {
           beforeEach(async (done) => {
@@ -181,12 +164,8 @@ describe('users', () => {
             } catch (err) {
               done(err);
             }
-            jwtMock = jest.spyOn(jwt, 'verify');
-            jwtMock.mockImplementationOnce(() => ({
-              user: {
-                id: 1,
-              },
-              exp: Date.now(),
+            jwtMock = jest.spyOn(jwt, 'verify').mockImplementationOnce(() => ({
+              id: 1,
             }));
             done();
           });
@@ -332,10 +311,7 @@ describe('users', () => {
             }
             jwtMock = jest.spyOn(jwt, 'verify');
             jwtMock.mockImplementationOnce(() => ({
-              user: {
-                id: 1,
-              },
-              exp: Date.now(),
+              id: 1,
             }));
             done();
           });

@@ -27,12 +27,7 @@ export default async (req: Request, res: Response) => {
       } catch (err) {
         return res.status(500).send(err);
       }
-      const { user: { id }, exp } = token;
-      if (exp < (Date.now() >= exp * 1000)) {
-        return res.status(400).send({
-          errors: 'expired token',
-        });
-      }
+      const { id } = token;
       let error: ValidationError | undefined;
       try {
         const validation = validateModifyPasswordSchema(req.body);

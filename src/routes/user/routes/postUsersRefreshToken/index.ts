@@ -23,9 +23,7 @@ export default async (req: Request, res: Response) => {
   try {
     payload = verify(token, REFRESH_SECRET);
   } catch (err) {
-    return res.status(500).send({
-      errors: err,
-    });
+    return res.status(500).send(err);
   }
   const user = await User.findByPk(payload.id, { raw: true });
   if (!user) {

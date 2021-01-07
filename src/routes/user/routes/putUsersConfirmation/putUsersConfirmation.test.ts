@@ -30,7 +30,7 @@ describe('users', () => {
     id = body.id;
     jwtMock = jest.spyOn(jwt, 'verify');
     jwtMock.mockImplementation(() => ({
-      user: { id },
+      id,
     }));
     done();
   });
@@ -92,39 +92,41 @@ describe('users', () => {
               errors: 'you are already authenticated',
             });
           });
-          it('user is already active', async () => {
-            await request(initApp())
-              .put('/users/confirmation')
-              .set('confirmation', 'Bearer abcd');
-            const { body, status } = await request(initApp())
-              .put('/users/confirmation')
-              .set('confirmation', 'Bearer abcd');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: 'your account is already confirmed',
-            });
-          });
         });
       });
-      describe('should return error 400 if confirmation token', () => {
-        it('not found', async () => {
-          const { body, status } = await request(initApp())
-            .put('/users/confirmation');
-          expect(status).toBe(400);
-          expect(body).toStrictEqual({
-            errors: 'confirmation token not found',
-          });
-          expect(jwtMock).toHaveBeenCalledTimes(0);
-        });
-        it('is not "Bearer ..."', async () => {
+      describe('should return error 401 if', () => {
+        it('user is already active', async () => {
+          await request(initApp())
+            .put('/users/confirmation')
+            .set('confirmation', 'Bearer abcd');
           const { body, status } = await request(initApp())
             .put('/users/confirmation')
-            .set('confirmation', 'abcde');
-          expect(status).toBe(400);
+            .set('confirmation', 'Bearer abcd');
+          expect(status).toBe(401);
           expect(body).toStrictEqual({
-            errors: 'wrong token',
+            errors: 'your account is already confirmed',
           });
-          expect(jwtMock).toHaveBeenCalledTimes(0);
+        });
+        describe('confirmation token', () => {
+          it('not found', async () => {
+            const { body, status } = await request(initApp())
+              .put('/users/confirmation');
+            expect(status).toBe(401);
+            expect(body).toStrictEqual({
+              errors: 'token not found',
+            });
+            expect(jwtMock).toHaveBeenCalledTimes(0);
+          });
+          it('is not "Bearer ..."', async () => {
+            const { body, status } = await request(initApp())
+              .put('/users/confirmation')
+              .set('confirmation', 'abcde');
+            expect(status).toBe(401);
+            expect(body).toStrictEqual({
+              errors: 'wrong token',
+            });
+            expect(jwtMock).toHaveBeenCalledTimes(0);
+          });
         });
       });
     });

@@ -1,7 +1,6 @@
 import { compare } from 'bcrypt';
 import { Request, Response } from 'express';
 import { sign } from 'jsonwebtoken';
-import _ from 'lodash';
 
 import accEnv from '@src/helpers/accEnv';
 import {
@@ -12,7 +11,7 @@ import {
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
 
-const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
+const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 
 export default async (req: Request, res: Response) => {
   const { user } = res.locals;
@@ -33,9 +32,10 @@ export default async (req: Request, res: Response) => {
     }
     sign(
       {
-        user: _.pick(user, 'id'),
+        id: user.id,
+        emailTokenVersion: user.emailTokenVersion,
       },
-      UPDATE_EMAIL_SECRET,
+      SEND_EMAIL_SECRET,
       {
         expiresIn: '30m',
       },
@@ -47,9 +47,7 @@ export default async (req: Request, res: Response) => {
       },
     );
   } catch (err) {
-    return res.status(500).send({
-      errors: err,
-    });
+    return res.status(500).send(err);
   }
   return res.status(200).send('ok');
 };

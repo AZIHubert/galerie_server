@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import { sign } from 'jsonwebtoken';
-import _ from 'lodash';
 
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
@@ -49,7 +48,7 @@ export default async (req: Request, res: Response) => {
     });
     sign(
       {
-        user: _.pick(newUser, 'id'),
+        id: newUser.id,
       },
       CONFIRM_SECRET,
       {
@@ -62,6 +61,6 @@ export default async (req: Request, res: Response) => {
     );
     return res.status(201).send(newUser);
   } catch (err) {
-    return res.status(500).send('something went wrong.');
+    return res.status(500).send(err);
   }
 };
