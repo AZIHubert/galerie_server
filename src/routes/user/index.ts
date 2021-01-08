@@ -11,7 +11,7 @@ import {
   getUsersMe,
   getUsersMeSendUpdateEmail,
   getUsersMeSendUpdateNewEmail,
-  getUsersSendResetPassword,
+  getUsersResetPassword,
   postUsersSignin,
   postUsersLogin,
   postUsersRefreshToken,
@@ -24,12 +24,10 @@ const router = Router();
 // TODO: need to be admin
 router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers); // Get all users
 router.post('/signin/', shouldNotBeAuth, postUsersSignin);
-// TODO: confirm version auth
 router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation); // Confirm account
 router.get('/login', shouldNotBeAuth, postUsersLogin);
 router.post('/refreshToken', postUsersRefreshToken);
-// TODO: rename get sendResetPassword
-router.get('/sendResetPassword/', shouldNotBeAuth, getUsersSendResetPassword);
+router.get('/resetPassword/', shouldNotBeAuth, getUsersResetPassword);
 router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
 router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
 // TODO: rename root => me/updateEmail
@@ -67,5 +65,4 @@ export default router;
 // https://medium.com/swlh/authentication-using-jwt-and-refresh-token-part-2-a86150d25152
 
 // TODO:
-// add user field confirmTokenVersion
 // update name's route

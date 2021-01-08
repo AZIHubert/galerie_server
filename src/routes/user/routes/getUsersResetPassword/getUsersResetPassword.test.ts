@@ -28,7 +28,7 @@ describe('users', () => {
     sequelize.close();
     done();
   });
-  describe('sendResetPassword', () => {
+  describe('resetPassword', () => {
     describe('GET', () => {
       it('should return error 404 if email is not found', async () => {
         await User.create({
@@ -38,7 +38,7 @@ describe('users', () => {
           admin: false,
           confirmed: true,
         });
-        const { body, status } = await request(initApp()).get('/users/sendResetPassword').send({
+        const { body, status } = await request(initApp()).get('/users/resetPassword').send({
           email: 'user2@email.com',
         });
         expect(status).toBe(404);
@@ -58,7 +58,7 @@ describe('users', () => {
           admin: false,
           confirmed: true,
         });
-        await request(initApp()).get('/users/sendResetPassword').send({
+        await request(initApp()).get('/users/resetPassword').send({
           email: userEmail,
         });
         expect(jwtMocked).toHaveBeenCalledTimes(1);
@@ -67,7 +67,7 @@ describe('users', () => {
       });
       describe('should return error 400 if', () => {
         it('not a valid email', async () => {
-          const { body, status } = await request(initApp()).get('/users/sendResetPassword').send({
+          const { body, status } = await request(initApp()).get('/users/resetPassword').send({
             email: 'abcde',
           });
           expect(status).toBe(400);
@@ -78,7 +78,7 @@ describe('users', () => {
           });
         });
         it('email is not set', async () => {
-          const { body, status } = await request(initApp()).get('/users/sendResetPassword').send({});
+          const { body, status } = await request(initApp()).get('/users/resetPassword').send({});
           expect(status).toBe(400);
           expect(body).toStrictEqual({
             errors: {
@@ -87,7 +87,7 @@ describe('users', () => {
           });
         });
         it('email is empty', async () => {
-          const { body, status } = await request(initApp()).get('/users/sendResetPassword').send({
+          const { body, status } = await request(initApp()).get('/users/resetPassword').send({
             email: '',
           });
           expect(status).toBe(400);
