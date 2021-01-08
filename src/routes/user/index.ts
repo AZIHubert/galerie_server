@@ -18,21 +18,15 @@ import {
   putUsersConfirmation,
   putUsersResetPassword,
   putUsersMeUpdateEmail,
+  getUsersConfirmationResend,
 } from './routes';
 
 const router = Router();
 
 router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers); // TODO: need to be admin
-router.post('/signin/', shouldNotBeAuth, postUsersSignin);
+router.post('/signin/', shouldNotBeAuth, postUsersSignin); // TODO: send res.body.user
 router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
-router.get('/confirmation/resend', (_, res) => {
-  res.end();
-  // TODO:
-  // need user id
-  // need user email
-  // need to increment confirmTokenVersion
-  // need to send email
-});
+router.get('/confirmation/resend', shouldNotBeAuth, getUsersConfirmationResend);
 router.get('/login', shouldNotBeAuth, postUsersLogin);
 router.post('/refreshToken', postUsersRefreshToken);
 router.get('/resetPassword/', shouldNotBeAuth, getUsersResetPassword);
@@ -50,9 +44,13 @@ router.put('/me/updatePassword', shouldBeAuth, shouldBeConfirmed); // should get
 router.put('/me/profilePicture', shouldBeAuth, shouldBeConfirmed); // Need to be logged in and new picture OR old picture
 router.delete('/me', shouldBeAuth, shouldBeConfirmed); // need to be login, confirmed and id match
 router.get('/:userName/', shouldBeAuth, shouldBeConfirmed); // Find multiples users by userName
+router.get('/:id'); // get user by id
 router.get('/logout/', shouldBeAuth, shouldBeConfirmed); // need to be login and confirmed => sendRefreshToken(req, '')
 router.delete('/user/:id/blacklist', shouldBeAuth, shouldBeConfirmed); // need to be login, confirmed and admin
 router.put('/:id/admin', shouldBeAuth, shouldBeConfirmed); // need admin_password and be login and confirmed
+router.get('/me/blacklist'); // get all blacklisted users
+router.put('/me/blacklist/:id'); // put a user to current user blacklist
+router.delete('/me/blacklist/:id'); // remove user to current user blacklist
 
 // Login with Facebook
 // Login with Google

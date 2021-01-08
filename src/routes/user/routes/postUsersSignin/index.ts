@@ -58,7 +58,7 @@ export default async (req: Request, res: Response) => {
   sign(
     {
       id: newUser.id,
-      confirm: newUser.confirmTokenVersion,
+      confirmTokenVersion: newUser.confirmTokenVersion,
     },
     CONFIRM_SECRET,
     {

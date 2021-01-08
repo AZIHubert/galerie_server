@@ -13,3 +13,18 @@ initSequelize(() => {
     console.log(`App starte on port ${PORT}`);
   });
 });
+
+// TODO:
+// create galerie and be an admin
+// delete galerie if current user is admin
+// update galerie if current user is admin (name and picture)
+// get all galeries
+// get a single galerie
+// invite people to a galerie if current user is admin
+// delete user to a galerie if current user is admin
+// find galerie by name
+// send an invite to a galerie to all admin user
+// accept user to a galerie if current user is admin
+// add picture to a galerie
+// add pictures to a galere
+// remove picture(s) to a galeries if belong to current user
