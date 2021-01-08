@@ -58,7 +58,6 @@ describe('users', () => {
             confirmPassword: 'Aaoudjiuvhds9!',
           })
           .set('confirmation', 'Bearer token');
-        // console.log(body);
         const { password } = await User.findByPk(id) as User;
         const passwordMatch = await bcrypt.compare('Aaoudjiuvhds9!', password);
         expect(bcryptMock).toHaveBeenCalledTimes(1);
