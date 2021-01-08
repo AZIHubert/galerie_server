@@ -31,11 +31,29 @@ export default async (req: Request, res: Response) => {
       RESET_PASSWORD_SECRET,
     ) as {
       id: string;
+      resetPasswordTokenVersion: number
     };
   } catch (err) {
     return res.status(500).send(err);
   }
   const { id } = tokenVerified;
+  let user: User | null;
+  try {
+    user = await User.findByPk(id);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  if (!user) {
+    return res.status(404).send({
+      errors: 'user not found',
+    });
+  }
+  const { resetPasswordTokenVersion } = tokenVerified;
+  if (resetPasswordTokenVersion !== user.resetPasswordTokenVersion) {
+    return res.status(401).send({
+      errors: 'token version doesn\'t match',
+    });
+  }
   let error: ValidationError | undefined;
   try {
     const validation = validateModifyPasswordSchema(req.body);
@@ -46,17 +64,6 @@ export default async (req: Request, res: Response) => {
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
-    });
-  }
-  let user: User | null;
-  try {
-    user = await User.findByPk(id);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-  if (!user) {
-    return res.status(404).send({
-      errors: 'user not found',
     });
   }
   try {

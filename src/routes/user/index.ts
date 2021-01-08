@@ -8,33 +8,42 @@ import {
 
 import {
   getUsers,
+  getUsersConfirmationResend,
   getUsersMe,
   getUsersMeUpdateEmail,
   getUsersMeUpdateEmailConfirm,
   getUsersResetPassword,
-  postUsersSignin,
+  getUsersResetPasswordResend,
   postUsersLogin,
   postUsersRefreshToken,
+  postUsersSignin,
   putUsersConfirmation,
-  putUsersResetPassword,
   putUsersMeUpdateEmail,
-  getUsersConfirmationResend,
+  putUsersResetPassword,
 } from './routes';
 
 const router = Router();
 
 router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers); // TODO: need to be admin
-router.post('/signin/', shouldNotBeAuth, postUsersSignin); // TODO: send res.body.user
+router.post('/signin/', shouldNotBeAuth, postUsersSignin);
 router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
 router.get('/confirmation/resend', shouldNotBeAuth, getUsersConfirmationResend);
 router.get('/login', shouldNotBeAuth, postUsersLogin);
 router.post('/refreshToken', postUsersRefreshToken);
 router.get('/resetPassword/', shouldNotBeAuth, getUsersResetPassword);
-router.get('/resetPassword/resend'); // TODO:
+router.get('/resetPassword/resend', shouldNotBeAuth, getUsersResetPasswordResend);
 router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
 router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
 router.get('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmail);
-router.get('/me/updateEmail/resend'); // TODO:
+router.get('/me/updateEmail/resend', (_, res) => {
+  res.end();
+  // TODO:
+  // should be auth
+  // should be confirmed
+  // should have password
+  // passwords should match
+  // should sign token and send email
+});
 router.get('/me/updateEmail/confirm', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirm);
 router.get('/me/updateEmail/confirm/resend'); // TODO:
 router.put('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdateEmail);

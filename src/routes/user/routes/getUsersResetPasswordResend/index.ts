@@ -4,19 +4,14 @@ import { sign } from 'jsonwebtoken';
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
 import { sendResetPassword } from '@src/helpers/email';
-import {
-  normalizeJoiErrors,
-  validateResetPasswordSchema,
-} from '@src/helpers/schemas';
 
 const RESET_PASSWORD_SECRET = accEnv('RESET_PASSWORD_SECRET');
 
 export default async (req: Request, res: Response) => {
   const { email } = req.body;
-  const { error } = validateResetPasswordSchema(req.body);
-  if (error) {
-    return res.status(400).send({
-      errors: normalizeJoiErrors(error),
+  if (!email) {
+    return res.status(401).send({
+      errors: 'email is required',
     });
   }
   let user: User | null;
@@ -27,15 +22,13 @@ export default async (req: Request, res: Response) => {
   }
   if (!user) {
     return res.status(404).send({
-      errors: {
-        email: 'user not found',
-      },
+      errors: 'user not found',
     });
   }
-  if (!user.confirmed) {
-    return res.status(401).send({
-      errors: 'You\'re account need to be confimed',
-    });
+  try {
+    await user.increment({ resetPasswordTokenVersion: 1 });
+  } catch (err) {
+    return res.status(500).send(err);
   }
   sign(
     {
@@ -51,5 +44,5 @@ export default async (req: Request, res: Response) => {
       if (emailToken) sendResetPassword(email, emailToken);
     },
   );
-  return res.status(200).end();
+  return res.end();
 };

@@ -39,7 +39,7 @@ describe('users', () => {
   describe('resetPassword', () => {
     describe('PUT', () => {
       it('should hash password', async () => {
-        const { id } = await User.create({
+        const { id, resetPasswordTokenVersion } = await User.create({
           userName: 'user',
           email: 'user@email',
           password: 'password',
@@ -50,6 +50,7 @@ describe('users', () => {
         const bcryptMock = jest.spyOn(bcrypt, 'hash');
         jwtMock.mockImplementationOnce(() => ({
           id,
+          resetPasswordTokenVersion,
         }));
         const { status } = await request(initApp())
           .put('/users/resetPassword')
@@ -60,12 +61,12 @@ describe('users', () => {
           .set('confirmation', 'Bearer token');
         const { password } = await User.findByPk(id) as User;
         const passwordMatch = await bcrypt.compare('Aaoudjiuvhds9!', password);
-        expect(bcryptMock).toHaveBeenCalledTimes(1);
         expect(status).toBe(204);
+        expect(bcryptMock).toHaveBeenCalledTimes(1);
         expect(passwordMatch).toBe(true);
       });
       it('should increment token version', async () => {
-        const { id } = await User.create({
+        const { id, resetPasswordTokenVersion } = await User.create({
           userName: 'user',
           email: 'user@email',
           password: 'password',
@@ -75,6 +76,7 @@ describe('users', () => {
         });
         jwtMock.mockImplementationOnce(() => ({
           id,
+          resetPasswordTokenVersion,
         }));
         const { status } = await request(initApp())
           .put('/users/resetPassword')
@@ -87,18 +89,43 @@ describe('users', () => {
         expect(status).toBe(204);
         expect(authTokenVersion).toBe(1);
       });
-      it('should return error 401 if user is auth', async () => {
-        const { body, status } = await request(initApp())
-          .put('/users/resetPassword')
-          .send({
-            password: 'Aaoudjiuvhds9!',
-            confirmPassword: 'Aaoudjiuvhds9!',
-          })
-          .set('confirmation', 'Bearer token')
-          .set('authorization', 'Bearer token');
-        expect(status).toBe(401);
-        expect(body).toStrictEqual({
-          errors: 'you are already authenticated',
+      describe('should return error 401 if', () => {
+        it('user is auth', async () => {
+          const { body, status } = await request(initApp())
+            .put('/users/resetPassword')
+            .send({
+              password: 'Aaoudjiuvhds9!',
+              confirmPassword: 'Aaoudjiuvhds9!',
+            })
+            .set('confirmation', 'Bearer token')
+            .set('authorization', 'Bearer token');
+          expect(status).toBe(401);
+          expect(body).toStrictEqual({
+            errors: 'you are already authenticated',
+          });
+        });
+        it('resetPasswordToken version doesn\'t match', async () => {
+          const { id } = await User.create({
+            userName: 'user',
+            email: 'user@email',
+            password: 'password',
+            confirm: false,
+            authTokenVersion: 0,
+            admin: false,
+            resetPasswordToken: 1,
+          });
+          jwtMock.mockImplementationOnce(() => ({
+            id,
+            resetPasswordToken: 0,
+          }));
+          const { body, status } = await request(initApp())
+            .put('/users/resetPassword')
+            .send({})
+            .set('confirmation', 'Bearer token');
+          expect(status).toBe(401);
+          expect(body).toStrictEqual({
+            errors: 'token version doesn\'t match',
+          });
         });
       });
       it('should return error 404 if user not found', async () => {
@@ -159,13 +186,14 @@ describe('users', () => {
         });
         describe('if password', () => {
           beforeEach(async (done) => {
-            try {
-              await User.sync({ force: true });
-            } catch (err) {
-              done(err);
-            }
+            const { id, resetPasswordTokenVersion } = await User.create({
+              userName: 'user',
+              email: 'user@email',
+              password: 'password',
+            });
             jwtMock = jest.spyOn(jwt, 'verify').mockImplementationOnce(() => ({
-              id: 1,
+              id,
+              resetPasswordTokenVersion,
             }));
             done();
           });
@@ -304,15 +332,16 @@ describe('users', () => {
         });
         describe('if confirm password', () => {
           beforeEach(async (done) => {
-            try {
-              await User.sync({ force: true });
-            } catch (err) {
-              done(err);
-            }
-            jwtMock = jest.spyOn(jwt, 'verify');
-            jwtMock.mockImplementationOnce(() => ({
-              id: 1,
-            }));
+            const { id, resetPasswordTokenVersion } = await User.create({
+              userName: 'user',
+              email: 'user@email',
+              password: 'password',
+            });
+            jwtMock = jest.spyOn(jwt, 'verify')
+              .mockImplementationOnce(() => ({
+                id,
+                resetPasswordTokenVersion,
+              }));
             done();
           });
           it('is empty', async () => {

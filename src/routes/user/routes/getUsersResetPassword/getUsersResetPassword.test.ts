@@ -48,6 +48,22 @@ describe('users', () => {
           },
         });
       });
+      it('should return error 401 if user is not confirmed', async () => {
+        const { email: userEmail } = await User.create({
+          userName: 'user',
+          email: 'user@email.com',
+          password: 'Aaoudjiuvhds9!',
+          admin: false,
+          confirmed: false,
+        });
+        const { status, body } = await request(initApp()).get('/users/resetPassword').send({
+          email: userEmail,
+        });
+        expect(status).toBe(401);
+        expect(body).toStrictEqual({
+          errors: 'You\'re account need to be confimed',
+        });
+      });
       it('should send an email with and sign a token', async () => {
         const resetPasswordMessageMocked = jest.spyOn(email, 'sendResetPassword');
         const jwtMocked = jest.spyOn(jwt, 'sign');
@@ -65,6 +81,7 @@ describe('users', () => {
         expect(resetPasswordMessageMocked).toHaveBeenCalledTimes(1);
         jest.restoreAllMocks();
       });
+
       describe('should return error 400 if', () => {
         it('not a valid email', async () => {
           const { body, status } = await request(initApp()).get('/users/resetPassword').send({
