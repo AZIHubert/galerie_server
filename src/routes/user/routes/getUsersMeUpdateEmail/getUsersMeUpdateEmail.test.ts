@@ -35,7 +35,7 @@ describe('users', () => {
     done();
   });
   describe('me', () => {
-    describe('sendUpdateEmail', () => {
+    describe('updateEmail', () => {
       describe('GET', () => {
         it('should create a token and send an email', async () => {
           const emailMock = jest.spyOn(email, 'sendUpdateEmailMessage');
@@ -57,7 +57,7 @@ describe('users', () => {
             throw new Error(err);
           }
           const { status } = await request(initApp())
-            .get('/users/me/sendUpdateEmail')
+            .get('/users/me/updateEmail')
             .set('authorization', 'Bearer token')
             .send({
               password: 'Aaoudjiuvhds9!',
@@ -71,7 +71,7 @@ describe('users', () => {
             id: 1,
           }));
           const { status, body } = await request(initApp())
-            .get('/users/me/sendUpdateEmail')
+            .get('/users/me/updateEmail')
             .set('authorization', 'Bearer 1234');
           expect(status).toBe(404);
           expect(body).toStrictEqual({
@@ -99,7 +99,7 @@ describe('users', () => {
           });
           it('is not set', async () => {
             const { status, body } = await request(initApp())
-              .get('/users/me/sendUpdateEmail')
+              .get('/users/me/updateEmail')
               .set('authorization', 'Bearer token')
               .send({});
             expect(status).toBe(400);
@@ -111,7 +111,7 @@ describe('users', () => {
           });
           it('is not a string', async () => {
             const { status, body } = await request(initApp())
-              .get('/users/me/sendUpdateEmail')
+              .get('/users/me/updateEmail')
               .set('authorization', 'Bearer token')
               .send({
                 password: 123456,
@@ -125,7 +125,7 @@ describe('users', () => {
           });
           it('is empty', async () => {
             const { status, body } = await request(initApp())
-              .get('/users/me/sendUpdateEmail')
+              .get('/users/me/updateEmail')
               .set('authorization', 'Bearer token')
               .send({
                 password: '',
@@ -141,7 +141,7 @@ describe('users', () => {
             jest.spyOn(bcrypt, 'compare')
               .mockImplementationOnce(() => Promise.resolve(false));
             const { status, body } = await request(initApp())
-              .get('/users/me/sendUpdateEmail')
+              .get('/users/me/updateEmail')
               .set('authorization', 'Bearer token')
               .send({
                 password: 'Aaoudjiuvhds9!',
@@ -157,7 +157,7 @@ describe('users', () => {
         describe('should return error 401 if not', () => {
           it('logged in', async () => {
             const { status, body } = await request(initApp())
-              .get('/users/me/sendUpdateEmail');
+              .get('/users/me/updateEmail');
             expect(status).toBe(401);
             expect(body).toStrictEqual({
               errors: 'not authenticated',
@@ -176,7 +176,7 @@ describe('users', () => {
               id,
             }));
             const { status, body } = await request(initApp())
-              .get('/users/me/sendUpdateEmail')
+              .get('/users/me/updateEmail')
               .set('authorization', 'Bearer 1234');
             expect(status).toBe(401);
             expect(body).toStrictEqual({
@@ -202,7 +202,7 @@ describe('users', () => {
               throw new Error('something went wrong');
             });
           const { status } = await request(initApp())
-            .get('/users/me/sendUpdateEmail')
+            .get('/users/me/updateEmail')
             .set('authorization', 'Bearer token')
             .send({
               password: 'Aaoudjiuvhds9!',

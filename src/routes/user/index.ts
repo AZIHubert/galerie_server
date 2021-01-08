@@ -9,7 +9,7 @@ import {
 import {
   getUsers,
   getUsersMe,
-  getUsersMeSendUpdateEmail,
+  getUsersMeUpdateEmail,
   getUsersMeSendUpdateNewEmail,
   getUsersResetPassword,
   postUsersSignin,
@@ -21,17 +21,15 @@ import {
 
 const router = Router();
 
-// TODO: need to be admin
-router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers); // Get all users
+router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers); // TODO: need to be admin
 router.post('/signin/', shouldNotBeAuth, postUsersSignin);
-router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation); // Confirm account
+router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
 router.get('/login', shouldNotBeAuth, postUsersLogin);
 router.post('/refreshToken', postUsersRefreshToken);
 router.get('/resetPassword/', shouldNotBeAuth, getUsersResetPassword);
 router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
 router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
-// TODO: rename root => me/updateEmail
-router.get('/me/sendUpdateEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeSendUpdateEmail);
+router.get('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmail);
 // TODO: sign in token newEmailTokenVersion, rename route => get me/updateEmail/confirm
 router.get('/me/sendUpdateNewEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeSendUpdateNewEmail);
 router.put('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, () => {
