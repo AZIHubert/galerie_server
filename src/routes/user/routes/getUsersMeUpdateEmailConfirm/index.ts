@@ -68,6 +68,7 @@ export default async (req: Request, res: Response) => {
       {
         id: user.id,
         updatedEmail: req.body.email,
+        updatedEmailTokenVersion: user.updatedEmailTokenVersion,
       },
       UPDATE_EMAIL_SECRET,
       {
