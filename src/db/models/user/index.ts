@@ -88,6 +88,13 @@ export default class User extends Model implements UserI {
   })
   emailTokenVersion!: number;
 
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  updatedEmailTokenVersion!: number;
+
   @HasMany(() => Galerie)
   galeries!: Galerie[];
 }
