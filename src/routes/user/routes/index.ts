@@ -1,6 +1,6 @@
 export { default as getUsers } from './getUsers';
 export { default as getUsersMe } from './getUsersMe';
-export { default as getUsersMeSendUpdateNewEmail } from './getUsersMeSendUpdateNewEmail';
+export { default as getUsersMeUpdateEmailConfirm } from './getUsersMeUpdateEmailConfirm';
 export { default as getUsersMeUpdateEmail } from './getUsersMeUpdateEmail';
 export { default as getUsersResetPassword } from './getUsersResetPassword';
 export { default as postUsersRefreshToken } from './postUsersRefreshToken';

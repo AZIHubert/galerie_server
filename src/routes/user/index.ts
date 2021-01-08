@@ -10,7 +10,7 @@ import {
   getUsers,
   getUsersMe,
   getUsersMeUpdateEmail,
-  getUsersMeSendUpdateNewEmail,
+  getUsersMeUpdateEmailConfirm,
   getUsersResetPassword,
   postUsersSignin,
   postUsersLogin,
@@ -30,8 +30,8 @@ router.get('/resetPassword/', shouldNotBeAuth, getUsersResetPassword);
 router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
 router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
 router.get('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmail);
-// TODO: sign in token newEmailTokenVersion, rename route => get me/updateEmail/confirm
-router.get('/me/sendUpdateNewEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeSendUpdateNewEmail);
+// TODO: sign in token newEmailTokenVersion
+router.get('/me/updateEmail/confirm', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirm);
 router.put('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, () => {
   // should verify if logged
   // should verify if confirmed

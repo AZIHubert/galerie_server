@@ -67,7 +67,7 @@ export default async (req: Request, res: Response) => {
     sign(
       {
         id: user.id,
-        email: req.body.email,
+        updatedEmail: req.body.email,
       },
       UPDATE_EMAIL_SECRET,
       {
