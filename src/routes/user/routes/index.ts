@@ -8,3 +8,4 @@ export { default as postUsersSignin } from './postUsersSignin';
 export { default as postUsersLogin } from './postUsersLogin';
 export { default as putUsersConfirmation } from './putUsersConfirmation';
 export { default as putUsersResetPassword } from './putUsersResetPassword';
+export { default as putUsersMeUpdateEmail } from './putUsersMeUpdateEmail';
