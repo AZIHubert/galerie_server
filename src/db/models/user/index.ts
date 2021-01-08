@@ -60,13 +60,6 @@ export default class User extends Model implements UserI {
   })
   confirmed!: boolean;
 
-  @Default(0)
-  @Column({
-    allowNull: false,
-    type: DataType.INTEGER,
-  })
-  tokenVersion!: number;
-
   @Default(false)
   @Column({
     allowNull: false,
@@ -74,8 +67,12 @@ export default class User extends Model implements UserI {
   })
   admin!: boolean;
 
-  @HasMany(() => Galerie)
-  galeries!: Galerie[];
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  authTokenVersion!: number;
 
   @Default(0)
   @Column({
@@ -83,4 +80,7 @@ export default class User extends Model implements UserI {
     type: DataType.INTEGER,
   })
   emailTokenVersion!: number;
+
+  @HasMany(() => Galerie)
+  galeries!: Galerie[];
 }

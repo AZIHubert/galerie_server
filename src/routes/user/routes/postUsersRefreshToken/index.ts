@@ -31,8 +31,7 @@ export default async (req: Request, res: Response) => {
       errors: 'user not found',
     });
   }
-  // TODO: need to increment tokenVersion when forgot password or when hacked
-  if (user.tokenVersion !== payload.tokenVersion) {
+  if (user.authTokenVersion !== payload.authTokenVersion) {
     return res.status(401).send({
       ok: false,
       accessToken: '',

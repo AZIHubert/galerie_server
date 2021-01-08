@@ -67,7 +67,6 @@ export default router;
 // https://medium.com/swlh/authentication-using-jwt-and-refresh-token-part-2-a86150d25152
 
 // TODO:
-// Change user field's name tokenVersion by authTokenVersion
 // add user field newEmailTokenVersion
 // add user field confirmTokenVersion
 // update name's route

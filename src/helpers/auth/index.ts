@@ -17,7 +17,7 @@ export const createAccessToken = (user: User) => sign(
 export const createRefreshToken = (user: User) => sign(
   {
     id: user.id,
-    tokenVersion: user.tokenVersion,
+    authTokenVersion: user.authTokenVersion,
   },
   REFRESH_SECRET,
   { expiresIn: '7d' },

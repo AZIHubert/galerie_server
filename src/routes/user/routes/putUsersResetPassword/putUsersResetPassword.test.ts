@@ -44,7 +44,7 @@ describe('users', () => {
           email: 'user@email',
           password: 'password',
           confirm: false,
-          tokenVersion: 0,
+          authTokenVersion: 0,
           admin: false,
         });
         const bcryptMock = jest.spyOn(bcrypt, 'hash');
@@ -58,6 +58,7 @@ describe('users', () => {
             confirmPassword: 'Aaoudjiuvhds9!',
           })
           .set('confirmation', 'Bearer token');
+        // console.log(body);
         const { password } = await User.findByPk(id) as User;
         const passwordMatch = await bcrypt.compare('Aaoudjiuvhds9!', password);
         expect(bcryptMock).toHaveBeenCalledTimes(1);
@@ -70,7 +71,7 @@ describe('users', () => {
           email: 'user@email',
           password: 'password',
           confirm: false,
-          tokenVersion: 0,
+          authTokenVersion: 0,
           admin: false,
         });
         jwtMock.mockImplementationOnce(() => ({
@@ -83,9 +84,9 @@ describe('users', () => {
             confirmPassword: 'Aaoudjiuvhds9!',
           })
           .set('confirmation', 'Bearer token');
-        const { tokenVersion } = await User.findByPk(id) as User;
+        const { authTokenVersion } = await User.findByPk(id) as User;
         expect(status).toBe(204);
-        expect(tokenVersion).toBe(1);
+        expect(authTokenVersion).toBe(1);
       });
       it('should return error 401 if user is auth', async () => {
         const { body, status } = await request(initApp())

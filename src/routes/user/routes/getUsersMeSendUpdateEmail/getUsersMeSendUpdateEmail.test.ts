@@ -48,7 +48,7 @@ describe('users', () => {
               password: hashedPassword,
               confirmed: true,
               admin: false,
-              tokenVersion: 0,
+              authTokenVersion: 0,
             });
             jwtMocked.mockImplementationOnce(() => ({
               id,
@@ -81,12 +81,11 @@ describe('users', () => {
         describe('should return error 400 if password', () => {
           beforeEach(async (done) => {
             try {
-              await User.sync({ force: true });
               const { id } = await User.create({
                 userName: 'user',
                 email: 'user@email.com',
                 password: 'password',
-                tokenVersion: 0,
+                authTokenVersion: 0,
                 confirmed: true,
                 admin: false,
               });
@@ -138,22 +137,22 @@ describe('users', () => {
               },
             });
           });
-          // it('not match user password', async () => {
-          //   jest.spyOn(bcrypt, 'compare')
-          //     .mockImplementationOnce(() => Promise.resolve(false));
-          //   const { status, body } = await request(initApp())
-          //     .get('/users/me/sendUpdateEmail')
-          //     .set('authorization', 'Bearer token')
-          //     .send({
-          //       password: 'Aaoudjiuvhds9!',
-          //     });
-          //   expect(status).toBe(400);
-          //   expect(body).toStrictEqual({
-          //     errors: {
-          //       password: 'wrong password',
-          //     },
-          //   });
-          // });
+          it('not match user password', async () => {
+            jest.spyOn(bcrypt, 'compare')
+              .mockImplementationOnce(() => Promise.resolve(false));
+            const { status, body } = await request(initApp())
+              .get('/users/me/sendUpdateEmail')
+              .set('authorization', 'Bearer token')
+              .send({
+                password: 'Aaoudjiuvhds9!',
+              });
+            expect(status).toBe(400);
+            expect(body).toStrictEqual({
+              errors: {
+                password: 'wrong password',
+              },
+            });
+          });
         });
         describe('should return error 401 if not', () => {
           it('logged in', async () => {
@@ -169,7 +168,7 @@ describe('users', () => {
               userName: 'user',
               email: 'user@email.com',
               password: 'password',
-              tokenVersion: 0,
+              authTokenVersion: 0,
               confirmed: false,
               admin: false,
             });
@@ -193,7 +192,7 @@ describe('users', () => {
             password: hashedPassword,
             confirmed: true,
             admin: false,
-            tokenVersion: 0,
+            authTokenVersion: 0,
           });
           jwtMocked.mockImplementation(() => ({
             id,

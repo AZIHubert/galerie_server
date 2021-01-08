@@ -51,7 +51,7 @@ describe('users', () => {
             password: 'Aaoudjiuvhds9!',
             confirmed: true,
             admin: false,
-            tokenVersion: 0,
+            authTokenVersion: 0,
           });
           const { status } = await request(initApp())
             .get('/users/me/sendUpdateNewEmail')
@@ -89,7 +89,7 @@ describe('users', () => {
                 password: 'Aaoudjiuvhds9!',
                 confirmed: true,
                 admin: false,
-                tokenVersion: 0,
+                authTokenVersion: 0,
                 emailTokenVersion: 0,
               });
             } catch (err) {
@@ -188,7 +188,7 @@ describe('users', () => {
                   password: 'Aaoudjiuvhds9!',
                   confirmed: false,
                   admin: false,
-                  tokenVersion: 1,
+                  authTokenVersion: 1,
                 });
                 accessToken = createAccessToken(user);
               } catch (err) {
@@ -277,7 +277,7 @@ describe('users', () => {
               password: 'Aaoudjiuvhds9!',
               confirmed: true,
               admin: false,
-              tokenVersion: 0,
+              authTokenVersion: 0,
             });
             const accessToken = createAccessToken(user);
             const { status } = await request(initApp())
@@ -302,7 +302,7 @@ describe('users', () => {
               password: 'Aaoudjiuvhds9!',
               confirmed: true,
               admin: false,
-              tokenVersion: 0,
+              authTokenVersion: 0,
             });
             const { status } = await request(initApp())
               .get('/users/me/sendUpdateNewEmail')
@@ -329,7 +329,7 @@ describe('users', () => {
               password: 'Aaoudjiuvhds9!',
               confirmed: true,
               admin: false,
-              tokenVersion: 0,
+              authTokenVersion: 0,
             });
             const { status } = await request(initApp())
               .get('/users/me/sendUpdateNewEmail')

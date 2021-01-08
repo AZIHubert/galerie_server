@@ -35,7 +35,7 @@ describe('users', () => {
           email: 'user@email.com',
           password: 'Aaoudjiuvhds9!',
           confirmed: true,
-          tokenVersion: 0,
+          authTokenVersion: 0,
           admin: false,
         });
         const accessToken = createAccessToken(user);
@@ -55,7 +55,7 @@ describe('users', () => {
             email: 'user@email.com',
             password: 'Aaoudjiuvhds9!',
             confirmed: true,
-            tokenVersion: 0,
+            authTokenVersion: 0,
             admin: false,
           });
           const { body, status } = await request(initApp()).get('/users/me');
@@ -70,7 +70,7 @@ describe('users', () => {
             email: 'user@email.com',
             password: 'Aaoudjiuvhds9!',
             confirmed: false,
-            tokenVersion: 0,
+            authTokenVersion: 0,
             admin: false,
           });
           const accessToken = createAccessToken(user);
