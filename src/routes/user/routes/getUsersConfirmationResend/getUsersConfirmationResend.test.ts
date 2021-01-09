@@ -43,7 +43,7 @@ describe('users', () => {
               id,
             });
           const updatedUser = await User.findByPk(id);
-          expect(status).toBe(200);
+          expect(status).toBe(204);
           expect(updatedUser!.confirmTokenVersion)
             .toBe(confirmTokenVersion + 1);
         });
@@ -61,31 +61,9 @@ describe('users', () => {
             .send({
               id,
             });
-          expect(status).toBe(200);
+          expect(status).toBe(204);
           expect(signMocked).toHaveBeenCalledTimes(1);
           expect(emailMocked).toHaveBeenCalledTimes(1);
-        });
-        it('should return the user', async () => {
-          const user = await User.create({
-            userName: 'user',
-            email: 'user@email.com',
-            password: 'password',
-            confirmed: false,
-          });
-          const { body, status } = await request(initApp())
-            .get('/users/confirmation/resend')
-            .send({
-              id: user.id,
-            });
-          expect(status).toBe(200);
-          expect(body).toHaveProperty('id');
-          expect(body).toHaveProperty('createdAt');
-          expect(body).toHaveProperty('updatedAt');
-          expect(body).toHaveProperty('password');
-          expect(body.userName).toEqual(user.userName);
-          expect(body.email).toEqual(user.email);
-          expect(body.deletedAt).toEqual(null);
-          expect(body.confirmed).toEqual(false);
         });
         describe('should return error 401 if', () => {
           it('user is authenticated', async () => {

@@ -50,7 +50,7 @@ export default async (req: Request, res: Response) => {
     },
   );
 
-  return res.status(200).send(user);
+  return res.status(204).end();
   // TODO:
   // need to send email
 };

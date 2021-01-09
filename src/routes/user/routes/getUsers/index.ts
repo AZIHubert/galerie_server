@@ -9,5 +9,6 @@ export default async (__: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+  // TODO: send only relevent datas
   return res.status(200).send(users);
 };
