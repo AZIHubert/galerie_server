@@ -19,7 +19,7 @@ export const shouldBeAuth = async (req: Request, res: Response, next: Function) 
     const { id } = verify(token, ACCES_SECRET) as {
       id: string;
     };
-    user = await User.findByPk(id, { raw: true });
+    user = await User.findByPk(id);
   } catch (err) {
     return res.status(500).send(err);
   }

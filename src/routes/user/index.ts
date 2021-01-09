@@ -11,6 +11,7 @@ import {
   getUsersConfirmationResend,
   getUsersMe,
   getUsersMeUpdateEmail,
+  getUsersmeUpdateEmailResend,
   getUsersMeUpdateEmailConfirm,
   getUsersResetPassword,
   getUsersResetPasswordResend,
@@ -35,15 +36,7 @@ router.get('/resetPassword/resend', shouldNotBeAuth, getUsersResetPasswordResend
 router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
 router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
 router.get('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmail);
-router.get('/me/updateEmail/resend', (_, res) => {
-  res.end();
-  // TODO:
-  // should be auth
-  // should be confirmed
-  // should have password
-  // passwords should match
-  // should sign token and send email
-});
+router.get('/me/updateEmail/resend', shouldBeAuth, shouldBeConfirmed, getUsersmeUpdateEmailResend);
 router.get('/me/updateEmail/confirm', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirm);
 router.get('/me/updateEmail/confirm/resend'); // TODO:
 router.put('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdateEmail);

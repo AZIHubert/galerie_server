@@ -62,7 +62,7 @@ describe('users', () => {
             .send({
               password: 'Aaoudjiuvhds9!',
             });
-          expect(status).toBe(200);
+          expect(status).toBe(201);
           expect(emailMock).toHaveBeenCalledTimes(1);
           expect(signMock).toHaveBeenCalledTimes(1);
         });

@@ -3,21 +3,15 @@ import { Request, Response } from 'express';
 import { sign } from 'jsonwebtoken';
 
 import accEnv from '@src/helpers/accEnv';
-import {
-  sendUpdateEmailMessage,
-} from '@src/helpers/email';
-import {
-  validateSendUpdateEmailSchema,
-  normalizeJoiErrors,
-} from '@src/helpers/schemas';
+import { sendUpdateEmailMessage } from '@src/helpers/email';
 
 const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 
 export default async (req: Request, res: Response) => {
-  const { error } = validateSendUpdateEmailSchema(req.body);
-  if (error) {
+  const { password } = req.body;
+  if (!password) {
     return res.status(400).send({
-      errors: normalizeJoiErrors(error),
+      errors: 'password is required',
     });
   }
   const { user } = res.locals;
@@ -29,10 +23,13 @@ export default async (req: Request, res: Response) => {
   }
   if (!passwordsMatch) {
     return res.status(400).send({
-      errors: {
-        password: 'wrong password',
-      },
+      errors: 'passwords must match',
     });
+  }
+  try {
+    await user.increment({ emailTokenVersion: 1 });
+  } catch (err) {
+    res.status(500).send(err);
   }
   sign(
     {
@@ -50,5 +47,5 @@ export default async (req: Request, res: Response) => {
       }
     },
   );
-  return res.status(201).send();
+  return res.status(201).end();
 };

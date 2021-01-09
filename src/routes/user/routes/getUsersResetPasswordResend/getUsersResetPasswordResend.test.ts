@@ -45,7 +45,6 @@ describe('users', () => {
             password: 'Aaoudjiuvhds9!',
             confirmed: true,
           });
-          console.log(resetPasswordTokenVersion);
           await request(initApp())
             .get('/users/resetPassword/resend')
             .send({
