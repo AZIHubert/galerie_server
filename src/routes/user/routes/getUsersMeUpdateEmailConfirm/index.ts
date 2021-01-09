@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { sign, verify } from 'jsonwebtoken';
 
-import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
 import {
   sendValidateEmailMessage,
@@ -27,35 +26,38 @@ export default async (req: Request, res: Response) => {
       errors: 'wrong token',
     });
   }
-  let user: User | null;
+  let id: string;
+  let emailTokenVersion: number;
   try {
-    const { id, emailTokenVersion } = verify(
+    const verifiedToken = verify(
       token,
       SEND_EMAIL_SECRET,
     ) as {
       id: string;
       emailTokenVersion: number;
     };
-    user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).send({
-        errors: 'user not found',
-      });
-    }
-    if (emailTokenVersion !== user.emailTokenVersion) {
-      return res.status(401).send({
-        errors: 'incorrect token version',
-      });
-    }
-    if (user.email === req.body.email) {
-      return res.status(400).send({
-        errors: {
-          email: 'should be a different one',
-        },
-      });
-    }
+    id = verifiedToken.id;
+    emailTokenVersion = verifiedToken.emailTokenVersion;
   } catch (err) {
     return res.status(500).send(err);
+  }
+  const { user } = res.locals;
+  if (id !== user.id) {
+    return res.status(401).send({
+      errors: 'token id are not the same as your current id',
+    });
+  }
+  if (emailTokenVersion !== user.emailTokenVersion) {
+    return res.status(401).send({
+      errors: 'incorrect token version',
+    });
+  }
+  if (user.email === req.body.email) {
+    return res.status(400).send({
+      errors: {
+        email: 'should be a different one',
+      },
+    });
   }
   const { error } = validatesendUpdateNewEmailSchema(req.body);
   if (error) {

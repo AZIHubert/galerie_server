@@ -38,7 +38,16 @@ router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
 router.get('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmail);
 router.get('/me/updateEmail/resend', shouldBeAuth, shouldBeConfirmed, getUsersmeUpdateEmailResend);
 router.get('/me/updateEmail/confirm', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirm);
-router.get('/me/updateEmail/confirm/resend'); // TODO:
+router.get('/me/updateEmail/confirm/resend', (_, res) => {
+  res.end();
+  // TODO:
+  // need to be logged in
+  // need to be confirmed
+  // should have confirm token
+  // confirm token should be 'Bearer token'
+  // token id should be a user
+  // token id and current user id should be the same
+});
 router.put('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdateEmail);
 
 // TODO:
