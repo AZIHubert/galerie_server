@@ -68,7 +68,10 @@ export default async (req: Request, res: Response) => {
   }
   try {
     const hashedPassword = await hash(req.body.password, saltRounds);
-    await user.increment({ authTokenVersion: 1 });
+    await user.increment({
+      authTokenVersion: 1,
+      resetPasswordTokenVersion: 1,
+    });
     await user.update({ password: hashedPassword });
   } catch (err) {
     return res.status(500).send(err);

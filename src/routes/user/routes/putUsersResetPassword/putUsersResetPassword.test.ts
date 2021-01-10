@@ -65,12 +65,12 @@ describe('users', () => {
         expect(bcryptMock).toHaveBeenCalledTimes(1);
         expect(passwordMatch).toBe(true);
       });
-      it('should increment token version', async () => {
+      it('should increment auth token version', async () => {
         const { id, resetPasswordTokenVersion } = await User.create({
           userName: 'user',
           email: 'user@email',
           password: 'password',
-          confirm: false,
+          confirmed: false,
           authTokenVersion: 0,
           admin: false,
         });
@@ -88,6 +88,27 @@ describe('users', () => {
         const { authTokenVersion } = await User.findByPk(id) as User;
         expect(status).toBe(204);
         expect(authTokenVersion).toBe(1);
+      });
+      it('should increment resetPasswordTokenVersion', async () => {
+        const { id, resetPasswordTokenVersion } = await User.create({
+          userName: 'user',
+          email: 'user@email',
+          password: 'password',
+        });
+        jwtMock.mockImplementationOnce(() => ({
+          id,
+          resetPasswordTokenVersion,
+        }));
+        const { status } = await request(initApp())
+          .put('/users/resetPassword')
+          .send({
+            password: 'Aaoudjiuvhds9!',
+            confirmPassword: 'Aaoudjiuvhds9!',
+          })
+          .set('confirmation', 'Bearer token');
+        const updatedUser = await User.findByPk(id);
+        expect(status).toBe(204);
+        expect(updatedUser!.resetPasswordTokenVersion).toBe(resetPasswordTokenVersion + 1);
       });
       describe('should return error 401 if', () => {
         it('user is auth', async () => {
