@@ -13,6 +13,7 @@ import {
   getUsersMeUpdateEmail,
   getUsersmeUpdateEmailResend,
   getUsersMeUpdateEmailConfirm,
+  getUsersMeUpdateEmailConfirmResend,
   getUsersResetPassword,
   getUsersResetPasswordResend,
   postUsersLogin,
@@ -33,22 +34,13 @@ router.get('/login', shouldNotBeAuth, postUsersLogin);
 router.post('/refreshToken', postUsersRefreshToken);
 router.get('/resetPassword/', shouldNotBeAuth, getUsersResetPassword);
 router.get('/resetPassword/resend', shouldNotBeAuth, getUsersResetPasswordResend);
-router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
+router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword); // TODO: increment resetPasswordTokenVersion
 router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
 router.get('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmail);
 router.get('/me/updateEmail/resend', shouldBeAuth, shouldBeConfirmed, getUsersmeUpdateEmailResend);
 router.get('/me/updateEmail/confirm', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirm);
-router.get('/me/updateEmail/confirm/resend', (_, res) => {
-  res.end();
-  // TODO:
-  // need to be logged in
-  // need to be confirmed
-  // should have confirm token
-  // confirm token should be 'Bearer token'
-  // token id should be a user
-  // token id and current user id should be the same
-});
-router.put('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdateEmail);
+router.get('/me/updateEmail/confirm/resend', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirmResend);
+router.put('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdateEmail); // TODO: increment updatedEmailTokenVersion
 
 // TODO:
 router.put('/me/updatePassword', shouldBeAuth, shouldBeConfirmed); // should get current password, new password, confirm new password
@@ -65,6 +57,10 @@ router.delete('/me/blacklist/:id'); // remove user to current user blacklist
 
 // Login with Facebook
 // Login with Google
+
+// when update request that require an email validation token,
+// we need to update tokenVersion when done,
+// => after any update, if a user click on the email, it should not be able to update again
 
 export default router;
 

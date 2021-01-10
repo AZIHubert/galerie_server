@@ -56,7 +56,7 @@ export default async (req: Request, res: Response) => {
       errors: 'wrong token version',
     });
   }
-  await User.update({ confirmed: true }, { where: { id } });
+  await user.update({ confirmed: true }, { where: { id } });
   sendRefreshToken(res, createRefreshToken(user));
   return res
     .status(200)
