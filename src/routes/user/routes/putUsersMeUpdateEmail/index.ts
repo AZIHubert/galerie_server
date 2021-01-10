@@ -83,7 +83,10 @@ export default async (req: Request, res: Response) => {
   try {
     const updatedUser = await User.findByPk(id);
     await updatedUser!.update({ email: updatedEmail });
-    await updatedUser!.increment({ authTokenVersion: 1 });
+    await updatedUser!.increment({
+      authTokenVersion: 1,
+      updatedEmailTokenVersion: 1,
+    });
   } catch (err) {
     return res.status(500).send(err);
   }

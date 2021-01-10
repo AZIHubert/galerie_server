@@ -42,6 +42,35 @@ describe('users', () => {
   describe('me', () => {
     describe('updateEmail', () => {
       describe('put', () => {
+        it('should increment updatedEmailTokenVersion', async () => {
+          const updatedEmail = 'user2@email.com';
+          const password = 'Aaoudjiuvhds9!';
+          const hashPassword = await hash(password, saltRounds);
+          const { id, updatedEmailTokenVersion } = await User.create({
+            userName: 'user',
+            email: 'user@email.com',
+            password: hashPassword,
+            admin: false,
+            confirmed: true,
+            updatedEmailTokenVersion: 0,
+          });
+          jest.spyOn(jwt, 'verify')
+            .mockImplementationOnce(() => ({
+              id,
+            }))
+            .mockImplementationOnce(() => ({
+              id,
+              updatedEmailTokenVersion: 0,
+              updatedEmail,
+            }));
+          await request(initApp())
+            .put('/users/me/updateEmail')
+            .set('authorization', 'Bearer token')
+            .set('confirmation', 'Bearer token')
+            .send({ password });
+          const updatedUser = await User.findByPk(id);
+          expect(updatedUser!.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion + 1);
+        });
         it('should update user email', async () => {
           const updatedEmail = 'user2@email.com';
           const password = 'Aaoudjiuvhds9!';
