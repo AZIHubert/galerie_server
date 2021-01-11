@@ -1,26 +1,5 @@
 import Joi from 'joi';
 
-interface UserSignIn {
-  userName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
-interface UserLogIn {
-  userNameOrEmail: string;
-  password: string;
-}
-interface Email {
-  email: string;
-}
-interface Passwords {
-  password: string;
-  confirmPassword: string;
-}
-interface Password {
-  password: string;
-}
-
 const userSignInSchema = Joi.object({
   userName: Joi.string()
     .alphanum()
@@ -152,24 +131,56 @@ const sendUpdateNewEmailSchema = Joi.object({
     }),
 });
 
+const sendUpdatePassword = Joi.object({
+  password: Joi.string()
+    .required()
+    .empty()
+    .messages({
+      'string.empty': 'cannot be an empty field',
+      'any.required': 'is required',
+    }),
+  updatedPassword: Joi.string()
+    .required()
+    .min(8)
+    .max(30)
+    .pattern(new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,30}$'))
+    .messages({
+      'string.base': 'should be a type of \'text\'',
+      'string.empty': 'cannot be an empty field',
+      'any.required': 'is required',
+      'string.min': 'should have a minimum length of {#limit}',
+      'string.max': 'should have a maximum length of {#limit}',
+      'string.pattern.base': 'need at least on lowercase, one uppercase, one number and one special char',
+    }),
+  confirmUpdatedPassword: Joi.string()
+    .required()
+    .valid(Joi.ref('updatedPassword'))
+    .messages({
+      'any.required': 'is required',
+      'any.only': 'must match updated password',
+    }),
+});
+
 const options: Joi.ValidationOptions = {
   abortEarly: false,
   allowUnknown: true,
   stripUnknown: true,
 };
 
-export const validateSignIn = (user: UserSignIn) => userSignInSchema
+export const validateSignIn = (user: any) => userSignInSchema
   .validate(user, options);
-export const validateLogIn = (user: UserLogIn) => userLogInSchema
+export const validateLogIn = (user: any) => userLogInSchema
   .validate(user, options);
-export const validateResetPasswordSchema = (email: Email) => resetPasswordSchema
+export const validateResetPasswordSchema = (email: any) => resetPasswordSchema
   .validate(email, options);
-export const validateModifyPasswordSchema = (passwords: Passwords) => modifyPasswordSchema
+export const validateModifyPasswordSchema = (passwords: any) => modifyPasswordSchema
   .validate(passwords, options);
-export const validateSendUpdateEmailSchema = (password: Password) => sendUpdateEmailSchema
+export const validateSendUpdateEmailSchema = (password: any) => sendUpdateEmailSchema
   .validate(password);
-export const validatesendUpdateNewEmailSchema = (email: Email) => sendUpdateNewEmailSchema
+export const validatesendUpdateNewEmailSchema = (email: any) => sendUpdateNewEmailSchema
   .validate(email, options);
+export const validateSendUpdatePassword = (password: any) => sendUpdatePassword
+  .validate(password);
 
 export const normalizeJoiErrors = (errors: Joi.ValidationError) => {
   const normalizeErrors: {[key:string]: string} = {};

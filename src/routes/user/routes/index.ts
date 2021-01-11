@@ -12,4 +12,5 @@ export { default as postUsersRefreshToken } from './postUsersRefreshToken';
 export { default as postUsersSignin } from './postUsersSignin';
 export { default as putUsersConfirmation } from './putUsersConfirmation';
 export { default as putUsersMeUpdateEmail } from './putUsersMeUpdateEmail';
+export { default as putUsersMeUpdatePassword } from './putUsersMeUpdatePassword';
 export { default as putUsersResetPassword } from './putUsersResetPassword';

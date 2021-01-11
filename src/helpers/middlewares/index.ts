@@ -14,6 +14,11 @@ export const shouldBeAuth = async (req: Request, res: Response, next: Function) 
     });
   }
   const token = authorization.split(' ')[1];
+  if (!token) {
+    return res.status(401).send({
+      errors: 'wrong token',
+    });
+  }
   let user: User | null;
   try {
     const { id } = verify(token, ACCES_SECRET) as {

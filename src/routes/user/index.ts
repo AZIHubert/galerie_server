@@ -21,6 +21,7 @@ import {
   postUsersSignin,
   putUsersConfirmation,
   putUsersMeUpdateEmail,
+  putUsersMeUpdatePassword,
   putUsersResetPassword,
 } from './routes';
 
@@ -41,10 +42,12 @@ router.get('/me/updateEmail/resend', shouldBeAuth, shouldBeConfirmed, getUsersme
 router.get('/me/updateEmail/confirm', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirm);
 router.get('/me/updateEmail/confirm/resend', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirmResend);
 router.put('/me/updateEmail', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdateEmail);
+router.put('/me/updatePassword/', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdatePassword);
 
 // TODO:
-router.put('/me/updatePassword', shouldBeAuth, shouldBeConfirmed); // should get current password, new password, confirm new password
 router.put('/me/profilePicture', shouldBeAuth, shouldBeConfirmed); // Need to be logged in and new picture OR old picture
+// https://www.youtube.com/watch?v=pGSzMfKBV9Q&ab_channel=BenAwad
+// https://www.youtube.com/watch?v=BTElX_EO_L0&ab_channel=JoshRivera
 router.delete('/me', shouldBeAuth, shouldBeConfirmed); // need to be login, confirmed and id match
 router.get('/:userName/', shouldBeAuth, shouldBeConfirmed); // Find multiples users by userName
 router.get('/:id'); // get user by id
