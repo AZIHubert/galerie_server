@@ -350,14 +350,13 @@ describe('users', () => {
                   id,
                   emailTokenVersion,
                 }));
-              const { body, status } = await request(initApp())
+              const { status } = await request(initApp())
                 .get('/users/me/updateEmail/confirm')
                 .set('authorization', 'Bearer token')
                 .set('confirmation', 'Bearer token')
                 .send({
                   email: 'user2@email.com',
                 });
-              console.log(body);
               expect(status).toBe(500);
             });
           });

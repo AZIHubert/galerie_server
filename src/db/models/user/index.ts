@@ -8,13 +8,19 @@ import {
 } from 'sequelize-typescript';
 
 import Galerie from '../galerie';
+import Image from '../image';
+import ProfilePicture from '../profilePicture';
 
 interface UserI {
   userName: string;
   email: string;
   password: string;
-  galeries?: Galerie[];
   confirmed: boolean;
+  admin: boolean;
+  galeries?: Galerie[];
+  images?: Image[];
+  profilePictures?: ProfilePicture[];
+  profilePicture?: ProfilePicture;
 }
 
 @Table({
@@ -104,4 +110,7 @@ export default class User extends Model implements UserI {
 
   @HasMany(() => Galerie)
   galeries!: Galerie[];
+
+  @HasMany(() => ProfilePicture)
+  profilePictures!: ProfilePicture[];
 }
