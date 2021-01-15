@@ -24,7 +24,7 @@ import {
   postUsersRefreshToken,
   postUsersSignin,
   putUsersConfirmation,
-  putUsersMeProfilePicturesUpload,
+  postUsersMeProfilePictures,
   putUsersMeUpdateEmail,
   putUsersMeUpdatePassword,
   putUsersResetPassword,
@@ -72,10 +72,45 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/me/updateEmail/confirm/resend/', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirmResend);
   router.put('/me/updateEmail/', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdateEmail);
   router.put('/me/updatePassword/', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdatePassword);
-  router.put('/me/profilePictures/upload', shouldBeAuth, shouldBeConfirmed, uploadFile, putUsersMeProfilePicturesUpload(io));
+  router.post('/me/profilePictures', shouldBeAuth, shouldBeConfirmed, uploadFile, postUsersMeProfilePictures(io)); // should be post and /me/profilePictures/
+  router.get('/me/profilePictures', (_, res) => {
+    res.end();
+    // TODO:
+    // should be logged in
+    // should be confirmed
+    // user should exist
+    // return all profilePicture with images included
+  });
+  router.get('/me/profilePictures/:id', (_, res) => {
+    res.end();
+    // TODO:
+    // should be logged in
+    // should be confirmed
+    // user should exist
+    // return profile picture by id if PP exist
+  });
+  router.put('/me/profilePictures/:id', (_, res) => {
+    res.end();
+    // TODO:
+    // should be logged in
+    // should be confirmed
+    // user should exist
+    // profile picture with :id should exist
+    // set profile picture with :id confirm to true
+    // set all other PPs confirm to false
+  });
+  router.delete('/me/profilePictures/:id', (_, res) => {
+    res.end();
+    // TODO:
+    // should be logged in
+    // should be confirmed
+    // user should exist
+    // profile picture with :id should exist
+    // delete PP
+    // delete original/croped/pending image
+    // delete each image from bucket
+  });
 
-  router.put('/me/profilePictures/:id'); // change profile picture
-  router.delete('/me/profilePictures/:id'); // delete profile picture
   router.get('/logout/', shouldBeAuth, shouldBeConfirmed); // need to be login and confirmed => sendRefreshToken(req, '')
   router.get('/user/:userName'); // search users by userName
   router.get('/user/:id'); // get user by id

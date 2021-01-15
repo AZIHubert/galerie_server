@@ -8,10 +8,10 @@ export { default as getUsersmeUpdateEmailResend } from './getUsersmeUpdateEmailR
 export { default as getUsersResetPassword } from './getUsersResetPassword';
 export { default as getUsersResetPasswordResend } from './getUsersResetPasswordResend';
 export { default as postUsersLogin } from './postUsersLogin';
+export { default as postUsersMeProfilePictures } from './postUsersMeProfilePictures';
 export { default as postUsersRefreshToken } from './postUsersRefreshToken';
 export { default as postUsersSignin } from './postUsersSignin';
 export { default as putUsersConfirmation } from './putUsersConfirmation';
-export { default as putUsersMeProfilePicturesUpload } from './putUsersMeProfilePicturesUpload';
 export { default as putUsersMeUpdateEmail } from './putUsersMeUpdateEmail';
 export { default as putUsersMeUpdatePassword } from './putUsersMeUpdatePassword';
 export { default as putUsersResetPassword } from './putUsersResetPassword';
