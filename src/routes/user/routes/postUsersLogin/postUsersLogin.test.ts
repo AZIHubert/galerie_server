@@ -6,6 +6,9 @@ import '@src/helpers/initEnv';
 
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
+import {
+  NOT_CONFIRMED,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
 
@@ -215,7 +218,7 @@ describe('users', () => {
           });
           expect(status).toBe(401);
           expect(body).toStrictEqual({
-            errors: 'need to confirm account',
+            errors: NOT_CONFIRMED,
           });
         });
         it('is already logged in', async () => {

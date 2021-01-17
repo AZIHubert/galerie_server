@@ -4,6 +4,10 @@ import { sign } from 'jsonwebtoken';
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
 import { sendConfirmAccount } from '@src/helpers/email';
+import {
+  ALREADY_CONFIRMED,
+  USER_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 
@@ -22,12 +26,12 @@ export default async (req: Request, res: Response) => {
   }
   if (!user) {
     return res.status(401).send({
-      errors: 'user not found',
+      errors: USER_NOT_FOUND,
     });
   }
   if (user.confirmed) {
     return res.status(401).send({
-      errors: 'your account is already confirmed',
+      errors: ALREADY_CONFIRMED,
     });
   }
   try {
@@ -51,6 +55,4 @@ export default async (req: Request, res: Response) => {
   );
 
   return res.status(204).end();
-  // TODO:
-  // need to send email
 };

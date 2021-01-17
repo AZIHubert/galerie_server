@@ -8,6 +8,13 @@ import {
   createRefreshToken,
   sendRefreshToken,
 } from '@src/helpers/auth';
+import {
+  ALREADY_CONFIRMED,
+  TOKEN_NOT_FOUND,
+  USER_NOT_FOUND,
+  WRONG_TOKEN,
+  WRONG_TOKEN_VERSION,
+} from '@src/helpers/errorMessages';
 
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 
@@ -15,13 +22,13 @@ export default async (req: Request, res: Response) => {
   const { confirmation } = req.headers;
   if (!confirmation) {
     return res.status(401).send({
-      errors: 'token not found',
+      errors: TOKEN_NOT_FOUND,
     });
   }
   const token = (<string>confirmation).split(' ')[1];
   if (!token) {
     return res.status(401).send({
-      errors: 'wrong token',
+      errors: WRONG_TOKEN,
     });
   }
   let user: User | null;
@@ -43,17 +50,17 @@ export default async (req: Request, res: Response) => {
   }
   if (!user) {
     return res.status(404).send({
-      errors: 'user not found',
+      errors: USER_NOT_FOUND,
     });
   }
   if (user.confirmed) {
     return res.status(401).send({
-      errors: 'your account is already confirmed',
+      errors: ALREADY_CONFIRMED,
     });
   }
   if (user.confirmTokenVersion !== confirmTokenVersion) {
     return res.status(401).send({
-      errors: 'wrong token version',
+      errors: WRONG_TOKEN_VERSION,
     });
   }
   await user.update({ confirmed: true }, { where: { id } });

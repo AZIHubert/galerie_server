@@ -3,6 +3,12 @@ import { sign, verify } from 'jsonwebtoken';
 
 import accEnv from '@src/helpers/accEnv';
 import { sendValidateEmailMessage } from '@src/helpers/email';
+import {
+  TOKEN_NOT_FOUND,
+  WRONG_TOKEN,
+  WRONG_TOKEN_USER_ID,
+  WRONG_TOKEN_VERSION,
+} from '@src/helpers/errorMessages';
 
 const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
@@ -11,13 +17,13 @@ export default (req: Request, res: Response) => {
   const { confirmation } = req.headers;
   if (!confirmation) {
     return res.status(401).send({
-      errors: 'confirmation token not found',
+      errors: TOKEN_NOT_FOUND,
     });
   }
   const token = (<string>confirmation).split(' ')[1];
   if (!token) {
     return res.status(401).send({
-      errors: 'wrong token',
+      errors: WRONG_TOKEN,
     });
   }
   let verifiedToken;
@@ -36,12 +42,12 @@ export default (req: Request, res: Response) => {
   const { user } = res.locals;
   if (id !== user.id) {
     return res.status(401).send({
-      errors: 'token id are not the same as your current id',
+      errors: WRONG_TOKEN_USER_ID,
     });
   }
   if (emailTokenVersion !== user.emailTokenVersion) {
     return res.status(401).send({
-      errors: 'incorrect token version',
+      errors: WRONG_TOKEN_VERSION,
     });
   }
   try {

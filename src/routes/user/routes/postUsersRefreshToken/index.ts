@@ -8,6 +8,9 @@ import {
   createRefreshToken,
   sendRefreshToken,
 } from '@src/helpers/auth';
+import {
+  USER_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 
 const REFRESH_SECRET = accEnv('REFRESH_SECRET');
 
@@ -28,7 +31,7 @@ export default async (req: Request, res: Response) => {
   const user = await User.findByPk(payload.id, { raw: true });
   if (!user) {
     return res.status(404).send({
-      errors: 'user not found',
+      errors: USER_NOT_FOUND,
     });
   }
   if (user.authTokenVersion !== payload.authTokenVersion) {

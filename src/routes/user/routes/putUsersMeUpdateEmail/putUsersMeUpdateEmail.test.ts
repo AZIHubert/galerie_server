@@ -8,6 +8,11 @@ import User from '@src/db/models/user';
 import {
   createAccessToken,
 } from '@src/helpers/auth';
+import {
+  TOKEN_NOT_FOUND,
+  WRONG_TOKEN_USER_ID,
+  WRONG_TOKEN_VERSION,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
@@ -151,7 +156,7 @@ describe('users', () => {
               .set('confirmation', 'Bearer token');
             expect(status).toBe(401);
             expect(body).toStrictEqual({
-              errors: 'wrong user id',
+              errors: WRONG_TOKEN_USER_ID,
             });
           });
           it('updatedEmailTokenVersion is not the same as current user updatedEmailTokenVersion', async () => {
@@ -177,7 +182,7 @@ describe('users', () => {
               .set('confirmation', 'Bearer token');
             expect(status).toBe(401);
             expect(body).toStrictEqual({
-              errors: 'incorrect token version',
+              errors: WRONG_TOKEN_VERSION,
             });
           });
           it('if updatedEmail is not found in token', async () => {
@@ -292,7 +297,7 @@ describe('users', () => {
                 .set('authorization', `Bearer ${token}`);
               expect(status).toBe(401);
               expect(body).toStrictEqual({
-                errors: 'confirmation token not found',
+                errors: TOKEN_NOT_FOUND,
               });
             });
             it('\'Bearer ...\'', async () => {

@@ -7,6 +7,9 @@ import {
   sendUpdateEmailMessage,
 } from '@src/helpers/email';
 import {
+  WRONG_PASSWORD,
+} from '@src/helpers/errorMessages';
+import {
   validateSendUpdateEmailSchema,
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
@@ -30,7 +33,7 @@ export default async (req: Request, res: Response) => {
   if (!passwordsMatch) {
     return res.status(400).send({
       errors: {
-        password: 'wrong password',
+        password: WRONG_PASSWORD,
       },
     });
   }

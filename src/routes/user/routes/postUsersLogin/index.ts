@@ -9,6 +9,11 @@ import {
   sendRefreshToken,
 } from '@src/helpers/auth';
 import {
+  NOT_CONFIRMED,
+  USER_NOT_FOUND,
+  WRONG_PASSWORD,
+} from '@src/helpers/errorMessages';
+import {
   validateLogIn,
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
@@ -41,13 +46,13 @@ export default async (req: Request, res: Response) => {
   if (!user) {
     return res.status(404).send({
       errors: {
-        userNameOrEmail: 'user not found',
+        userNameOrEmail: USER_NOT_FOUND,
       },
     });
   }
   if (!user.confirmed) {
     return res.status(401).send({
-      errors: 'need to confirm account',
+      errors: NOT_CONFIRMED,
     });
   }
   try {
@@ -55,7 +60,7 @@ export default async (req: Request, res: Response) => {
     if (!PasswordsMatch) {
       return res.status(400).send({
         errors: {
-          password: 'wrong password',
+          password: WRONG_PASSWORD,
         },
       });
     }

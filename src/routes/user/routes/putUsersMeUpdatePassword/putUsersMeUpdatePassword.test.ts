@@ -4,11 +4,14 @@ import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
+import User from '@src/db/models/user';
 import * as auth from '@src/helpers/auth';
+import {
+  FIELD_IS_CONFIRM_PASSWORD,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
-import User from '@src/db/models/user';
 
 const sequelize = initSequelize();
 
@@ -316,7 +319,7 @@ describe('users', () => {
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: {
-                confirmUpdatedPassword: 'must match updated password',
+                confirmUpdatedPassword: FIELD_IS_CONFIRM_PASSWORD,
               },
             });
           });

@@ -2,7 +2,14 @@ import { Request, Response } from 'express';
 import { verify } from 'jsonwebtoken';
 
 import User from '@src/db/models/user';
-import accEnv from '@src/helpers/accEnv';
+import accEnv from '../accEnv';
+import {
+  NOT_AUTHENTICATED,
+  NOT_CONFIRMED,
+  USER_IS_LOGGED_IN,
+  USER_NOT_FOUND,
+  WRONG_TOKEN,
+} from '../errorMessages';
 
 const ACCES_SECRET = accEnv('ACCES_SECRET');
 
@@ -10,13 +17,13 @@ export const shouldBeAuth = async (req: Request, res: Response, next: Function) 
   const { authorization } = req.headers;
   if (!authorization) {
     return res.status(401).send({
-      errors: 'not authenticated',
+      errors: NOT_AUTHENTICATED,
     });
   }
   const token = authorization.split(' ')[1];
   if (!token) {
     return res.status(401).send({
-      errors: 'wrong token',
+      errors: WRONG_TOKEN,
     });
   }
   let user: User | null;
@@ -30,7 +37,7 @@ export const shouldBeAuth = async (req: Request, res: Response, next: Function) 
   }
   if (!user) {
     return res.status(404).send({
-      errors: 'user not found',
+      errors: USER_NOT_FOUND,
     });
   }
   res.locals.user = user;
@@ -41,7 +48,7 @@ export const shouldBeConfirmed = async (__: Request, res: Response, next: Functi
   const { user: { confirmed } } = res.locals;
   if (!confirmed) {
     return res.status(401).send({
-      errors: 'You\'re account need to be confimed',
+      errors: NOT_CONFIRMED,
     });
   }
   return next();
@@ -51,7 +58,7 @@ export const shouldNotBeAuth = (req: Request, res: Response, next: Function) => 
   const { authorization } = req.headers;
   if (authorization) {
     return res.status(401).send({
-      errors: 'you are already authenticated',
+      errors: USER_IS_LOGGED_IN,
     });
   }
   return next();

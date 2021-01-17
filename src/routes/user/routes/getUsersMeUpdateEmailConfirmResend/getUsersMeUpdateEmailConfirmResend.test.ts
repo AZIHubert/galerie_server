@@ -5,6 +5,11 @@ import '@src/helpers/initEnv';
 
 import User from '@src/db/models/user';
 import * as email from '@src/helpers/email';
+import {
+  TOKEN_NOT_FOUND,
+  WRONG_TOKEN_VERSION,
+  WRONG_TOKEN_USER_ID,
+} from '@src/helpers/errorMessages';
 import { createAccessToken } from '@src/helpers/auth';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
@@ -112,7 +117,7 @@ describe('users', () => {
                     .set('authorization', `Bearer ${token}`);
                   expect(status).toBe(401);
                   expect(body).toStrictEqual({
-                    errors: 'confirmation token not found',
+                    errors: TOKEN_NOT_FOUND,
                   });
                 });
                 it('is not \'Bearer token\'', async () => {
@@ -140,7 +145,7 @@ describe('users', () => {
                     .set('confirmation', 'Bearer token');
                   expect(status).toBe(401);
                   expect(body).toStrictEqual({
-                    errors: 'token id are not the same as your current id',
+                    errors: WRONG_TOKEN_USER_ID,
                   });
                 });
                 it('emailTokenVersion is not the same as current user emailTokenVersion', async () => {
@@ -158,7 +163,7 @@ describe('users', () => {
                     .set('confirmation', 'Bearer token');
                   expect(status).toBe(401);
                   expect(body).toStrictEqual({
-                    errors: 'incorrect token version',
+                    errors: WRONG_TOKEN_VERSION,
                   });
                 });
               });

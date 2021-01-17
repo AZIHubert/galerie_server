@@ -10,6 +10,10 @@ import ProfilePicture from '@src/db/models/profilePicture';
 import accEnv from '@src/helpers/accEnv';
 import checkExtension from '@src/helpers/checkExtension';
 import gc from '@src/helpers/gc';
+import {
+  FILE_IS_IMAGE,
+  FILE_IS_REQUIRED,
+} from '@src/helpers/errorMessages';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
@@ -20,7 +24,7 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
   if (!file) {
     return res.status(400).send({
       errors: {
-        image: 'not found',
+        image: FILE_IS_REQUIRED,
       },
     });
   }
@@ -28,7 +32,7 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
   if (!isImage) {
     return res.status(400).send({
       errors: {
-        image: 'uploaded file must be an image',
+        image: FILE_IS_IMAGE,
       },
     });
   }

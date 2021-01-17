@@ -5,6 +5,12 @@ import { ValidationError } from 'joi';
 
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
+import {
+  TOKEN_NOT_FOUND,
+  USER_NOT_FOUND,
+  WRONG_TOKEN,
+  WRONG_TOKEN_VERSION,
+} from '@src/helpers/errorMessages';
 import saltRounds from '@src/helpers/saltRounds';
 import {
   normalizeJoiErrors,
@@ -17,12 +23,14 @@ export default async (req: Request, res: Response) => {
   const { confirmation } = req.headers;
   if (!confirmation) {
     return res.status(400).send({
-      errors: 'confirmation token not found',
+      errors: TOKEN_NOT_FOUND,
     });
   }
   const token = (<string>confirmation).split(' ')[1];
   if (!token) {
-    return res.status(400).send({ errors: 'wrong token' });
+    return res.status(400).send({
+      errors: WRONG_TOKEN,
+    });
   }
   let tokenVerified: any;
   try {
@@ -45,13 +53,13 @@ export default async (req: Request, res: Response) => {
   }
   if (!user) {
     return res.status(404).send({
-      errors: 'user not found',
+      errors: USER_NOT_FOUND,
     });
   }
   const { resetPasswordTokenVersion } = tokenVerified;
   if (resetPasswordTokenVersion !== user.resetPasswordTokenVersion) {
     return res.status(401).send({
-      errors: 'token version doesn\'t match',
+      errors: WRONG_TOKEN_VERSION,
     });
   }
   let error: ValidationError | undefined;

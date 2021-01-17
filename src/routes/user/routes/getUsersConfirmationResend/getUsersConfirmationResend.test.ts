@@ -7,6 +7,9 @@ import User from '@src/db/models/user';
 import * as email from '@src/helpers/email';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
+import {
+  ALREADY_CONFIRMED,
+} from '@src/helpers/errorMessages';
 
 const sequelize = initSequelize();
 
@@ -109,7 +112,7 @@ describe('users', () => {
               });
             expect(status).toBe(401);
             expect(body).toStrictEqual({
-              errors: 'your account is already confirmed',
+              errors: ALREADY_CONFIRMED,
             });
           });
         });

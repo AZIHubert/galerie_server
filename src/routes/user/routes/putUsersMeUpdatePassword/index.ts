@@ -6,6 +6,9 @@ import {
   createRefreshToken,
   sendRefreshToken,
 } from '@src/helpers/auth';
+import {
+  WRONG_PASSWORD,
+} from '@src/helpers/errorMessages';
 import saltRounds from '@src/helpers/saltRounds';
 import {
   validateSendUpdatePassword,
@@ -34,7 +37,7 @@ export default async (req: Request, res: Response) => {
   if (!passwordsMatch) {
     return res.status(400).send({
       errors: {
-        password: 'wrong password',
+        password: WRONG_PASSWORD,
       },
     });
   }

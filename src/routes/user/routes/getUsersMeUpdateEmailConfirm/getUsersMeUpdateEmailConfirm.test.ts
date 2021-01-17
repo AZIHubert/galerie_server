@@ -7,6 +7,11 @@ import User from '@src/db/models/user';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { createAccessToken } from '@src/helpers/auth';
 import * as email from '@src/helpers/email';
+import {
+  TOKEN_NOT_FOUND,
+  WRONG_TOKEN_USER_ID,
+  WRONG_TOKEN_VERSION,
+} from '@src/helpers/errorMessages';
 import initApp from '@src/server';
 
 const sequelize = initSequelize();
@@ -223,7 +228,7 @@ describe('users', () => {
                   .set('authorization', `Bearer ${accessToken}`);
                 expect(status).toBe(401);
                 expect(body).toStrictEqual({
-                  errors: 'confirmation token not found',
+                  errors: TOKEN_NOT_FOUND,
                 });
               });
               it('is not \'Bearer ...\'', async () => {
@@ -248,7 +253,7 @@ describe('users', () => {
                   .set('confirmation', 'Bearer token');
                 expect(status).toBe(401);
                 expect(body).toStrictEqual({
-                  errors: 'incorrect token version',
+                  errors: WRONG_TOKEN_VERSION,
                 });
               });
               it('id and user.id are not the same', async () => {
@@ -265,7 +270,7 @@ describe('users', () => {
                   .set('authorization', `Bearer ${accessToken}`)
                   .set('confirmation', 'Bearer token');
                 expect(body).toStrictEqual({
-                  errors: 'token id are not the same as your current id',
+                  errors: WRONG_TOKEN_USER_ID,
                 });
                 expect(status).toBe(401);
               });

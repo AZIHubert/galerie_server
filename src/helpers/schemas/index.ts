@@ -1,5 +1,17 @@
 import Joi from 'joi';
 
+import {
+  FIELD_HAS_SPACES,
+  FIELD_NOT_A_STRING,
+  FIELD_IS_CONFIRM_PASSWORD,
+  FIELD_IS_EMAIL,
+  FIELD_IS_EMPTY,
+  FIELD_IS_PASSWORD,
+  FIELD_IS_REQUIRED,
+  FIELD_MAX_LENGTH,
+  FIELD_MIN_LENGTH,
+} from '../errorMessages';
+
 const userSignInSchema = Joi.object({
   userName: Joi.string()
     .alphanum()
@@ -8,21 +20,21 @@ const userSignInSchema = Joi.object({
     .max(30)
     .required()
     .messages({
-      'string.base': 'should be a type of \'text\'',
-      'string.alphanum': 'cannot contain spaces',
-      'string.min': 'should have a minimum length of {#limit}',
-      'string.max': 'should have a maximum length of {#limit}',
-      'string.empty': 'cannot be an empty field',
-      'string.required': 'is required',
+      'string.base': FIELD_NOT_A_STRING,
+      'string.alphanum': FIELD_HAS_SPACES,
+      'string.min': FIELD_MIN_LENGTH,
+      'string.max': FIELD_MAX_LENGTH,
+      'string.empty': FIELD_IS_EMPTY,
+      'string.required': FIELD_IS_REQUIRED,
     }),
   email: Joi.string()
     .email({ minDomainSegments: 2 })
     .required()
     .empty()
     .messages({
-      'string.email': 'should be a valid email',
-      'string.empty': 'cannot be an empty field',
-      'any.required': 'is required',
+      'string.email': FIELD_IS_EMAIL,
+      'string.empty': FIELD_IS_EMPTY,
+      'any.required': FIELD_IS_REQUIRED,
     }),
   password: Joi.string()
     .required()
@@ -37,18 +49,18 @@ const userSignInSchema = Joi.object({
     // At least one number.
     // At least one special char.
     .messages({
-      'any.required': 'is required',
-      'string.empty': 'cannot be an empty field',
-      'string.min': 'should have a minimum length of {#limit}',
-      'string.max': 'should have a maximum length of {#limit}',
-      'string.pattern.base': 'need at least on lowercase, one uppercase, one number and one special char',
+      'any.required': FIELD_IS_REQUIRED,
+      'string.empty': FIELD_IS_EMPTY,
+      'string.min': FIELD_MIN_LENGTH,
+      'string.max': FIELD_MAX_LENGTH,
+      'string.pattern.base': FIELD_IS_PASSWORD,
     }),
   confirmPassword: Joi.string()
     .valid(Joi.ref('password'))
     .messages({
-      'string.base': 'should be a type of \'text\'',
-      'any.only': 'must match password',
-      'string.empty': 'cannot be an empty field',
+      'string.base': FIELD_NOT_A_STRING,
+      'any.only': FIELD_IS_CONFIRM_PASSWORD,
+      'string.empty': FIELD_IS_EMPTY,
     }),
 });
 
@@ -57,17 +69,17 @@ const userLogInSchema = Joi.object({
     .required()
     .empty()
     .messages({
-      'string.base': 'should be a type of \'text\'',
-      'string.empty': 'cannot be an empty field',
-      'any.required': 'is required',
+      'string.base': FIELD_NOT_A_STRING,
+      'string.empty': FIELD_IS_EMPTY,
+      'any.required': FIELD_IS_REQUIRED,
     }),
   password: Joi.string()
     .required()
     .empty()
     .messages({
-      'string.base': 'should be a type of \'text\'',
-      'string.empty': 'cannot be an empty field',
-      'any.required': 'is required',
+      'string.base': FIELD_NOT_A_STRING,
+      'string.empty': FIELD_IS_EMPTY,
+      'any.required': FIELD_IS_REQUIRED,
     }),
 });
 
@@ -77,9 +89,9 @@ const resetPasswordSchema = Joi.object({
     .required()
     .empty()
     .messages({
-      'string.email': 'should be a valid email',
-      'string.empty': 'cannot be an empty field',
-      'any.required': 'is required',
+      'string.email': FIELD_IS_EMAIL,
+      'string.empty': FIELD_IS_EMPTY,
+      'any.required': FIELD_IS_REQUIRED,
     }),
 });
 
@@ -91,19 +103,19 @@ const modifyPasswordSchema = Joi.object({
     .min(8)
     .max(30)
     .messages({
-      'string.base': 'should be a type of \'text\'',
-      'any.required': 'is required',
-      'string.empty': 'cannot be an empty field',
-      'string.min': 'should have a minimum length of {#limit}',
-      'string.max': 'should have a maximum length of {#limit}',
-      'string.pattern.base': 'need at least on lowercase, one uppercase, one number and one special char',
+      'string.base': FIELD_NOT_A_STRING,
+      'any.required': FIELD_IS_REQUIRED,
+      'string.empty': FIELD_IS_EMPTY,
+      'string.min': FIELD_MIN_LENGTH,
+      'string.max': FIELD_MAX_LENGTH,
+      'string.pattern.base': FIELD_IS_PASSWORD,
     }),
   confirmPassword: Joi.string()
     .valid(Joi.ref('password'))
     .messages({
-      'string.base': 'should be a type of \'text\'',
-      'any.only': 'must match password',
-      'string.empty': 'cannot be an empty field',
+      'string.base': FIELD_NOT_A_STRING,
+      'any.only': FIELD_IS_CONFIRM_PASSWORD,
+      'string.empty': FIELD_IS_EMPTY,
     }),
 });
 
@@ -112,9 +124,9 @@ const sendUpdateEmailSchema = Joi.object({
     .required()
     .empty()
     .messages({
-      'string.base': 'should be a type of \'text\'',
-      'string.empty': 'cannot be an empty field',
-      'any.required': 'is required',
+      'string.base': FIELD_NOT_A_STRING,
+      'string.empty': FIELD_IS_EMPTY,
+      'any.required': FIELD_IS_REQUIRED,
     }),
 });
 
@@ -124,10 +136,10 @@ const sendUpdateNewEmailSchema = Joi.object({
     .required()
     .empty()
     .messages({
-      'string.base': 'should be a type of \'text\'',
-      'string.email': 'should be a valid email',
-      'string.empty': 'cannot be an empty field',
-      'any.required': 'is required',
+      'string.base': FIELD_NOT_A_STRING,
+      'string.email': FIELD_IS_EMAIL,
+      'string.empty': FIELD_IS_EMPTY,
+      'any.required': FIELD_IS_REQUIRED,
     }),
 });
 
@@ -136,8 +148,8 @@ const sendUpdatePassword = Joi.object({
     .required()
     .empty()
     .messages({
-      'string.empty': 'cannot be an empty field',
-      'any.required': 'is required',
+      'string.empty': FIELD_IS_EMPTY,
+      'any.required': FIELD_IS_REQUIRED,
     }),
   updatedPassword: Joi.string()
     .required()
@@ -145,19 +157,19 @@ const sendUpdatePassword = Joi.object({
     .max(30)
     .pattern(new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,30}$'))
     .messages({
-      'string.base': 'should be a type of \'text\'',
-      'string.empty': 'cannot be an empty field',
-      'any.required': 'is required',
-      'string.min': 'should have a minimum length of {#limit}',
-      'string.max': 'should have a maximum length of {#limit}',
-      'string.pattern.base': 'need at least on lowercase, one uppercase, one number and one special char',
+      'string.base': FIELD_NOT_A_STRING,
+      'string.empty': FIELD_IS_EMPTY,
+      'any.required': FIELD_IS_REQUIRED,
+      'string.min': FIELD_MIN_LENGTH,
+      'string.max': FIELD_MAX_LENGTH,
+      'string.pattern.base': FIELD_IS_PASSWORD,
     }),
   confirmUpdatedPassword: Joi.string()
     .required()
     .valid(Joi.ref('updatedPassword'))
     .messages({
-      'any.required': 'is required',
-      'any.only': 'must match updated password',
+      'any.required': FIELD_IS_REQUIRED,
+      'any.only': FIELD_IS_CONFIRM_PASSWORD,
     }),
 });
 

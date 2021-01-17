@@ -4,9 +4,13 @@ import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
+import User from '@src/db/models/user';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
-import User from '@src/db/models/user';
+import {
+  TOKEN_NOT_FOUND,
+  WRONG_TOKEN_VERSION,
+} from '@src/helpers/errorMessages';
 
 const sequelize = initSequelize();
 
@@ -145,7 +149,7 @@ describe('users', () => {
             .set('confirmation', 'Bearer token');
           expect(status).toBe(401);
           expect(body).toStrictEqual({
-            errors: 'token version doesn\'t match',
+            errors: WRONG_TOKEN_VERSION,
           });
         });
       });
@@ -186,7 +190,7 @@ describe('users', () => {
               });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
-              errors: 'confirmation token not found',
+              errors: TOKEN_NOT_FOUND,
             });
             expect(jwtMock).toHaveBeenCalledTimes(0);
           });

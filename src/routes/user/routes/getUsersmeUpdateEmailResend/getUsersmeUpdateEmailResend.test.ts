@@ -7,6 +7,10 @@ import '@src/helpers/initEnv';
 import User from '@src/db/models/user';
 import { createAccessToken } from '@src/helpers/auth';
 import * as email from '@src/helpers/email';
+import {
+  FIELD_IS_REQUIRED,
+  WRONG_PASSWORD,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
@@ -93,7 +97,7 @@ describe('users', () => {
               .send({});
             expect(status).toBe(400);
             expect(body).toStrictEqual({
-              errors: 'password is required',
+              errors: FIELD_IS_REQUIRED,
             });
           });
           it('passwords not match', async () => {
@@ -113,7 +117,7 @@ describe('users', () => {
               });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
-              errors: 'passwords must match',
+              errors: WRONG_PASSWORD,
             });
           });
         });

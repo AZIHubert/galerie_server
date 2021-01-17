@@ -5,6 +5,10 @@ import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
 import { sendResetPassword } from '@src/helpers/email';
 import {
+  NOT_CONFIRMED,
+  USER_NOT_FOUND,
+} from '@src/helpers/errorMessages';
+import {
   normalizeJoiErrors,
   validateResetPasswordSchema,
 } from '@src/helpers/schemas';
@@ -12,13 +16,13 @@ import {
 const RESET_PASSWORD_SECRET = accEnv('RESET_PASSWORD_SECRET');
 
 export default async (req: Request, res: Response) => {
-  const { email } = req.body;
   const { error } = validateResetPasswordSchema(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
     });
   }
+  const { email } = req.body;
   let user: User | null;
   try {
     user = await User.findOne({ where: { email } });
@@ -28,13 +32,13 @@ export default async (req: Request, res: Response) => {
   if (!user) {
     return res.status(404).send({
       errors: {
-        email: 'user not found',
+        email: USER_NOT_FOUND,
       },
     });
   }
   if (!user.confirmed) {
     return res.status(401).send({
-      errors: 'You\'re account need to be confimed',
+      errors: NOT_CONFIRMED,
     });
   }
   sign(

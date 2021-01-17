@@ -4,6 +4,10 @@ import { sign } from 'jsonwebtoken';
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
 import { sendResetPassword } from '@src/helpers/email';
+import {
+  FIELD_IS_REQUIRED,
+  USER_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 
 const RESET_PASSWORD_SECRET = accEnv('RESET_PASSWORD_SECRET');
 
@@ -11,7 +15,7 @@ export default async (req: Request, res: Response) => {
   const { email } = req.body;
   if (!email) {
     return res.status(401).send({
-      errors: 'email is required',
+      errors: FIELD_IS_REQUIRED,
     });
   }
   let user: User | null;
@@ -22,7 +26,7 @@ export default async (req: Request, res: Response) => {
   }
   if (!user) {
     return res.status(404).send({
-      errors: 'user not found',
+      errors: USER_NOT_FOUND,
     });
   }
   try {

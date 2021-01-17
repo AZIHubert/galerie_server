@@ -9,6 +9,14 @@ import {
   sendRefreshToken,
 } from '@src/helpers/auth';
 import User from '@root/src/db/models/user';
+import {
+  FIELD_IS_REQUIRED,
+  TOKEN_NOT_FOUND,
+  WRONG_PASSWORD,
+  WRONG_TOKEN,
+  WRONG_TOKEN_USER_ID,
+  WRONG_TOKEN_VERSION,
+} from '@src/helpers/errorMessages';
 
 const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
 
@@ -16,13 +24,13 @@ export default async (req: Request, res: Response) => {
   const { confirmation } = req.headers;
   if (!confirmation) {
     return res.status(401).send({
-      errors: 'confirmation token not found',
+      errors: TOKEN_NOT_FOUND,
     });
   }
   const token = (<string>confirmation).split(' ')[1];
   if (!token) {
     return res.status(401).send({
-      errors: 'wrong token',
+      errors: WRONG_TOKEN,
     });
   }
   let id: string;
@@ -46,12 +54,12 @@ export default async (req: Request, res: Response) => {
   const { user } = res.locals;
   if (id !== user.id) {
     return res.status(401).send({
-      errors: 'wrong user id',
+      errors: WRONG_TOKEN_USER_ID,
     });
   }
   if (updatedEmailTokenVersion !== user.updatedEmailTokenVersion) {
     return res.status(401).send({
-      errors: 'incorrect token version',
+      errors: WRONG_TOKEN_VERSION,
     });
   }
   if (!updatedEmail) {
@@ -63,7 +71,7 @@ export default async (req: Request, res: Response) => {
   if (!password) {
     return res.status(401).send({
       errors: {
-        password: 'is required',
+        password: FIELD_IS_REQUIRED,
       },
     });
   }
@@ -76,7 +84,7 @@ export default async (req: Request, res: Response) => {
   if (!matchedPasswords) {
     return res.status(401).send({
       errors: {
-        password: 'wrong password',
+        password: WRONG_PASSWORD,
       },
     });
   }

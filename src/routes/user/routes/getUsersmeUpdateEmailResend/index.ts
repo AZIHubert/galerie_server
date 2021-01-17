@@ -4,6 +4,10 @@ import { sign } from 'jsonwebtoken';
 
 import accEnv from '@src/helpers/accEnv';
 import { sendUpdateEmailMessage } from '@src/helpers/email';
+import {
+  FIELD_IS_REQUIRED,
+  WRONG_PASSWORD,
+} from '@src/helpers/errorMessages';
 
 const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 
@@ -11,7 +15,7 @@ export default async (req: Request, res: Response) => {
   const { password } = req.body;
   if (!password) {
     return res.status(400).send({
-      errors: 'password is required',
+      errors: FIELD_IS_REQUIRED,
     });
   }
   const { user } = res.locals;
@@ -23,7 +27,7 @@ export default async (req: Request, res: Response) => {
   }
   if (!passwordsMatch) {
     return res.status(400).send({
-      errors: 'passwords must match',
+      errors: WRONG_PASSWORD,
     });
   }
   try {

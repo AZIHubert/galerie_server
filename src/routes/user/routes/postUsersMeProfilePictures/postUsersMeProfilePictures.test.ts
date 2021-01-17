@@ -11,6 +11,9 @@ import User from '@src/db/models/user';
 import ProfilePicture from '@src/db/models/profilePicture';
 import accEnv from '@src/helpers/accEnv';
 import { createAccessToken } from '@src/helpers/auth';
+import {
+  FILE_IS_REQUIRED,
+} from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
@@ -235,7 +238,7 @@ describe('users', () => {
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: {
-                image: 'not found',
+                image: FILE_IS_REQUIRED,
               },
             });
           });

@@ -5,6 +5,9 @@ import '@src/helpers/initEnv';
 
 import User from '@src/db/models/user';
 import * as email from '@src/helpers/email';
+import {
+  FIELD_IS_EMAIL,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
 
@@ -90,7 +93,7 @@ describe('users', () => {
           expect(status).toBe(400);
           expect(body).toStrictEqual({
             errors: {
-              email: 'should be a valid email',
+              email: FIELD_IS_EMAIL,
             },
           });
         });
