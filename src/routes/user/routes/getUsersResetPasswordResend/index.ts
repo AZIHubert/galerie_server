@@ -31,22 +31,22 @@ export default async (req: Request, res: Response) => {
   }
   try {
     await user.increment({ resetPasswordTokenVersion: 1 });
+    sign(
+      {
+        id: user.id,
+        resetPasswordTokenVersion: user.resetPasswordTokenVersion,
+      },
+      RESET_PASSWORD_SECRET,
+      {
+        expiresIn: '30m',
+      },
+      (err, emailToken) => {
+        if (err) throw new Error(`something went wrong: ${err}`);
+        if (emailToken) sendResetPassword(email, emailToken);
+      },
+    );
   } catch (err) {
     return res.status(500).send(err);
   }
-  sign(
-    {
-      id: user.id,
-      resetPasswordTokenVersion: user.resetPasswordTokenVersion,
-    },
-    RESET_PASSWORD_SECRET,
-    {
-      expiresIn: '30m',
-    },
-    (err, emailToken) => {
-      if (err) throw new Error(`something went wrong: ${err}`);
-      if (emailToken) sendResetPassword(email, emailToken);
-    },
-  );
-  return res.end();
+  return res.status(204).end();
 };

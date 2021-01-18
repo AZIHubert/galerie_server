@@ -5,6 +5,11 @@ import '@src/helpers/initEnv';
 
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
+import {
+  ALREADY_CONFIRMED,
+  USER_IS_LOGGED_IN,
+  WRONG_TOKEN_VERSION,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
 
@@ -36,137 +41,130 @@ describe('users', () => {
 
   describe('confirmation', () => {
     describe('PUT', () => {
-      it('should confirm his email and send access/refresh token', async () => {
-        const { id } = await User.create({
-          userName: 'user',
-          email: 'user@email.com',
-          password: 'password',
-          confirmed: false,
-          admin: true,
-          authTokenVersion: 0,
-          confirmTokenVersion: 0,
+      describe('should return status 200 and', () => {
+        let jwtMock: jest.SpyInstance;
+        let user: User;
+        beforeEach(async (done) => {
+          try {
+            user = await User.create({
+              userName: 'user',
+              email: 'user@email.com',
+              password: 'password',
+              confirmed: false,
+            });
+            jwtMock = jest.spyOn(jwt, 'verify')
+              .mockImplementationOnce(() => ({
+                id: user.id,
+                confirmTokenVersion: user.confirmTokenVersion,
+              }));
+            done();
+          } catch (err) {
+            done(err);
+          }
         });
-        const jwtMock = jest.spyOn(jwt, 'verify')
-          .mockImplementationOnce(() => ({
-            id,
-            confirmTokenVersion: 0,
-          }));
-        const { status, header, body } = await request(initApp())
-          .put('/users/confirmation')
-          .set('confirmation', 'Bearer abcd');
-        const user = await User.findByPk(id, { raw: true });
-        expect(status).toBe(200);
-        expect(jwtMock).toHaveBeenCalledWith('abcd', CONFIRM_SECRET);
-        expect(user?.confirmed).toBe(true);
-        expect(header).toHaveProperty('set-cookie');
-        expect(body).toHaveProperty('accessToken');
+        it('increment confirmTokenVersion', async () => {
+          await request(initApp())
+            .put('/users/confirmation')
+            .set('confirmation', 'Bearer token');
+          const updatedUser = await User.findByPk(user.id);
+          expect(updatedUser?.confirmTokenVersion).toBe(user.confirmTokenVersion + 1);
+        });
+        it('confirm his email and send access/refresh token', async () => {
+          const { status, header, body } = await request(initApp())
+            .put('/users/confirmation')
+            .set('confirmation', 'Bearer token');
+          await user.reload();
+          expect(status).toBe(200);
+          expect(jwtMock).toHaveBeenCalledWith('token', CONFIRM_SECRET);
+          expect(user.confirmed).toBe(true);
+          expect(header).toHaveProperty('set-cookie');
+          expect(body).toHaveProperty('accessToken');
+        });
       });
-      describe('should not be able to', () => {
-        it('create an account if is already authenticated', async () => {
-          const { id } = await User.create({
-            userName: 'user',
-            email: 'user@email.com',
-            password: 'password',
-            confirmed: false,
-            admin: true,
-            authTokenVersion: 0,
-            confirmTokenVersion: 1,
-          });
-          jest.spyOn(jwt, 'verify')
-            .mockImplementation(() => ({
-              id,
-              authTokenVersion: 0,
-            }));
+      describe('should return error 401 if', () => {
+        it('user is already authenticated', async () => {
           const { headers: { authorization } } = await request(initApp())
             .put('/users/confirmation')
-            .set('confirmation', 'Bearer abcd');
+            .set('confirmation', 'Bearer token');
           const { body, status } = await request(initApp())
             .post('/users/signin')
             .set('authorization', `Bearer ${authorization}`);
           expect(status).toBe(401);
           expect(body).toStrictEqual({
-            errors: 'you are already authenticated',
+            errors: USER_IS_LOGGED_IN,
           });
         });
-        it('confirm twice if is already authenticated', async () => {
+        it('if is already authenticated', async () => {
           const { body, status } = await request(initApp())
             .put('/users/confirmation')
             .set('confirmation', 'Bearer token')
             .set('authorization', 'Bearer token');
           expect(status).toBe(401);
           expect(body).toStrictEqual({
-            errors: 'you are already authenticated',
+            errors: USER_IS_LOGGED_IN,
           });
         });
-      });
-    });
-    describe('should return error 401 if', () => {
-      it('user is already confirmed', async () => {
-        const { id, confirmTokenVersion } = await User.create({
-          userName: 'user',
-          email: 'user@email.com',
-          password: 'password',
-          confirmed: true,
-          admin: false,
-          authTokenVersion: 0,
-          confirmTokenVersion: 0,
-        });
-        jest.spyOn(jwt, 'verify')
-          .mockImplementationOnce(() => ({
-            id,
-            confirmTokenVersion,
-          }));
-        const { body, status } = await request(initApp())
-          .put('/users/confirmation')
-          .set('confirmation', 'Bearer abcd');
-        expect(status).toBe(401);
-        expect(body).toStrictEqual({
-          errors: 'your account is already confirmed',
-        });
-      });
-      describe('confirmation token', () => {
-        it('not found', async () => {
-          const jwtMock = jest.spyOn(jwt, 'verify');
-          const { body, status } = await request(initApp())
-            .put('/users/confirmation');
-          expect(status).toBe(401);
-          expect(body).toStrictEqual({
-            errors: 'token not found',
-          });
-          expect(jwtMock).toHaveBeenCalledTimes(0);
-        });
-        it('is not "Bearer ..."', async () => {
-          const jwtMock = jest.spyOn(jwt, 'verify');
-          const { body, status } = await request(initApp())
-            .put('/users/confirmation')
-            .set('confirmation', 'abcde');
-          expect(status).toBe(401);
-          expect(body).toStrictEqual({
-            errors: 'wrong token',
-          });
-          expect(jwtMock).toHaveBeenCalledTimes(0);
-        });
-        it('is not correct version', async () => {
-          const { id } = await User.create({
+        it('user is already confirmed', async () => {
+          const { id, confirmTokenVersion } = await User.create({
             userName: 'user',
             email: 'user@email.com',
             password: 'password',
-            confirmed: false,
-            admin: true,
-            authTokenVersion: 0,
-            confirmTokenVersion: 0,
+            confirmed: true,
           });
           jest.spyOn(jwt, 'verify')
-            .mockImplementation(() => ({
-              id,
-              confirmTokenVersion: 1,
-            }));
+            .mockImplementationOnce(() => ({ id, confirmTokenVersion }));
           const { body, status } = await request(initApp())
             .put('/users/confirmation')
-            .set('confirmation', 'Bearer token');
+            .set('confirmation', 'Bearer abcd');
           expect(status).toBe(401);
           expect(body).toStrictEqual({
-            errors: 'wrong token version',
+            errors: ALREADY_CONFIRMED,
+          });
+        });
+        describe('confirmation token', () => {
+          it('not found', async () => {
+            const jwtMock = jest.spyOn(jwt, 'verify');
+            const { body, status } = await request(initApp())
+              .put('/users/confirmation');
+            expect(status).toBe(401);
+            expect(body).toStrictEqual({
+              errors: 'token not found',
+            });
+            expect(jwtMock).toHaveBeenCalledTimes(0);
+          });
+          it('is not "Bearer ..."', async () => {
+            const jwtMock = jest.spyOn(jwt, 'verify');
+            const { body, status } = await request(initApp())
+              .put('/users/confirmation')
+              .set('confirmation', 'abcde');
+            expect(status).toBe(401);
+            expect(body).toStrictEqual({
+              errors: 'wrong token',
+            });
+            expect(jwtMock).toHaveBeenCalledTimes(0);
+          });
+          it('is not correct version', async () => {
+            const { id } = await User.create({
+              userName: 'user',
+              email: 'user@email.com',
+              password: 'password',
+              confirmed: false,
+              admin: true,
+              authTokenVersion: 0,
+              confirmTokenVersion: 0,
+            });
+            jest.spyOn(jwt, 'verify')
+              .mockImplementation(() => ({
+                id,
+                confirmTokenVersion: 1,
+              }));
+            const { body, status } = await request(initApp())
+              .put('/users/confirmation')
+              .set('confirmation', 'Bearer token');
+            expect(status).toBe(401);
+            expect(body).toStrictEqual({
+              errors: WRONG_TOKEN_VERSION,
+            });
           });
         });
       });

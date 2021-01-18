@@ -63,7 +63,12 @@ export default async (req: Request, res: Response) => {
       errors: WRONG_TOKEN_VERSION,
     });
   }
-  await user.update({ confirmed: true }, { where: { id } });
+  try {
+    await user.increment({ confirmTokenVersion: 1 });
+    await user.update({ confirmed: true }, { where: { id } });
+  } catch (err) {
+    res.status(500).send(err);
+  }
   sendRefreshToken(res, createRefreshToken(user));
   return res
     .status(200)

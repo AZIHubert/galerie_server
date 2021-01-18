@@ -37,21 +37,25 @@ export default async (req: Request, res: Response) => {
       },
     });
   }
-  sign(
-    {
-      id: user.id,
-      emailTokenVersion: user.emailTokenVersion,
-    },
-    SEND_EMAIL_SECRET,
-    {
-      expiresIn: '30m',
-    },
-    (err, emailToken) => {
-      if (err) throw new Error(`something went wrong: ${err}`);
-      if (emailToken) {
-        sendUpdateEmailMessage(user.email, 'emailToken');
-      }
-    },
-  );
+  try {
+    sign(
+      {
+        id: user.id,
+        emailTokenVersion: user.emailTokenVersion,
+      },
+      SEND_EMAIL_SECRET,
+      {
+        expiresIn: '30m',
+      },
+      (err, emailToken) => {
+        if (err) throw new Error(`something went wrong: ${err}`);
+        if (emailToken) {
+          sendUpdateEmailMessage(user.email, 'emailToken');
+        }
+      },
+    );
+  } catch (err) {
+    return res.status(500).send(err);
+  }
   return res.status(201).send();
 };

@@ -7,11 +7,19 @@ import User from '@src/db/models/user';
 import * as email from '@src/helpers/email';
 import {
   FIELD_IS_REQUIRED,
+  USER_IS_LOGGED_IN,
+  USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
 
 const sequelize = initSequelize();
+
+const newUser = {
+  userName: 'user',
+  email: 'user@email.com',
+  password: 'password',
+};
 
 describe('users', () => {
   beforeEach(async (done) => {
@@ -37,41 +45,39 @@ describe('users', () => {
   describe('resetPassword', () => {
     describe('resend', () => {
       describe('GET', () => {
-        it('should increment resetPasswordTokenVersion', async () => {
-          const {
-            id,
-            email: userEmail,
-            resetPasswordTokenVersion,
-          } = await User.create({
-            userName: 'user',
-            email: 'user@email.com',
-            password: 'Aaoudjiuvhds9!',
-            confirmed: true,
-          });
-          await request(initApp())
-            .get('/users/resetPassword/resend')
-            .send({
+        describe('should return status 204 and', () => {
+          it('increment resetPasswordTokenVersion', async () => {
+            const {
+              id,
               email: userEmail,
+              resetPasswordTokenVersion,
+            } = await User.create({
+              ...newUser,
+              confirmed: true,
             });
-          const updatedUser = await User.findByPk(id, { raw: true });
-          expect(updatedUser!.resetPasswordTokenVersion).toBe(resetPasswordTokenVersion + 1);
-        });
-        it('should send an email with and sign a token', async () => {
-          const resetPasswordMessageMocked = jest.spyOn(email, 'sendResetPassword');
-          const jwtMocked = jest.spyOn(jwt, 'sign');
-          const { email: userEmail } = await User.create({
-            userName: 'user',
-            email: 'user@email.com',
-            password: 'Aaoudjiuvhds9!',
-            confirmed: true,
+            await request(initApp())
+              .get('/users/resetPassword/resend')
+              .send({
+                email: userEmail,
+              });
+            const updatedUser = await User.findByPk(id, { raw: true });
+            expect(updatedUser!.resetPasswordTokenVersion).toBe(resetPasswordTokenVersion + 1);
           });
-          await request(initApp())
-            .get('/users/resetPassword/resend')
-            .send({
-              email: userEmail,
+          it('send an email with and sign a token', async () => {
+            const resetPasswordMessageMocked = jest.spyOn(email, 'sendResetPassword');
+            const jwtMocked = jest.spyOn(jwt, 'sign');
+            const { email: userEmail } = await User.create({
+              ...newUser,
+              confirmed: true,
             });
-          expect(jwtMocked).toHaveBeenCalledTimes(1);
-          expect(resetPasswordMessageMocked).toHaveBeenCalledTimes(1);
+            await request(initApp())
+              .get('/users/resetPassword/resend')
+              .send({
+                email: userEmail,
+              });
+            expect(jwtMocked).toHaveBeenCalledTimes(1);
+            expect(resetPasswordMessageMocked).toHaveBeenCalledTimes(1);
+          });
         });
         describe('should return error 400 if', () => {
           it('email is not sent', async () => {
@@ -91,7 +97,7 @@ describe('users', () => {
               .set('authorization', 'Bearer token');
             expect(status).toBe(401);
             expect(body).toStrictEqual({
-              errors: 'you are already authenticated',
+              errors: USER_IS_LOGGED_IN,
             });
           });
         });
@@ -104,7 +110,7 @@ describe('users', () => {
               });
             expect(status).toBe(404);
             expect(body).toStrictEqual({
-              errors: 'user not found',
+              errors: USER_NOT_FOUND,
             });
           });
         });

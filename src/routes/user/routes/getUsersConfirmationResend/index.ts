@@ -36,23 +36,22 @@ export default async (req: Request, res: Response) => {
   }
   try {
     await user.increment({ confirmTokenVersion: 1 });
+    sign(
+      {
+        id,
+        confirmTokenVersion: user.confirmTokenVersion,
+      },
+      CONFIRM_SECRET,
+      {
+        expiresIn: '2d',
+      },
+      (err, emailToken) => {
+        if (err) throw new Error(`something went wrong: ${err}`);
+        if (emailToken) sendConfirmAccount(user!.email, emailToken);
+      },
+    );
   } catch (err) {
     res.status(500).send(err);
   }
-  sign(
-    {
-      id,
-      confirmTokenVersion: user.confirmTokenVersion,
-    },
-    CONFIRM_SECRET,
-    {
-      expiresIn: '2d',
-    },
-    (err, emailToken) => {
-      if (err) throw new Error(`something went wrong: ${err}`);
-      if (emailToken) sendConfirmAccount(user!.email, emailToken);
-    },
-  );
-
   return res.status(204).end();
 };

@@ -32,24 +32,24 @@ export default async (req: Request, res: Response) => {
   }
   try {
     await user.increment({ emailTokenVersion: 1 });
+    sign(
+      {
+        id: user.id,
+        emailTokenVersion: user.emailTokenVersion,
+      },
+      SEND_EMAIL_SECRET,
+      {
+        expiresIn: '30m',
+      },
+      (err, emailToken) => {
+        if (err) throw new Error(`something went wrong: ${err}`);
+        if (emailToken) {
+          sendUpdateEmailMessage(user.email, 'emailToken');
+        }
+      },
+    );
   } catch (err) {
     res.status(500).send(err);
   }
-  sign(
-    {
-      id: user.id,
-      emailTokenVersion: user.emailTokenVersion,
-    },
-    SEND_EMAIL_SECRET,
-    {
-      expiresIn: '30m',
-    },
-    (err, emailToken) => {
-      if (err) throw new Error(`something went wrong: ${err}`);
-      if (emailToken) {
-        sendUpdateEmailMessage(user.email, 'emailToken');
-      }
-    },
-  );
   return res.status(201).end();
 };

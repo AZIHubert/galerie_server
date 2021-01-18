@@ -81,14 +81,26 @@ const validateEmailMessage = (email: string, token: string) => ({
 
 export const sendConfirmAccount = (email: string, token: string) => transporter.sendMail(
   confirmAccountMessage(email, token),
+  (err) => {
+    if (err) transporter.close();
+  },
 );
 export const sendResetPassword = (email: string, token: string) => transporter.sendMail(
   resetPasswordMessage(email, token),
+  (err) => {
+    if (err) transporter.close();
+  },
 );
 export const sendUpdateEmailMessage = (email: string, token: string) => transporter.sendMail(
   updateEmailMessage(email, token),
+  (err) => {
+    if (err) transporter.close();
+  },
 );
 
 export const sendValidateEmailMessage = (email: string, token: string) => transporter.sendMail(
   validateEmailMessage(email, token),
+  (err) => {
+    if (err) transporter.close();
+  },
 );

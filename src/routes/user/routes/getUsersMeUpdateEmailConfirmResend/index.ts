@@ -13,7 +13,7 @@ import {
 const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
 
-export default (req: Request, res: Response) => {
+export default async (req: Request, res: Response) => {
   const { confirmation } = req.headers;
   if (!confirmation) {
     return res.status(401).send({
@@ -51,6 +51,7 @@ export default (req: Request, res: Response) => {
     });
   }
   try {
+    await user.increment({ updatedEmailTokenVersion: 1 });
     sign(
       {
         id: user.id,

@@ -9,6 +9,8 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
 import {
   ALREADY_CONFIRMED,
+  USER_IS_LOGGED_IN,
+  USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 
 const sequelize = initSequelize();
@@ -33,40 +35,42 @@ describe('users', () => {
   describe('confirmation', () => {
     describe('resend', () => {
       describe('GET', () => {
-        it('should increment confirmTokenVersion', async () => {
-          const { id, confirmTokenVersion } = await User.create({
-            userName: 'user',
-            email: 'user@email.com',
-            password: 'password',
-            confirmed: false,
-          });
-          const { status } = await request(initApp())
-            .get('/users/confirmation/resend')
-            .send({
-              id,
+        describe('should return status 200 and', () => {
+          it('should increment confirmTokenVersion', async () => {
+            const { id, confirmTokenVersion } = await User.create({
+              userName: 'user',
+              email: 'user@email.com',
+              password: 'password',
+              confirmed: false,
             });
-          const updatedUser = await User.findByPk(id);
-          expect(status).toBe(204);
-          expect(updatedUser!.confirmTokenVersion)
-            .toBe(confirmTokenVersion + 1);
-        });
-        it('should sign a token and send an email', async () => {
-          const signMocked = jest.spyOn(jwt, 'sign');
-          const emailMocked = jest.spyOn(email, 'sendConfirmAccount');
-          const { id } = await User.create({
-            userName: 'user',
-            email: 'user@email.com',
-            password: 'password',
-            confirmed: false,
+            const { status } = await request(initApp())
+              .get('/users/confirmation/resend')
+              .send({
+                id,
+              });
+            const updatedUser = await User.findByPk(id);
+            expect(status).toBe(204);
+            expect(updatedUser!.confirmTokenVersion)
+              .toBe(confirmTokenVersion + 1);
           });
-          const { status } = await request(initApp())
-            .get('/users/confirmation/resend')
-            .send({
-              id,
+          it('should sign a token and send an email', async () => {
+            const signMocked = jest.spyOn(jwt, 'sign');
+            const emailMocked = jest.spyOn(email, 'sendConfirmAccount');
+            const { id } = await User.create({
+              userName: 'user',
+              email: 'user@email.com',
+              password: 'password',
+              confirmed: false,
             });
-          expect(status).toBe(204);
-          expect(signMocked).toHaveBeenCalledTimes(1);
-          expect(emailMocked).toHaveBeenCalledTimes(1);
+            const { status } = await request(initApp())
+              .get('/users/confirmation/resend')
+              .send({
+                id,
+              });
+            expect(status).toBe(204);
+            expect(signMocked).toHaveBeenCalledTimes(1);
+            expect(emailMocked).toHaveBeenCalledTimes(1);
+          });
         });
         describe('should return error 401 if', () => {
           it('user is authenticated', async () => {
@@ -75,7 +79,7 @@ describe('users', () => {
               .set('authorization', 'Bearer token');
             expect(status).toBe(401);
             expect(body).toStrictEqual({
-              errors: 'you are already authenticated',
+              errors: USER_IS_LOGGED_IN,
             });
           });
           it('id is not send', async () => {
@@ -95,7 +99,7 @@ describe('users', () => {
               });
             expect(status).toBe(401);
             expect(body).toStrictEqual({
-              errors: 'user not found',
+              errors: USER_NOT_FOUND,
             });
           });
           it('user is already confirmed', async () => {

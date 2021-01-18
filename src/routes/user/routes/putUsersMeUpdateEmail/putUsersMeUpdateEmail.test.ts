@@ -9,7 +9,12 @@ import {
   createAccessToken,
 } from '@src/helpers/auth';
 import {
+  FIELD_IS_REQUIRED,
+  NOT_AUTHENTICATED,
+  NOT_CONFIRMED,
   TOKEN_NOT_FOUND,
+  WRONG_PASSWORD,
+  WRONG_TOKEN,
   WRONG_TOKEN_USER_ID,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
@@ -18,6 +23,12 @@ import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
 
 const sequelize = initSequelize();
+
+const newUSer = {
+  userName: 'user',
+  email: 'user@email.com',
+  password: 'password',
+};
 
 const INVALIDE_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJ1cGRhdGVkRW1haWwiOiJ1c2VyMkBlbWFpbC5jb20iLCJ1cGRhdGVkRW1haWxUb2tlblZlcnNpb24iOjB9.5_-8zBH7pj6yrAIlGbZIm1GNXmR-jskVfL-1U3B_QcU';
 const EXPIRED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJ1cGRhdGVkRW1haWwiOiJ1c2VyMkBlbWFpbC5jb20iLCJ1cGRhdGVkRW1haWxUb2tlblZlcnNpb24iOjAsImV4cCI6MH0.hQS9wpnUSS2Araz0tJ7xvTEJ4LaS1F5gBkPC1MpITQs';
@@ -47,67 +58,54 @@ describe('users', () => {
   describe('me', () => {
     describe('updateEmail', () => {
       describe('put', () => {
-        it('should increment updatedEmailTokenVersion', async () => {
+        describe('should return status 200', () => {
+          let user: User;
+          let response: request.Response;
           const updatedEmail = 'user2@email.com';
-          const password = 'Aaoudjiuvhds9!';
-          const hashPassword = await hash(password, saltRounds);
-          const { id, updatedEmailTokenVersion } = await User.create({
-            userName: 'user',
-            email: 'user@email.com',
-            password: hashPassword,
-            admin: false,
-            confirmed: true,
-            updatedEmailTokenVersion: 0,
+          let updatedEmailTokenVersion: number;
+          beforeEach(async (done) => {
+            try {
+              const password = 'Aaoudjiuvhds9!';
+              const hashPassword = await hash(password, saltRounds);
+              user = await User.create({
+                ...newUSer,
+                password: hashPassword,
+                confirmed: true,
+              });
+              const { id } = user;
+              updatedEmailTokenVersion = user.updatedEmailTokenVersion;
+              jest.spyOn(jwt, 'verify')
+                .mockImplementationOnce(() => ({ id }))
+                .mockImplementationOnce(() => ({ id, updatedEmailTokenVersion, updatedEmail }));
+              response = await request(initApp())
+                .put('/users/me/updateEmail')
+                .set('authorization', 'Bearer token')
+                .set('confirmation', 'Bearer token')
+                .send({ password });
+              done();
+            } catch (err) {
+              done(err);
+            }
           });
-          jest.spyOn(jwt, 'verify')
-            .mockImplementationOnce(() => ({
-              id,
-            }))
-            .mockImplementationOnce(() => ({
-              id,
-              updatedEmailTokenVersion: 0,
-              updatedEmail,
-            }));
-          await request(initApp())
-            .put('/users/me/updateEmail')
-            .set('authorization', 'Bearer token')
-            .set('confirmation', 'Bearer token')
-            .send({ password });
-          const updatedUser = await User.findByPk(id);
-          expect(updatedUser!.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion + 1);
-        });
-        it('should update user email', async () => {
-          const updatedEmail = 'user2@email.com';
-          const password = 'Aaoudjiuvhds9!';
-          const hashPassword = await hash(password, saltRounds);
-          const user = await User.create({
-            userName: 'user',
-            email: 'user@email.com',
-            password: hashPassword,
-            admin: false,
-            confirmed: true,
-            updatedEmailTokenVersion: 0,
+          it('should increment updatedEmailTokenVersion', async () => {
+            const { status } = response;
+            await user.reload();
+            expect(status).toBe(200);
+            expect(user!.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion + 1);
           });
-          jest.spyOn(jwt, 'verify')
-            .mockImplementationOnce(() => ({
-              id: user.id,
-            }))
-            .mockImplementationOnce(() => ({
-              id: user.id,
-              updatedEmailTokenVersion: 0,
-              updatedEmail,
-            }));
-          const { body, headers, status } = await request(initApp())
-            .put('/users/me/updateEmail')
-            .set('authorization', 'Bearer token')
-            .set('confirmation', 'Bearer token')
-            .send({ password });
-          const updatedUser = await User.findByPk(user.id, { raw: true });
-          expect(status).toBe(200);
-          expect(updatedUser!.email).toBe(updatedEmail);
-          expect(updatedUser!.authTokenVersion).toBe(user!.authTokenVersion + 1);
-          expect(body).toHaveProperty('accessToken');
-          expect(headers).toHaveProperty('set-cookie');
+          it('should update user email', async () => {
+            const { status } = response;
+            await user.reload();
+            expect(status).toBe(200);
+            expect(user.email).toBe(updatedEmail);
+            expect(user.authTokenVersion).toBe(updatedEmailTokenVersion + 1);
+          });
+          it('should send accessToken and set refresh cookie', async () => {
+            const { body, headers, status } = response;
+            expect(status).toBe(200);
+            expect(body).toHaveProperty('accessToken');
+            expect(headers).toHaveProperty('set-cookie');
+          });
         });
         describe('should return error 401 if', () => {
           it('not logged in', async () => {
@@ -115,41 +113,28 @@ describe('users', () => {
               .put('/users/me/updateEmail');
             expect(status).toBe(401);
             expect(body).toStrictEqual({
-              errors: 'not authenticated',
+              errors: NOT_AUTHENTICATED,
             });
           });
           it('not confirmed', async () => {
-            const user = await User.create({
-              userName: 'user',
-              email: 'user@email.com',
-              password: 'password',
-              admin: false,
-              confirmed: false,
-            });
+            const user = await User.create(newUSer);
             const token = createAccessToken(user);
             const { body, status } = await request(initApp())
               .put('/users/me/updateEmail')
               .set('authorization', `Bearer ${token}`);
             expect(status).toBe(401);
             expect(body).toStrictEqual({
-              errors: 'You\'re account need to be confimed',
+              errors: NOT_CONFIRMED,
             });
           });
           it('confirm id is not the same as current user id', async () => {
-            const user = await User.create({
-              userName: 'user',
-              email: 'user@email.com',
-              password: 'password',
-              admin: false,
+            const { id } = await User.create({
+              ...newUSer,
               confirmed: true,
             });
             jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({
-                id: user.id,
-              }))
-              .mockImplementationOnce(() => ({
-                id: 10000,
-              }));
+              .mockImplementationOnce(() => ({ id }))
+              .mockImplementationOnce(() => ({ id: 10000 }));
             const { body, status } = await request(initApp())
               .put('/users/me/updateEmail')
               .set('authorization', 'Bearer token')
@@ -160,22 +145,14 @@ describe('users', () => {
             });
           });
           it('updatedEmailTokenVersion is not the same as current user updatedEmailTokenVersion', async () => {
-            const user = await User.create({
-              userName: 'user',
-              email: 'user@email.com',
-              password: 'password',
-              admin: false,
+            const { id } = await User.create({
+              ...newUSer,
               confirmed: true,
               updatedEmailTokenVersion: 1,
             });
             jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({
-                id: user.id,
-              }))
-              .mockImplementationOnce(() => ({
-                id: user.id,
-                updatedEmailTokenVersion: 0,
-              }));
+              .mockImplementationOnce(() => ({ id }))
+              .mockImplementationOnce(() => ({ id, updatedEmailTokenVersion: 0 }));
             const { body, status } = await request(initApp())
               .put('/users/me/updateEmail')
               .set('authorization', 'Bearer token')
@@ -186,22 +163,13 @@ describe('users', () => {
             });
           });
           it('if updatedEmail is not found in token', async () => {
-            const user = await User.create({
-              userName: 'user',
-              email: 'user@email.com',
-              password: 'password',
-              admin: false,
+            const { id, updatedEmailTokenVersion } = await User.create({
+              ...newUSer,
               confirmed: true,
-              updatedEmailTokenVersion: 0,
             });
             jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({
-                id: user.id,
-              }))
-              .mockImplementationOnce(() => ({
-                id: user.id,
-                updatedEmailTokenVersion: 0,
-              }));
+              .mockImplementationOnce(() => ({ id }))
+              .mockImplementationOnce(() => ({ id, updatedEmailTokenVersion }));
             const { body, status } = await request(initApp())
               .put('/users/me/updateEmail')
               .set('authorization', 'Bearer token')
@@ -211,23 +179,18 @@ describe('users', () => {
               errors: 'updated email not found',
             });
           });
-          it('if password is not send', async () => {
-            const hashPassword = await hash('Aoudjiuvhds9!', saltRounds);
-            const user = await User.create({
-              userName: 'user',
-              email: 'user@email.com',
+          it('if passwords not match', async () => {
+            const hashPassword = await hash('password', saltRounds);
+            const { id, updatedEmailTokenVersion } = await User.create({
+              ...newUSer,
               password: hashPassword,
-              admin: false,
               confirmed: true,
-              updatedEmailTokenVersion: 0,
             });
             jest.spyOn(jwt, 'verify')
+              .mockImplementationOnce(() => ({ id }))
               .mockImplementationOnce(() => ({
-                id: user.id,
-              }))
-              .mockImplementationOnce(() => ({
-                id: user.id,
-                updatedEmailTokenVersion: 0,
+                id,
+                updatedEmailTokenVersion,
                 updatedEmail: 'user2@email.com',
               }));
             const { body, status } = await request(initApp())
@@ -235,31 +198,25 @@ describe('users', () => {
               .set('authorization', 'Bearer token')
               .set('confirmation', 'Bearer token')
               .send({
-                password: 'Aaoudiujbh09!',
+                password: 'wrongPassword',
               });
             expect(status).toBe(401);
             expect(body).toStrictEqual({
               errors: {
-                password: 'wrong password',
+                password: WRONG_PASSWORD,
               },
             });
           });
-          it('if passwords not match', async () => {
-            const user = await User.create({
-              userName: 'user',
-              email: 'user@email.com',
-              password: 'password',
-              admin: false,
+          it('if password not send', async () => {
+            const { id, updatedEmailTokenVersion } = await User.create({
+              ...newUSer,
               confirmed: true,
-              updatedEmailTokenVersion: 0,
             });
             jest.spyOn(jwt, 'verify')
+              .mockImplementationOnce(() => ({ id }))
               .mockImplementationOnce(() => ({
-                id: user.id,
-              }))
-              .mockImplementationOnce(() => ({
-                id: user.id,
-                updatedEmailTokenVersion: 0,
+                id,
+                updatedEmailTokenVersion,
                 updatedEmail: 'user2@email.com',
               }));
             const { body, status } = await request(initApp())
@@ -270,7 +227,7 @@ describe('users', () => {
             expect(status).toBe(401);
             expect(body).toStrictEqual({
               errors: {
-                password: 'is required',
+                password: FIELD_IS_REQUIRED,
               },
             });
           });
@@ -279,10 +236,7 @@ describe('users', () => {
             beforeEach(async (done) => {
               try {
                 const user = await User.create({
-                  userName: 'user',
-                  email: 'user@email.com',
-                  password: 'password',
-                  admin: false,
+                  ...newUSer,
                   confirmed: true,
                 });
                 token = createAccessToken(user);
@@ -307,7 +261,7 @@ describe('users', () => {
                 .set('confirmation', 'token');
               expect(status).toBe(401);
               expect(body).toStrictEqual({
-                errors: 'wrong token',
+                errors: WRONG_TOKEN,
               });
             });
           });
@@ -318,10 +272,7 @@ describe('users', () => {
             beforeEach(async (done) => {
               try {
                 const user = await User.create({
-                  userName: 'user',
-                  email: 'user@email.com',
-                  password: 'password',
-                  admin: false,
+                  ...newUSer,
                   confirmed: true,
                 });
                 token = createAccessToken(user);

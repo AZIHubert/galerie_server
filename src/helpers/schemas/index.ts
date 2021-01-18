@@ -8,8 +8,9 @@ import {
   FIELD_IS_EMPTY,
   FIELD_IS_PASSWORD,
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH,
-  FIELD_MIN_LENGTH,
+  FIELD_MAX_LENGTH_THRITY,
+  FIELD_MIN_LENGTH_OF_THREE,
+  FIELD_MIN_LENGTH_OF_HEIGH,
 } from '../errorMessages';
 
 const userSignInSchema = Joi.object({
@@ -22,8 +23,8 @@ const userSignInSchema = Joi.object({
     .messages({
       'string.base': FIELD_NOT_A_STRING,
       'string.alphanum': FIELD_HAS_SPACES,
-      'string.min': FIELD_MIN_LENGTH,
-      'string.max': FIELD_MAX_LENGTH,
+      'string.min': FIELD_MIN_LENGTH_OF_THREE,
+      'string.max': FIELD_MAX_LENGTH_THRITY,
       'string.empty': FIELD_IS_EMPTY,
       'string.required': FIELD_IS_REQUIRED,
     }),
@@ -51,8 +52,8 @@ const userSignInSchema = Joi.object({
     .messages({
       'any.required': FIELD_IS_REQUIRED,
       'string.empty': FIELD_IS_EMPTY,
-      'string.min': FIELD_MIN_LENGTH,
-      'string.max': FIELD_MAX_LENGTH,
+      'string.min': FIELD_MIN_LENGTH_OF_HEIGH,
+      'string.max': FIELD_MAX_LENGTH_THRITY,
       'string.pattern.base': FIELD_IS_PASSWORD,
     }),
   confirmPassword: Joi.string()
@@ -106,8 +107,8 @@ const modifyPasswordSchema = Joi.object({
       'string.base': FIELD_NOT_A_STRING,
       'any.required': FIELD_IS_REQUIRED,
       'string.empty': FIELD_IS_EMPTY,
-      'string.min': FIELD_MIN_LENGTH,
-      'string.max': FIELD_MAX_LENGTH,
+      'string.min': FIELD_MIN_LENGTH_OF_HEIGH,
+      'string.max': FIELD_MAX_LENGTH_THRITY,
       'string.pattern.base': FIELD_IS_PASSWORD,
     }),
   confirmPassword: Joi.string()
@@ -160,8 +161,8 @@ const sendUpdatePassword = Joi.object({
       'string.base': FIELD_NOT_A_STRING,
       'string.empty': FIELD_IS_EMPTY,
       'any.required': FIELD_IS_REQUIRED,
-      'string.min': FIELD_MIN_LENGTH,
-      'string.max': FIELD_MAX_LENGTH,
+      'string.min': FIELD_MIN_LENGTH_OF_HEIGH,
+      'string.max': FIELD_MAX_LENGTH_THRITY,
       'string.pattern.base': FIELD_IS_PASSWORD,
     }),
   confirmUpdatedPassword: Joi.string()

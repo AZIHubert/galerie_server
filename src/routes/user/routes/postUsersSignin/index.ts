@@ -4,6 +4,9 @@ import { sign } from 'jsonwebtoken';
 
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
+import {
+  ALREADY_TAKEN,
+} from '@src/helpers/errorMessages';
 import { sendConfirmAccount } from '@src/helpers/email';
 import saltRounds from '@src/helpers/saltRounds';
 import {
@@ -17,11 +20,11 @@ const normalizeSequelizeErrors = async (email: string, userName: string) => {
   const normalizeErrors: any = {};
   const emailAlreadyUse = await User.findOne({ where: { email } });
   if (emailAlreadyUse) {
-    normalizeErrors.email = 'already taken';
+    normalizeErrors.email = ALREADY_TAKEN;
   }
   const userNameAlreadyUse = await User.findOne({ where: { userName } });
   if (userNameAlreadyUse) {
-    normalizeErrors.userName = 'already taken';
+    normalizeErrors.userName = ALREADY_TAKEN;
   }
   return normalizeErrors;
 };
@@ -52,22 +55,22 @@ export default async (req: Request, res: Response) => {
       email: req.body.email,
       password: hashPassword,
     });
+    sign(
+      {
+        id: newUser.id,
+        confirmTokenVersion: newUser.confirmTokenVersion,
+      },
+      CONFIRM_SECRET,
+      {
+        expiresIn: '2d',
+      },
+      (err, emailToken) => {
+        if (err) throw new Error(`something went wrong: ${err}`);
+        if (emailToken) sendConfirmAccount(req.body.email, emailToken);
+      },
+    );
   } catch (err) {
     return res.status(500).send(err);
   }
-  sign(
-    {
-      id: newUser.id,
-      confirmTokenVersion: newUser.confirmTokenVersion,
-    },
-    CONFIRM_SECRET,
-    {
-      expiresIn: '2d',
-    },
-    (err, emailToken) => {
-      if (err) throw new Error(`something went wrong: ${err}`);
-      if (emailToken) sendConfirmAccount(req.body.email, emailToken);
-    },
-  );
   return res.status(201).send(newUser);
 };

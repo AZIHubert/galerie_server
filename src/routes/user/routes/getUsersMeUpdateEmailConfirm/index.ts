@@ -72,6 +72,7 @@ export default async (req: Request, res: Response) => {
     });
   }
   try {
+    await user.increment({ emailTokenVersion: 1 });
     sign(
       {
         id: user.id,

@@ -41,19 +41,23 @@ export default async (req: Request, res: Response) => {
       errors: NOT_CONFIRMED,
     });
   }
-  sign(
-    {
-      id: user.id,
-      resetPasswordTokenVersion: user.resetPasswordTokenVersion,
-    },
-    RESET_PASSWORD_SECRET,
-    {
-      expiresIn: '30m',
-    },
-    (err, emailToken) => {
-      if (err) throw new Error(`something went wrong: ${err}`);
-      if (emailToken) sendResetPassword(email, emailToken);
-    },
-  );
-  return res.status(200).end();
+  try {
+    sign(
+      {
+        id: user.id,
+        resetPasswordTokenVersion: user.resetPasswordTokenVersion,
+      },
+      RESET_PASSWORD_SECRET,
+      {
+        expiresIn: '30m',
+      },
+      (err, emailToken) => {
+        if (err) throw new Error(`something went wrong: ${err}`);
+        if (emailToken) sendResetPassword(email, emailToken);
+      },
+    );
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  return res.status(204).end();
 };

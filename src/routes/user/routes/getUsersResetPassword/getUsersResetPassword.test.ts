@@ -7,11 +7,21 @@ import User from '@src/db/models/user';
 import * as email from '@src/helpers/email';
 import {
   FIELD_IS_EMAIL,
+  FIELD_IS_EMPTY,
+  FIELD_IS_REQUIRED,
+  NOT_CONFIRMED,
+  USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
 
 const sequelize = initSequelize();
+
+const newUser = {
+  userName: 'user',
+  email: 'user@email.com',
+  password: 'password',
+};
 
 describe('users', () => {
   beforeEach(async (done) => {
@@ -21,6 +31,9 @@ describe('users', () => {
       done(err);
     }
     done();
+  });
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
   afterAll(async (done) => {
     try {
@@ -33,63 +46,32 @@ describe('users', () => {
   });
   describe('resetPassword', () => {
     describe('GET', () => {
-      it('should return error 404 if email is not found', async () => {
-        await User.create({
-          userName: 'user',
-          email: 'user@email.com',
-          password: 'Aaoudjiuvhds9!',
-          admin: false,
-          confirmed: true,
-        });
-        const { body, status } = await request(initApp()).get('/users/resetPassword').send({
-          email: 'user2@email.com',
-        });
-        expect(status).toBe(404);
-        expect(body).toStrictEqual({
-          errors: {
-            email: 'user not found',
-          },
-        });
-      });
-      it('should return error 401 if user is not confirmed', async () => {
-        const { email: userEmail } = await User.create({
-          userName: 'user',
-          email: 'user@email.com',
-          password: 'Aaoudjiuvhds9!',
-          admin: false,
-          confirmed: false,
-        });
-        const { status, body } = await request(initApp()).get('/users/resetPassword').send({
-          email: userEmail,
-        });
-        expect(status).toBe(401);
-        expect(body).toStrictEqual({
-          errors: 'You\'re account need to be confimed',
+      describe('should return status 204 and', () => {
+        it('send an email with and sign a token', async () => {
+          const resetPasswordMessageMocked = jest.spyOn(email, 'sendResetPassword');
+          const jwtMocked = jest.spyOn(jwt, 'sign');
+          const { email: userEmail } = await User.create({
+            ...newUser,
+            confirmed: true,
+          });
+          const { body, status } = await request(initApp())
+            .get('/users/resetPassword')
+            .send({
+              email: userEmail,
+            });
+          expect(status).toBe(204);
+          expect(body).toStrictEqual({});
+          expect(jwtMocked).toHaveBeenCalledTimes(1);
+          expect(resetPasswordMessageMocked).toHaveBeenCalledTimes(1);
         });
       });
-      it('should send an email with and sign a token', async () => {
-        const resetPasswordMessageMocked = jest.spyOn(email, 'sendResetPassword');
-        const jwtMocked = jest.spyOn(jwt, 'sign');
-        const { email: userEmail } = await User.create({
-          userName: 'user',
-          email: 'user@email.com',
-          password: 'Aaoudjiuvhds9!',
-          admin: false,
-          confirmed: true,
-        });
-        await request(initApp()).get('/users/resetPassword').send({
-          email: userEmail,
-        });
-        expect(jwtMocked).toHaveBeenCalledTimes(1);
-        expect(resetPasswordMessageMocked).toHaveBeenCalledTimes(1);
-        jest.restoreAllMocks();
-      });
-
       describe('should return error 400 if', () => {
         it('not a valid email', async () => {
-          const { body, status } = await request(initApp()).get('/users/resetPassword').send({
-            email: 'abcde',
-          });
+          const { body, status } = await request(initApp())
+            .get('/users/resetPassword')
+            .send({
+              email: 'abcde',
+            });
           expect(status).toBe(400);
           expect(body).toStrictEqual({
             errors: {
@@ -98,23 +80,60 @@ describe('users', () => {
           });
         });
         it('email is not set', async () => {
-          const { body, status } = await request(initApp()).get('/users/resetPassword').send({});
+          const { body, status } = await request(initApp())
+            .get('/users/resetPassword')
+            .send({});
           expect(status).toBe(400);
           expect(body).toStrictEqual({
             errors: {
-              email: 'is required',
+              email: FIELD_IS_REQUIRED,
             },
           });
         });
         it('email is empty', async () => {
-          const { body, status } = await request(initApp()).get('/users/resetPassword').send({
-            email: '',
-          });
+          const { body, status } = await request(initApp())
+            .get('/users/resetPassword')
+            .send({
+              email: '',
+            });
           expect(status).toBe(400);
           expect(body).toStrictEqual({
             errors: {
-              email: 'cannot be an empty field',
+              email: FIELD_IS_EMPTY,
             },
+          });
+        });
+      });
+      describe('should return error 404 if', () => {
+        it('email is not found', async () => {
+          await User.create({
+            ...newUser,
+            confirmed: true,
+          });
+          const { body, status } = await request(initApp())
+            .get('/users/resetPassword')
+            .send({
+              email: 'user2@email.com',
+            });
+          expect(status).toBe(404);
+          expect(body).toStrictEqual({
+            errors: {
+              email: USER_NOT_FOUND,
+            },
+          });
+        });
+      });
+      describe('should return error 401 if', () => {
+        it('user is not confirmed', async () => {
+          const { email: userEmail } = await User.create(newUser);
+          const { status, body } = await request(initApp())
+            .get('/users/resetPassword')
+            .send({
+              email: userEmail,
+            });
+          expect(status).toBe(401);
+          expect(body).toStrictEqual({
+            errors: NOT_CONFIRMED,
           });
         });
       });
