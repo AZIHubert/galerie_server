@@ -36,7 +36,7 @@ describe('users', () => {
     describe('resend', () => {
       describe('GET', () => {
         describe('should return status 200 and', () => {
-          it('should increment confirmTokenVersion', async () => {
+          it('increment confirmTokenVersion', async () => {
             const { id, confirmTokenVersion } = await User.create({
               userName: 'user',
               email: 'user@email.com',
@@ -53,7 +53,7 @@ describe('users', () => {
             expect(updatedUser!.confirmTokenVersion)
               .toBe(confirmTokenVersion + 1);
           });
-          it('should sign a token and send an email', async () => {
+          it('sign a token and send an email', async () => {
             const signMocked = jest.spyOn(jwt, 'sign');
             const emailMocked = jest.spyOn(email, 'sendConfirmAccount');
             const { id } = await User.create({

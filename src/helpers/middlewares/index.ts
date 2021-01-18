@@ -9,6 +9,7 @@ import {
   USER_IS_LOGGED_IN,
   USER_NOT_FOUND,
   WRONG_TOKEN,
+  WRONG_TOKEN_VERSION,
 } from '../errorMessages';
 
 const ACCES_SECRET = accEnv('ACCES_SECRET');
@@ -27,17 +28,25 @@ export const shouldBeAuth = async (req: Request, res: Response, next: Function) 
     });
   }
   let user: User | null;
+  let authTokenVersion: number;
   try {
-    const { id } = verify(token, ACCES_SECRET) as {
+    const verifiedToken = verify(token, ACCES_SECRET) as {
       id: string;
+      authTokenVersion: number
     };
-    user = await User.findByPk(id);
+    authTokenVersion = verifiedToken.authTokenVersion;
+    user = await User.findByPk(verifiedToken.id);
   } catch (err) {
     return res.status(500).send(err);
   }
   if (!user) {
     return res.status(404).send({
       errors: USER_NOT_FOUND,
+    });
+  }
+  if (user.authTokenVersion !== authTokenVersion) {
+    return res.status(401).send({
+      erros: WRONG_TOKEN_VERSION,
     });
   }
   res.locals.user = user;

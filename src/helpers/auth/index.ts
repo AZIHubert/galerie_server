@@ -9,7 +9,10 @@ const REFRESH_SECRET = accEnv('REFRESH_SECRET');
 const SECURE = accEnv('NODE_ENV') === 'production';
 
 export const createAccessToken = (user: User) => sign(
-  { id: user.id },
+  {
+    id: user.id,
+    authTokenVersion: user.authTokenVersion,
+  },
   ACCES_SECRET,
   { expiresIn: '15m' },
 );

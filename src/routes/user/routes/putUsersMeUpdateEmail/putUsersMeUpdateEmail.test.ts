@@ -72,10 +72,10 @@ describe('users', () => {
                 password: hashPassword,
                 confirmed: true,
               });
-              const { id } = user;
+              const { id, authTokenVersion } = user;
               updatedEmailTokenVersion = user.updatedEmailTokenVersion;
               jest.spyOn(jwt, 'verify')
-                .mockImplementationOnce(() => ({ id }))
+                .mockImplementationOnce(() => ({ id, authTokenVersion }))
                 .mockImplementationOnce(() => ({ id, updatedEmailTokenVersion, updatedEmail }));
               response = await request(initApp())
                 .put('/users/me/updateEmail')
@@ -128,12 +128,12 @@ describe('users', () => {
             });
           });
           it('confirm id is not the same as current user id', async () => {
-            const { id } = await User.create({
+            const { id, authTokenVersion } = await User.create({
               ...newUSer,
               confirmed: true,
             });
             jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({ id }))
+              .mockImplementationOnce(() => ({ id, authTokenVersion }))
               .mockImplementationOnce(() => ({ id: 10000 }));
             const { body, status } = await request(initApp())
               .put('/users/me/updateEmail')
@@ -145,13 +145,13 @@ describe('users', () => {
             });
           });
           it('updatedEmailTokenVersion is not the same as current user updatedEmailTokenVersion', async () => {
-            const { id } = await User.create({
+            const { id, authTokenVersion } = await User.create({
               ...newUSer,
               confirmed: true,
               updatedEmailTokenVersion: 1,
             });
             jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({ id }))
+              .mockImplementationOnce(() => ({ id, authTokenVersion }))
               .mockImplementationOnce(() => ({ id, updatedEmailTokenVersion: 0 }));
             const { body, status } = await request(initApp())
               .put('/users/me/updateEmail')
@@ -163,12 +163,12 @@ describe('users', () => {
             });
           });
           it('if updatedEmail is not found in token', async () => {
-            const { id, updatedEmailTokenVersion } = await User.create({
+            const { authTokenVersion, id, updatedEmailTokenVersion } = await User.create({
               ...newUSer,
               confirmed: true,
             });
             jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({ id }))
+              .mockImplementationOnce(() => ({ id, authTokenVersion }))
               .mockImplementationOnce(() => ({ id, updatedEmailTokenVersion }));
             const { body, status } = await request(initApp())
               .put('/users/me/updateEmail')
@@ -181,13 +181,13 @@ describe('users', () => {
           });
           it('if passwords not match', async () => {
             const hashPassword = await hash('password', saltRounds);
-            const { id, updatedEmailTokenVersion } = await User.create({
+            const { authTokenVersion, id, updatedEmailTokenVersion } = await User.create({
               ...newUSer,
               password: hashPassword,
               confirmed: true,
             });
             jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({ id }))
+              .mockImplementationOnce(() => ({ id, authTokenVersion }))
               .mockImplementationOnce(() => ({
                 id,
                 updatedEmailTokenVersion,
@@ -208,12 +208,12 @@ describe('users', () => {
             });
           });
           it('if password not send', async () => {
-            const { id, updatedEmailTokenVersion } = await User.create({
+            const { authTokenVersion, id, updatedEmailTokenVersion } = await User.create({
               ...newUSer,
               confirmed: true,
             });
             jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({ id }))
+              .mockImplementationOnce(() => ({ id, authTokenVersion }))
               .mockImplementationOnce(() => ({
                 id,
                 updatedEmailTokenVersion,

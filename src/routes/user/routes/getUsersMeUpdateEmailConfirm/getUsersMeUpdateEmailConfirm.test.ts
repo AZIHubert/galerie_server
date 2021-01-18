@@ -65,9 +65,9 @@ describe('users', () => {
                   ...newUser,
                   confirmed: true,
                 });
-                const { id, emailTokenVersion } = user;
+                const { id, emailTokenVersion, authTokenVersion } = user;
                 jest.spyOn(jwt, 'verify')
-                  .mockImplementationOnce(() => ({ id }))
+                  .mockImplementationOnce(() => ({ id, authTokenVersion }))
                   .mockImplementationOnce(() => ({ id, emailTokenVersion }));
                 done();
               } catch (err) {
@@ -104,12 +104,12 @@ describe('users', () => {
             let token: string;
             beforeEach(async (done) => {
               try {
-                const { id, emailTokenVersion } = await User.create({
+                const { authTokenVersion, id, emailTokenVersion } = await User.create({
                   ...newUser,
                   confirmed: true,
                 });
                 jest.spyOn(jwt, 'verify')
-                  .mockImplementationOnce(() => ({ id }))
+                  .mockImplementationOnce(() => ({ id, authTokenVersion }))
                   .mockImplementationOnce(() => ({ id, emailTokenVersion }));
                 done();
               } catch (err) {
@@ -194,11 +194,11 @@ describe('users', () => {
             describe('user', () => {
               beforeEach(async (done) => {
                 try {
-                  const { id, emailTokenVersion } = await User.create({
+                  const { authTokenVersion, id, emailTokenVersion } = await User.create({
                     ...newUser,
                   });
                   jest.spyOn(jwt, 'verify')
-                    .mockImplementationOnce(() => ({ id }))
+                    .mockImplementationOnce(() => ({ id, authTokenVersion }))
                     .mockImplementationOnce(() => ({ id, emailTokenVersion }));
                 } catch (err) {
                   done(err);
@@ -232,9 +232,9 @@ describe('users', () => {
                     confirmed: true,
                     emailTokenVersion: 1,
                   });
-                  const { id } = user;
+                  const { authTokenVersion, id } = user;
                   jest.spyOn(jwt, 'verify')
-                    .mockImplementationOnce(() => ({ id }))
+                    .mockImplementationOnce(() => ({ id, authTokenVersion }))
                     .mockImplementationOnce(() => ({ id, emailTokenVersion: 0 }));
                 } catch (err) {
                   done(err);
@@ -271,10 +271,10 @@ describe('users', () => {
                 });
               });
               it('id and user.id are not the same', async () => {
-                const { id, emailTokenVersion } = user;
+                const { authTokenVersion, id, emailTokenVersion } = user;
                 jest.resetAllMocks();
                 jest.spyOn(jwt, 'verify')
-                  .mockImplementationOnce(() => ({ id }))
+                  .mockImplementationOnce(() => ({ id, authTokenVersion }))
                   .mockImplementationOnce(() => ({
                     id: 10000,
                     emailTokenVersion,
@@ -353,19 +353,13 @@ describe('users', () => {
                 .mockImplementation(() => {
                   throw new Error('something went wrong');
                 });
-              const { id, emailTokenVersion } = await User.create({
-                userName: 'user',
-                email: 'user@email.com',
-                password: 'Aaoudjiuvhds9!',
+              const { authTokenVersion, id, emailTokenVersion } = await User.create({
+                ...newUser,
                 confirmed: true,
-                admin: false,
-                authTokenVersion: 0,
               });
               jest.spyOn(jwt, 'verify')
-                .mockImplementation(() => ({
-                  id,
-                  emailTokenVersion,
-                }));
+                .mockImplementationOnce(() => ({ id, authTokenVersion }))
+                .mockImplementation(() => ({ id, emailTokenVersion }));
               const { status } = await request(initApp())
                 .get('/users/me/updateEmail/confirm')
                 .set('authorization', 'Bearer token')
