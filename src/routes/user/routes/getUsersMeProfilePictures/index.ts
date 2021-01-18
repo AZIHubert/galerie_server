@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 
 import ProfilePicture from '@src/db/models/profilePicture';
-import Image from '@src/db/models/image';
 
 export default async (_req: Request, res: Response) => {
   const { user: { id } } = res.locals;
@@ -11,16 +10,7 @@ export default async (_req: Request, res: Response) => {
       where: { userId: id },
       include: [
         {
-          model: Image,
-          as: 'originalImage',
-        },
-        {
-          model: Image,
-          as: 'cropedImage',
-        },
-        {
-          model: Image,
-          as: 'pendingImage',
+          all: true,
         },
       ],
     });

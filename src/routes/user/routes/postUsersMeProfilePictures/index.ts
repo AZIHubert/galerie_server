@@ -227,16 +227,7 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
     }, {
       include: [
         {
-          model: Image,
-          as: 'originalImage',
-        },
-        {
-          model: Image,
-          as: 'cropedImage',
-        },
-        {
-          model: Image,
-          as: 'pendingImage',
+          all: true,
         },
       ],
     });

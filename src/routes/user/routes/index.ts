@@ -2,6 +2,7 @@ export { default as getUsers } from './getUsers';
 export { default as getUsersConfirmationResend } from './getUsersConfirmationResend';
 export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersMeProfilePictures } from './getUsersMeProfilePictures';
+export { default as getUsersMeProfilePicturesId } from './getUsersMeProfilePicturesId';
 export { default as getUsersMeUpdateEmailConfirm } from './getUsersMeUpdateEmailConfirm';
 export { default as getUsersMeUpdateEmailConfirmResend } from './getUsersMeUpdateEmailConfirmResend';
 export { default as getUsersMeUpdateEmail } from './getUsersMeUpdateEmail';
