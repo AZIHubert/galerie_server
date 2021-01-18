@@ -1,21 +1,20 @@
-import {
-  Router, Request, Response, NextFunction,
-} from 'express';
-import multer from 'multer';
+import { Router } from 'express';
 import socketIo from 'socket.io';
 
 import {
   shouldBeAuth,
   shouldBeConfirmed,
   shouldNotBeAuth,
+  uploadFile,
 } from '@src/helpers/middlewares';
 
 import {
   getUsers,
   getUsersConfirmationResend,
   getUsersMe,
+  getUsersMeProfilePictures,
   getUsersMeUpdateEmail,
-  getUsersmeUpdateEmailResend,
+  getUsersMeUpdateEmailResend,
   getUsersMeUpdateEmailConfirm,
   getUsersMeUpdateEmailConfirmResend,
   getUsersResetPassword,
@@ -32,29 +31,6 @@ import {
 
 const router = Router();
 
-const uploadFile = (req: Request, res: Response, next: NextFunction) => {
-  const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: {
-      fileSize: 5 * 1024 * 1024,
-    },
-  }).single('image');
-
-  upload(req, res, (err: any) => {
-    if (err instanceof multer.MulterError) {
-      if (err.message === 'Unexpected field') {
-        return res.status(400).send({
-          errors: 'something went wrong with attached file',
-        });
-      }
-      return res.status(500).send(err);
-    } if (err) {
-      return res.status(500).send(err);
-    }
-    return next();
-  });
-};
-
 const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers);
   router.post('/signin/', shouldNotBeAuth, postUsersSignin);
@@ -67,20 +43,13 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
   router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
   router.get('/me/updateEmail/', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmail);
-  router.get('/me/updateEmail/resend/', shouldBeAuth, shouldBeConfirmed, getUsersmeUpdateEmailResend);
+  router.get('/me/updateEmail/resend/', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailResend);
   router.get('/me/updateEmail/confirm/', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirm);
   router.get('/me/updateEmail/confirm/resend/', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirmResend);
   router.put('/me/updateEmail/', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdateEmail);
   router.put('/me/updatePassword/', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdatePassword);
-  router.post('/me/profilePictures', shouldBeAuth, shouldBeConfirmed, uploadFile, postUsersMeProfilePictures(io)); // should be post and /me/profilePictures/
-  router.get('/me/profilePictures', (_, res) => {
-    res.end();
-    // TODO:
-    // should be logged in
-    // should be confirmed
-    // user should exist
-    // return all profilePicture with images included
-  });
+  router.post('/me/profilePictures', shouldBeAuth, shouldBeConfirmed, uploadFile, postUsersMeProfilePictures(io));
+  router.get('/me/profilePictures', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePictures);
   router.get('/me/profilePictures/:id', (_, res) => {
     res.end();
     // TODO:

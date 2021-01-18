@@ -1,5 +1,6 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
+import multer from 'multer';
 
 import User from '@src/db/models/user';
 import accEnv from '../accEnv';
@@ -46,7 +47,7 @@ export const shouldBeAuth = async (req: Request, res: Response, next: Function) 
   }
   if (user.authTokenVersion !== authTokenVersion) {
     return res.status(401).send({
-      erros: WRONG_TOKEN_VERSION,
+      errors: WRONG_TOKEN_VERSION,
     });
   }
   res.locals.user = user;
@@ -71,4 +72,27 @@ export const shouldNotBeAuth = (req: Request, res: Response, next: Function) => 
     });
   }
   return next();
+};
+
+export const uploadFile = (req: Request, res: Response, next: NextFunction) => {
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+    },
+  }).single('image');
+
+  upload(req, res, (err: any) => {
+    if (err instanceof multer.MulterError) {
+      if (err.message === 'Unexpected field') {
+        return res.status(400).send({
+          errors: 'something went wrong with attached file',
+        });
+      }
+      return res.status(500).send(err);
+    } if (err) {
+      return res.status(500).send(err);
+    }
+    return next();
+  });
 };

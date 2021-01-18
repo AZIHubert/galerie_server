@@ -13,7 +13,6 @@ import User from '../user';
 
 interface ProfilePictureI {
   id: string;
-  current: boolean;
   originalImageId: string
 }
 
@@ -32,12 +31,6 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
     type: DataType.BIGINT,
   })
   id!: string;
-
-  @Column({
-    allowNull: false,
-    type: DataType.BOOLEAN,
-  })
-  current!: boolean;
 
   @ForeignKey(() => User)
   @Column({
