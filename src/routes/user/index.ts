@@ -9,6 +9,7 @@ import {
 } from '@src/helpers/middlewares';
 
 import {
+  deleteUsersMeProfilePicturesId,
   getUsers,
   getUsersConfirmationResend,
   getUsersMe,
@@ -54,19 +55,11 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/me/profilePictures', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePictures);
   router.get('/me/profilePictures/:id', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePicturesId);
   router.put('/me/profilePictures/:id', shouldBeAuth, shouldBeConfirmed, putUsersMeProfilePicturesId);
-  router.delete('/me/profilePictures/:id', (_, res) => {
-    res.end();
-    // TODO:
-    // should be logged in
-    // should be confirmed
-    // user should exist
-    // profile picture with :id should exist
-    // delete PP
-    // delete original/croped/pending image
-    // delete each image from bucket
-  });
+  router.delete('/me/profilePictures/:id', shouldBeAuth, shouldBeConfirmed, deleteUsersMeProfilePicturesId);
 
-  router.get('/logout/', shouldBeAuth, shouldBeConfirmed); // need to be login and confirmed => sendRefreshToken(req, '')
+  router.get('/logout/', shouldBeAuth, shouldBeConfirmed, (_, res) => {
+    res.end();
+  }); // need to be login and confirmed => sendRefreshToken(req, '')
   router.get('/user/:userName'); // search users by userName
   router.get('/user/:id'); // get user by id
   router.delete('/user/:id/blacklist', shouldBeAuth, shouldBeConfirmed); // need to be login, confirmed and admin
@@ -76,7 +69,6 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.delete('/me/blacklist/:id'); // remove user to current user blacklist
   // Login with Facebook
   // Login with Google
-  // need to verify authTokenVersion on shouldBeAuthMiddleware
 
   return router;
 };

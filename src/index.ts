@@ -29,3 +29,6 @@ initSequelize(() => {
 // add picture to a galerie
 // add pictures to a galere
 // remove picture(s) to a galeries if belong to current user
+//
+//
+// change currentProfilePicture user field to currentProfilePictureId

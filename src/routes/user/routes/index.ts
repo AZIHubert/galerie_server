@@ -1,3 +1,4 @@
+export { default as deleteUsersMeProfilePicturesId } from './deleteUsersMeProfilePicturesId';
 export { default as getUsers } from './getUsers';
 export { default as getUsersConfirmationResend } from './getUsersConfirmationResend';
 export { default as getUsersMe } from './getUsersMe';
