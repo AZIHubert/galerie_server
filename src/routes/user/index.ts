@@ -24,6 +24,7 @@ import {
   postUsersRefreshToken,
   postUsersSignin,
   putUsersConfirmation,
+  putUsersMeProfilePicturesId,
   postUsersMeProfilePictures,
   putUsersMeUpdateEmail,
   putUsersMeUpdatePassword,
@@ -52,16 +53,7 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.post('/me/profilePictures', shouldBeAuth, shouldBeConfirmed, uploadFile, postUsersMeProfilePictures(io));
   router.get('/me/profilePictures', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePictures);
   router.get('/me/profilePictures/:id', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePicturesId);
-  router.put('/me/profilePictures/:id', (_, res) => {
-    res.end();
-    // TODO:
-    // should be logged in
-    // should be confirmed
-    // user should exist
-    // profile picture with :id should exist
-    // set profile picture with :id confirm to true
-    // set all other PPs confirm to false
-  });
+  router.put('/me/profilePictures/:id', shouldBeAuth, shouldBeConfirmed, putUsersMeProfilePicturesId);
   router.delete('/me/profilePictures/:id', (_, res) => {
     res.end();
     // TODO:
