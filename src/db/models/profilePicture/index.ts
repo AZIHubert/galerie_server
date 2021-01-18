@@ -3,6 +3,7 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasOne,
   Model,
   Table,
 } from 'sequelize-typescript';
@@ -77,4 +78,7 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
 
   @BelongsTo(() => Image, 'pendingImageId')
   pendingImage!: Image;
+
+  @HasOne(() => User)
+  currentProfilePicture!: User;
 }

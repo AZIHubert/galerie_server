@@ -1,6 +1,7 @@
 import {
   Column,
   DataType,
+  ForeignKey,
   HasMany,
   Model,
   Table,
@@ -107,6 +108,12 @@ export default class User extends Model implements UserI {
     type: DataType.INTEGER,
   })
   resetPasswordTokenVersion!: number;
+
+  @ForeignKey(() => ProfilePicture)
+  @Column({
+    type: DataType.BIGINT,
+  })
+  currentProfilePicture!: string;
 
   @HasMany(() => Galerie)
   galeries!: Galerie[];

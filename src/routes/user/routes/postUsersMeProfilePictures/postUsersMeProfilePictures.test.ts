@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { Server } from 'http';
-import { Op, Sequelize } from 'sequelize';
+import { Sequelize } from 'sequelize';
 import { io, Socket } from 'socket.io-client';
 import request from 'supertest';
 
@@ -166,48 +166,13 @@ describe('users', () => {
             expect(body.cropedImageId).toBe(cropedImages[0].id);
             expect(body.cropedImage.id).toBe(cropedImages[0].id);
           });
-          it('should set other PP\'s current to false', async () => {
-            const { id } = await Image.create({
-              bucketName: 'bucketName',
-              fileName: 'fileName',
-              format: 'jpg',
-              height: 1,
-              size: 1,
-              width: 1,
-            });
-            await ProfilePicture.create({
-              current: true,
-              userId: user.id,
-              originalImageId: id,
-              cropedImageId: id,
-              pendingImageId: id,
-            });
-            await ProfilePicture.create({
-              current: true,
-              userId: user.id,
-              originalImageId: id,
-              cropedImageId: id,
-              pendingImageId: id,
-            });
-            await ProfilePicture.create({
-              current: true,
-              userId: user.id,
-              originalImageId: id,
-              cropedImageId: id,
-              pendingImageId: id,
-            });
+          it('should set user\'s current profile picture', async () => {
             const { body } = await request(initApp())
               .post('/users/me/ProfilePictures')
               .set('authorization', `Bearer ${token}`)
               .attach('image', `${__dirname}/../../ressources/image.jpg`);
-            const profilePictures = await ProfilePicture.findAll({
-              where: { id: { [Op.not]: body.id } },
-            });
-            const profilePictureCreated = await ProfilePicture.findByPk(body.id);
-            expect(profilePictureCreated!.current).toBe(true);
-            profilePictures.forEach((profilePicture) => {
-              expect(profilePicture.current).toBe(false);
-            });
+            const { currentProfilePicture } = await user.reload();
+            expect(currentProfilePicture).toBe(body.id);
           });
           it('shouls emit the percentage progression', async () => {
             let finalPercentage = 0;

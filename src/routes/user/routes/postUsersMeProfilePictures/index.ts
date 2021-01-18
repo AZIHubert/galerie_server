@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import progressStream from 'progress-stream';
-import { Op } from 'sequelize';
 import sharp from 'sharp';
 import socketIo from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
@@ -36,7 +35,8 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
       },
     });
   }
-  const { user: { id: userId } } = res.locals;
+  const { user } = res.locals;
+  const { id: userId } = user;
   const { buffer } = file;
   let uploadedSize = 0;
   const originalImagePromise: Promise<Image> = new Promise((resolve, reject) => {
@@ -241,17 +241,7 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
       ],
     });
     await profilePicture.reload();
-    const otherProfilePictures = await ProfilePicture.findAll({
-      where: {
-        userId,
-        id: {
-          [Op.not]: profilePicture.id,
-        },
-      },
-    });
-    await Promise.all(otherProfilePictures
-      .map((otherProfilePicture) => otherProfilePicture
-        .update({ current: false })));
+    await user.update({ currentProfilePicture: profilePicture.id });
   } catch (err) {
     return res.status(500).send(err);
   }

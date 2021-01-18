@@ -5,11 +5,6 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('p
     primaryKey: true,
     type: DataTypes.BIGINT,
   },
-  current: {
-    allowNull: false,
-    defaultValue: false,
-    type: DataTypes.BOOLEAN,
-  },
   createdAt: {
     allowNull: false,
     type: DataTypes.DATE,
