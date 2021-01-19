@@ -56,12 +56,24 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.post('/me/profilePictures/', shouldBeAuth, shouldBeConfirmed, uploadFile, postUsersMeProfilePictures(io));
   router.get('/me/profilePictures/', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePictures);
   router.get('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePicturesId);
-  router.put('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, putUsersMeProfilePicturesId); // include its signUrl, remove properties
+  router.put('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, putUsersMeProfilePicturesId);
   router.delete('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, deleteUsersMeProfilePicturesId);
   router.get('/logout/', shouldBeAuth, shouldBeConfirmed, getUsersLogout);
   router.get('/id/:id', shouldBeAuth, shouldBeConfirmed, getUsersIdId);
 
-  router.get('/name/:userName/');
+  router.get('/name/:userName/', (_req, res) => {
+    res.end();
+    // TODO:
+    // should be authenticated
+    // should find user
+    // authTokenVersions should match
+    // should be confirmed
+    // should return users by params.userName match exect current
+    // should return relevent attributes
+    // should include current profile picture
+    // should include original/croped/pending current profile picture
+    // should include signed urls
+  });
   router.put('/blacklist/:id/', shouldBeAuth, shouldBeConfirmed); // need to be login, confirmed and admin, remove or put user into blacklist
   router.get('/blacklist/'); // find all users in black list
   router.put('/admin/:id/', shouldBeAuth, shouldBeConfirmed); // need admin_password and be login and confirmed
