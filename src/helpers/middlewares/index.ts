@@ -7,6 +7,7 @@ import accEnv from '../accEnv';
 import {
   NOT_AUTHENTICATED,
   NOT_CONFIRMED,
+  NOT_SUPER_ADMIN,
   USER_IS_LOGGED_IN,
   USER_NOT_FOUND,
   WRONG_TOKEN,
@@ -64,6 +65,15 @@ export const shouldBeConfirmed = async (__: Request, res: Response, next: Functi
   return next();
 };
 
+export const shouldBeSuperAdmin = async (__: Request, res: Response, next: Function) => {
+  const { user: { role } } = res.locals;
+  if (role !== 'superAdmin') {
+    return res.status(401).send({
+      errors: NOT_SUPER_ADMIN,
+    });
+  }
+  return next();
+};
 export const shouldNotBeAuth = (req: Request, res: Response, next: Function) => {
   const { authorization } = req.headers;
   if (authorization) {

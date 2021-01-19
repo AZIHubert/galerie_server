@@ -22,3 +22,4 @@ export { default as putUsersMeProfilePicturesId } from './putUsersMeProfilePictu
 export { default as putUsersMeUpdateEmail } from './putUsersMeUpdateEmail';
 export { default as putUsersMeUpdatePassword } from './putUsersMeUpdatePassword';
 export { default as putUsersResetPassword } from './putUsersResetPassword';
+export { default as putUsersRoleIdRole } from './putUsersRoleIdRole';

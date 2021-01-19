@@ -14,6 +14,7 @@ export const FILE_IS_IMAGE = 'uploaded file must be an image';
 export const FILE_IS_REQUIRED = 'file is required';
 export const NOT_AUTHENTICATED = 'not authenticated';
 export const NOT_CONFIRMED = 'You\'re account need to be confimed';
+export const NOT_SUPER_ADMIN = 'you need to be a super admin';
 export const TOKEN_NOT_FOUND = 'token not found';
 export const USER_NOT_FOUND = 'user not found';
 export const USER_IS_LOGGED_IN = 'you are already authenticated';
