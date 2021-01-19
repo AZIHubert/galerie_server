@@ -6,9 +6,9 @@ import '@src/helpers/initEnv';
 
 import Image from '@src/db/models/image';
 import ProfilePicture from '@src/db/models/profilePicture';
+import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
 import { createAccessToken } from '@src/helpers/auth';
-import User from '@src/db/models/user';
 import {
   NOT_AUTHENTICATED,
   NOT_CONFIRMED,

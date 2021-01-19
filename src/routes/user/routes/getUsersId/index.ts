@@ -78,37 +78,39 @@ export default async (req: Request, res: Response) => {
     });
   }
   try {
-    const {
-      currentProfilePicture: {
-        originalImage: {
-          bucketName: originalImageBucketName,
-          fileName: originalImageFileName,
+    if (user.currentProfilePicture) {
+      const {
+        currentProfilePicture: {
+          originalImage: {
+            bucketName: originalImageBucketName,
+            fileName: originalImageFileName,
+          },
+          cropedImage: {
+            bucketName: cropedImageBucketName,
+            fileName: cropedImageFileName,
+          },
+          pendingImage: {
+            bucketName: pendingImageBucketName,
+            fileName: pendingImageFileName,
+          },
         },
-        cropedImage: {
-          bucketName: cropedImageBucketName,
-          fileName: cropedImageFileName,
-        },
-        pendingImage: {
-          bucketName: pendingImageBucketName,
-          fileName: pendingImageFileName,
-        },
-      },
-    } = user;
-    const originalImageSignedUrl = await signedUrl(
-      originalImageBucketName,
-      originalImageFileName,
-    );
-    user.currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
-    const cropedImageSignedUrl = await signedUrl(
-      cropedImageBucketName,
-      cropedImageFileName,
-    );
-    user.currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
-    const pendingImageSignedUrl = await signedUrl(
-      pendingImageBucketName,
-      pendingImageFileName,
-    );
-    user.currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+      } = user;
+      const originalImageSignedUrl = await signedUrl(
+        originalImageBucketName,
+        originalImageFileName,
+      );
+      user.currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
+      const cropedImageSignedUrl = await signedUrl(
+        cropedImageBucketName,
+        cropedImageFileName,
+      );
+      user.currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
+      const pendingImageSignedUrl = await signedUrl(
+        pendingImageBucketName,
+        pendingImageFileName,
+      );
+      user.currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+    }
   } catch (err) {
     return res.status(500).send(err);
   }

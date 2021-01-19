@@ -37,7 +37,7 @@ import {
 const router = Router();
 
 const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
-  router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers); // all user exept current, exclude properties, include signUrl
+  router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers);
   router.post('/signin/', shouldNotBeAuth, postUsersSignin);
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.get('/confirmation/resend/', shouldNotBeAuth, getUsersConfirmationResend);
