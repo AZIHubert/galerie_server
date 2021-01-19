@@ -149,9 +149,6 @@ describe('users', () => {
               email: 'user@email.com',
               password: 'password',
               confirmed: false,
-              admin: true,
-              authTokenVersion: 0,
-              confirmTokenVersion: 0,
             });
             jest.spyOn(jwt, 'verify')
               .mockImplementation(() => ({

@@ -18,11 +18,11 @@ interface UserI {
   email: string;
   password: string;
   confirmed: boolean;
-  admin: boolean;
   galeries?: Galerie[];
   images?: Image[];
   profilePictures?: ProfilePicture[];
   profilePicture?: ProfilePicture;
+  role: 'superAdmin' | 'admin' | 'user';
 }
 
 @Table({
@@ -68,12 +68,11 @@ export default class User extends Model implements UserI {
   })
   confirmed!: boolean;
 
-  @Default(false)
+  @Default('user')
   @Column({
-    allowNull: false,
-    type: DataType.BOOLEAN,
+    type: DataType.STRING,
   })
-  admin!: boolean;
+  role!: 'superAdmin' | 'admin' | 'user';
 
   @Default(0)
   @Column({

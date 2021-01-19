@@ -91,8 +91,8 @@ describe('users', () => {
           expect(status).toBe(200);
           expect(body.id).toBe(user.id);
           expect(body.userName).toBe(user.userName);
-          expect(body.email).toBe(body.email);
-          expect(body.admin).toBe(body.admin);
+          expect(body.email).toBe(user.email);
+          expect(body.role).toBe('user');
           expect(body.currentProfilePictureId).toBeUndefined();
           expect(body.password).toBeUndefined();
           expect(body.confirmed).toBeUndefined();

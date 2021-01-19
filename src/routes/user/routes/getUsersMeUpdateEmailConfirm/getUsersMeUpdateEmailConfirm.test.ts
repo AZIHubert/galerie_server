@@ -336,8 +336,6 @@ describe('users', () => {
                 email: 'user@email.com',
                 password: 'Aaoudjiuvhds9!',
                 confirmed: true,
-                admin: false,
-                authTokenVersion: 0,
               });
               const { status } = await request(initApp())
                 .get('/users/me/updateEmail/confirm')

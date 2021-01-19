@@ -146,7 +146,7 @@ describe('users', () => {
             expect(body.id).toBe(id);
             expect(body.userName).toBe(findedUser.userName);
             expect(body.email).toBeUndefined();
-            expect(body.admin).toBeUndefined();
+            expect(body.role).toBe('user');
             expect(body.password).toBeUndefined();
             expect(body.confirmed).toBeUndefined();
             expect(body.authTokenVersion).toBeUndefined();

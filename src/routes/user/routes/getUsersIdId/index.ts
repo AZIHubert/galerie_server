@@ -25,7 +25,6 @@ export default async (req: Request, res: Response) => {
       },
       attributes: {
         exclude: [
-          'admin',
           'authTokenVersion',
           'confirmed',
           'confirmTokenVersion',

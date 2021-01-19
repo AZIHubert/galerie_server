@@ -149,7 +149,7 @@ describe('users', () => {
         const [returnedUser] = body;
         expect(returnedUser.id).toBe(searchedUser.id);
         expect(returnedUser.userName).toBe(searchedUser.userName);
-        expect(returnedUser.admin).toBe(false);
+        expect(returnedUser.role).toBe('user');
         expect(returnedUser.email).toBeUndefined();
         expect(returnedUser.password).toBeUndefined();
         expect(returnedUser.confirmed).toBeUndefined();

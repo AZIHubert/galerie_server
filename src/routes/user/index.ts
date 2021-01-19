@@ -63,7 +63,32 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/id/:id', shouldBeAuth, shouldBeConfirmed, getUsersIdId);
   router.get('/userName/:userName/', shouldBeAuth, shouldBeConfirmed, getUsersUserNameUserName);
 
-  router.put('/admin/:id/', shouldBeAuth, shouldBeConfirmed); // need admin_password and be login and confirmed
+  router.put('/role/:id/:role', shouldBeAuth, shouldBeConfirmed, (_req, res) => {
+    res.end();
+    // TODO:
+    // should to be logged in
+    // should to find user
+    // authTokenVersions should matched
+    // should be confirmed
+    // should be superAdmin
+    // id role is not admin or superAdmin, should return error
+    // user params.id should return error
+    // if user params.id role, should not be authorized to change role
+    // if user params.id role is params.role, remove role
+    // update user params.id role to params.role
+  });
+  router.put('/admin/:id/', shouldBeAuth, shouldBeConfirmed, (_req, res) => {
+    res.end();
+    // TODO:
+    // should to be logged in
+    // should to find user
+    // authTokenVersions should matched
+    // should be confirmed
+    // should be admin
+    // user params.id should exist
+    // user params.id role should not be superAdmin
+    // update user params.id role to superAdmin
+  });
   router.get('/admin/'); // find all admin
   router.get('/me/blacklist/'); // get all blacklisted users
   router.put('/me/blacklist/:id/'); // put a user to current user blacklist
