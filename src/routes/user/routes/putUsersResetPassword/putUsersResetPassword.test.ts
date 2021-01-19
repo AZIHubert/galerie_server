@@ -363,7 +363,6 @@ describe('users', () => {
               confirmPassword: passwords,
             })
             .set('confirmation', 'Bearer token');
-          console.log(body);
           expect(status).toBe(401);
           expect(body).toStrictEqual({
             errors: WRONG_TOKEN_VERSION,

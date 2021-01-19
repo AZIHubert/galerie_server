@@ -6,6 +6,7 @@ import '@src/helpers/initEnv';
 
 import Image from '@src/db/models/image';
 import ProfilePicture from '@src/db/models/profilePicture';
+import accEnv from '@src/helpers/accEnv';
 import { createAccessToken } from '@src/helpers/auth';
 import User from '@src/db/models/user';
 import {
@@ -15,8 +16,13 @@ import {
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
+import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
+
+const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
+const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
+const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
 const newUser = {
   userName: 'userName',
@@ -34,6 +40,21 @@ describe('users', () => {
       await Image.sync({ force: true });
       await ProfilePicture.sync({ force: true });
       await User.sync({ force: true });
+      const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
+      await Promise.all(originalImages
+        .map(async (image) => {
+          await image.delete();
+        }));
+      const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
+      await Promise.all(cropedImages
+        .map(async (image) => {
+          await image.delete();
+        }));
+      const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
+      await Promise.all(pendingImages
+        .map(async (image) => {
+          await image.delete();
+        }));
     } catch (err) {
       done(err);
     }
@@ -44,6 +65,21 @@ describe('users', () => {
       await Image.sync({ force: true });
       await ProfilePicture.sync({ force: true });
       await User.sync({ force: true });
+      const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
+      await Promise.all(originalImages
+        .map(async (image) => {
+          await image.delete();
+        }));
+      const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
+      await Promise.all(cropedImages
+        .map(async (image) => {
+          await image.delete();
+        }));
+      const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
+      await Promise.all(pendingImages
+        .map(async (image) => {
+          await image.delete();
+        }));
       await sequelize.close();
       done();
     } catch (err) {
@@ -79,7 +115,7 @@ describe('users', () => {
               size: 1000,
               width: 100,
             });
-            await ProfilePicture.create({
+            const { id: profilePictureId } = await ProfilePicture.create({
               userId: user.id,
               originalImageId: id,
               cropedImageId: id,
@@ -91,6 +127,13 @@ describe('users', () => {
               .set('authorization', `Bearer ${token}`);
             expect(status).toBe(200);
             expect(body.length).toBe(1);
+            expect(body[0].id).toBe(profilePictureId);
+            expect(body[0].userId).toBe(user.id);
+            expect(body[0].originalImageId).toBeUndefined();
+            expect(body[0].cropedImageId).toBeUndefined();
+            expect(body[0].pendingImageId).toBeUndefined();
+            expect(body[0].createdAt).toBeUndefined();
+            expect(body[0].updatedAt).toBeUndefined();
           });
           it('return two profile pictures', async () => {
             const user = await User.create({
@@ -151,6 +194,24 @@ describe('users', () => {
             expect(body[0].originalImage.id).toBe(id);
             expect(body[0].cropedImage.id).toBe(id);
             expect(body[0].pendingImage.id).toBe(id);
+          });
+          it('return signed urls', async () => {
+            const user = await User.create({
+              ...newUser,
+              confirmed: true,
+            });
+            const token = createAccessToken(user);
+            await request(initApp())
+              .post('/users/me/ProfilePictures')
+              .set('authorization', `Bearer ${token}`)
+              .attach('image', `${__dirname}/../../ressources/image.jpg`);
+            const { body, status } = await request(initApp())
+              .get('/users/me/profilePictures')
+              .set('authorization', `Bearer ${token}`);
+            expect(status).toBe(200);
+            expect(body[0].originalImage.signedUrl).not.toBeNull();
+            expect(body[0].cropedImage.signedUrl).not.toBeNull();
+            expect(body[0].pendingImage.signedUrl).not.toBeNull();
           });
         });
         describe('should return status 401 if', () => {

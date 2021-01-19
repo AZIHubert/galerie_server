@@ -244,7 +244,6 @@ describe('users', () => {
               password: '',
               confirmPassword: '',
             });
-          console.log(body);
           expect(status).toBe(400);
           expect(body).toStrictEqual({
             errors: {
