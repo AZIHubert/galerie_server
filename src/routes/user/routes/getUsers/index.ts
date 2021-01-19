@@ -43,6 +43,7 @@ export default async (_req: Request, res: Response) => {
               'pendingImageId',
               'createdAt',
               'updatedAt',
+              'deletedAt',
             ],
           },
           include: [

@@ -12,6 +12,7 @@ export { default as getUsersMeUpdateEmail } from './getUsersMeUpdateEmail';
 export { default as getUsersMeUpdateEmailResend } from './getUsersMeUpdateEmailResend';
 export { default as getUsersResetPassword } from './getUsersResetPassword';
 export { default as getUsersResetPasswordResend } from './getUsersResetPasswordResend';
+export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 export { default as postUsersLogin } from './postUsersLogin';
 export { default as postUsersMeProfilePictures } from './postUsersMeProfilePictures';
 export { default as postUsersRefreshToken } from './postUsersRefreshToken';
