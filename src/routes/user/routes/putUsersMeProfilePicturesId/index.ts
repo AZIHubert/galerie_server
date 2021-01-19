@@ -22,16 +22,16 @@ export default async (req: Request, res: Response) => {
       errors: 'profile picture not found',
     });
   }
-  if (user.currentProfilePicture === id) {
+  if (user.currentProfilePictureId === id) {
     try {
-      await user.update({ currentProfilePicture: null });
+      await user.update({ currentProfilePictureId: null });
       return res.status(200).send(user);
     } catch (err) {
       return res.status(500).send(err);
     }
   }
   try {
-    await user.update({ currentProfilePicture: id });
+    await user.update({ currentProfilePictureId: id });
     return res.status(200).send(user);
   } catch (err) {
     return res.status(500).send(err);

@@ -232,7 +232,7 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
       ],
     });
     await profilePicture.reload();
-    await user.update({ currentProfilePicture: profilePicture.id });
+    await user.update({ currentProfilePictureId: profilePicture.id });
   } catch (err) {
     return res.status(500).send(err);
   }

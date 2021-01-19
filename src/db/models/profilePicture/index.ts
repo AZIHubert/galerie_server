@@ -72,6 +72,6 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
   @BelongsTo(() => Image, 'pendingImageId')
   pendingImage!: Image;
 
-  @HasOne(() => User)
+  @HasOne(() => User, 'currentProfilePictureId')
   currentProfilePicture!: User;
 }

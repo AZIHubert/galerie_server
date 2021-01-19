@@ -8,5 +8,5 @@ export default async (bucketName: string, fileName: string) => {
     action: 'read',
     expires,
   });
-  return signedUrl;
+  return signedUrl[0];
 };

@@ -1,4 +1,5 @@
 import {
+  BelongsTo,
   Column,
   DataType,
   ForeignKey,
@@ -113,7 +114,10 @@ export default class User extends Model implements UserI {
   @Column({
     type: DataType.BIGINT,
   })
-  currentProfilePicture!: string;
+  currentProfilePictureId!: string;
+
+  @BelongsTo(() => ProfilePicture)
+  currentProfilePicture!: ProfilePicture
 
   @HasMany(() => Galerie)
   galeries!: Galerie[];

@@ -12,6 +12,7 @@ import {
   deleteUsersMeProfilePicturesId,
   getUsers,
   getUsersConfirmationResend,
+  getUsersId,
   getUsersLogout,
   getUsersMe,
   getUsersMeProfilePictures,
@@ -36,7 +37,7 @@ import {
 const router = Router();
 
 const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
-  router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers); // all user exept current
+  router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers); // all user exept current, exclude properties, include signUrl
   router.post('/signin/', shouldNotBeAuth, postUsersSignin);
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.get('/confirmation/resend/', shouldNotBeAuth, getUsersConfirmationResend);
@@ -45,22 +46,22 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/resetPassword/', shouldNotBeAuth, getUsersResetPassword);
   router.get('/resetPassword/resend/', shouldNotBeAuth, getUsersResetPasswordResend);
   router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
-  router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe); // include current PP and signUrl, all PPs and their signUrl
+  router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe); // include current PP and signUrl, all PPs and their signUrl, exlude properties
   router.get('/me/updateEmail/', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmail);
   router.get('/me/updateEmail/resend/', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailResend);
   router.get('/me/updateEmail/confirm/', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirm);
   router.get('/me/updateEmail/confirm/resend/', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirmResend);
   router.put('/me/updateEmail/', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdateEmail);
   router.put('/me/updatePassword/', shouldBeAuth, shouldBeConfirmed, putUsersMeUpdatePassword);
-  router.post('/me/profilePictures/', shouldBeAuth, shouldBeConfirmed, uploadFile, postUsersMeProfilePictures(io)); // include signUrl
-  router.get('/me/profilePictures/', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePictures); // include their signUrl
-  router.get('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePicturesId); // include its signUrl
-  router.put('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, putUsersMeProfilePicturesId); // include its signUrl
+  router.post('/me/profilePictures/', shouldBeAuth, shouldBeConfirmed, uploadFile, postUsersMeProfilePictures(io)); // include signUrl, remove properties
+  router.get('/me/profilePictures/', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePictures); // include their signUrl, remove properties
+  router.get('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePicturesId); // include its signUrl, remove properties
+  router.put('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, putUsersMeProfilePicturesId); // include its signUrl, remove properties
   router.delete('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, deleteUsersMeProfilePicturesId);
   router.get('/logout/', shouldBeAuth, shouldBeConfirmed, getUsersLogout);
+  router.get('/id/:id', shouldBeAuth, shouldBeConfirmed, getUsersId);
 
-  router.get('/:id'); // get user by id
-  router.get('/name/:userName/'); // search users by userName
+  router.get('/name/:userName/');
   router.put('/blacklist/:id/', shouldBeAuth, shouldBeConfirmed); // need to be login, confirmed and admin, remove or put user into blacklist
   router.get('/blacklist/'); // find all users in black list
   router.put('/admin/:id/', shouldBeAuth, shouldBeConfirmed); // need admin_password and be login and confirmed

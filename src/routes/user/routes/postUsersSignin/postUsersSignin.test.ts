@@ -83,7 +83,7 @@ describe('users', () => {
           expect(body.email).toEqual(newUser.email);
           expect(body.deletedAt).toEqual(null);
           expect(body.confirmed).toEqual(false);
-          expect(body.currentProfilePicture).toBeNull();
+          expect(body.currentProfilePictureId).toBeNull();
         });
         it('should have an encrypted password', async () => {
           const { body: { password } } = response;

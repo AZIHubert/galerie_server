@@ -7,7 +7,7 @@ import gc from '@src/helpers/gc';
 export default async (req: Request, res: Response) => {
   const { id } = req.params;
   const { user } = res.locals;
-  const { id: userId, currentProfilePicture } = user;
+  const { id: userId, currentProfilePictureId } = user;
   let profilePicture: ProfilePicture | null;
   try {
     profilePicture = await ProfilePicture.findOne({
@@ -68,9 +68,9 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  if (currentProfilePicture === id) {
+  if (currentProfilePictureId === id) {
     try {
-      await user.update({ currentProfilePicture: null });
+      await user.update({ currentProfilePictureId: null });
     } catch (err) {
       return res.status(500).send(err);
     }

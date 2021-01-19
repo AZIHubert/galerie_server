@@ -2,7 +2,6 @@ import {
   Column,
   DataType,
   HasOne,
-  // ForeignKey,
   Model,
   Table,
 } from 'sequelize-typescript';
@@ -16,6 +15,7 @@ interface ImageI {
   height: number;
   size: number;
   width: number;
+  signedUrl?: string;
 }
 
 @Table({
@@ -63,6 +63,11 @@ export default class Image extends Model implements ImageI {
     type: DataType.INTEGER,
   })
   size!: number;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  signedUrl!: string;
 
   @Column({
     allowNull: false,

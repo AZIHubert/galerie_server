@@ -49,7 +49,7 @@ describe('users', () => {
             .set('authorization', `Bearer ${accessToken}`);
           expect(status).toBe(200);
           expect(body.userName).toStrictEqual(user.userName);
-          expect(body.currentProfilePicture).toBeNull();
+          expect(body.currentProfilePictureId).toBeNull();
           expect(body.email).toStrictEqual(body.email);
           expect(body.password).toStrictEqual(body.password);
           expect(body.admin).toStrictEqual(body.admin);

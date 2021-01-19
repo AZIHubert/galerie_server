@@ -80,8 +80,8 @@ describe('users', () => {
                 .set('authorization', `Bearer ${token}`);
               await user.reload();
               expect(status).toBe(200);
-              expect(body.currentProfilePicture).toBe(id);
-              expect(user.currentProfilePicture).toBe(id);
+              expect(body.currentProfilePictureId).toBe(id);
+              expect(user.currentProfilePictureId).toBe(id);
             });
             it('delete current profile picture if params.id is the same than the current one', async () => {
               const user = await User.create({
@@ -102,14 +102,14 @@ describe('users', () => {
                 cropedImageId: imageId,
                 pendingImageId: imageId,
               });
-              await user.update({ currentProfilePicture: id });
+              await user.update({ currentProfilePictureId: id });
               const token = createAccessToken(user);
               const { status } = await request(initApp())
                 .put(`/users/me/profilePictures/${id}`)
                 .set('authorization', `Bearer ${token}`);
               await user.reload();
               expect(status).toBe(200);
-              expect(user.currentProfilePicture).toBeNull();
+              expect(user.currentProfilePictureId).toBeNull();
             });
           });
           describe('should return status 401 if', () => {

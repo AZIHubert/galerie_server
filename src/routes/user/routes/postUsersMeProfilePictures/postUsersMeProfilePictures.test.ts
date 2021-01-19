@@ -171,8 +171,8 @@ describe('users', () => {
               .post('/users/me/ProfilePictures')
               .set('authorization', `Bearer ${token}`)
               .attach('image', `${__dirname}/../../ressources/image.jpg`);
-            const { currentProfilePicture } = await user.reload();
-            expect(currentProfilePicture).toBe(body.id);
+            const { currentProfilePictureId } = await user.reload();
+            expect(currentProfilePictureId).toBe(body.id);
           });
           it('shouls emit the percentage progression', async () => {
             let finalPercentage = 0;

@@ -1,6 +1,6 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.addColumn(
   'users',
-  'currentProfilePicture',
+  'currentProfilePictureId',
   {
     references: {
       key: 'id',
@@ -12,5 +12,5 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.addColumn(
 
 module.exports.down = (queryInterface) => queryInterface.removeColumn(
   'users',
-  'currentProfilePicture',
+  'currentProfilePictureId',
 );
