@@ -176,13 +176,13 @@ describe('users', () => {
                 .set('authorization', `Bearer ${token}`)
                 .attach('image', `${__dirname}/../../ressources/image.jpg`);
               await user.reload();
-              expect(user.currentProfilePicture).toBe(id);
+              expect(user.currentProfilePictureId).toBe(id);
               const { status } = await request(initApp())
                 .delete(`/users/me/profilePictures/${id}`)
                 .set('authorization', `Bearer ${token}`);
               await user.reload();
               expect(status).toBe(200);
-              expect(user.currentProfilePicture).toBeNull();
+              expect(user.currentProfilePictureId).toBeNull();
             });
             it('do not remove current PP if it isn\'t the current one', async () => {
               const user = await User.create({
@@ -203,7 +203,7 @@ describe('users', () => {
                 .set('authorization', `Bearer ${token}`);
               await user.reload();
               expect(status).toBe(200);
-              expect(user.currentProfilePicture).toBe(currentId);
+              expect(user.currentProfilePictureId).toBe(currentId);
             });
             it('return deleted id', async () => {
               const user = await User.create({
