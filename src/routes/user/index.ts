@@ -46,7 +46,7 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/resetPassword/', shouldNotBeAuth, getUsersResetPassword);
   router.get('/resetPassword/resend/', shouldNotBeAuth, getUsersResetPasswordResend);
   router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
-  router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe); // include current PP and signUrl, all PPs and their signUrl, exlude properties
+  router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
   router.get('/me/updateEmail/', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmail);
   router.get('/me/updateEmail/resend/', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailResend);
   router.get('/me/updateEmail/confirm/', shouldBeAuth, shouldBeConfirmed, getUsersMeUpdateEmailConfirm);
