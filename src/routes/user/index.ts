@@ -12,7 +12,7 @@ import {
   deleteUsersMeProfilePicturesId,
   getUsers,
   getUsersConfirmationResend,
-  getUsersId,
+  getUsersIdId,
   getUsersLogout,
   getUsersMe,
   getUsersMeProfilePictures,
@@ -59,7 +59,7 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.put('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, putUsersMeProfilePicturesId); // include its signUrl, remove properties
   router.delete('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, deleteUsersMeProfilePicturesId);
   router.get('/logout/', shouldBeAuth, shouldBeConfirmed, getUsersLogout);
-  router.get('/id/:id', shouldBeAuth, shouldBeConfirmed, getUsersId);
+  router.get('/id/:id', shouldBeAuth, shouldBeConfirmed, getUsersIdId);
 
   router.get('/name/:userName/');
   router.put('/blacklist/:id/', shouldBeAuth, shouldBeConfirmed); // need to be login, confirmed and admin, remove or put user into blacklist
