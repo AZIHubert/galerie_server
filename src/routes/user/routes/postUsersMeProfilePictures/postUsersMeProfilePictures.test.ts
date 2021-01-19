@@ -95,7 +95,7 @@ describe('users', () => {
   describe('me', () => {
     describe('profilePicture', () => {
       describe('POST', () => {
-        describe('should return status 200', () => {
+        describe('should return status 200 and', () => {
           let token: String;
           let user: User;
           beforeEach(async () => {
@@ -107,7 +107,7 @@ describe('users', () => {
             });
             token = createAccessToken(user);
           });
-          it('should create a profile picture', async () => {
+          it('create a profile picture', async () => {
             const { status, body } = await request(initApp())
               .post('/users/me/ProfilePictures')
               .set('authorization', `Bearer ${token}`)
@@ -115,7 +115,7 @@ describe('users', () => {
             const profilePicture = await ProfilePicture.findAll({ where: { userId: user.id } });
             expect(status).toBe(200);
             expect(profilePicture.length).toBe(1);
-            expect(body.id).toBe(user.id);
+            expect(body.userId).toBe(user.id);
           });
           it('should store the original image', async () => {
             const { status, body } = await request(initApp())
@@ -174,7 +174,16 @@ describe('users', () => {
             const { currentProfilePictureId } = await user.reload();
             expect(currentProfilePictureId).toBe(body.id);
           });
-          it('shouls emit the percentage progression', async () => {
+          it('should return sign urls', async () => {
+            const { body } = await request(initApp())
+              .post('/users/me/ProfilePictures')
+              .set('authorization', `Bearer ${token}`)
+              .attach('image', `${__dirname}/../../ressources/image.jpg`);
+            expect(body.originalImage.signedUrl).not.toBeNull();
+            expect(body.cropedImage.signedUrl).not.toBeNull();
+            expect(body.pendingImage.signedUrl).not.toBeNull();
+          });
+          it('shouls emit the percentage progression', async (done) => {
             let finalPercentage = 0;
             socket.on('uploadImage', (percentage: number) => {
               expect(percentage).toBeGreaterThan(finalPercentage);
@@ -186,6 +195,7 @@ describe('users', () => {
               .set('authorization', `Bearer ${token}`)
               .attach('image', `${__dirname}/../../ressources/image.jpg`);
             expect(finalPercentage).toBe(1);
+            if (finalPercentage === 1) done();
           });
         });
         describe('should return error 400 if', () => {

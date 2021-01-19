@@ -13,6 +13,7 @@ import {
   FILE_IS_IMAGE,
   FILE_IS_REQUIRED,
 } from '@src/helpers/errorMessages';
+import signedUrl from '@src/helpers/signedUrl';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
@@ -208,9 +209,21 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
       });
   });
   const [
-    { id: originalImageId },
-    { id: cropedImageId },
-    { id: pendingImageId },
+    {
+      id: originalImageId,
+      bucketName: originalImageBucketName,
+      fileName: originalImageFileName,
+    },
+    {
+      id: cropedImageId,
+      bucketName: cropedImageBucketName,
+      fileName: cropedImageFileName,
+    },
+    {
+      id: pendingImageId,
+      bucketName: pendingImageBucketName,
+      fileName: pendingImageFileName,
+    },
   ] = await Promise.all([
     originalImagePromise,
     cropedImagePromise,
@@ -227,11 +240,35 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
     }, {
       include: [
         {
-          all: true,
+          model: Image,
+          as: 'originalImage',
+        },
+        {
+          model: Image,
+          as: 'cropedImage',
+        },
+        {
+          model: Image,
+          as: 'pendingImage',
         },
       ],
     });
     await profilePicture.reload();
+    const originalImageSignedUrl = await signedUrl(
+      originalImageBucketName,
+      originalImageFileName,
+    );
+    profilePicture.originalImage.signedUrl = originalImageSignedUrl;
+    const cropedImageSignedUrl = await signedUrl(
+      cropedImageBucketName,
+      cropedImageFileName,
+    );
+    profilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
+    const pendingImageSignedUrl = await signedUrl(
+      pendingImageBucketName,
+      pendingImageFileName,
+    );
+    profilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
     await user.update({ currentProfilePictureId: profilePicture.id });
   } catch (err) {
     return res.status(500).send(err);
