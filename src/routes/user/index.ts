@@ -2,6 +2,7 @@ import { Router } from 'express';
 import socketIo from 'socket.io';
 
 import {
+  shouldBeAdmin,
   shouldBeAuth,
   shouldBeConfirmed,
   shouldBeSuperAdmin,
@@ -28,6 +29,7 @@ import {
   postUsersLogin,
   postUsersRefreshToken,
   postUsersSignin,
+  putUsersBlacklistId,
   putUsersConfirmation,
   putUsersMeProfilePicturesId,
   postUsersMeProfilePictures,
@@ -65,8 +67,8 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/id/:id', shouldBeAuth, shouldBeConfirmed, getUsersIdId);
   router.get('/userName/:userName/', shouldBeAuth, shouldBeConfirmed, getUsersUserNameUserName);
   router.put('/role/:id/:role', shouldBeAuth, shouldBeConfirmed, shouldBeSuperAdmin, putUsersRoleIdRole);
+  router.put('/blacklist/:id', shouldBeAuth, shouldBeConfirmed, shouldBeAdmin, putUsersBlacklistId);
 
-  router.put('/blacklist/:id');
   router.get('/blacklist/');
   router.get('/me/blacklist/'); // get all blacklisted users
   router.put('/me/blacklist/:id/'); // put a user to current user blacklist

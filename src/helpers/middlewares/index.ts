@@ -71,7 +71,7 @@ export const shouldBeConfirmed = async (__: Request, res: Response, next: Functi
   return next();
 };
 
-export const shouldBeSuperAdmin = async (__: Request, res: Response, next: Function) => {
+export const shouldBeSuperAdmin = async (_req: Request, res: Response, next: Function) => {
   const { user: { role } } = res.locals;
   if (role !== 'superAdmin') {
     return res.status(401).send({
@@ -80,6 +80,17 @@ export const shouldBeSuperAdmin = async (__: Request, res: Response, next: Funct
   }
   return next();
 };
+
+export const shouldBeAdmin = (_req: Request, res: Response, next: Function) => {
+  const { user: { role } } = res.locals;
+  if (role !== 'admin' && role !== 'superAdmin') {
+    return res.status(401).send({
+      errors: NOT_SUPER_ADMIN,
+    });
+  }
+  return next();
+};
+
 export const shouldNotBeAuth = (req: Request, res: Response, next: Function) => {
   const { authorization } = req.headers;
   if (authorization) {

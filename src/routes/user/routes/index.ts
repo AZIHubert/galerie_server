@@ -17,6 +17,7 @@ export { default as postUsersLogin } from './postUsersLogin';
 export { default as postUsersMeProfilePictures } from './postUsersMeProfilePictures';
 export { default as postUsersRefreshToken } from './postUsersRefreshToken';
 export { default as postUsersSignin } from './postUsersSignin';
+export { default as putUsersBlacklistId } from './putUsersBlacklistId';
 export { default as putUsersConfirmation } from './putUsersConfirmation';
 export { default as putUsersMeProfilePicturesId } from './putUsersMeProfilePicturesId';
 export { default as putUsersMeUpdateEmail } from './putUsersMeUpdateEmail';
