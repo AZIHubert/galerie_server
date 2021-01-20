@@ -145,8 +145,9 @@ describe('users', () => {
             expect(status).toBe(200);
             expect(body.id).toBe(id);
             expect(body.userName).toBe(findedUser.userName);
-            expect(body.email).toBeUndefined();
             expect(body.role).toBe('user');
+            expect(body.blackListed).toBeUndefined();
+            expect(body.email).toBeUndefined();
             expect(body.password).toBeUndefined();
             expect(body.confirmed).toBeUndefined();
             expect(body.authTokenVersion).toBeUndefined();

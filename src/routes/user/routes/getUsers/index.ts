@@ -21,6 +21,7 @@ export default async (_req: Request, res: Response) => {
       attributes: {
         exclude: [
           'email',
+          'blackListed',
           'confirmed',
           'password',
           'currentProfilePictureId',

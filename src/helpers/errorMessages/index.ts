@@ -17,6 +17,7 @@ export const NOT_CONFIRMED = 'You\'re account need to be confimed';
 export const NOT_SUPER_ADMIN = 'you need to be a super admin';
 export const TOKEN_NOT_FOUND = 'token not found';
 export const USER_NOT_FOUND = 'user not found';
+export const USER_IS_BLACK_LISTED = 'you\'re account is black listed';
 export const USER_IS_LOGGED_IN = 'you are already authenticated';
 export const WRONG_PASSWORD = 'wrong password';
 export const WRONG_TOKEN = 'wrong token';

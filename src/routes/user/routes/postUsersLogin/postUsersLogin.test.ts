@@ -12,6 +12,7 @@ import {
   FIELD_IS_REQUIRED,
   FIELD_NOT_A_STRING,
   NOT_CONFIRMED,
+  USER_IS_BLACK_LISTED,
   USER_IS_LOGGED_IN,
   USER_NOT_FOUND,
   WRONG_PASSWORD,
@@ -232,13 +233,33 @@ describe('users', () => {
           const { body, status } = await request(initApp())
             .get('/users/login')
             .send({
-              emailOrPassword: newUser.email,
+              userNameOrEmail: newUser.email,
               password: newUser.password,
             })
             .set('authorization', `Bearer ${token}`);
           expect(status).toBe(401);
           expect(body).toStrictEqual({
             errors: USER_IS_LOGGED_IN,
+          });
+        });
+        it('user is black listed', async () => {
+          const hashPassword = await bcrypt.hash(newUser.password, saltRounds);
+          const { email, password } = await User.create({
+            ...newUser,
+            password: hashPassword,
+            blackListed: true,
+            confirmed: true,
+          });
+          const { body, status } = await request(initApp())
+            .get('/users/login')
+            .send({
+              userNameOrEmail: email,
+              password,
+            });
+          console.log(body);
+          expect(status).toBe(401);
+          expect(body).toStrictEqual({
+            errors: USER_IS_BLACK_LISTED,
           });
         });
       });

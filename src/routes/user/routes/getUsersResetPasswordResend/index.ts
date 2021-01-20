@@ -6,6 +6,8 @@ import accEnv from '@src/helpers/accEnv';
 import { sendResetPassword } from '@src/helpers/email';
 import {
   FIELD_IS_REQUIRED,
+  NOT_CONFIRMED,
+  USER_IS_BLACK_LISTED,
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 
@@ -27,6 +29,16 @@ export default async (req: Request, res: Response) => {
   if (!user) {
     return res.status(404).send({
       errors: USER_NOT_FOUND,
+    });
+  }
+  if (user.blackListed) {
+    return res.status(401).send({
+      errors: USER_IS_BLACK_LISTED,
+    });
+  }
+  if (!user.confirmed) {
+    return res.status(401).send({
+      errors: NOT_CONFIRMED,
     });
   }
   try {

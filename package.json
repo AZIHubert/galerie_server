@@ -14,7 +14,7 @@
     "db:migrate:status:development": "cross-env NODE_ENV=development sequelize db:migrate:status",
     "db:migrate:status:production": "cross-env NODE_ENV=production sequelize db:migrate:status",
     "db:migrate:status:test": "cross-env NODE_ENV=test sequelize db:migrate:status",
-    "db:migrate:status": "yarn db:migrate:status:development && yarn db:migrate:status:production && db:migrate:status:test",
+    "db:migrate:status": "yarn db:migrate:status:development && yarn db:migrate:status:production && yarn db:migrate:status:test",
     "db:migrate:undo:development": "cross-env NODE_ENV=development sequelize db:migrate:undo",
     "db:migrate:undo:production": "cross-env NODE_ENV=production sequelize db:migrate:undo",
     "db:migrate:undo:test": "cross-env NODE_ENV=test sequelize db:migrate:undo",

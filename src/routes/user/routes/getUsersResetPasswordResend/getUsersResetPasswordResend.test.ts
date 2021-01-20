@@ -8,6 +8,7 @@ import * as email from '@src/helpers/email';
 import {
   FIELD_IS_REQUIRED,
   USER_IS_LOGGED_IN,
+  USER_IS_BLACK_LISTED,
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -98,6 +99,24 @@ describe('users', () => {
             expect(status).toBe(401);
             expect(body).toStrictEqual({
               errors: USER_IS_LOGGED_IN,
+            });
+          });
+          it('user is black listed', async () => {
+            const {
+              email: userEmail,
+            } = await User.create({
+              ...newUser,
+              blackListed: true,
+              confirmed: true,
+            });
+            const { body, status } = await request(initApp())
+              .get('/users/resetPassword/resend')
+              .send({
+                email: userEmail,
+              });
+            expect(status).toBe(401);
+            expect(body).toStrictEqual({
+              errors: USER_IS_BLACK_LISTED,
             });
           });
         });

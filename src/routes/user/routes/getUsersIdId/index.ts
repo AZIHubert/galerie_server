@@ -26,6 +26,7 @@ export default async (req: Request, res: Response) => {
       attributes: {
         exclude: [
           'authTokenVersion',
+          'blackListed',
           'confirmed',
           'confirmTokenVersion',
           'currentProfilePictureId',

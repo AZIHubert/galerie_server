@@ -10,6 +10,7 @@ import {
 } from '@src/helpers/auth';
 import {
   NOT_CONFIRMED,
+  USER_IS_BLACK_LISTED,
   USER_NOT_FOUND,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
@@ -53,6 +54,11 @@ export default async (req: Request, res: Response) => {
   if (!user.confirmed) {
     return res.status(401).send({
       errors: NOT_CONFIRMED,
+    });
+  }
+  if (user.blackListed) {
+    return res.status(401).send({
+      errors: USER_IS_BLACK_LISTED,
     });
   }
   try {

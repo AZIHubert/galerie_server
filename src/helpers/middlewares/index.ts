@@ -8,6 +8,7 @@ import {
   NOT_AUTHENTICATED,
   NOT_CONFIRMED,
   NOT_SUPER_ADMIN,
+  USER_IS_BLACK_LISTED,
   USER_IS_LOGGED_IN,
   USER_NOT_FOUND,
   WRONG_TOKEN,
@@ -44,6 +45,11 @@ export const shouldBeAuth = async (req: Request, res: Response, next: Function) 
   if (!user) {
     return res.status(404).send({
       errors: USER_NOT_FOUND,
+    });
+  }
+  if (user.blackListed) {
+    return res.status(401).send({
+      errors: USER_IS_BLACK_LISTED,
     });
   }
   if (user.authTokenVersion !== authTokenVersion) {

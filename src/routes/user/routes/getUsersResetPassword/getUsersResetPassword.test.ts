@@ -10,6 +10,7 @@ import {
   FIELD_IS_EMPTY,
   FIELD_IS_REQUIRED,
   NOT_CONFIRMED,
+  USER_IS_BLACK_LISTED,
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -104,6 +105,36 @@ describe('users', () => {
           });
         });
       });
+      describe('should return error 401 if', () => {
+        it('user is not confirmed', async () => {
+          const { email: userEmail } = await User.create(newUser);
+          const { status, body } = await request(initApp())
+            .get('/users/resetPassword')
+            .send({
+              email: userEmail,
+            });
+          expect(status).toBe(401);
+          expect(body).toStrictEqual({
+            errors: NOT_CONFIRMED,
+          });
+        });
+        it('user is black listed', async () => {
+          const { email: userEmail } = await User.create({
+            ...newUser,
+            confirmed: true,
+            blackListed: true,
+          });
+          const { status, body } = await request(initApp())
+            .get('/users/resetPassword')
+            .send({
+              email: userEmail,
+            });
+          expect(status).toBe(401);
+          expect(body).toStrictEqual({
+            errors: USER_IS_BLACK_LISTED,
+          });
+        });
+      });
       describe('should return error 404 if', () => {
         it('email is not found', async () => {
           await User.create({
@@ -120,20 +151,6 @@ describe('users', () => {
             errors: {
               email: USER_NOT_FOUND,
             },
-          });
-        });
-      });
-      describe('should return error 401 if', () => {
-        it('user is not confirmed', async () => {
-          const { email: userEmail } = await User.create(newUser);
-          const { status, body } = await request(initApp())
-            .get('/users/resetPassword')
-            .send({
-              email: userEmail,
-            });
-          expect(status).toBe(401);
-          expect(body).toStrictEqual({
-            errors: NOT_CONFIRMED,
           });
         });
       });

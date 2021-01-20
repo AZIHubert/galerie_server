@@ -13,6 +13,7 @@ export default async (_req: Request, res: Response) => {
   const user = await User.findByPk(id, {
     attributes: {
       exclude: [
+        'blackListed',
         'confirmed',
         'password',
         'currentProfilePictureId',

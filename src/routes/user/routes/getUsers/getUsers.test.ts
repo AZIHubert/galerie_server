@@ -150,6 +150,7 @@ describe('users', () => {
         expect(returnedUser.id).toBe(searchedUser.id);
         expect(returnedUser.userName).toBe(searchedUser.userName);
         expect(returnedUser.role).toBe('user');
+        expect(returnedUser.blackListed).toBeUndefined();
         expect(returnedUser.email).toBeUndefined();
         expect(returnedUser.password).toBeUndefined();
         expect(returnedUser.confirmed).toBeUndefined();

@@ -67,8 +67,7 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.put('/role/:id/:role', shouldBeAuth, shouldBeConfirmed, shouldBeSuperAdmin, putUsersRoleIdRole);
 
   router.put('/blacklist/:id');
-  router.get('/blacklist');
-  router.get('/admin/'); // find all admin
+  router.get('/blacklist/');
   router.get('/me/blacklist/'); // get all blacklisted users
   router.put('/me/blacklist/:id/'); // put a user to current user blacklist
   router.get('/me/blacklist/:id/');
@@ -81,17 +80,11 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
 
 export default usersRoutes;
 
-// To log in, create an global accessToken = ''
 // After logged in/confirm => accessToken = res.accessToken
 // https://www.youtube.com/watch?v=25GS0MLT8JU&ab_channel=BenAwad
 // 2:11:42
 // https://medium.com/swlh/authentication-using-jwt-and-refresh-token-part-1-aca5522c14c8
 // https://medium.com/swlh/authentication-using-jwt-and-refresh-token-part-2-a86150d25152
 
-// socket io store image progression
-// https://stackoverflow.com/questions/20631994/socket-io-emit-progress-check
-
-// delete every files
-// https://stackoverflow.com/questions/54959059/google-cloud-storage-nodejs-how-to-delete-a-folder-and-all-its-content
-
-// https://github.com/visionmedia/supertest/issues/46
+// belongstomany
+// https://medium.com/@tonyangelo9707/many-to-many-associations-using-sequelize-941f0b6ac102

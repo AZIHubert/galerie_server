@@ -212,6 +212,7 @@ describe('users', () => {
             expect(findedUser.id).toBe(id);
             expect(findedUser.userName).toBe(userName);
             expect(findedUser.email).toBe(email);
+            expect(findedUser.blackListed).toBeUndefined();
             expect(findedUser.password).toBeUndefined();
             expect(findedUser.confirmed).toBeUndefined();
             expect(findedUser.authTokenVersion).toBeUndefined();

@@ -93,6 +93,7 @@ describe('users', () => {
           expect(body.userName).toBe(user.userName);
           expect(body.email).toBe(user.email);
           expect(body.role).toBe('user');
+          expect(body.blackListed).toBeUndefined();
           expect(body.currentProfilePictureId).toBeUndefined();
           expect(body.password).toBeUndefined();
           expect(body.confirmed).toBeUndefined();

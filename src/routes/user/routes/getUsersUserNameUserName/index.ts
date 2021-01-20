@@ -25,6 +25,7 @@ export default async (req: Request, res: Response) => {
       attributes: {
         exclude: [
           'password',
+          'blackListed',
           'confirmed',
           'authTokenVersion',
           'confirmTokenVersion',

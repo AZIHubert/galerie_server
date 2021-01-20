@@ -16,6 +16,7 @@ import ProfilePicture from '../profilePicture';
 interface UserI {
   userName: string;
   email: string;
+  blackListed: boolean;
   password: string;
   confirmed: boolean;
   galeries?: Galerie[];
@@ -67,6 +68,13 @@ export default class User extends Model implements UserI {
     type: DataType.BOOLEAN,
   })
   confirmed!: boolean;
+
+  @Default(false)
+  @Column({
+    allowNull: false,
+    type: DataType.BOOLEAN,
+  })
+  blackListed!: boolean;
 
   @Default('user')
   @Column({
