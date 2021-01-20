@@ -13,6 +13,7 @@ import {
 import {
   deleteUsersMeProfilePicturesId,
   getUsers,
+  getUsersBlackList,
   getUsersConfirmationResend,
   getUsersIdId,
   getUsersLogout,
@@ -68,16 +69,7 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/userName/:userName/', shouldBeAuth, shouldBeConfirmed, getUsersUserNameUserName);
   router.put('/role/:id/:role', shouldBeAuth, shouldBeConfirmed, shouldBeSuperAdmin, putUsersRoleIdRole);
   router.put('/blacklist/:id', shouldBeAuth, shouldBeConfirmed, shouldBeAdmin, putUsersBlacklistId);
-  router.get('/blacklist/', (_req, res) => {
-    res.end();
-    // TODO:
-    // need to be logged in
-    // need to find user
-    // authTokenVersions should match
-    // should not be black listed
-    // need to be confirmed
-    // need to be admin or super admin
-  });
+  router.get('/blacklist/', shouldBeAuth, shouldBeConfirmed, shouldBeAdmin, getUsersBlackList);
 
   router.get('/me/blacklist/'); // get all blacklisted users
   router.put('/me/blacklist/:id/'); // put a user to current user blacklist

@@ -1,5 +1,6 @@
 export { default as deleteUsersMeProfilePicturesId } from './deleteUsersMeProfilePicturesId';
 export { default as getUsers } from './getUsers';
+export { default as getUsersBlackList } from './getUsersBlackList';
 export { default as getUsersConfirmationResend } from './getUsersConfirmationResend';
 export { default as getUsersIdId } from './getUsersIdId';
 export { default as getUsersLogout } from './getUsersLogout';
