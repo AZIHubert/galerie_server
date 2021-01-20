@@ -2,6 +2,7 @@ import { Sequelize } from 'sequelize-typescript';
 
 import accessEnv from '@src/helpers/accEnv';
 
+import BlackList from './models/blackList';
 import Galerie from './models/galerie';
 import Image from './models/image';
 import ProfilePicture from './models/profilePicture';
@@ -21,6 +22,7 @@ const sequelize = new Sequelize({
 });
 
 sequelize.addModels([
+  BlackList,
   Galerie,
   Image,
   ProfilePicture,

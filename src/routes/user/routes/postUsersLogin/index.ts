@@ -8,6 +8,7 @@ import {
   createRefreshToken,
   sendRefreshToken,
 } from '@src/helpers/auth';
+import checkBlackList from '@src/helpers/checkBlackList';
 import {
   NOT_CONFIRMED,
   USER_IS_BLACK_LISTED,
@@ -56,7 +57,8 @@ export default async (req: Request, res: Response) => {
       errors: NOT_CONFIRMED,
     });
   }
-  if (user.blackListed) {
+  const isBlackListed = await checkBlackList(user);
+  if (isBlackListed) {
     return res.status(401).send({
       errors: USER_IS_BLACK_LISTED,
     });

@@ -4,6 +4,7 @@ import { sign } from 'jsonwebtoken';
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
 import { sendResetPassword } from '@src/helpers/email';
+import checkBlackList from '@src/helpers/checkBlackList';
 import {
   NOT_CONFIRMED,
   USER_IS_BLACK_LISTED,
@@ -37,7 +38,8 @@ export default async (req: Request, res: Response) => {
       },
     });
   }
-  if (user.blackListed) {
+  const isBlackListed = await checkBlackList(user);
+  if (isBlackListed) {
     return res.status(401).send({
       errors: USER_IS_BLACK_LISTED,
     });

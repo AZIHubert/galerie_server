@@ -8,6 +8,7 @@ import {
   createRefreshToken,
   sendRefreshToken,
 } from '@src/helpers/auth';
+import checkBlackList from '@src/helpers/checkBlackList';
 import {
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
@@ -35,6 +36,13 @@ export default async (req: Request, res: Response) => {
     });
   }
   if (user.authTokenVersion !== payload.authTokenVersion) {
+    return res.status(401).send({
+      ok: false,
+      accessToken: '',
+    });
+  }
+  const isBlackListed = await checkBlackList(user);
+  if (isBlackListed) {
     return res.status(401).send({
       ok: false,
       accessToken: '',

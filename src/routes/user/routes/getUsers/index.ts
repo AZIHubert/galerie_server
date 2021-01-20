@@ -16,12 +16,13 @@ export default async (_req: Request, res: Response) => {
         id: {
           [Op.not]: id,
         },
+        blackListId: null,
         confirmed: true,
       },
       attributes: {
         exclude: [
           'email',
-          'blackListed',
+          'blackListId',
           'confirmed',
           'password',
           'currentProfilePictureId',

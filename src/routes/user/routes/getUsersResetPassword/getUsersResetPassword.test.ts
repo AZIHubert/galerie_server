@@ -3,6 +3,7 @@ import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
+import BlackList from '@src/db/models/blackList';
 import User from '@src/db/models/user';
 import * as email from '@src/helpers/email';
 import {
@@ -27,6 +28,7 @@ const newUser = {
 describe('users', () => {
   beforeEach(async (done) => {
     try {
+      await BlackList.sync({ force: true });
       await User.sync({ force: true });
     } catch (err) {
       done(err);
@@ -38,6 +40,7 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
+      await BlackList.sync({ force: true });
       await User.sync({ force: true });
     } catch (err) {
       done(err);
@@ -119,10 +122,21 @@ describe('users', () => {
           });
         });
         it('user is black listed', async () => {
-          const { email: userEmail } = await User.create({
+          const { id: adminId } = await User.create({
             ...newUser,
             confirmed: true,
-            blackListed: true,
+            role: 'admin',
+          });
+          const { id: blackListId } = await BlackList.create({
+            adminId,
+            reason: 'black list user',
+          });
+          const { email: userEmail } = await User.create({
+            userName: 'user2',
+            email: 'user2@email.com',
+            password: 'password',
+            blackListId,
+            confirmed: true,
           });
           const { status, body } = await request(initApp())
             .get('/users/resetPassword')

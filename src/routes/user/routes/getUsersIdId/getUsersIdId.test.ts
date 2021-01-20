@@ -5,6 +5,7 @@ import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
+import BlackList from '@src/db/models/blackList';
 import Image from '@src/db/models/image';
 import User from '@src/db/models/user';
 import ProfilePicture from '@src/db/models/profilePicture';
@@ -40,8 +41,9 @@ describe('users', () => {
   });
   beforeEach(async (done) => {
     try {
-      await User.sync({ force: true });
+      await BlackList.sync({ force: true });
       await Image.sync({ force: true });
+      await User.sync({ force: true });
       await ProfilePicture.sync({ force: true });
       const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
       await Promise.all(originalImages
@@ -65,6 +67,7 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
+      await BlackList.sync({ force: true });
       await User.sync({ force: true });
       await Image.sync({ force: true });
       await ProfilePicture.sync({ force: true });
@@ -146,7 +149,7 @@ describe('users', () => {
             expect(body.id).toBe(id);
             expect(body.userName).toBe(findedUser.userName);
             expect(body.role).toBe('user');
-            expect(body.blackListed).toBeUndefined();
+            expect(body.blackListId).toBeUndefined();
             expect(body.email).toBeUndefined();
             expect(body.password).toBeUndefined();
             expect(body.confirmed).toBeUndefined();
@@ -261,6 +264,31 @@ describe('users', () => {
             const user = await User.create({
               ...newUser,
               confirmed: true,
+            });
+            const token = createAccessToken(user);
+            const { body, status } = await request(initApp())
+              .get(`/users/id/${id}`)
+              .set('authorization', `Bearer ${token}`);
+            expect(status).toBe(404);
+            expect(body).toStrictEqual({
+              errors: USER_NOT_FOUND,
+            });
+          });
+          it('user params.id is black listed', async () => {
+            const user = await User.create({
+              ...newUser,
+              confirmed: true,
+            });
+            const { id: blackListId } = await BlackList.create({
+              adminId: user.id,
+              reason: 'black list user',
+            });
+            const { id } = await User.create({
+              userName: 'user2',
+              email: 'user2@email.com',
+              password: 'password',
+              confirmed: true,
+              blackListId,
             });
             const token = createAccessToken(user);
             const { body, status } = await request(initApp())

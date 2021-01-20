@@ -10,19 +10,18 @@ import {
 } from 'sequelize-typescript';
 
 import Galerie from '../galerie';
-import Image from '../image';
 import ProfilePicture from '../profilePicture';
+import BlackList from '../blackList';
 
 interface UserI {
   userName: string;
   email: string;
-  blackListed: boolean;
+  blackListId: string;
   password: string;
   confirmed: boolean;
   galeries?: Galerie[];
-  images?: Image[];
   profilePictures?: ProfilePicture[];
-  profilePicture?: ProfilePicture;
+  profilePictureId?: ProfilePicture;
   role: 'superAdmin' | 'admin' | 'user';
 }
 
@@ -68,13 +67,6 @@ export default class User extends Model implements UserI {
     type: DataType.BOOLEAN,
   })
   confirmed!: boolean;
-
-  @Default(false)
-  @Column({
-    allowNull: false,
-    type: DataType.BOOLEAN,
-  })
-  blackListed!: boolean;
 
   @Default('user')
   @Column({
@@ -131,4 +123,13 @@ export default class User extends Model implements UserI {
 
   @HasMany(() => ProfilePicture)
   profilePictures!: ProfilePicture[];
+
+  @ForeignKey(() => BlackList)
+  @Column({
+    type: DataType.BIGINT,
+  })
+  blackListId!: string;
+
+  @BelongsTo(() => BlackList)
+  blackList!: BlackList;
 }

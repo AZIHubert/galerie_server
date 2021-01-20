@@ -4,6 +4,7 @@ import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
+import BlackList from '@src/db/models/blackList';
 import Image from '@src/db/models/image';
 import ProfilePicture from '@src/db/models/profilePicture';
 import User from '@src/db/models/user';
@@ -30,6 +31,7 @@ describe('users', () => {
   });
   beforeEach(async (done) => {
     try {
+      await BlackList.sync({ force: true });
       await User.sync({ force: true });
       await Image.sync({ force: true });
       await ProfilePicture.sync({ force: true });
@@ -55,6 +57,7 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
+      await BlackList.sync({ force: true });
       await User.sync({ force: true });
       await Image.sync({ force: true });
       await ProfilePicture.sync({ force: true });
@@ -92,6 +95,64 @@ describe('users', () => {
         const user = await User.create({
           userName: 'user',
           email: 'user@email.com',
+          password: 'password',
+          confirmed: true,
+        });
+        const accessToken = createAccessToken(user);
+        const { body, status } = await request(app)
+          .get('/users')
+          .set('authorization', ` Bearer ${accessToken}`);
+        expect(body.length).toBe(1);
+        expect(status).toBe(200);
+      });
+      it('get all users expect not confirmed', async () => {
+        await User.create({
+          userName: 'user2',
+          email: 'user2@email.com',
+          password: 'password',
+          confirmed: true,
+        });
+        await User.create({
+          userName: 'user3',
+          email: 'user3@email.com',
+          password: 'password',
+          confirmed: false,
+        });
+        const user = await User.create({
+          userName: 'user',
+          email: 'user@email.com',
+          password: 'password',
+          confirmed: true,
+        });
+        const accessToken = createAccessToken(user);
+        const { body, status } = await request(app)
+          .get('/users')
+          .set('authorization', ` Bearer ${accessToken}`);
+        expect(body.length).toBe(1);
+        expect(status).toBe(200);
+      });
+      it('get all users expect black listed', async () => {
+        const user = await User.create({
+          userName: 'user',
+          email: 'user@email.com',
+          password: 'password',
+          confirmed: true,
+          role: 'admin',
+        });
+        const { id: blackListId } = await BlackList.create({
+          adminId: user.id,
+          reason: 'black list user',
+        });
+        await User.create({
+          userName: 'user2',
+          email: 'user2@email.com',
+          password: 'password',
+          confirmed: true,
+          blackListId,
+        });
+        await User.create({
+          userName: 'user3',
+          email: 'user3@email.com',
           password: 'password',
           confirmed: true,
         });
@@ -150,7 +211,7 @@ describe('users', () => {
         expect(returnedUser.id).toBe(searchedUser.id);
         expect(returnedUser.userName).toBe(searchedUser.userName);
         expect(returnedUser.role).toBe('user');
-        expect(returnedUser.blackListed).toBeUndefined();
+        expect(returnedUser.blackListId).toBeUndefined();
         expect(returnedUser.email).toBeUndefined();
         expect(returnedUser.password).toBeUndefined();
         expect(returnedUser.confirmed).toBeUndefined();

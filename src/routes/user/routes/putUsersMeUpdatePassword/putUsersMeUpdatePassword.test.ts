@@ -146,7 +146,10 @@ describe('users', () => {
             const { status, body } = await request(initApp())
               .put('/users/me/updatePassword')
               .set('authorization', `Bearer ${token}`)
-              .send({});
+              .send({
+                confirmUpdatedPassword: 'Aaoudjiuvhds9!',
+                updatedPassword: 'Aaoudjiuvhds9!',
+              });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: {
@@ -160,6 +163,8 @@ describe('users', () => {
               .set('authorization', `Bearer ${token}`)
               .send({
                 password: '',
+                confirmUpdatedPassword: 'Aaoudjiuvhds9!',
+                updatedPassword: 'Aaoudjiuvhds9!',
               });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -170,7 +175,7 @@ describe('users', () => {
           });
         });
         describe('updatedPassword', () => {
-          it('is not send', async () => {
+          it('and confirmed password are not send', async () => {
             const { status, body } = await request(initApp())
               .put('/users/me/updatePassword')
               .set('authorization', `Bearer ${token}`)
@@ -181,6 +186,7 @@ describe('users', () => {
             expect(body).toStrictEqual({
               errors: {
                 updatedPassword: FIELD_IS_REQUIRED,
+                confirmUpdatedPassword: FIELD_IS_REQUIRED,
               },
             });
           });
@@ -191,6 +197,7 @@ describe('users', () => {
               .send({
                 password,
                 updatedPassword: 12345,
+                confirmUpdatedPassword: 12345,
               });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -206,6 +213,7 @@ describe('users', () => {
               .send({
                 password,
                 updatedPassword: '',
+                confirmUpdatedPassword: '',
               });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -221,6 +229,7 @@ describe('users', () => {
               .send({
                 password,
                 updatedPassword: 'Aa8!',
+                confirmUpdatedPassword: 'Aa8!',
               });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -236,6 +245,7 @@ describe('users', () => {
               .send({
                 password,
                 updatedPassword: `Ac9!${'a'.repeat(31)}`,
+                confirmUpdatedPassword: `Ac9!${'a'.repeat(31)}`,
               });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -251,6 +261,7 @@ describe('users', () => {
               .send({
                 password,
                 updatedPassword: 'aaoudjiuvhds9!',
+                confirmUpdatedPassword: 'aaoudjiuvhds9!',
               });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -266,6 +277,7 @@ describe('users', () => {
               .send({
                 password,
                 updatedPassword: 'AAOUDJIUVHDS9!',
+                confirmUpdatedPassword: 'AAOUDJIUVHDS9!',
               });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -281,6 +293,7 @@ describe('users', () => {
               .send({
                 password,
                 updatedPassword: 'AAOUDJIUVHDS!',
+                confirmUpdatedPassword: 'AAOUDJIUVHDS!',
               });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -296,6 +309,7 @@ describe('users', () => {
               .send({
                 password,
                 updatedPassword: 'AAOUDJIUVHDS9',
+                confirmUpdatedPassword: 'AAOUDJIUVHDS9',
               });
             expect(status).toBe(400);
             expect(body).toStrictEqual({

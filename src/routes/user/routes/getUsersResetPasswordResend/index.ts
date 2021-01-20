@@ -3,6 +3,7 @@ import { sign } from 'jsonwebtoken';
 
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
+import checkBlackList from '@src/helpers/checkBlackList';
 import { sendResetPassword } from '@src/helpers/email';
 import {
   FIELD_IS_REQUIRED,
@@ -31,7 +32,8 @@ export default async (req: Request, res: Response) => {
       errors: USER_NOT_FOUND,
     });
   }
-  if (user.blackListed) {
+  const isBlackListed = await checkBlackList(user);
+  if (isBlackListed) {
     return res.status(401).send({
       errors: USER_IS_BLACK_LISTED,
     });

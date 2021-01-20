@@ -18,12 +18,14 @@ export default async (req: Request, res: Response) => {
           [Op.not]: id,
         },
         confirmed: true,
+        blackListId: null,
         userName: {
           [Op.iLike]: `%${userName.toLowerCase()}%`,
         },
       },
       attributes: {
         exclude: [
+          'blackListId',
           'password',
           'blackListed',
           'confirmed',

@@ -1,14 +1,16 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.addColumn(
   'users',
-  'blackListed',
+  'blackListId',
   {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
+    references: {
+      key: 'id',
+      model: 'blackList',
+    },
+    type: DataTypes.BIGINT,
   },
 );
 
 module.exports.down = (queryInterface) => queryInterface.removeColumn(
   'users',
-  'blackListed',
+  'blackListId',
 );

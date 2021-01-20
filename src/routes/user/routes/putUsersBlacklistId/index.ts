@@ -1,7 +1,12 @@
 import { Request, Response } from 'express';
 
+import BlackList from '@src/db/models/blackList';
 import User from '@src/db/models/user';
 import { USER_NOT_FOUND } from '@src/helpers/errorMessages';
+import {
+  validateBlackListUser,
+  normalizeJoiErrors,
+} from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
   const { user: { id: userId, role } } = res.locals;
@@ -13,7 +18,12 @@ export default async (req: Request, res: Response) => {
   }
   let user: User | null;
   try {
-    user = await User.findByPk(id);
+    user = await User.findOne({
+      where: {
+        id,
+        confirmed: true,
+      },
+    });
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -32,36 +42,34 @@ export default async (req: Request, res: Response) => {
       errors: 'you can black listed an admin',
     });
   }
-  if (user.blackListed) {
+  if (user.blackListId) {
     try {
-      await user.update({ blackListed: false });
+      await BlackList.destroy({
+        where: {
+          id: user.blackListId,
+        },
+      });
+      await user.update({ blackListId: null });
       return res.status(204).end();
     } catch (err) {
       return res.status(500).send(err);
     }
   }
+  const { error } = validateBlackListUser(req.body);
+  if (error) {
+    return res.status(400).send({
+      errors: normalizeJoiErrors(error),
+    });
+  }
   try {
-    await user.update({ blackListed: true, role: 'user' });
+    const { id: blackListId } = await BlackList.create({
+      adminId: userId,
+      reason: req.body.reason,
+      time: req.body.time ? req.body.time : null,
+    });
+    await user.update({ blackListId, role: 'user' });
   } catch (err) {
     return res.status(500).send(err);
   }
   return res.status(204).end();
 };
-
-// TODO:
-// create a blacklist model
-// => userId
-// => adminId
-// => date (when user was blacklisted)
-// => reason (string 200 char to explain why this user was baned)
-// => time (how long a user is baned)
-// HasOne user
-//
-// user
-// remove blackListed
-// add foreign key nullable blackListId
-// user belongsTo blackList
-//
-// When logged in, and blackListed, check time
-// if Date.now() > date + time
-// delete blackListId

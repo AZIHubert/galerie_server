@@ -22,11 +22,12 @@ export default async (req: Request, res: Response) => {
       where: {
         id,
         confirmed: true,
+        blackListId: null,
       },
       attributes: {
         exclude: [
           'authTokenVersion',
-          'blackListed',
+          'blackListId',
           'confirmed',
           'confirmTokenVersion',
           'currentProfilePictureId',
@@ -69,7 +70,6 @@ export default async (req: Request, res: Response) => {
       ],
     });
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
   if (!user) {

@@ -4,6 +4,7 @@ import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
+import BlackList from '@src/db/models/blackList';
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
 import { createAccessToken } from '@src/helpers/auth';
@@ -41,6 +42,7 @@ describe('users', () => {
   beforeEach(async (done) => {
     try {
       await User.sync({ force: true });
+      await BlackList.sync({ force: true });
     } catch (err) {
       done(err);
     }
@@ -52,6 +54,7 @@ describe('users', () => {
   afterAll(async (done) => {
     try {
       await User.sync({ force: true });
+      await BlackList.sync({ force: true });
     } catch (err) {
       done(err);
     }
@@ -243,20 +246,29 @@ describe('users', () => {
           });
         });
         it('user is black listed', async () => {
-          const hashPassword = await bcrypt.hash(newUser.password, saltRounds);
-          const { email, password } = await User.create({
+          const { id: adminId } = await User.create({
             ...newUser,
+            confirmed: true,
+            role: 'admin',
+          });
+          const { id: blackListId } = await BlackList.create({
+            adminId,
+            reason: 'black list user',
+          });
+          const hashPassword = await bcrypt.hash(newUser.password, saltRounds);
+          const { email } = await User.create({
+            userName: 'user2',
+            email: 'user2@email',
             password: hashPassword,
-            blackListed: true,
+            blackListId,
             confirmed: true,
           });
           const { body, status } = await request(initApp())
             .get('/users/login')
             .send({
               userNameOrEmail: email,
-              password,
+              password: newUser.password,
             });
-          console.log(body);
           expect(status).toBe(401);
           expect(body).toStrictEqual({
             errors: USER_IS_BLACK_LISTED,
@@ -264,7 +276,7 @@ describe('users', () => {
         });
       });
       describe('should return error 404 if', () => {
-        it('should return error 404 if user not found', async () => {
+        it('user not found', async () => {
           const { body, status } = await request(initApp())
             .get('/users/login')
             .send({
