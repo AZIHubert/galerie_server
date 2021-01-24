@@ -1,4 +1,5 @@
-import jwt from 'jsonwebtoken';
+import { hash } from 'bcrypt';
+import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 import request from 'supertest';
 
@@ -8,17 +9,35 @@ import Image from '@src/db/models/image';
 import ProfilePicture from '@src/db/models/profilePicture';
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
-import { createAccessToken } from '@src/helpers/auth';
-import {
-  NOT_AUTHENTICATED,
-  NOT_CONFIRMED,
-  USER_NOT_FOUND,
-  WRONG_TOKEN,
-  WRONG_TOKEN_VERSION,
-} from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
+import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
+
+const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
+const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
+const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
+
+const cleanDatas = async () => {
+  await User.sync({ force: true });
+  await Image.sync({ force: true });
+  await ProfilePicture.sync({ force: true });
+  const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
+  await Promise.all(originalImages
+    .map(async (image) => {
+      await image.delete();
+    }));
+  const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
+  await Promise.all(cropedImages
+    .map(async (image) => {
+      await image.delete();
+    }));
+  const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
+  await Promise.all(pendingImages
+    .map(async (image) => {
+      await image.delete();
+    }));
+};
 
 const newUser = {
   userName: 'userName',
@@ -26,84 +45,82 @@ const newUser = {
   password: 'password',
 };
 
-const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
-const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
-
 describe('users', () => {
   let sequelize: Sequelize;
+  let app: Server;
+  let user: User;
+  let agent: request.SuperAgentTest;
+
   beforeAll(() => {
     sequelize = initSequelize();
+    app = initApp();
+    agent = request.agent(app);
   });
   beforeEach(async (done) => {
+    agent = request.agent(app);
     try {
-      await User.sync({ force: true });
-      await Image.sync({ force: true });
-      await ProfilePicture.sync({ force: true });
-      const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
-      await Promise.all(originalImages
-        .map(async (image) => {
-          await image.delete();
-        }));
-      const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
-      await Promise.all(cropedImages
-        .map(async (image) => {
-          await image.delete();
-        }));
-      const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
-      await Promise.all(pendingImages
-        .map(async (image) => {
-          await image.delete();
-        }));
-      done();
+      await cleanDatas();
+      const hashPassword = await hash(newUser.password, saltRounds);
+      user = await User.create({
+        ...newUser,
+        confirmed: true,
+        password: hashPassword,
+      });
+      await agent
+        .get('/users/login')
+        .send({
+          password: newUser.password,
+          userNameOrEmail: user.userName,
+        });
     } catch (err) {
       done(err);
     }
+    done();
   });
   afterAll(async (done) => {
     try {
-      await User.sync({ force: true });
-      await Image.sync({ force: true });
-      await ProfilePicture.sync({ force: true });
-      const [files] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
-      await Promise.all(files
-        .map(async (file) => {
-          await file.delete();
-        }));
-      const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
-      await Promise.all(cropedImages
-        .map(async (image) => {
-          await image.delete();
-        }));
-      const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
-      await Promise.all(pendingImages
-        .map(async (image) => {
-          await image.delete();
-        }));
+      await cleanDatas();
       await sequelize.close();
-      done();
     } catch (err) {
       done(err);
     }
+    app.close();
+    done();
   });
   describe('me', () => {
     describe('profilePictures', () => {
       describe(':id', () => {
         describe('DELETE', () => {
           describe('should return status 200 and', () => {
-            it('delete original image', async () => {
-              const user = await User.create({
-                ...newUser,
-                confirmed: true,
-              });
-              const token = createAccessToken(user);
-              const { body: { id, originalImageId } } = await request(initApp())
-                .post('/users/me/ProfilePictures')
-                .set('authorization', `Bearer ${token}`)
+            it('do not remove current PP if it isn\'t the current one', async () => {
+              const { body: { id } } = await agent.post('/users/me/ProfilePictures')
                 .attach('image', `${__dirname}/../../ressources/image.jpg`);
-              const { status } = await request(initApp())
-                .delete(`/users/me/profilePictures/${id}`)
-                .set('authorization', `Bearer ${token}`);
+              const postResponse = await agent.post('/users/me/ProfilePictures')
+                .attach('image', `${__dirname}/../../ressources/image.jpg`);
+              const { body: { id: currentId } } = postResponse;
+              const { status } = await agent.delete(`/users/me/profilePictures/${id}`);
+              await user.reload();
+              expect(status).toBe(200);
+              expect(user.currentProfilePictureId).toBe(currentId);
+              await agent
+                .delete(`/users/me/profilePictures/${currentId}`);
+            });
+            let deleteResponse: request.Response;
+            let postResponse: request.Response;
+            beforeEach(async (done) => {
+              try {
+                postResponse = await agent.post('/users/me/ProfilePictures')
+                  .attach('image', `${__dirname}/../../ressources/image.jpg`);
+                const { body: { id } } = postResponse;
+                deleteResponse = await agent.delete(`/users/me/profilePictures/${id}`);
+              } catch (err) {
+                done(err);
+              }
+              done();
+            });
+            it('delete original image', async () => {
+              const { status } = deleteResponse;
+              const { body: { originalImageId } } = postResponse;
               const originalImage = await Image.findByPk(originalImageId);
               const [files] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
               expect(status).toBe(200);
@@ -111,18 +128,8 @@ describe('users', () => {
               expect(files.length).toBe(0);
             });
             it('delete croped image', async () => {
-              const user = await User.create({
-                ...newUser,
-                confirmed: true,
-              });
-              const token = createAccessToken(user);
-              const { body: { id, cropedImageId } } = await request(initApp())
-                .post('/users/me/ProfilePictures')
-                .set('authorization', `Bearer ${token}`)
-                .attach('image', `${__dirname}/../../ressources/image.jpg`);
-              const { status } = await request(initApp())
-                .delete(`/users/me/profilePictures/${id}`)
-                .set('authorization', `Bearer ${token}`);
+              const { status } = deleteResponse;
+              const { body: { cropedImageId } } = postResponse;
               const cropedImage = await Image.findByPk(cropedImageId);
               const [files] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
               expect(status).toBe(200);
@@ -130,18 +137,8 @@ describe('users', () => {
               expect(files.length).toBe(0);
             });
             it('delete pending image', async () => {
-              const user = await User.create({
-                ...newUser,
-                confirmed: true,
-              });
-              const token = createAccessToken(user);
-              const { body: { id, pendingImageId } } = await request(initApp())
-                .post('/users/me/ProfilePictures')
-                .set('authorization', `Bearer ${token}`)
-                .attach('image', `${__dirname}/../../ressources/image.jpg`);
-              const { status } = await request(initApp())
-                .delete(`/users/me/profilePictures/${id}`)
-                .set('authorization', `Bearer ${token}`);
+              const { status } = deleteResponse;
+              const { body: { pendingImageId } } = postResponse;
               const pendingImage = await Image.findByPk(pendingImageId);
               const [files] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
               expect(status).toBe(200);
@@ -149,142 +146,29 @@ describe('users', () => {
               expect(files.length).toBe(0);
             });
             it('delete profile picture', async () => {
-              const user = await User.create({
-                ...newUser,
-                confirmed: true,
-              });
-              const token = createAccessToken(user);
-              const { body: { id } } = await request(initApp())
-                .post('/users/me/ProfilePictures')
-                .set('authorization', `Bearer ${token}`)
-                .attach('image', `${__dirname}/../../ressources/image.jpg`);
-              const { status } = await request(initApp())
-                .delete(`/users/me/profilePictures/${id}`)
-                .set('authorization', `Bearer ${token}`);
+              const { body: { id } } = postResponse;
+              const { status } = deleteResponse;
               const profilePicture = await ProfilePicture.findByPk(id);
               expect(status).toBe(200);
               expect(profilePicture).toBe(null);
             });
             it('remove current PP if it\'s the current one', async () => {
-              const user = await User.create({
-                ...newUser,
-                confirmed: true,
-              });
-              const token = createAccessToken(user);
-              const { body: { id } } = await request(initApp())
-                .post('/users/me/ProfilePictures')
-                .set('authorization', `Bearer ${token}`)
-                .attach('image', `${__dirname}/../../ressources/image.jpg`);
               await user.reload();
-              expect(user.currentProfilePictureId).toBe(id);
-              const { status } = await request(initApp())
-                .delete(`/users/me/profilePictures/${id}`)
-                .set('authorization', `Bearer ${token}`);
-              await user.reload();
+              const { status } = deleteResponse;
               expect(status).toBe(200);
               expect(user.currentProfilePictureId).toBeNull();
             });
-            it('do not remove current PP if it isn\'t the current one', async () => {
-              const user = await User.create({
-                ...newUser,
-                confirmed: true,
-              });
-              const token = createAccessToken(user);
-              const { body: { id } } = await request(initApp())
-                .post('/users/me/ProfilePictures')
-                .set('authorization', `Bearer ${token}`)
-                .attach('image', `${__dirname}/../../ressources/image.jpg`);
-              const { body: { id: currentId } } = await request(initApp())
-                .post('/users/me/ProfilePictures')
-                .set('authorization', `Bearer ${token}`)
-                .attach('image', `${__dirname}/../../ressources/image.jpg`);
-              const { status } = await request(initApp())
-                .delete(`/users/me/profilePictures/${id}`)
-                .set('authorization', `Bearer ${token}`);
-              await user.reload();
-              expect(status).toBe(200);
-              expect(user.currentProfilePictureId).toBe(currentId);
-            });
             it('return deleted id', async () => {
-              const user = await User.create({
-                ...newUser,
-                confirmed: true,
-              });
-              const token = createAccessToken(user);
-              const { body: { id } } = await request(initApp())
-                .post('/users/me/ProfilePictures')
-                .set('authorization', `Bearer ${token}`)
-                .attach('image', `${__dirname}/../../ressources/image.jpg`);
-              const { body, status } = await request(initApp())
-                .delete(`/users/me/profilePictures/${id}`)
-                .set('authorization', `Bearer ${token}`);
+              const { body: { id } } = postResponse;
+              const { body, status } = deleteResponse;
               expect(status).toBe(200);
               expect(body).toStrictEqual({ id });
             });
           });
-          describe('should return status 401 if', () => {
-            it('user not logged in', async () => {
-              const { body, status } = await request(initApp())
-                .delete('/users/me/profilePictures/1');
-              expect(status).toBe(401);
-              expect(body).toStrictEqual({
-                errors: NOT_AUTHENTICATED,
-              });
-            });
-            it('token is not \'Bearer ...\'', async () => {
-              const { body, status } = await request(initApp())
-                .delete('/users/me/profilePictures/1')
-                .set('authorization', 'token');
-              expect(status).toBe(401);
-              expect(body).toStrictEqual({
-                errors: WRONG_TOKEN,
-              });
-            });
-            it('authTokenVersions not match', async () => {
-              const { id } = await User.create(newUser);
-              jest.spyOn(jwt, 'verify')
-                .mockImplementationOnce(() => ({ id, authTokenVersion: 1 }));
-              const { body, status } = await request(initApp())
-                .delete('/users/me/profilePictures/1')
-                .set('authorization', 'Bearer token');
-              expect(status).toBe(401);
-              expect(body).toStrictEqual({
-                errors: WRONG_TOKEN_VERSION,
-              });
-            });
-            it('user is not confirmed', async () => {
-              const user = await User.create(newUser);
-              const token = createAccessToken(user);
-              const { body, status } = await request(initApp())
-                .delete('/users/me/profilePictures/1')
-                .set('authorization', `Bearer ${token}`);
-              expect(status).toBe(401);
-              expect(body).toStrictEqual({
-                errors: NOT_CONFIRMED,
-              });
-            });
-          });
+
           describe('should return status 404 if', () => {
-            it('user not found', async () => {
-              jest.spyOn(jwt, 'verify')
-                .mockImplementationOnce(() => ({ id: 1, authTokenVersion: 0 }));
-              const { body, status } = await request(initApp())
-                .delete('/users/me/profilePictures/1')
-                .set('authorization', 'Bearer token');
-              expect(status).toBe(404);
-              expect(body).toStrictEqual({
-                errors: USER_NOT_FOUND,
-              });
-            });
             it('profile picture id not found', async () => {
-              const user = await User.create({
-                ...newUser,
-                confirmed: true,
-              });
-              const token = createAccessToken(user);
-              const { body, status } = await request(initApp())
-                .delete('/users/me/profilePictures/1')
-                .set('authorization', `Bearer ${token}`);
+              const { body, status } = await agent.delete('/users/me/profilePictures/1');
               expect(status).toBe(404);
               expect(body).toStrictEqual({
                 errors: 'profile picture not found',

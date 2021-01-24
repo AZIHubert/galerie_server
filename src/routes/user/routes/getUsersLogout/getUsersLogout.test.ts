@@ -1,21 +1,14 @@
-import bcrypt from 'bcrypt';
+import { hash } from 'bcrypt';
 import { Server } from 'http';
-import jwt from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
 import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
-import Image from '@src/db/models/image';
-import User from '@src/db/models/user';
-import ProfilePicture from '@src/db/models/profilePicture';
-import { createAccessToken } from '@src/helpers/auth';
+import { User } from '@src/db/models';
+
 import {
   NOT_AUTHENTICATED,
-  NOT_CONFIRMED,
-  USER_NOT_FOUND,
-  WRONG_TOKEN,
-  WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import saltRounds from '@src/helpers/saltRounds';
@@ -27,18 +20,34 @@ const newUser = {
   password: 'password',
 };
 
+const clearDatas = async () => {
+  await User.sync({ force: true });
+};
+
 describe('users', () => {
-  let sequelize: Sequelize;
+  let agent: request.SuperAgentTest;
   let app: Server;
+  let sequelize: Sequelize;
+  let user: User;
   beforeAll(() => {
     app = initApp();
     sequelize = initSequelize();
   });
   beforeEach(async (done) => {
+    agent = request.agent(app);
     try {
-      await Image.sync({ force: true });
-      await ProfilePicture.sync({ force: true });
-      await User.sync({ force: true });
+      await clearDatas();
+      const hashPassword = await hash(newUser.password, saltRounds);
+      user = await User.create({
+        ...newUser,
+        confirmed: true,
+        password: hashPassword,
+      });
+      await agent.get('/users/login')
+        .send({
+          password: newUser.password,
+          userNameOrEmail: user.userName,
+        });
     } catch (err) {
       done(err);
     }
@@ -46,93 +55,29 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await Image.sync({ force: true });
-      await ProfilePicture.sync({ force: true });
-      await User.sync({ force: true });
+      await clearDatas();
       await sequelize.close();
-      app.close();
-      done();
     } catch (err) {
       done(err);
     }
+    app.close();
+    done();
   });
   describe('logout', () => {
     describe('GET', () => {
       describe('should return status 204 and', () => {
-        it('should clear cookie', async () => {
-          const password = 'Aaoudjiuvhds9';
-          const hashPassword = await bcrypt.hash(password, saltRounds);
-          const user = await User.create({
-            ...newUser,
-            password: hashPassword,
-            confirmed: true,
-          });
-          const agent = request.agent(app);
-          const { body: { accessToken } } = await agent
-            .get('/users/login')
-            .send({
-              userNameOrEmail: user.userName,
-              password,
-            });
-          const { headers, status } = await agent
-            .get('/users/logout')
-            .set('authorization', `Bearer ${accessToken}`);
+        it('logout()', async () => {
+          const { status } = await agent.get('/users/logout');
           expect(status).toBe(204);
-          expect(headers['set-cookie'][0]).toMatch('jid=;');
         });
       });
-      describe('should return status 401 if', () => {
-        it('user not logged in', async () => {
-          const { body, status } = await request(initApp())
-            .get('/users/logout');
+      describe('should return status 401 and', () => {
+        it('be logout', async () => {
+          await agent.get('/users/logout');
+          const { body, status } = await agent.get('/users/logout');
           expect(status).toBe(401);
           expect(body).toStrictEqual({
             errors: NOT_AUTHENTICATED,
-          });
-        });
-        it('token is not \'Bearer ...\'', async () => {
-          const { body, status } = await request(initApp())
-            .get('/users/logout')
-            .set('authorization', 'token');
-          expect(status).toBe(401);
-          expect(body).toStrictEqual({
-            errors: WRONG_TOKEN,
-          });
-        });
-        it('authTokenVersions not match', async () => {
-          const { id } = await User.create(newUser);
-          jest.spyOn(jwt, 'verify')
-            .mockImplementationOnce(() => ({ id, authTokenVersion: 1 }));
-          const { body, status } = await request(initApp())
-            .get('/users/logout')
-            .set('authorization', 'Bearer token');
-          expect(status).toBe(401);
-          expect(body).toStrictEqual({
-            errors: WRONG_TOKEN_VERSION,
-          });
-        });
-        it('user is not confirmed', async () => {
-          const user = await User.create(newUser);
-          const token = createAccessToken(user);
-          const { body, status } = await request(initApp())
-            .get('/users/logout')
-            .set('authorization', `Bearer ${token}`);
-          expect(status).toBe(401);
-          expect(body).toStrictEqual({
-            errors: NOT_CONFIRMED,
-          });
-        });
-      });
-      describe('should return status 404 if', () => {
-        it('user not found', async () => {
-          jest.spyOn(jwt, 'verify')
-            .mockImplementationOnce(() => ({ id: 1, authTokenVersion: 0 }));
-          const { body, status } = await request(initApp())
-            .get('/users/logout')
-            .set('authorization', 'Bearer token');
-          expect(status).toBe(404);
-          expect(body).toStrictEqual({
-            errors: USER_NOT_FOUND,
           });
         });
       });

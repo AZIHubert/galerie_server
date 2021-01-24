@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 
-import BlackList from '@src/db/models/blackList';
-import User from '@src/db/models/user';
+import { BlackList, User } from '@src/db/models';
 import { USER_NOT_FOUND } from '@src/helpers/errorMessages';
 import {
   validateBlackListUser,
@@ -9,7 +8,7 @@ import {
 } from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
-  const { user: { id: userId, role } } = res.locals;
+  const { id: userId, role } = req.user as User;
   const { id } = req.params;
   if (id === userId) {
     return res.status(401).send({

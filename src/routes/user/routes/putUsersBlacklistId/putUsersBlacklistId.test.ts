@@ -1,13 +1,11 @@
+import { hash } from 'bcrypt';
 import { Server } from 'http';
-import jwt from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
 import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
-import User from '@src/db/models/user';
-import BlackList from '@src/db/models/blackList';
-import { createAccessToken } from '@src/helpers/auth';
+import { BlackList, User } from '@src/db/models';
 import {
   FIELD_IS_REQUIRED,
   FIELD_IS_EMPTY,
@@ -15,60 +13,70 @@ import {
   FIELD_MAX_LENGTH_TWO_HUNDRER,
   FIELD_NOT_A_STRING,
   FIELD_NOT_A_NUMBER,
-  NOT_AUTHENTICATED,
-  NOT_CONFIRMED,
-  NOT_SUPER_ADMIN,
   USER_NOT_FOUND,
-  WRONG_TOKEN,
-  WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
 
+const clearDatas = async () => {
+  await BlackList.sync({ force: true });
+  await User.sync({ force: true });
+};
+
 const newUser = {
-  userName: 'userName',
   email: 'user@email.com',
   password: 'password',
+  userName: 'userName',
 };
 
 describe('users', () => {
-  let sequelize: Sequelize;
+  let agent: request.SuperAgentTest;
   let app: Server;
+  let sequelize: Sequelize;
+  let user: User;
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
   });
   beforeEach(async (done) => {
+    agent = request.agent(app);
     try {
-      await BlackList.sync({ force: true });
-      await User.sync({ force: true });
-      done();
+      await clearDatas();
+      const hashPassword = await hash(newUser.password, saltRounds);
+      user = await User.create({
+        ...newUser,
+        confirmed: true,
+        password: hashPassword,
+        role: 'superAdmin',
+      });
+      await agent
+        .get('/users/login')
+        .send({
+          password: newUser.password,
+          userNameOrEmail: user.userName,
+        });
     } catch (err) {
       done(err);
     }
+    done();
   });
   afterAll(async (done) => {
     try {
-      await BlackList.sync({ force: true });
-      await User.sync({ force: true });
+      await clearDatas();
       await sequelize.close();
-      app.close();
-      done();
     } catch (err) {
       done(err);
     }
+    app.close();
+    done();
   });
   describe('blackList', () => {
     describe(':id', () => {
       describe('PUT', () => {
         describe('should return status 204 and', () => {
           it('should unblack listed a user', async () => {
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
-              role: 'admin',
-            });
-            const blackList = await BlackList.create({
+            const { id: blackListId } = await BlackList.create({
               reason: 'black listed',
               adminId: user.id,
             });
@@ -78,12 +86,10 @@ describe('users', () => {
               password: 'password',
               confirmed: true,
               role: 'user',
-              blackListId: blackList.id,
+              blackListId,
             });
-            const token = createAccessToken(user);
-            const { status } = await request(app)
-              .put(`/users/blackList/${userTwo.id}`)
-              .set('authorization', `Bearer ${token}`);
+            const { status } = await agent
+              .put(`/users/blackList/${userTwo.id}`);
             await userTwo.reload();
             const blackLists = await BlackList.findAll();
             expect(status).toBe(204);
@@ -98,25 +104,10 @@ describe('users', () => {
               password: 'password',
               confirmed: true,
               role: 'admin',
-            }, {
-              include: [
-                {
-                  model: BlackList,
-                },
-              ],
-            });
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
-              role: 'superAdmin',
-            });
-            const token = createAccessToken(user);
-            const { status } = await request(app)
+            }, { include: [{ model: BlackList }] });
+            const { status } = await agent
               .put(`/users/blackList/${userTwo.id}`)
-              .set('authorization', `Bearer ${token}`)
-              .send({
-                reason,
-              });
+              .send({ reason });
             await userTwo.reload();
             expect(status).toBe(204);
             expect(userTwo.role).toBe('user');
@@ -133,26 +124,10 @@ describe('users', () => {
               password: 'password',
               confirmed: true,
               role: 'admin',
-            }, {
-              include: [
-                {
-                  model: BlackList,
-                },
-              ],
-            });
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
-              role: 'superAdmin',
-            });
-            const token = createAccessToken(user);
-            const { status } = await request(app)
+            }, { include: [{ model: BlackList }] });
+            const { status } = await agent
               .put(`/users/blackList/${userTwo.id}`)
-              .set('authorization', `Bearer ${token}`)
-              .send({
-                reason,
-                time,
-              });
+              .send({ reason, time });
             await userTwo.reload();
             expect(status).toBe(204);
             expect(userTwo.blackList.reason).toBe(reason);
@@ -162,31 +137,23 @@ describe('users', () => {
         });
         describe('should return status 400 if', () => {
           let userTwo: User;
-          let token: string;
           beforeEach(async (done) => {
-            userTwo = await User.create({
-              userName: 'user2',
-              email: 'user2@email.com',
-              password: 'password',
-              confirmed: true,
-            });
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
-              role: 'superAdmin',
-            });
-            token = createAccessToken(user);
             try {
-              done();
+              userTwo = await User.create({
+                userName: 'user2',
+                email: 'user2@email.com',
+                password: 'password',
+                confirmed: true,
+              });
             } catch (err) {
               done(err);
             }
+            done();
           });
           describe('reason is', () => {
-            it('not sent', async () => {
-              const { body, status } = await request(app)
+            it('not send', async () => {
+              const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
-                .set('authorization', `Bearer ${token}`)
                 .send({});
               expect(status).toBe(400);
               expect(body).toStrictEqual({
@@ -196,12 +163,9 @@ describe('users', () => {
               });
             });
             it('empty', async () => {
-              const { body, status } = await request(app)
+              const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
-                .set('authorization', `Bearer ${token}`)
-                .send({
-                  reason: '',
-                });
+                .send({ reason: '' });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
                 errors: {
@@ -210,12 +174,9 @@ describe('users', () => {
               });
             });
             it('not a string', async () => {
-              const { body, status } = await request(app)
+              const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
-                .set('authorization', `Bearer ${token}`)
-                .send({
-                  reason: 1234567890,
-                });
+                .send({ reason: 1234567890 });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
                 errors: {
@@ -224,12 +185,9 @@ describe('users', () => {
               });
             });
             it('less than 10 characters', async () => {
-              const { body, status } = await request(app)
+              const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
-                .set('authorization', `Bearer ${token}`)
-                .send({
-                  reason: 'aaaaaaa a',
-                });
+                .send({ reason: 'aaaaaaa a' });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
                 errors: {
@@ -238,12 +196,9 @@ describe('users', () => {
               });
             });
             it('more than 200 characters', async () => {
-              const { body, status } = await request(app)
+              const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
-                .set('authorization', `Bearer ${token}`)
-                .send({
-                  reason: 'a'.repeat(201),
-                });
+                .send({ reason: 'a'.repeat(201) });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
                 errors: {
@@ -253,14 +208,11 @@ describe('users', () => {
             });
           });
           describe('time', () => {
+            const reason = 'black listed';
             it('is not a number', async () => {
-              const { body, status } = await request(app)
+              const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
-                .set('authorization', `Bearer ${token}`)
-                .send({
-                  reason: 'black listed',
-                  time: 'time',
-                });
+                .send({ reason, time: 'time' });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
                 errors: {
@@ -269,14 +221,9 @@ describe('users', () => {
               });
             });
             it('is less than 10mn', async () => {
-              const time = 1000 * 60 * 9;
-              const { body, status } = await request(app)
+              const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
-                .set('authorization', `Bearer ${token}`)
-                .send({
-                  reason: 'black listed',
-                  time,
-                });
+                .send({ reason, time: 1000 * 60 * 9 });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
                 errors: {
@@ -285,14 +232,9 @@ describe('users', () => {
               });
             });
             it('is more than 1 year', async () => {
-              const time = 1000 * 60 * 60 * 24 * 365 * 2;
-              const { body, status } = await request(app)
+              const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
-                .set('authorization', `Bearer ${token}`)
-                .send({
-                  reason: 'black listed',
-                  time,
-                });
+                .send({ reason, time: 1000 * 60 * 60 * 24 * 365 * 2 });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
                 errors: {
@@ -303,70 +245,9 @@ describe('users', () => {
           });
         });
         describe('should return status 401 if', () => {
-          it('user not logged in', async () => {
-            const { body, status } = await request(app)
-              .put('/users/blackList/1');
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: NOT_AUTHENTICATED,
-            });
-          });
-          it('token is not \'Bearer ...\'', async () => {
-            const { body, status } = await request(app)
-              .put('/users/blackList/1')
-              .set('authorization', 'token');
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: WRONG_TOKEN,
-            });
-          });
-          it('authTokenVersions not match', async () => {
-            const { id } = await User.create(newUser);
-            jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({ id, authTokenVersion: 1 }));
-            const { body, status } = await request(app)
-              .put('/users/blackList/1')
-              .set('authorization', 'Bearer token');
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: WRONG_TOKEN_VERSION,
-            });
-          });
-          it('user is not confirmed', async () => {
-            const user = await User.create(newUser);
-            const token = createAccessToken(user);
-            const { body, status } = await request(app)
-              .put('/users/blackList/1')
-              .set('authorization', `Bearer ${token}`);
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: NOT_CONFIRMED,
-            });
-          });
-          it('user role is user', async () => {
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
-            });
-            const token = createAccessToken(user);
-            const { body, status } = await request(app)
-              .put('/users/blackList/1')
-              .set('authorization', `Bearer ${token}`);
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: NOT_SUPER_ADMIN,
-            });
-          });
           it('user.id and :id are the same', async () => {
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
-              role: 'admin',
-            });
-            const token = createAccessToken(user);
-            const { body, status } = await request(app)
-              .put(`/users/blackList/${user.id}`)
-              .set('authorization', `Bearer ${token}`);
+            const { body, status } = await agent
+              .put(`/users/blackList/${user.id}`);
             expect(status).toBe(401);
             expect(body).toStrictEqual({
               errors: 'you can\'t put your account on the black list',
@@ -380,15 +261,23 @@ describe('users', () => {
               confirmed: true,
               role: 'superAdmin',
             });
-            const user = await User.create({
-              ...newUser,
+            const hashPassword = await hash(newUser.password, saltRounds);
+            const userThree = await User.create({
               confirmed: true,
+              email: 'user3@email.com',
+              password: hashPassword,
               role: 'admin',
+              userName: 'user3',
             });
-            const token = createAccessToken(user);
-            const { body, status } = await request(app)
-              .put(`/users/blackList/${id}`)
-              .set('authorization', `Bearer ${token}`);
+            const agentTwo = request.agent(app);
+            await agentTwo
+              .get('/users/login')
+              .send({
+                password: newUser.password,
+                userNameOrEmail: userThree.userName,
+              });
+            const { body, status } = await agentTwo
+              .put(`/users/blackList/${id}`);
             expect(status).toBe(401);
             expect(body).toStrictEqual({
               errors: 'you can black listed a super admin',
@@ -402,15 +291,23 @@ describe('users', () => {
               confirmed: true,
               role: 'admin',
             });
-            const user = await User.create({
-              ...newUser,
+            const hashPassword = await hash(newUser.password, saltRounds);
+            const userThree = await User.create({
               confirmed: true,
+              email: 'user3@email.com',
+              password: hashPassword,
               role: 'admin',
+              userName: 'user3',
             });
-            const token = createAccessToken(user);
-            const { body, status } = await request(app)
-              .put(`/users/blackList/${id}`)
-              .set('authorization', `Bearer ${token}`);
+            const agentTwo = request.agent(app);
+            await agentTwo
+              .get('/users/login')
+              .send({
+                password: newUser.password,
+                userNameOrEmail: userThree.userName,
+              });
+            const { body, status } = await agentTwo
+              .put(`/users/blackList/${id}`);
             expect(status).toBe(401);
             expect(body).toStrictEqual({
               errors: 'you can black listed an admin',
@@ -418,51 +315,23 @@ describe('users', () => {
           });
         });
         describe('should return status 404 if', () => {
-          it('user not found', async () => {
-            jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({ id: 1, authTokenVersion: 0 }));
-            const { body, status } = await request(app)
-              .put('/users/blackList/1')
-              .set('authorization', 'Bearer token');
-            expect(status).toBe(404);
-            expect(body).toStrictEqual({
-              errors: USER_NOT_FOUND,
-            });
-          });
           it('user :id is not confirmed', async () => {
-            const reason = 'black list user';
             const userTwo = await User.create({
               userName: 'user2',
               email: 'user2@email.com',
               password: 'password',
             });
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
-              role: 'superAdmin',
-            });
-            const token = createAccessToken(user);
-            const { body, status } = await request(app)
+            const { body, status } = await agent
               .put(`/users/blackList/${userTwo.id}`)
-              .set('authorization', `Bearer ${token}`)
-              .send({
-                reason,
-              });
+              .send({ reason: 'black list user' });
             expect(status).toBe(404);
             expect(body).toStrictEqual({
               errors: USER_NOT_FOUND,
             });
           });
           it('user :id not found', async () => {
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
-              role: 'admin',
-            });
-            const token = createAccessToken(user);
-            const { body, status } = await request(app)
-              .put('/users/blackList/1000')
-              .set('authorization', `Bearer ${token}`);
+            const { body, status } = await agent
+              .put('/users/blackList/1000');
             expect(status).toBe(404);
             expect(body).toStrictEqual({
               errors: USER_NOT_FOUND,

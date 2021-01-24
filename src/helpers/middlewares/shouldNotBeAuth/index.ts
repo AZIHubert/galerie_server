@@ -5,8 +5,7 @@ import {
 } from '@src/helpers/errorMessages';
 
 export default (req: Request, res: Response, next: NextFunction) => {
-  const { authorization } = req.headers;
-  if (authorization) {
+  if (req.isAuthenticated()) {
     return res.status(401).send({
       errors: USER_IS_LOGGED_IN,
     });

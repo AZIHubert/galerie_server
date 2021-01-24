@@ -1,32 +1,20 @@
 module.exports.up = (queryInterface, DataTypes) => Promise.all([
-  queryInterface.renameColumn(
-    'users',
-    'admin',
-    'role',
-  ),
-  queryInterface.changeColumn(
-    'users',
-    'admin',
-    {
-      defaultValue: 'user',
-      type: DataTypes.STRING,
-    },
-  ),
+  queryInterface.addColumn('users', 'role', {
+    defaultValue: 'user',
+    type: DataTypes.STRING,
+  }),
+  queryInterface.removeColumn('users', 'admin'),
 ]);
 
 module.exports.down = (queryInterface, DataTypes) => Promise.all([
-  queryInterface.changeColumn(
+  queryInterface.removeColumn('users', 'role'),
+  queryInterface.addColumn(
     'users',
-    'role',
+    'admin',
     {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
     },
-  ),
-  queryInterface.renameColumn(
-    'users',
-    'role',
-    'admin',
   ),
 ]);

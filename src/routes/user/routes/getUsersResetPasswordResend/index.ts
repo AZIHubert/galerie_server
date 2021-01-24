@@ -23,7 +23,12 @@ export default async (req: Request, res: Response) => {
   }
   let user: User | null;
   try {
-    user = await User.findOne({ where: { email } });
+    user = await User.findOne({
+      where: {
+        email,
+        googleId: null,
+      },
+    });
   } catch (err) {
     return res.status(500).send(err);
   }

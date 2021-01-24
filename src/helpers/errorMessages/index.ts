@@ -15,6 +15,7 @@ export const FIELD_MIN_LENGTH_OF_THREE = 'should have a minimum length of 3';
 export const FIELD_MIN_LENGTH_OF_HEIGH = 'should have a minimum length of 8';
 export const FILE_IS_IMAGE = 'uploaded file must be an image';
 export const FILE_IS_REQUIRED = 'file is required';
+export const NOT_ADMIN = 'you need to be an admin';
 export const NOT_AUTHENTICATED = 'not authenticated';
 export const NOT_CONFIRMED = 'You\'re account need to be confimed';
 export const NOT_SUPER_ADMIN = 'you need to be a super admin';

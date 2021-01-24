@@ -4,12 +4,14 @@ import sharp from 'sharp';
 import socketIo from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 
+import User from '@src/db/models/user';
 import Image from '@src/db/models/image';
 import ProfilePicture from '@src/db/models/profilePicture';
 import accEnv from '@src/helpers/accEnv';
 import checkExtension from '@src/helpers/checkExtension';
 import gc from '@src/helpers/gc';
 import {
+  USER_NOT_FOUND,
   FILE_IS_IMAGE,
   FILE_IS_REQUIRED,
 } from '@src/helpers/errorMessages';
@@ -36,7 +38,12 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
       },
     });
   }
-  const { user } = res.locals;
+  const user = req.user as User;
+  if (!user) {
+    return res.status(404).send({
+      errors: USER_NOT_FOUND,
+    });
+  }
   const { id: userId } = user;
   const { buffer } = file;
   let uploadedSize = 0;
@@ -229,31 +236,66 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
     cropedImagePromise,
     pendingImagePromise,
   ]);
-  let profilePicture: ProfilePicture;
+  let profilePicture: ProfilePicture | null;
   try {
-    profilePicture = await ProfilePicture.create({
+    const { id } = await ProfilePicture.create({
       current: true,
       userId,
       originalImageId,
       cropedImageId,
       pendingImageId,
-    }, {
+    });
+    profilePicture = await ProfilePicture.findByPk(id, {
+      attributes: {
+        exclude: [
+          'createdAt',
+          'cropedImageId',
+          'deletedAt',
+          'originalImageId',
+          'pendingImageId',
+          'updatedAt',
+          'userId',
+        ],
+      },
       include: [
         {
           model: Image,
-          as: 'originalImage',
+          as: 'cropedImage',
+          attributes: {
+            exclude: [
+              'createdAt',
+              'deletedAt',
+              'updatedAt',
+            ],
+          },
         },
         {
           model: Image,
-          as: 'cropedImage',
+          as: 'originalImage',
+          attributes: {
+            exclude: [
+              'createdAt',
+              'deletedAt',
+              'updatedAt',
+            ],
+          },
         },
         {
           model: Image,
           as: 'pendingImage',
+          attributes: {
+            exclude: [
+              'createdAt',
+              'deletedAt',
+              'updatedAt',
+            ],
+          },
         },
       ],
     });
-    await profilePicture.reload();
+    if (!profilePicture) {
+      return res.status(500).send('something went wrong');
+    }
     const originalImageSignedUrl = await signedUrl(
       originalImageBucketName,
       originalImageFileName,

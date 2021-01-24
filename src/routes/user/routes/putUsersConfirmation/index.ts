@@ -1,13 +1,13 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
 
 import User from '@src/db/models/user';
 import accEnv from '@src/helpers/accEnv';
-import {
-  createAccessToken,
-  createRefreshToken,
-  sendRefreshToken,
-} from '@src/helpers/auth';
+// import {
+//   createAccessToken,
+//   createRefreshToken,
+//   sendRefreshToken,
+// } from '@src/helpers/auth';
 import {
   ALREADY_CONFIRMED,
   TOKEN_NOT_FOUND,
@@ -18,7 +18,7 @@ import {
 
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 
-export default async (req: Request, res: Response) => {
+export default async (req: Request, res: Response, next: NextFunction) => {
   const { confirmation } = req.headers;
   if (!confirmation) {
     return res.status(401).send({
@@ -44,7 +44,12 @@ export default async (req: Request, res: Response) => {
     };
     id = tokenVerified.id;
     confirmTokenVersion = tokenVerified.confirmTokenVersion;
-    user = await User.findByPk(id);
+    user = await User.findOne({
+      where: {
+        id,
+        googleId: null,
+      },
+    });
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -69,8 +74,10 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     res.status(500).send(err);
   }
-  sendRefreshToken(res, createRefreshToken(user));
-  return res
-    .status(200)
-    .send({ accessToken: createAccessToken(user) });
+  req.user = user;
+  req.body = {
+    userNameOrEmail: user.userName,
+    password: user.password,
+  };
+  return next();
 };

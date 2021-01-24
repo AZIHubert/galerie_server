@@ -1,60 +1,73 @@
-import jwt from 'jsonwebtoken';
+import { hash } from 'bcrypt';
+import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
-import Image from '@src/db/models/image';
-import ProfilePicture from '@src/db/models/profilePicture';
+import { Image, ProfilePicture, User } from '@src/db/models';
 import accEnv from '@src/helpers/accEnv';
-import { createAccessToken } from '@src/helpers/auth';
-import User from '@src/db/models/user';
-import {
-  NOT_AUTHENTICATED,
-  NOT_CONFIRMED,
-  USER_NOT_FOUND,
-  WRONG_TOKEN,
-  WRONG_TOKEN_VERSION,
-} from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
+import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
 const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
+const clearDatas = async () => {
+  await Image.sync({ force: true });
+  await ProfilePicture.sync({ force: true });
+  await User.sync({ force: true });
+  const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
+  await Promise.all(originalImages
+    .map(async (image) => {
+      await image.delete();
+    }));
+  const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
+  await Promise.all(cropedImages
+    .map(async (image) => {
+      await image.delete();
+    }));
+  const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
+  await Promise.all(pendingImages
+    .map(async (image) => {
+      await image.delete();
+    }));
+};
+
 const newUser = {
-  userName: 'userName',
   email: 'user@email.com',
   password: 'password',
+  userName: 'userName',
 };
 
 describe('users', () => {
+  let agent: request.SuperAgentTest;
+  let app: Server;
   let sequelize: Sequelize;
+  let user: User;
   beforeAll(() => {
+    app = initApp();
     sequelize = initSequelize();
   });
   beforeEach(async (done) => {
+    agent = request.agent(app);
     try {
-      await Image.sync({ force: true });
-      await ProfilePicture.sync({ force: true });
-      await User.sync({ force: true });
-      const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
-      await Promise.all(originalImages
-        .map(async (image) => {
-          await image.delete();
-        }));
-      const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
-      await Promise.all(cropedImages
-        .map(async (image) => {
-          await image.delete();
-        }));
-      const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
-      await Promise.all(pendingImages
-        .map(async (image) => {
-          await image.delete();
-        }));
+      await clearDatas();
+      const hashPassword = await hash(newUser.password, saltRounds);
+      user = await User.create({
+        ...newUser,
+        confirmed: true,
+        password: hashPassword,
+      });
+      await agent
+        .get('/users/login')
+        .send({
+          password: newUser.password,
+          userNameOrEmail: user.userName,
+        });
     } catch (err) {
       done(err);
     }
@@ -62,210 +75,95 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await Image.sync({ force: true });
-      await ProfilePicture.sync({ force: true });
-      await User.sync({ force: true });
-      const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
-      await Promise.all(originalImages
-        .map(async (image) => {
-          await image.delete();
-        }));
-      const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
-      await Promise.all(cropedImages
-        .map(async (image) => {
-          await image.delete();
-        }));
-      const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
-      await Promise.all(pendingImages
-        .map(async (image) => {
-          await image.delete();
-        }));
+      await clearDatas();
       await sequelize.close();
-      done();
     } catch (err) {
       done(err);
     }
+    app.close();
+    done();
   });
   describe('me', () => {
     describe('profilePictures', () => {
       describe('GET', () => {
         describe('should return status 200 and', () => {
-          it('return an empty array', async () => {
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
-            });
-            const token = createAccessToken(user);
-            const { body, status } = await request(initApp())
-              .get('/users/me/profilePictures')
-              .set('authorization', `Bearer ${token}`);
+          it('get an empty array', async () => {
+            const { body, status } = await agent.get('/users/me/profilePictures');
             expect(status).toBe(200);
             expect(body.length).toBe(0);
           });
-          it('return one profile picture', async () => {
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
+          describe('get all profile picture', () => {
+            let getResponse: request.Response;
+            let postResponse: request.Response;
+            beforeEach(async (done) => {
+              try {
+                postResponse = await agent.post('/users/me/ProfilePictures')
+                  .attach('image', `${__dirname}/../../ressources/image.jpg`);
+                getResponse = await agent.get('/users/me/profilePictures');
+              } catch (err) {
+                done(err);
+              }
+              done();
             });
-            const { id } = await Image.create({
-              bucketName: 'bucketName',
-              fileName: 'fileName',
-              format: 'format',
-              height: 100,
-              size: 1000,
-              width: 100,
+            it('with only relevent attributes', async () => {
+              const {
+                body: {
+                  cropedImage,
+                  id: currentProfilePictureId,
+                  originalImage,
+                  pendingImage,
+                },
+              } = postResponse;
+              const { body, status } = getResponse;
+              const [returnProfilePicture] = body;
+              expect(status).toBe(200);
+              expect(body.length).toBe(1);
+              expect(returnProfilePicture.id).toBe(currentProfilePictureId);
+              expect(returnProfilePicture.createdAt).toBeUndefined();
+              expect(returnProfilePicture.cropedImageId).toBeUndefined();
+              expect(returnProfilePicture.deletedAt).toBeUndefined();
+              expect(returnProfilePicture.originalImageId).toBeUndefined();
+              expect(returnProfilePicture.pendingImageId).toBeUndefined();
+              expect(returnProfilePicture.updatedAt).toBeUndefined();
+              expect(returnProfilePicture.userId).toBeUndefined();
+              expect(returnProfilePicture.cropedImage.id).toBe(cropedImage.id);
+              expect(returnProfilePicture.cropedImage.bucketName).toBe(cropedImage.bucketName);
+              expect(returnProfilePicture.cropedImage.fileName).toBe(cropedImage.fileName);
+              expect(returnProfilePicture.cropedImage.format).toBe(cropedImage.format);
+              expect(returnProfilePicture.cropedImage.height).toBe(cropedImage.height);
+              expect(returnProfilePicture.cropedImage.size).toBe(cropedImage.size);
+              expect(returnProfilePicture.cropedImage.width).toBe(cropedImage.width);
+              expect(returnProfilePicture.cropedImage.createdAt).toBeUndefined();
+              expect(returnProfilePicture.cropedImage.deletedAt).toBeUndefined();
+              expect(returnProfilePicture.cropedImage.updatedAt).toBeUndefined();
+              expect(returnProfilePicture.originalImage.id).toBe(originalImage.id);
+              expect(returnProfilePicture.originalImage.bucketName).toBe(originalImage.bucketName);
+              expect(returnProfilePicture.originalImage.fileName).toBe(originalImage.fileName);
+              expect(returnProfilePicture.originalImage.format).toBe(originalImage.format);
+              expect(returnProfilePicture.originalImage.height).toBe(originalImage.height);
+              expect(returnProfilePicture.originalImage.size).toBe(originalImage.size);
+              expect(returnProfilePicture.originalImage.width).toBe(originalImage.width);
+              expect(returnProfilePicture.originalImage.createdAt).toBeUndefined();
+              expect(returnProfilePicture.originalImage.deletedAt).toBeUndefined();
+              expect(returnProfilePicture.originalImage.updatedAt).toBeUndefined();
+              expect(returnProfilePicture.pendingImage.id).toBe(pendingImage.id);
+              expect(returnProfilePicture.pendingImage.bucketName).toBe(pendingImage.bucketName);
+              expect(returnProfilePicture.pendingImage.fileName).toBe(pendingImage.fileName);
+              expect(returnProfilePicture.pendingImage.format).toBe(pendingImage.format);
+              expect(returnProfilePicture.pendingImage.height).toBe(pendingImage.height);
+              expect(returnProfilePicture.pendingImage.size).toBe(pendingImage.size);
+              expect(returnProfilePicture.pendingImage.width).toBe(pendingImage.width);
+              expect(returnProfilePicture.pendingImage.createdAt).toBeUndefined();
+              expect(returnProfilePicture.pendingImage.deletedAt).toBeUndefined();
+              expect(returnProfilePicture.pendingImage.updatedAt).toBeUndefined();
             });
-            const { id: profilePictureId } = await ProfilePicture.create({
-              userId: user.id,
-              originalImageId: id,
-              cropedImageId: id,
-              pendingImageId: id,
-            });
-            const token = createAccessToken(user);
-            const { body, status } = await request(initApp())
-              .get('/users/me/profilePictures')
-              .set('authorization', `Bearer ${token}`);
-            expect(status).toBe(200);
-            expect(body.length).toBe(1);
-            expect(body[0].id).toBe(profilePictureId);
-            expect(body[0].userId).toBe(user.id);
-            expect(body[0].originalImageId).toBeUndefined();
-            expect(body[0].cropedImageId).toBeUndefined();
-            expect(body[0].pendingImageId).toBeUndefined();
-            expect(body[0].createdAt).toBeUndefined();
-            expect(body[0].updatedAt).toBeUndefined();
-          });
-          it('return two profile pictures', async () => {
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
-            });
-            const { id } = await Image.create({
-              bucketName: 'bucketName',
-              fileName: 'fileName',
-              format: 'format',
-              height: 100,
-              size: 1000,
-              width: 100,
-            });
-            await ProfilePicture.create({
-              userId: user.id,
-              originalImageId: id,
-              cropedImageId: id,
-              pendingImageId: id,
-            });
-            await ProfilePicture.create({
-              userId: user.id,
-              originalImageId: id,
-              cropedImageId: id,
-              pendingImageId: id,
-            });
-            const token = createAccessToken(user);
-            const { body, status } = await request(initApp())
-              .get('/users/me/profilePictures')
-              .set('authorization', `Bearer ${token}`);
-            expect(status).toBe(200);
-            expect(body.length).toBe(2);
-          });
-          it('profile pictures should be populated', async () => {
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
-            });
-            const { id } = await Image.create({
-              bucketName: 'bucketName',
-              fileName: 'fileName',
-              format: 'format',
-              height: 100,
-              size: 1000,
-              width: 100,
-            });
-            await ProfilePicture.create({
-              userId: user.id,
-              originalImageId: id,
-              cropedImageId: id,
-              pendingImageId: id,
-            });
-            const token = createAccessToken(user);
-            const { body, status } = await request(initApp())
-              .get('/users/me/profilePictures')
-              .set('authorization', `Bearer ${token}`);
-            expect(status).toBe(200);
-            expect(body[0].originalImage.id).toBe(id);
-            expect(body[0].cropedImage.id).toBe(id);
-            expect(body[0].pendingImage.id).toBe(id);
-          });
-          it('return signed urls', async () => {
-            const user = await User.create({
-              ...newUser,
-              confirmed: true,
-            });
-            const token = createAccessToken(user);
-            await request(initApp())
-              .post('/users/me/ProfilePictures')
-              .set('authorization', `Bearer ${token}`)
-              .attach('image', `${__dirname}/../../ressources/image.jpg`);
-            const { body, status } = await request(initApp())
-              .get('/users/me/profilePictures')
-              .set('authorization', `Bearer ${token}`);
-            expect(status).toBe(200);
-            expect(body[0].originalImage.signedUrl).not.toBeNull();
-            expect(body[0].cropedImage.signedUrl).not.toBeNull();
-            expect(body[0].pendingImage.signedUrl).not.toBeNull();
-          });
-        });
-        describe('should return status 401 if', () => {
-          it('user not logged in', async () => {
-            const { body, status } = await request(initApp())
-              .get('/users/me/profilePictures');
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: NOT_AUTHENTICATED,
-            });
-          });
-          it('token is not \'Bearer ...\'', async () => {
-            const { body, status } = await request(initApp())
-              .get('/users/me/profilePictures')
-              .set('authorization', 'token');
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: WRONG_TOKEN,
-            });
-          });
-          it('authTokenVersions not match', async () => {
-            const { id } = await User.create(newUser);
-            jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({ id, authTokenVersion: 1 }));
-            const { body, status } = await request(initApp())
-              .get('/users/me/profilePictures')
-              .set('authorization', 'Bearer token');
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: WRONG_TOKEN_VERSION,
-            });
-          });
-          it('user is not confirmed', async () => {
-            const user = await User.create(newUser);
-            const token = createAccessToken(user);
-            const { body, status } = await request(initApp())
-              .get('/users/me/profilePictures')
-              .set('authorization', `Bearer ${token}`);
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: NOT_CONFIRMED,
-            });
-          });
-        });
-        describe('should return status 404 if', () => {
-          it('user not found', async () => {
-            jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({ id: 1, authTokenVersion: 0 }));
-            const { body, status } = await request(initApp())
-              .get('/users/me/profilePictures')
-              .set('authorization', 'Bearer token');
-            expect(status).toBe(404);
-            expect(body).toStrictEqual({
-              errors: USER_NOT_FOUND,
+            it('with signed urls', async () => {
+              const { body, status } = getResponse;
+              const [returnProfilePicture] = body;
+              expect(status).toBe(200);
+              expect(returnProfilePicture.originalImage.signedUrl).not.toBeNull();
+              expect(returnProfilePicture.cropedImage.signedUrl).not.toBeNull();
+              expect(returnProfilePicture.pendingImage.signedUrl).not.toBeNull();
             });
           });
         });

@@ -1,24 +1,26 @@
+import { Server } from 'http';
 import jwt from 'jsonwebtoken';
+import { Sequelize } from 'sequelize';
 import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
+import { hash } from 'bcrypt';
 import User from '@src/db/models/user';
 import * as email from '@src/helpers/email';
 import {
-  NOT_AUTHENTICATED,
-  NOT_CONFIRMED,
   TOKEN_NOT_FOUND,
-  USER_NOT_FOUND,
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
   WRONG_TOKEN_USER_ID,
 } from '@src/helpers/errorMessages';
-import { createAccessToken } from '@src/helpers/auth';
+import saltRounds from '@src/helpers/saltRounds';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
 
-const sequelize = initSequelize();
+const clearDatas = async () => {
+  await User.sync({ force: true });
+};
 
 const newUser = {
   userName: 'user',
@@ -27,9 +29,30 @@ const newUser = {
 };
 
 describe('users', () => {
+  let agent: request.SuperAgentTest;
+  let app: Server;
+  let sequelize: Sequelize;
+  let user: User;
+  beforeAll(() => {
+    app = initApp();
+    sequelize = initSequelize();
+  });
   beforeEach(async (done) => {
+    agent = request.agent(app);
     try {
-      await User.sync({ force: true });
+      await clearDatas();
+      const hashPassword = await hash(newUser.password, saltRounds);
+      user = await User.create({
+        ...newUser,
+        confirmed: true,
+        password: hashPassword,
+      });
+      await agent
+        .get('/users/login')
+        .send({
+          password: newUser.password,
+          userNameOrEmail: user.userName,
+        });
     } catch (err) {
       done(err);
     }
@@ -40,11 +63,13 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await User.sync({ force: true });
+      await clearDatas();
+      await sequelize.close();
     } catch (err) {
       done(err);
     }
-    sequelize.close();
+    app.close();
+    done();
   });
   describe('me', () => {
     describe('updateEmail', () => {
@@ -52,99 +77,54 @@ describe('users', () => {
         describe('resend', () => {
           describe('GET', () => {
             describe('should return status 200 and', () => {
-              let user: User;
-              beforeEach(async () => {
-                user = await User.create({
-                  ...newUser,
-                  confirmed: true,
-                });
+              let response: request.Response;
+              let emailMocked: jest.SpyInstance;
+              let signMocked: jest.SpyInstance;
+              beforeEach(async (done) => {
                 jest.spyOn(jwt, 'verify')
-                  .mockImplementationOnce(() => ({
-                    id: user.id,
-                    authTokenVersion: user.authTokenVersion,
-                  }))
                   .mockImplementationOnce(() => ({
                     id: user.id,
                     emailTokenVersion: user.emailTokenVersion,
                   }));
+                emailMocked = jest.spyOn(email, 'sendValidateEmailMessage');
+                signMocked = jest.spyOn(jwt, 'sign');
+                try {
+                  response = await agent
+                    .get('/users/me/updateEmail/confirm/resend')
+                    .set('confirmation', 'Bearer token');
+                } catch (err) {
+                  done(err);
+                }
+                done();
               });
               it('increment updatedEmailTokenVersion', async () => {
-                const { id, updatedEmailTokenVersion } = user;
-                const { status } = await request(initApp())
-                  .get('/users/me/updateEmail/confirm/resend')
-                  .set('authorization', 'Bearer token')
-                  .set('confirmation', 'Bearer token');
-                const updatedUser = await User.findByPk(id);
+                const { status } = response;
+                const { updatedEmailTokenVersion } = user;
+                await user.reload();
                 expect(status).toBe(204);
-                expect(updatedUser?.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion + 1);
+                expect(user.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion + 1);
               });
               it('sign a token and send an email', async () => {
-                const { email: userEmail } = user;
-                const emailMocked = jest.spyOn(email, 'sendValidateEmailMessage');
-                const signMocked = jest.spyOn(jwt, 'sign');
-                const { status } = await request(initApp())
-                  .get('/users/me/updateEmail/confirm/resend')
-                  .set('authorization', 'Bearer token')
-                  .set('confirmation', 'Bearer token');
+                const { status } = response;
                 expect(status).toBe(204);
                 expect(emailMocked).toHaveBeenCalledTimes(1);
-                expect(emailMocked).toBeCalledWith(userEmail, expect.any(String));
+                expect(emailMocked).toBeCalledWith(user.email, expect.any(String));
                 expect(signMocked).toHaveBeenCalledTimes(1);
               });
             });
             describe('should return error 401 if', () => {
-              it('not logged in', async () => {
-                const { body, status } = await request(initApp())
-                  .get('/users/me/updateEmail/confirm/resend');
-                expect(status).toBe(401);
-                expect(body).toStrictEqual({
-                  errors: NOT_AUTHENTICATED,
-                });
-              });
-              it('not confirmed', async () => {
-                const user = await User.create(newUser);
-                const token = createAccessToken(user);
-                const { body, status } = await request(initApp())
-                  .get('/users/me/updateEmail/confirm/resend')
-                  .set('authorization', `Bearer ${token}`);
-                expect(status).toBe(401);
-                expect(body).toStrictEqual({
-                  errors: NOT_CONFIRMED,
-                });
-              });
               describe('confirmation token', () => {
-                let token: string;
-                let id: string;
-                let emailTokenVersion: number;
-                let authTokenVersion: number;
-                beforeEach(async (done) => {
-                  try {
-                    const user = await User.create({
-                      ...newUser,
-                      confirmed: true,
-                    });
-                    token = createAccessToken(user);
-                    id = user.id;
-                    emailTokenVersion = user.emailTokenVersion;
-                    authTokenVersion = user.authTokenVersion;
-                  } catch (err) {
-                    done(err);
-                  }
-                  done();
-                });
                 it('is not found', async () => {
-                  const { body, status } = await request(initApp())
-                    .get('/users/me/updateEmail/confirm/resend')
-                    .set('authorization', `Bearer ${token}`);
+                  const { body, status } = await agent
+                    .get('/users/me/updateEmail/confirm/resend');
                   expect(status).toBe(401);
                   expect(body).toStrictEqual({
                     errors: TOKEN_NOT_FOUND,
                   });
                 });
                 it('is not \'Bearer token\'', async () => {
-                  const { body, status } = await request(initApp())
+                  const { body, status } = await agent
                     .get('/users/me/updateEmail/confirm/resend')
-                    .set('authorization', `Bearer ${token}`)
                     .set('confirmation', 'token');
                   expect(status).toBe(401);
                   expect(body).toStrictEqual({
@@ -153,11 +133,12 @@ describe('users', () => {
                 });
                 it('id is not the same as current user id', async () => {
                   jest.spyOn(jwt, 'verify')
-                    .mockImplementationOnce(() => ({ id, authTokenVersion }))
-                    .mockImplementationOnce(() => ({ id: 10000, emailTokenVersion }));
-                  const { body, status } = await request(initApp())
+                    .mockImplementationOnce(() => ({
+                      id: 10000,
+                      emailTokenVersion: user.emailTokenVersion,
+                    }));
+                  const { body, status } = await agent
                     .get('/users/me/updateEmail/confirm/resend')
-                    .set('authorization', 'Bearer token')
                     .set('confirmation', 'Bearer token');
                   expect(status).toBe(401);
                   expect(body).toStrictEqual({
@@ -166,29 +147,17 @@ describe('users', () => {
                 });
                 it('emailTokenVersion is not the same as current user emailTokenVersion', async () => {
                   jest.spyOn(jwt, 'verify')
-                    .mockImplementationOnce(() => ({ id, authTokenVersion }))
-                    .mockImplementationOnce(() => ({ id, emailTokenVersion: 1 }));
-                  const { body, status } = await request(initApp())
+                    .mockImplementationOnce(() => ({
+                      id: user.id,
+                      emailTokenVersion: user.emailTokenVersion + 1,
+                    }));
+                  const { body, status } = await agent
                     .get('/users/me/updateEmail/confirm/resend')
-                    .set('authorization', 'Bearer token')
                     .set('confirmation', 'Bearer token');
                   expect(status).toBe(401);
                   expect(body).toStrictEqual({
                     errors: WRONG_TOKEN_VERSION,
                   });
-                });
-              });
-            });
-            describe('should return error 404 if', () => {
-              it('user not found', async () => {
-                jest.spyOn(jwt, 'verify')
-                  .mockImplementationOnce(() => ({ id: 1 }));
-                const { body, status } = await request(initApp())
-                  .get('/users/me/updateEmail/confirm/resend')
-                  .set('authorization', 'Bearer token');
-                expect(status).toBe(404);
-                expect(body).toStrictEqual({
-                  errors: USER_NOT_FOUND,
                 });
               });
             });

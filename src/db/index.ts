@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize-typescript';
+// import * as SQL from 'sequelize';
 
 import accessEnv from '@src/helpers/accEnv';
 
@@ -7,6 +8,7 @@ import Galerie from './models/galerie';
 import Image from './models/image';
 import ProfilePicture from './models/profilePicture';
 import User from './models/user';
+// import Session from './models/session';
 
 const DB_USERNAME = accessEnv('DB_USERNAME');
 const DB_PASSWORD = accessEnv('DB_PASSWORD');
@@ -19,14 +21,14 @@ const sequelize = new Sequelize({
   password: DB_PASSWORD,
   storage: ':memory:',
   logging: false,
+  models: [
+    BlackList,
+    Galerie,
+    Image,
+    ProfilePicture,
+    User,
+    // Session,
+  ],
 });
-
-sequelize.addModels([
-  BlackList,
-  Galerie,
-  Image,
-  ProfilePicture,
-  User,
-]);
 
 export default sequelize;

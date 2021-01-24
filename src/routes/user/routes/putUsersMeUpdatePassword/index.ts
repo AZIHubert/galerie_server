@@ -1,14 +1,9 @@
 import { compare, hash } from 'bcrypt';
 import { Request, Response } from 'express';
 
-import {
-  createAccessToken,
-  createRefreshToken,
-  sendRefreshToken,
-} from '@src/helpers/auth';
-import {
-  WRONG_PASSWORD,
-} from '@src/helpers/errorMessages';
+import { User } from '@src/db/models';
+
+import { WRONG_PASSWORD } from '@src/helpers/errorMessages';
 import saltRounds from '@src/helpers/saltRounds';
 import {
   validateSendUpdatePassword,
@@ -27,7 +22,7 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
   const { password, updatedPassword } = req.body;
-  const { user } = res.locals;
+  const user = req.user as User;
   let passwordsMatch: boolean;
   try {
     passwordsMatch = await compare(password, user.password);
@@ -48,8 +43,5 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  sendRefreshToken(res, createRefreshToken(user));
-  return res
-    .status(200)
-    .send({ accessToken: createAccessToken(user) });
+  return res.end();
 };

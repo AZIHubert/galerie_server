@@ -7,8 +7,8 @@ import ProfilePicture from '@src/db/models/profilePicture';
 import User from '@src/db/models/user';
 import signedUrl from '@src/helpers/signedUrl';
 
-export default async (_req: Request, res: Response) => {
-  const { user: { id } } = res.locals;
+export default async (req: Request, res: Response) => {
+  const { id } = req.user as User;
   let users: User[];
   try {
     users = await User.findAll({
@@ -22,16 +22,17 @@ export default async (_req: Request, res: Response) => {
       },
       attributes: {
         exclude: [
-          'role',
+          'authTokenVersion',
           'blackListId',
           'confirmed',
-          'password',
-          'currentProfilePictureId',
-          'authTokenVersion',
           'confirmTokenVersion',
+          'currentProfilePictureId',
           'emailTokenVersion',
-          'updatedEmailTokenVersion',
+          'googleId',
+          'password',
           'resetPasswordTokenVersion',
+          'role',
+          'updatedEmailTokenVersion',
         ],
       },
       include: [
@@ -40,6 +41,7 @@ export default async (_req: Request, res: Response) => {
           as: 'blackList',
           attributes: {
             exclude: [
+              'adminId',
               'userId',
             ],
           },
@@ -49,16 +51,20 @@ export default async (_req: Request, res: Response) => {
               as: 'admin',
               attributes: {
                 exclude: [
-                  'email',
-                  'password',
-                  'confirmed',
                   'authTokenVersion',
-                  'confirmTokenVersion',
-                  'emailTokenVersion',
-                  'updatedEmailTokenVersion',
-                  'resetPasswordTokenVersion',
-                  'currentProfilePictureId',
                   'blackListId',
+                  'confirmed',
+                  'confirmTokenVersion',
+                  'createdAt',
+                  'currentProfilePictureId',
+                  'deletedAt',
+                  'email',
+                  'emailTokenVersion',
+                  'googleId',
+                  'password',
+                  'resetPasswordTokenVersion',
+                  'updatedAt',
+                  'updatedEmailTokenVersion',
                 ],
               },
             },
@@ -69,27 +75,48 @@ export default async (_req: Request, res: Response) => {
           as: 'currentProfilePicture',
           attributes: {
             exclude: [
-              'userId',
-              'originalImageId',
-              'cropedImageId',
-              'pendingImageId',
               'createdAt',
-              'updatedAt',
+              'cropedImageId',
               'deletedAt',
+              'pendingImageId',
+              'originalImageId',
+              'updatedAt',
+              'userId',
             ],
           },
           include: [
             {
               model: Image,
-              as: 'originalImage',
+              as: 'cropedImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'deletedAt',
+                  'updatedAt',
+                ],
+              },
             },
             {
               model: Image,
-              as: 'cropedImage',
+              as: 'originalImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'deletedAt',
+                  'updatedAt',
+                ],
+              },
             },
             {
               model: Image,
               as: 'pendingImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'deletedAt',
+                  'updatedAt',
+                ],
+              },
             },
           ],
         },

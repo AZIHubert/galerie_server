@@ -2,6 +2,8 @@ import { compare } from 'bcrypt';
 import { Request, Response } from 'express';
 import { sign } from 'jsonwebtoken';
 
+import { User } from '@src/db/models';
+
 import accEnv from '@src/helpers/accEnv';
 import { sendUpdateEmailMessage } from '@src/helpers/email';
 import {
@@ -18,8 +20,8 @@ export default async (req: Request, res: Response) => {
       errors: FIELD_IS_REQUIRED,
     });
   }
-  const { user } = res.locals;
   let passwordsMatch: boolean;
+  const user = req.user as User;
   try {
     passwordsMatch = await compare(req.body.password, user.password);
   } catch (err) {

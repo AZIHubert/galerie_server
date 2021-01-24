@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 
-import {
-  NOT_SUPER_ADMIN,
-} from '@src/helpers/errorMessages';
+import User from '@src/db/models/user';
 
-export default (_req: Request, res: Response, next: NextFunction) => {
-  const { user: { role } } = res.locals;
+import { NOT_ADMIN } from '@src/helpers/errorMessages';
+
+export default (req: Request, res: Response, next: NextFunction) => {
+  const { role } = req.user as User;
   if (role !== 'admin' && role !== 'superAdmin') {
     return res.status(401).send({
-      errors: NOT_SUPER_ADMIN,
+      errors: NOT_ADMIN,
     });
   }
   return next();

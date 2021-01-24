@@ -1,13 +1,14 @@
 import { Request, Response } from 'express';
 
-import User from '@src/db/models/user';
+import { User } from '@src/db/models';
 import {
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 
 export default async (req: Request, res: Response) => {
   const { role, id } = req.params;
-  const { user: { id: userId } } = res.locals;
+  const currentUser = req.user as User;
+  const { id: userId } = currentUser;
   if (id === userId) {
     return res.status(400).send({
       errors: 'you can\'t modify your role yourself',

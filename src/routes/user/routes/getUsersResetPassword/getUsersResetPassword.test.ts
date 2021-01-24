@@ -1,35 +1,52 @@
+import { hash } from 'bcrypt';
+import { Server } from 'http';
 import jwt from 'jsonwebtoken';
+import { Sequelize } from 'sequelize';
 import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
-import BlackList from '@src/db/models/blackList';
-import User from '@src/db/models/user';
+import { User } from '@src/db/models';
 import * as email from '@src/helpers/email';
 import {
   FIELD_IS_EMAIL,
   FIELD_IS_EMPTY,
   FIELD_IS_REQUIRED,
-  NOT_CONFIRMED,
-  USER_IS_BLACK_LISTED,
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
 
-const sequelize = initSequelize();
+const clearDatas = async () => {
+  await User.sync({ force: true });
+};
 
 const newUser = {
-  userName: 'user',
   email: 'user@email.com',
   password: 'password',
+  userName: 'user',
 };
 
 describe('users', () => {
+  let agent: request.SuperAgentTest;
+  let app: Server;
+  let sequelize: Sequelize;
+  let user: User;
+  beforeEach(() => {
+    app = initApp();
+    sequelize = initSequelize();
+  });
   beforeEach(async (done) => {
+    agent = request.agent(app);
     try {
-      await BlackList.sync({ force: true });
-      await User.sync({ force: true });
+      await clearDatas();
+      const hashPassword = await hash(newUser.password, saltRounds);
+      user = await User.create({
+        ...newUser,
+        confirmed: true,
+        password: hashPassword,
+      });
     } catch (err) {
       done(err);
     }
@@ -40,38 +57,34 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await BlackList.sync({ force: true });
-      await User.sync({ force: true });
+      await clearDatas();
+      await sequelize.close();
     } catch (err) {
       done(err);
     }
-    sequelize.close();
+    app.close();
     done();
   });
   describe('resetPassword', () => {
     describe('GET', () => {
       describe('should return status 204 and', () => {
         it('send an email with and sign a token', async () => {
-          const resetPasswordMessageMocked = jest.spyOn(email, 'sendResetPassword');
+          const emailMocked = jest.spyOn(email, 'sendResetPassword');
           const jwtMocked = jest.spyOn(jwt, 'sign');
-          const { email: userEmail } = await User.create({
-            ...newUser,
-            confirmed: true,
-          });
-          const { body, status } = await request(initApp())
+          const { status } = await agent
             .get('/users/resetPassword')
             .send({
-              email: userEmail,
+              email: user.email,
             });
           expect(status).toBe(204);
-          expect(body).toStrictEqual({});
           expect(jwtMocked).toHaveBeenCalledTimes(1);
-          expect(resetPasswordMessageMocked).toHaveBeenCalledTimes(1);
+          expect(emailMocked).toHaveBeenCalledTimes(1);
+          expect(emailMocked).toBeCalledWith(user.email, expect.any(String));
         });
       });
       describe('should return error 400 if', () => {
         it('not a valid email', async () => {
-          const { body, status } = await request(initApp())
+          const { body, status } = await agent
             .get('/users/resetPassword')
             .send({
               email: 'abcde',
@@ -84,7 +97,7 @@ describe('users', () => {
           });
         });
         it('email is not set', async () => {
-          const { body, status } = await request(initApp())
+          const { body, status } = await agent
             .get('/users/resetPassword')
             .send({});
           expect(status).toBe(400);
@@ -95,7 +108,7 @@ describe('users', () => {
           });
         });
         it('email is empty', async () => {
-          const { body, status } = await request(initApp())
+          const { body, status } = await agent
             .get('/users/resetPassword')
             .send({
               email: '',
@@ -108,54 +121,9 @@ describe('users', () => {
           });
         });
       });
-      describe('should return error 401 if', () => {
-        it('user is not confirmed', async () => {
-          const { email: userEmail } = await User.create(newUser);
-          const { status, body } = await request(initApp())
-            .get('/users/resetPassword')
-            .send({
-              email: userEmail,
-            });
-          expect(status).toBe(401);
-          expect(body).toStrictEqual({
-            errors: NOT_CONFIRMED,
-          });
-        });
-        it('user is black listed', async () => {
-          const { id: adminId } = await User.create({
-            ...newUser,
-            confirmed: true,
-            role: 'admin',
-          });
-          const { id: blackListId } = await BlackList.create({
-            adminId,
-            reason: 'black list user',
-          });
-          const { email: userEmail } = await User.create({
-            userName: 'user2',
-            email: 'user2@email.com',
-            password: 'password',
-            blackListId,
-            confirmed: true,
-          });
-          const { status, body } = await request(initApp())
-            .get('/users/resetPassword')
-            .send({
-              email: userEmail,
-            });
-          expect(status).toBe(401);
-          expect(body).toStrictEqual({
-            errors: USER_IS_BLACK_LISTED,
-          });
-        });
-      });
       describe('should return error 404 if', () => {
         it('email is not found', async () => {
-          await User.create({
-            ...newUser,
-            confirmed: true,
-          });
-          const { body, status } = await request(initApp())
+          const { body, status } = await agent
             .get('/users/resetPassword')
             .send({
               email: 'user2@email.com',

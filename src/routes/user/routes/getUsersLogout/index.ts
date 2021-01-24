@@ -1,10 +1,6 @@
 import { Request, Response } from 'express';
 
-import {
-  sendRefreshToken,
-} from '@src/helpers/auth';
-
-export default (_req: Request, res: Response) => {
-  sendRefreshToken(res, '');
+export default (req: Request, res: Response) => {
+  req.logOut();
   res.status(204).end();
 };

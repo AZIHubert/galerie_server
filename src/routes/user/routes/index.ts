@@ -16,7 +16,6 @@ export { default as getUsersResetPasswordResend } from './getUsersResetPasswordR
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 export { default as postUsersLogin } from './postUsersLogin';
 export { default as postUsersMeProfilePictures } from './postUsersMeProfilePictures';
-export { default as postUsersRefreshToken } from './postUsersRefreshToken';
 export { default as postUsersSignin } from './postUsersSignin';
 export { default as putUsersBlacklistId } from './putUsersBlacklistId';
 export { default as putUsersConfirmation } from './putUsersConfirmation';

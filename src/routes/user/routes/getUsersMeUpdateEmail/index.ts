@@ -2,6 +2,8 @@ import { compare } from 'bcrypt';
 import { Request, Response } from 'express';
 import { sign } from 'jsonwebtoken';
 
+import { User } from '@src/db/models';
+
 import accEnv from '@src/helpers/accEnv';
 import {
   sendUpdateEmailMessage,
@@ -23,7 +25,7 @@ export default async (req: Request, res: Response) => {
       errors: normalizeJoiErrors(error),
     });
   }
-  const { user } = res.locals;
+  const user = req.user as User;
   let passwordsMatch: boolean;
   try {
     passwordsMatch = await compare(req.body.password, user.password);
@@ -57,5 +59,5 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(201).send();
+  return res.status(204).send();
 };

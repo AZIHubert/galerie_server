@@ -8,9 +8,8 @@ import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
   let users: User[];
-
   const { userName } = req.params;
-  const { user: { id } } = res.locals;
+  const { id } = req.user as User;
   try {
     users = await User.findAll({
       where: {
@@ -25,16 +24,17 @@ export default async (req: Request, res: Response) => {
       },
       attributes: {
         exclude: [
-          'blackListId',
-          'password',
-          'blackListed',
-          'confirmed',
           'authTokenVersion',
+          'blackListId',
+          'confirmed',
           'confirmTokenVersion',
-          'emailTokenVersion',
-          'updatedEmailTokenVersion',
-          'resetPasswordTokenVersion',
           'currentProfilePictureId',
+          'email',
+          'emailTokenVersion',
+          'googleId',
+          'password',
+          'resetPasswordTokenVersion',
+          'updatedEmailTokenVersion',
         ],
       },
       include: [
@@ -43,27 +43,48 @@ export default async (req: Request, res: Response) => {
           as: 'currentProfilePicture',
           attributes: {
             exclude: [
-              'userId',
-              'originalImageId',
-              'cropedImageId',
-              'pendingImageId',
               'createdAt',
-              'updatedAt',
+              'cropedImageId',
               'deletedAt',
+              'originalImageId',
+              'pendingImageId',
+              'updatedAt',
+              'userId',
             ],
           },
           include: [
             {
               model: Image,
-              as: 'originalImage',
+              as: 'cropedImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'deletedAt',
+                  'updatedAt',
+                ],
+              },
             },
             {
               model: Image,
-              as: 'cropedImage',
+              as: 'originalImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'deletedAt',
+                  'updatedAt',
+                ],
+              },
             },
             {
               model: Image,
               as: 'pendingImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'deletedAt',
+                  'updatedAt',
+                ],
+              },
             },
           ],
         },
@@ -73,13 +94,13 @@ export default async (req: Request, res: Response) => {
       if (user.currentProfilePicture) {
         const {
           currentProfilePicture: {
-            originalImage: {
-              bucketName: originalImageBucketName,
-              fileName: originalImageFileName,
-            },
             cropedImage: {
               bucketName: cropedImageBucketName,
               fileName: cropedImageFileName,
+            },
+            originalImage: {
+              bucketName: originalImageBucketName,
+              fileName: originalImageFileName,
             },
             pendingImage: {
               bucketName: pendingImageBucketName,
@@ -87,16 +108,16 @@ export default async (req: Request, res: Response) => {
             },
           },
         } = user;
-        const originalImageSignedUrl = await signedUrl(
-          originalImageBucketName,
-          originalImageFileName,
-        );
-        users[index].currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
         const cropedImageSignedUrl = await signedUrl(
           cropedImageBucketName,
           cropedImageFileName,
         );
         users[index].currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
+        const originalImageSignedUrl = await signedUrl(
+          originalImageBucketName,
+          originalImageFileName,
+        );
+        users[index].currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
         const pendingImageSignedUrl = await signedUrl(
           pendingImageBucketName,
           pendingImageFileName,

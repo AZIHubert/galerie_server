@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { sign, verify } from 'jsonwebtoken';
 
+import { User } from '@src/db/models';
+
 import accEnv from '@src/helpers/accEnv';
 import { sendValidateEmailMessage } from '@src/helpers/email';
 import {
@@ -39,7 +41,7 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
   const { id, emailTokenVersion } = verifiedToken;
-  const { user } = res.locals;
+  const user = req.user as User;
   if (id !== user.id) {
     return res.status(401).send({
       errors: WRONG_TOKEN_USER_ID,

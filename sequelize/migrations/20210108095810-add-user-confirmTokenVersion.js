@@ -1,6 +1,6 @@
 module.exports.up = (queryInterface, Sequelize) => queryInterface.addColumn(
   'users',
-  'confirmedTokenVersion',
+  'confirmTokenVersion',
   {
     type: Sequelize.INTEGER,
     allowNull: false,
@@ -10,5 +10,5 @@ module.exports.up = (queryInterface, Sequelize) => queryInterface.addColumn(
 
 module.exports.down = (queryInterface) => queryInterface.removeColumn(
   'users',
-  'confirmedTokenVersion',
+  'confirmTokenVersion',
 );

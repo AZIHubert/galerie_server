@@ -1,12 +1,13 @@
+import { Server } from 'http';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { Sequelize } from 'sequelize';
 import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
-import User from '@src/db/models/user';
-import initSequelize from '@src/helpers/initSequelize.js';
-import initApp from '@src/server';
+import { User } from '@src/db/models';
+
 import {
   FIELD_IS_CONFIRM_PASSWORD,
   FIELD_IS_REQUIRED,
@@ -21,10 +22,13 @@ import {
   WRONG_TOKEN_VERSION,
   FIELD_IS_PASSWORD,
 } from '@src/helpers/errorMessages';
+import initSequelize from '@src/helpers/initSequelize.js';
+import saltRounds from '@src/helpers/saltRounds';
+import initApp from '@src/server';
 
-const sequelize = initSequelize();
-
-const EXPIRED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjowfSwiZXhwIjowfQ.sM6G1FpEelcrwmKMlvWLfBk9rSBHLTPhHhZmgPOJXJg';
+const clearDatas = async () => {
+  await User.sync({ force: true });
+};
 
 const newUser = {
   userName: 'user',
@@ -34,9 +38,22 @@ const newUser = {
 
 describe('users', () => {
   const verifyMocked = jest.spyOn(jwt, 'verify');
+  let app: Server;
+  let sequelize: Sequelize;
+  let user: User;
+  beforeAll(() => {
+    app = initApp();
+    sequelize = initSequelize();
+  });
   beforeEach(async (done) => {
     try {
-      await User.sync({ force: true });
+      await clearDatas();
+      const hashPassword = await bcrypt.hash(newUser.password, saltRounds);
+      user = await User.create({
+        ...newUser,
+        confirmed: true,
+        password: hashPassword,
+      });
     } catch (err) {
       done(err);
     }
@@ -47,11 +64,12 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await User.sync({ force: true });
+      await clearDatas();
+      await sequelize.close();
     } catch (err) {
       done(err);
     }
-    sequelize.close();
+    app.close();
     done();
   });
   describe('resetPassword', () => {
@@ -60,26 +78,18 @@ describe('users', () => {
         const resetPassword = 'Aaoudjiuvhds9!';
         let response: request.Response;
         let bcryptMock: jest.SpyInstance;
-        let user: User;
-        let updatedUser: User;
-        let authTokenVersion: number;
-        let resetPasswordTokenVersion: number;
         beforeEach(async (done) => {
           try {
-            user = await User.create(newUser);
             bcryptMock = jest.spyOn(bcrypt, 'hash');
-            const { id } = user;
-            authTokenVersion = user.authTokenVersion;
-            resetPasswordTokenVersion = user.resetPasswordTokenVersion;
+            const { id, resetPasswordTokenVersion } = user;
             verifyMocked.mockImplementationOnce(() => ({ id, resetPasswordTokenVersion }));
-            response = await request(initApp())
+            response = await request(app)
               .put('/users/resetPassword')
               .send({
                 password: resetPassword,
                 confirmPassword: resetPassword,
               })
               .set('confirmation', 'Bearer token');
-            updatedUser = await user.reload();
             done();
           } catch (err) {
             done(err);
@@ -87,7 +97,7 @@ describe('users', () => {
         });
         it('should hash password', async () => {
           const { status } = response;
-          const { password } = updatedUser;
+          const { password } = await user.reload();
           const passwordMatch = await bcrypt.compare(resetPassword, password);
           expect(status).toBe(204);
           expect(bcryptMock).toHaveBeenCalledTimes(1);
@@ -95,24 +105,24 @@ describe('users', () => {
         });
         it('should increment auth token version', async () => {
           const { status } = response;
-          const { authTokenVersion: updatedAuthTokenVersion } = updatedUser;
+          const { authTokenVersion } = user;
+          await user.reload();
           expect(status).toBe(204);
-          expect(updatedAuthTokenVersion).toBe(authTokenVersion + 1);
+          expect(user.authTokenVersion).toBe(authTokenVersion + 1);
         });
         it('should increment resetPasswordTokenVersion', async () => {
           const { status } = response;
-          const {
-            resetPasswordTokenVersion: updatedResetPasswordTokenVersion,
-          } = updatedUser;
+          const { resetPasswordTokenVersion } = user;
+          await user.reload();
           expect(status).toBe(204);
-          expect(updatedResetPasswordTokenVersion).toBe(resetPasswordTokenVersion + 1);
+          expect(user.resetPasswordTokenVersion).toBe(resetPasswordTokenVersion + 1);
         });
       });
       describe('should return error 400', () => {
         describe('if token', () => {
           const passwords = 'Aaoudjiuvhds9!';
           it('not found', async () => {
-            const { body, status } = await request(initApp())
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
               .send({
                 password: passwords,
@@ -125,7 +135,7 @@ describe('users', () => {
             expect(verifyMocked).toHaveBeenCalledTimes(0);
           });
           it('is not "Bearer ...', async () => {
-            const { body, status } = await request(initApp())
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
               .send({
                 password: passwords,
@@ -142,18 +152,18 @@ describe('users', () => {
         describe('if password', () => {
           beforeEach(async (done) => {
             try {
-              const { id, resetPasswordTokenVersion } = await User.create(newUser);
+              const { id, resetPasswordTokenVersion } = user;
               verifyMocked.mockImplementationOnce(() => ({ id, resetPasswordTokenVersion }));
-              done();
             } catch (err) {
               done(err);
             }
+            done();
           });
           it('is not set', async () => {
-            const { body, status } = await request(initApp())
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
-              .send({})
-              .set('confirmation', 'Bearer token');
+              .set('confirmation', 'Bearer token')
+              .send({});
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: {
@@ -162,12 +172,12 @@ describe('users', () => {
             });
           });
           it('is empty', async () => {
-            const passwords = '';
-            const { body, status } = await request(initApp())
+            const password = '';
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
               .send({
-                password: passwords,
-                confirmPassword: passwords,
+                password,
+                confirmPassword: password,
               })
               .set('confirmation', 'Bearer token');
             expect(status).toBe(400);
@@ -178,12 +188,12 @@ describe('users', () => {
             });
           });
           it('is not a string', async () => {
-            const passwords = 1234567890;
-            const { body, status } = await request(initApp())
+            const password = 1234567890;
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
               .send({
-                password: passwords,
-                confirmPassword: passwords,
+                password,
+                confirmPassword: password,
               })
               .set('confirmation', 'Bearer token');
             expect(status).toBe(400);
@@ -194,12 +204,12 @@ describe('users', () => {
             });
           });
           it('contain less than 8 chars', async () => {
-            const passwords = 'Aa9!';
-            const { body, status } = await request(initApp())
+            const password = 'Aa9!';
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
               .send({
-                password: passwords,
-                confirmPassword: passwords,
+                password,
+                confirmPassword: password,
               })
               .set('confirmation', 'Bearer token');
             expect(status).toBe(400);
@@ -210,12 +220,12 @@ describe('users', () => {
             });
           });
           it('contain more than 30 chars', async () => {
-            const passwords = `Ac9!${'a'.repeat(31)}`;
-            const { body, status } = await request(initApp())
+            const password = `Ac9!${'a'.repeat(31)}`;
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
               .send({
-                password: passwords,
-                confirmPassword: passwords,
+                password,
+                confirmPassword: password,
               })
               .set('confirmation', 'Bearer token');
             expect(status).toBe(400);
@@ -226,12 +236,12 @@ describe('users', () => {
             });
           });
           it('doesn\'t contain any uppercase', async () => {
-            const passwords = 'aaoudjivhds9!';
-            const { body, status } = await request(initApp())
+            const password = 'aaoudjivhds9!';
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
               .send({
-                password: passwords,
-                confirmPassword: passwords,
+                password,
+                confirmPassword: password,
               })
               .set('confirmation', 'Bearer token');
             expect(status).toBe(400);
@@ -242,12 +252,12 @@ describe('users', () => {
             });
           });
           it('doesn\'t contain any lowercase', async () => {
-            const passwords = 'AAOUDJIUVHDS9!';
-            const { body, status } = await request(initApp())
+            const password = 'AAOUDJIUVHDS9!';
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
               .send({
-                password: passwords,
-                confirmPassword: passwords,
+                password,
+                confirmPassword: password,
               })
               .set('confirmation', 'Bearer token');
             expect(status).toBe(400);
@@ -258,12 +268,12 @@ describe('users', () => {
             });
           });
           it('doesn\'t contain any number', async () => {
-            const passwords = 'Aaoudjiuvhds!';
-            const { body, status } = await request(initApp())
+            const password = 'Aaoudjiuvhds!';
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
               .send({
-                password: passwords,
-                confirmPassword: passwords,
+                password,
+                confirmPassword: password,
               })
               .set('confirmation', 'Bearer token');
             expect(status).toBe(400);
@@ -274,12 +284,12 @@ describe('users', () => {
             });
           });
           it('doesn\'t contain any special char', async () => {
-            const passwords = 'Aaoudjiuvhds9';
-            const { body, status } = await request(initApp())
+            const password = 'Aaoudjiuvhds9';
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
               .send({
-                password: passwords,
-                confirmPassword: passwords,
+                password,
+                confirmPassword: password,
               })
               .set('confirmation', 'Bearer token');
             expect(status).toBe(400);
@@ -293,7 +303,7 @@ describe('users', () => {
         describe('if confirm password', () => {
           beforeEach(async (done) => {
             try {
-              const { id, resetPasswordTokenVersion } = await User.create(newUser);
+              const { id, resetPasswordTokenVersion } = user;
               verifyMocked.mockImplementationOnce(() => ({ id, resetPasswordTokenVersion }));
               done();
             } catch (err) {
@@ -301,7 +311,7 @@ describe('users', () => {
             }
           });
           it('is empty', async () => {
-            const { body, status } = await request(initApp())
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
               .send({
                 password: 'Aaoudjiuvhds9!',
@@ -316,7 +326,7 @@ describe('users', () => {
             });
           });
           it('and password not match', async () => {
-            const { body, status } = await request(initApp())
+            const { body, status } = await request(app)
               .put('/users/resetPassword')
               .send({
                 password: 'Aaoudjiuvhds9!',
@@ -334,33 +344,39 @@ describe('users', () => {
       });
       describe('should return error 401 if', () => {
         it('user is auth', async () => {
-          const passwords = 'Aaoudjiuvhds9!';
-          const { body, status } = await request(initApp())
+          const password = 'Aaoudjiuvhds9!';
+          const agent = request.agent(app);
+          await agent
+            .get('/users/login')
+            .send({
+              password: newUser.password,
+              userNameOrEmail: user.userName,
+            });
+          const { body, status } = await agent
             .put('/users/resetPassword')
             .send({
-              password: passwords,
-              confirmPassword: passwords,
+              password,
+              confirmPassword: password,
             })
-            .set('confirmation', 'Bearer token')
-            .set('authorization', 'Bearer token');
+            .set('confirmation', 'Bearer token');
           expect(status).toBe(401);
           expect(body).toStrictEqual({
             errors: USER_IS_LOGGED_IN,
           });
         });
         it('resetPasswordToken version doesn\'t match', async () => {
-          const passwords = 'Aaoudjiuvhds9!';
-          const { id } = await User.create({
-            ...newUser,
-            resetPasswordTokenVersion: 1,
-          });
+          const password = 'Aaoudjiuvhds9!';
+          const { id, resetPasswordTokenVersion } = user;
           jest.spyOn(jwt, 'verify')
-            .mockImplementationOnce(() => ({ id, resetPasswordTokenVersion: 0 }));
-          const { body, status } = await request(initApp())
+            .mockImplementationOnce(() => ({
+              id,
+              resetPasswordTokenVersion: resetPasswordTokenVersion + 1,
+            }));
+          const { body, status } = await request(app)
             .put('/users/resetPassword')
             .send({
-              password: passwords,
-              confirmPassword: passwords,
+              password,
+              confirmPassword: password,
             })
             .set('confirmation', 'Bearer token');
           expect(status).toBe(401);
@@ -371,31 +387,24 @@ describe('users', () => {
       });
       describe('should return error 404 if', () => {
         it('user not found', async () => {
+          const { resetPasswordTokenVersion } = user;
           jest.spyOn(jwt, 'verify')
-            .mockImplementationOnce(() => ({ id: 1 }));
-          const { body, status } = await request(initApp())
+            .mockImplementationOnce(() => ({
+              id: 1000,
+              resetPasswordTokenVersion,
+            }));
+          const { body, status } = await request(app)
             .put('/users/resetPassword')
             .send({
               password: 'Aaoudjiuvhds9!',
               confirmPassword: 'Aaoudjiuvhds9!',
             })
             .set('confirmation', 'Bearer token');
+          console.log(body);
           expect(status).toBe(404);
           expect(body).toStrictEqual({
             errors: USER_NOT_FOUND,
           });
-        });
-      });
-      describe('should return error 500 if', () => {
-        it('should return 500 is expired', async () => {
-          const { status } = await request(initApp())
-            .put('/users/resetPassword')
-            .send({
-              password: 'Aaoudjiuvhds9!',
-              confirmPassword: 'Aaoudjiuvhds9!',
-            })
-            .set('confirmation', `Bearer ${EXPIRED_TOKEN}`);
-          expect(status).toBe(500);
         });
       });
     });

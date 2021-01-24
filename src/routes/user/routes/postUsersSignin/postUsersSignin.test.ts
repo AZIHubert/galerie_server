@@ -1,9 +1,11 @@
+import { Server } from 'http';
 import bcrypt from 'bcrypt';
+import { Sequelize } from 'sequelize';
 import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
-import User from '@src/db/models/user';
+import { User } from '@src/db/models';
 import {
   ALREADY_TAKEN,
   FIELD_HAS_SPACES,
@@ -20,17 +22,19 @@ import * as email from '@src/helpers/email';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
 
-const sequelize = initSequelize();
-
 const newUser = {
-  userName: 'user',
+  confirmPassword: 'Aaoudjiuvhds90!',
   email: 'user@email.com',
   password: 'Aaoudjiuvhds90!',
-  confirmPassword: 'Aaoudjiuvhds90!',
+  userName: 'user',
 };
 
 describe('users', () => {
+  let app: Server;
+  let sequelize: Sequelize;
   beforeAll((done) => {
+    app = initApp();
+    sequelize = initSequelize();
     done();
   });
   beforeEach(async (done) => {
@@ -48,10 +52,11 @@ describe('users', () => {
     try {
       await User.sync({ force: true });
       await sequelize.close();
+      app.close();
+      done();
     } catch (err) {
       done(err);
     }
-    done();
   });
 
   describe('signin', () => {
@@ -64,7 +69,7 @@ describe('users', () => {
           try {
             bcryptMock = jest.spyOn(bcrypt, 'hash');
             sendConfirmAccountMocked = jest.spyOn(email, 'sendConfirmAccount');
-            response = await request(initApp())
+            response = await request(app)
               .post('/users/signin')
               .send(newUser);
             done();
@@ -103,7 +108,7 @@ describe('users', () => {
     describe('should return error 400', () => {
       describe('if username', () => {
         it('is not a string', async () => {
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -117,7 +122,7 @@ describe('users', () => {
           });
         });
         it('is empty', async () => {
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -131,7 +136,7 @@ describe('users', () => {
           });
         });
         it('contain spaces', async () => {
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -145,7 +150,7 @@ describe('users', () => {
           });
         });
         it('is less than 3 chars', async () => {
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -159,7 +164,7 @@ describe('users', () => {
           });
         });
         it('is more than 30 chars', async () => {
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -174,7 +179,7 @@ describe('users', () => {
         });
         it('is already taken', async () => {
           await User.create(newUser);
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -190,7 +195,7 @@ describe('users', () => {
       });
       describe('if email', () => {
         it('is empty', async () => {
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -204,7 +209,7 @@ describe('users', () => {
           });
         });
         it('is not valid', async () => {
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -218,10 +223,10 @@ describe('users', () => {
           });
         });
         it('is already taken', async () => {
-          await request(initApp())
+          await request(app)
             .post('/users/signin')
             .send(newUser);
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -237,7 +242,7 @@ describe('users', () => {
       });
       describe('if password', () => {
         it('is empty', async () => {
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -253,7 +258,7 @@ describe('users', () => {
         });
         it('contain less than 8 chars', async () => {
           const passwordLessThanHeightChar = 'Abc9!';
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -269,7 +274,7 @@ describe('users', () => {
         });
         it('contain more than 30 chars', async () => {
           const passwordMoreThanThirtyChar = `Ac9!${'a'.repeat(31)}`;
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -285,7 +290,7 @@ describe('users', () => {
         });
         it('doesn\'t contain any uppercase', async () => {
           const passwordWithoutUppercase = 'aaoudjiuvhds9!';
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -301,7 +306,7 @@ describe('users', () => {
         });
         it('doesn\'t contain any lowercase', async () => {
           const passwordWithoutLowercase = 'AAOUDJIUVHDS9!';
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -317,7 +322,7 @@ describe('users', () => {
         });
         it('doesn\'t contain any number', async () => {
           const passwordWithoutNumber = 'AAOUDJIUVHDS!';
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -333,7 +338,7 @@ describe('users', () => {
         });
         it('doesn\'t contain any special char', async () => {
           const passwordWithoutSpecialChar = 'Aaoudjiuvhds9';
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -350,7 +355,7 @@ describe('users', () => {
       });
       describe('if confirmPassword', () => {
         it('is empty', async () => {
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -364,7 +369,7 @@ describe('users', () => {
           });
         });
         it('and password not match', async () => {
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               ...newUser,
@@ -380,7 +385,7 @@ describe('users', () => {
       });
       describe('if all field', () => {
         it('are empty', async () => {
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send({
               email: '',
@@ -400,10 +405,10 @@ describe('users', () => {
       });
       describe('if userName and email', () => {
         it('already exists', async () => {
-          await request(initApp())
+          await request(app)
             .post('/users/signin')
             .send(newUser);
-          const { status, body } = await request(initApp())
+          const { status, body } = await request(app)
             .post('/users/signin')
             .send(newUser);
           expect(status).toBe(400);

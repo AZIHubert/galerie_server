@@ -19,10 +19,12 @@ interface UserI {
   blackListId: string;
   password: string;
   confirmed: boolean;
+  googleId: string;
   galeries?: Galerie[];
   profilePictures?: ProfilePicture[];
   profilePictureId?: ProfilePicture;
   role: 'superAdmin' | 'admin' | 'user';
+  defaultProfilePicture: string;
 }
 
 @Table({
@@ -49,17 +51,25 @@ export default class User extends Model implements UserI {
   userName!: string;
 
   @Column({
-    allowNull: false,
     type: DataType.STRING,
     unique: true,
   })
   email!: string;
 
   @Column({
-    allowNull: false,
     type: DataType.STRING,
   })
   password!: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  googleId!: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  defaultProfilePicture!: string;
 
   @Default(false)
   @Column({

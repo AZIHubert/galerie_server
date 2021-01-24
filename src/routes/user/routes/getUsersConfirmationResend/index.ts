@@ -14,23 +14,28 @@ const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 export default async (req: Request, res: Response) => {
   const { id } = req.body;
   if (!id) {
-    return res.status(401).send({
+    return res.status(400).send({
       errors: 'user id is required',
     });
   }
   let user: User | null;
   try {
-    user = await User.findByPk(id);
+    user = await User.findOne({
+      where: {
+        id,
+        googleId: null,
+      },
+    });
   } catch (err) {
     return res.status(500).send(err);
   }
   if (!user) {
-    return res.status(401).send({
+    return res.status(404).send({
       errors: USER_NOT_FOUND,
     });
   }
   if (user.confirmed) {
-    return res.status(401).send({
+    return res.status(400).send({
       errors: ALREADY_CONFIRMED,
     });
   }

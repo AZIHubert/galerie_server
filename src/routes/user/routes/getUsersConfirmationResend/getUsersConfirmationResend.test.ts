@@ -1,21 +1,32 @@
 import jwt from 'jsonwebtoken';
+import { Server } from 'http';
+import { Sequelize } from 'sequelize';
 import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
-import User from '@src/db/models/user';
+import { User } from '@src/db/models';
 import * as email from '@src/helpers/email';
 import initSequelize from '@src/helpers/initSequelize.js';
-import initApp from '@src/server';
 import {
   ALREADY_CONFIRMED,
-  USER_IS_LOGGED_IN,
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
+import initApp from '@src/server';
 
-const sequelize = initSequelize();
+const newUser = {
+  email: 'user@email.com',
+  password: 'password',
+  userName: 'userName',
+};
 
 describe('users', () => {
+  let app: Server;
+  let sequelize: Sequelize;
+  beforeAll(() => {
+    app = initApp();
+    sequelize = initSequelize();
+  });
   beforeEach(async (done) => {
     try {
       await User.sync({ force: true });
@@ -27,79 +38,55 @@ describe('users', () => {
   afterAll(async (done) => {
     try {
       await User.sync({ force: true });
+      await sequelize.close();
     } catch (err) {
       done(err);
     }
-    sequelize.close();
+    app.close();
+    done();
   });
   describe('confirmation', () => {
     describe('resend', () => {
       describe('GET', () => {
-        describe('should return status 200 and', () => {
+        describe('should return status 204 and', () => {
+          let user: User;
+          beforeEach(async (done) => {
+            try {
+              user = await User.create(newUser);
+            } catch (err) {
+              done(err);
+            }
+            done();
+          });
           it('increment confirmTokenVersion', async () => {
-            const { id, confirmTokenVersion } = await User.create({
-              userName: 'user',
-              email: 'user@email.com',
-              password: 'password',
-              confirmed: false,
-            });
-            const { status } = await request(initApp())
+            const { id, confirmTokenVersion } = user;
+            const { status } = await request(app)
               .get('/users/confirmation/resend')
-              .send({
-                id,
-              });
-            const updatedUser = await User.findByPk(id);
+              .send({ id });
+            await user.reload();
             expect(status).toBe(204);
-            expect(updatedUser!.confirmTokenVersion)
-              .toBe(confirmTokenVersion + 1);
+            expect(user!.confirmTokenVersion).toBe(confirmTokenVersion + 1);
           });
           it('sign a token and send an email', async () => {
             const signMocked = jest.spyOn(jwt, 'sign');
             const emailMocked = jest.spyOn(email, 'sendConfirmAccount');
-            const { id } = await User.create({
-              userName: 'user',
-              email: 'user@email.com',
-              password: 'password',
-              confirmed: false,
-            });
-            const { status } = await request(initApp())
+            const { id } = user;
+            const { status } = await request(app)
               .get('/users/confirmation/resend')
-              .send({
-                id,
-              });
+              .send({ id });
             expect(status).toBe(204);
             expect(signMocked).toHaveBeenCalledTimes(1);
             expect(emailMocked).toHaveBeenCalledTimes(1);
           });
         });
-        describe('should return error 401 if', () => {
-          it('user is authenticated', async () => {
-            const { status, body } = await request(initApp())
-              .get('/users/confirmation/resend')
-              .set('authorization', 'Bearer token');
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: USER_IS_LOGGED_IN,
-            });
-          });
+        describe('should return error 400 if', () => {
           it('id is not send', async () => {
-            const { status, body } = await request(initApp())
+            const { status, body } = await request(app)
               .get('/users/confirmation/resend')
               .send({});
-            expect(status).toBe(401);
+            expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: 'user id is required',
-            });
-          });
-          it('user id not found', async () => {
-            const { status, body } = await request(initApp())
-              .get('/users/confirmation/resend')
-              .send({
-                id: '1',
-              });
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: USER_NOT_FOUND,
             });
           });
           it('user is already confirmed', async () => {
@@ -109,14 +96,23 @@ describe('users', () => {
               password: 'password',
               confirmed: true,
             });
-            const { status, body } = await request(initApp())
+            const { status, body } = await request(app)
               .get('/users/confirmation/resend')
-              .send({
-                id,
-              });
-            expect(status).toBe(401);
+              .send({ id });
+            expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: ALREADY_CONFIRMED,
+            });
+          });
+        });
+        describe('should return status 404 if', () => {
+          it('user id not found', async () => {
+            const { status, body } = await request(app)
+              .get('/users/confirmation/resend')
+              .send({ id: '1' });
+            expect(status).toBe(404);
+            expect(body).toStrictEqual({
+              errors: USER_NOT_FOUND,
             });
           });
         });

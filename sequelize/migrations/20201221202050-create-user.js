@@ -11,12 +11,10 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
     unique: true,
   },
   email: {
-    allowNull: false,
     type: DataTypes.STRING,
     unique: true,
   },
   password: {
-    allowNul: true,
     type: DataTypes.STRING,
   },
   createdAt: {

@@ -1,38 +1,58 @@
-import bcrypt from 'bcrypt';
+import { hash } from 'bcrypt';
+import { Server } from 'http';
 import jwt from 'jsonwebtoken';
+import { Sequelize } from 'sequelize';
 import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
-import User from '@src/db/models/user';
-import { createAccessToken } from '@src/helpers/auth';
+import { User } from '@src/db/models';
 import * as email from '@src/helpers/email';
 import {
   FIELD_IS_REQUIRED,
   FIELD_NOT_A_STRING,
   FIELD_IS_EMPTY,
-  NOT_AUTHENTICATED,
-  NOT_CONFIRMED,
-  USER_NOT_FOUND,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
 
-const sequelize = initSequelize();
+const clearDatas = async () => {
+  await User.sync({ force: true });
+};
 
 const newUser = {
-  userName: 'user',
   email: 'user@email.com',
   password: 'password',
+  userName: 'user',
 };
 
 describe('users', () => {
-  const jwtMocked = jest.spyOn(jwt, 'verify');
+  let agent: request.SuperAgentTest;
+  let app: Server;
+  let sequelize: Sequelize;
+  let user: User;
+  beforeAll(() => {
+    app = initApp();
+    sequelize = initSequelize();
+  });
   beforeEach(async (done) => {
+    agent = request.agent(app);
     try {
-      await User.sync({ force: true });
+      await clearDatas();
+      const hashPassword = await hash(newUser.password, saltRounds);
+      user = await User.create({
+        ...newUser,
+        confirmed: true,
+        password: hashPassword,
+      });
+      await agent
+        .get('/users/login')
+        .send({
+          password: newUser.password,
+          userNameOrEmail: user.userName,
+        });
     } catch (err) {
       done(err);
     }
@@ -43,36 +63,27 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await User.sync({ force: true });
+      await clearDatas();
+      await sequelize.close();
     } catch (err) {
       done(err);
     }
-    sequelize.close();
+    app.close();
     done();
   });
   describe('me', () => {
     describe('updateEmail', () => {
       describe('GET', () => {
-        describe('should return status 200 and', () => {
+        describe('should return status 205 and', () => {
           it('create a token and send an email', async (done) => {
             try {
-              const hashedPassword = await bcrypt.hash('Aaoudjiuvhds9!', saltRounds);
-              const newUserWithHasedPasswordAndConfirmed = {
-                ...newUser,
-                password: hashedPassword,
-                confirmed: true,
-              };
-              const user = await User.create(newUserWithHasedPasswordAndConfirmed);
-              const token = createAccessToken(user);
               const emailMock = jest.spyOn(email, 'sendUpdateEmailMessage');
               const signMock = jest.spyOn(jwt, 'sign');
-              const { status } = await request(initApp())
-                .get('/users/me/updateEmail')
-                .set('authorization', `Bearer ${token}`)
+              const { status } = await agent.get('/users/me/updateEmail/')
                 .send({
-                  password: 'Aaoudjiuvhds9!',
+                  password: newUser.password,
                 });
-              expect(status).toBe(201);
+              expect(status).toBe(204);
               expect(emailMock).toHaveBeenCalledTimes(1);
               expect(signMock).toHaveBeenCalledTimes(1);
               done();
@@ -82,25 +93,10 @@ describe('users', () => {
           });
         });
         describe('should return error 400 if', () => {
-          let token: string;
-          beforeEach(async (done) => {
-            try {
-              const newUserWithConfirmed = {
-                ...newUser,
-                confirmed: true,
-              };
-              const user = await User.create(newUserWithConfirmed);
-              token = createAccessToken(user);
-            } catch (err) {
-              done(err);
-            }
-            done();
-          });
           describe('password', () => {
             it('is not set', async () => {
-              const { status, body } = await request(initApp())
+              const { status, body } = await agent
                 .get('/users/me/updateEmail')
-                .set('authorization', `Bearer ${token}`)
                 .send({});
               expect(status).toBe(400);
               expect(body).toStrictEqual({
@@ -110,9 +106,8 @@ describe('users', () => {
               });
             });
             it('is not a string', async () => {
-              const { status, body } = await request(initApp())
+              const { status, body } = await agent
                 .get('/users/me/updateEmail')
-                .set('authorization', `Bearer ${token}`)
                 .send({
                   password: 123456,
                 });
@@ -124,9 +119,8 @@ describe('users', () => {
               });
             });
             it('is empty', async () => {
-              const { status, body } = await request(initApp())
+              const { status, body } = await agent
                 .get('/users/me/updateEmail')
-                .set('authorization', `Bearer ${token}`)
                 .send({
                   password: '',
                 });
@@ -138,11 +132,8 @@ describe('users', () => {
               });
             });
             it('not match user password', async () => {
-              jest.spyOn(bcrypt, 'compare')
-                .mockImplementationOnce(() => Promise.resolve(false));
-              const { status, body } = await request(initApp())
+              const { status, body } = await agent
                 .get('/users/me/updateEmail')
-                .set('authorization', `Bearer ${token}`)
                 .send({
                   password: 'wrongPassword',
                 });
@@ -153,70 +144,6 @@ describe('users', () => {
                 },
               });
             });
-          });
-        });
-        describe('should return error 401 if', () => {
-          it('not logged in', async () => {
-            const { status, body } = await request(initApp())
-              .get('/users/me/updateEmail');
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: NOT_AUTHENTICATED,
-            });
-          });
-          it('confirmed', async () => {
-            const user = await User.create(newUser);
-            const token = createAccessToken(user);
-            const { status, body } = await request(initApp())
-              .get('/users/me/updateEmail')
-              .set('authorization', `Bearer ${token}`);
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: NOT_CONFIRMED,
-            });
-          });
-        });
-        describe('should return error 404 if', () => {
-          it('user not found', async () => {
-            jwtMocked.mockImplementationOnce(() => ({
-              id: 1,
-            }));
-            const { status, body } = await request(initApp())
-              .get('/users/me/updateEmail')
-              .set('authorization', 'Bearer token');
-            expect(status).toBe(404);
-            expect(body).toStrictEqual({
-              errors: USER_NOT_FOUND,
-            });
-          });
-        });
-        describe('should return error 500 if', () => {
-          it('compare password fail', async (done) => {
-            try {
-              const hashedPassword = await bcrypt.hash('Aaoudjiuvhds9!', saltRounds);
-              const newUserWithHasedPasswordAndConfirmed = {
-                ...newUser,
-                password: hashedPassword,
-                confirmed: true,
-              };
-              const user = await User.create(newUserWithHasedPasswordAndConfirmed);
-              const token = createAccessToken(user);
-              const compareMocked = jest.spyOn(bcrypt, 'compare')
-                .mockImplementationOnce(() => {
-                  throw new Error('something went wrong');
-                });
-              const { status } = await request(initApp())
-                .get('/users/me/updateEmail')
-                .set('authorization', `Bearer ${token}`)
-                .send({
-                  password: 'Aaoudjiuvhds9!',
-                });
-              expect(compareMocked).toHaveBeenCalledTimes(1);
-              expect(status).toBe(500);
-              done();
-            } catch (err) {
-              done(err);
-            }
           });
         });
       });

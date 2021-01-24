@@ -49,7 +49,12 @@ export default async (req: Request, res: Response) => {
   const { id } = tokenVerified;
   let user: User | null;
   try {
-    user = await User.findByPk(id);
+    user = await User.findOne({
+      where: {
+        id,
+        googleId: null,
+      },
+    });
   } catch (err) {
     return res.status(500).send(err);
   }

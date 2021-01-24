@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
 
-import Image from '@src/db/models/image';
-import ProfilePicture from '@src/db/models/profilePicture';
+import { Image, ProfilePicture, User } from '@src/db/models';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { user: { id: userId } } = res.locals;
+  const { id: userId } = req.user as User;
   let profilePicture: ProfilePicture | null;
   try {
     profilePicture = await ProfilePicture.findOne({
@@ -16,25 +15,48 @@ export default async (req: Request, res: Response) => {
       },
       attributes: {
         exclude: [
-          'originalImageId',
-          'cropedImageId',
-          'pendingImageId',
           'createdAt',
+          'cropedImageId',
+          'deletedAt',
+          'originalImageId',
+          'pendingImageId',
           'updatedAt',
+          'userId',
         ],
       },
       include: [
         {
           model: Image,
-          as: 'originalImage',
+          as: 'cropedImage',
+          attributes: {
+            exclude: [
+              'createdAt',
+              'deletedAt',
+              'updatedAt',
+            ],
+          },
         },
         {
           model: Image,
-          as: 'cropedImage',
+          as: 'originalImage',
+          attributes: {
+            exclude: [
+              'createdAt',
+              'deletedAt',
+              'updatedAt',
+            ],
+          },
         },
         {
           model: Image,
           as: 'pendingImage',
+          attributes: {
+            exclude: [
+              'createdAt',
+              'deletedAt',
+              'updatedAt',
+            ],
+          },
         },
       ],
     });
@@ -47,16 +69,16 @@ export default async (req: Request, res: Response) => {
     });
   }
   try {
-    const originalImageSignedUrl = await signedUrl(
-      profilePicture.originalImage.bucketName,
-      profilePicture.originalImage.fileName,
-    );
-    profilePicture.originalImage.signedUrl = originalImageSignedUrl;
     const cropedImageSignedUrl = await signedUrl(
       profilePicture.cropedImage.bucketName,
       profilePicture.cropedImage.fileName,
     );
     profilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
+    const originalImageSignedUrl = await signedUrl(
+      profilePicture.originalImage.bucketName,
+      profilePicture.originalImage.fileName,
+    );
+    profilePicture.originalImage.signedUrl = originalImageSignedUrl;
     const pendingImageSignedUrl = await signedUrl(
       profilePicture.pendingImage.bucketName,
       profilePicture.pendingImage.fileName,

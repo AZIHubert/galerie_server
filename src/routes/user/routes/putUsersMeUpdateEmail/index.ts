@@ -3,11 +3,6 @@ import { Request, Response } from 'express';
 import { verify } from 'jsonwebtoken';
 
 import accEnv from '@src/helpers/accEnv';
-import {
-  createAccessToken,
-  createRefreshToken,
-  sendRefreshToken,
-} from '@src/helpers/auth';
 import User from '@root/src/db/models/user';
 import {
   FIELD_IS_REQUIRED,
@@ -51,7 +46,7 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  const { user } = res.locals;
+  const user = req.user as User;
   if (id !== user.id) {
     return res.status(401).send({
       errors: WRONG_TOKEN_USER_ID,
@@ -69,7 +64,7 @@ export default async (req: Request, res: Response) => {
   }
   const { password } = req.body;
   if (!password) {
-    return res.status(401).send({
+    return res.status(400).send({
       errors: {
         password: FIELD_IS_REQUIRED,
       },
@@ -82,7 +77,7 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
   if (!matchedPasswords) {
-    return res.status(401).send({
+    return res.status(400).send({
       errors: {
         password: WRONG_PASSWORD,
       },
@@ -98,8 +93,5 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  sendRefreshToken(res, createRefreshToken(user));
-  return res
-    .status(200)
-    .send({ accessToken: createAccessToken(user) });
+  return res.status(204).end();
 };
