@@ -1,3 +1,4 @@
+export { default as deleteUsersMe } from './deleteUsersMe';
 export { default as deleteUsersMeProfilePicturesId } from './deleteUsersMeProfilePicturesId';
 export { default as getUsers } from './getUsers';
 export { default as getUsersBlackList } from './getUsersBlackList';

@@ -50,7 +50,6 @@ describe('users', () => {
   let app: Server;
   let user: User;
   let agent: request.SuperAgentTest;
-
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();

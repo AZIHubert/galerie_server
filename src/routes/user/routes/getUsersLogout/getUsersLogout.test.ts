@@ -66,7 +66,7 @@ describe('users', () => {
   describe('logout', () => {
     describe('GET', () => {
       describe('should return status 204 and', () => {
-        it('logout()', async () => {
+        it('logout', async () => {
           const { status } = await agent.get('/users/logout');
           expect(status).toBe(204);
         });
