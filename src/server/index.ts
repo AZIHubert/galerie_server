@@ -8,9 +8,12 @@ import Sequelize from 'sequelize';
 import socketIo from 'socket.io';
 import cookieParser from 'cookie-parser';
 
-import userRouter from '@src/routes/user';
+import accEnv from '@src/helpers/accEnv';
 import passport from '@src/helpers/passport';
 import initSequelize from '@src/helpers/initSequelize.js';
+import userRouter from '@src/routes/user';
+
+const SESSION_SECRET = accEnv('SESSION_SECRET');
 
 const SequelizeStore = connectSessionSequelize(session.Store);
 
@@ -45,7 +48,7 @@ const initApp: () => http.Server = () => {
     },
     resave: true,
     saveUninitialized: true,
-    secret: 'keyboard cat',
+    secret: SESSION_SECRET,
     store: sequelizeStore,
   }));
   app.use(passport.initialize());
