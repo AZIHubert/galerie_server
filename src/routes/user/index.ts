@@ -89,6 +89,10 @@ export default usersRoutes;
 
 // TODO:
 // router.get('/me/blacklist/');
+// model PersonalBlackList
+// => userId
+// belongstomany
+// user
 // router.put('/me/blacklist/:id/');
 // router.get('/me/blacklist/:id/');
 // router.delete('/me/blacklist/:id/');
