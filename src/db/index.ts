@@ -1,16 +1,6 @@
 import { Sequelize } from 'sequelize-typescript';
-// import * as SQL from 'sequelize';
 
 import accessEnv from '@src/helpers/accEnv';
-
-// import {
-//   BlackList,
-//   Galerie,
-//   Image,
-//   ProfilePicture,
-//   // Session,
-//   User,
-// } from './models';
 
 import BlackList from './models/blackList';
 import Galerie from './models/galerie';
@@ -35,7 +25,6 @@ const sequelize = new Sequelize({
     Image,
     ProfilePicture,
     User,
-    // Session,
   ],
 });
 

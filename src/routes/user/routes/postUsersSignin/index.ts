@@ -74,8 +74,3 @@ export default async (req: Request, res: Response) => {
   }
   return res.status(201).send(newUser);
 };
-
-// https://github.com/zachgoll/express-jwt-authentication-starter/blob/master/lib/utils.js
-// user salt => genPassword(password).salt
-// user hash => genPassword(password).hash
-// user remove password
