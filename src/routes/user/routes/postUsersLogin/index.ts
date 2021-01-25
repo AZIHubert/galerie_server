@@ -4,7 +4,7 @@ import { Op } from 'sequelize';
 
 import { User } from '@src/db/models';
 
-import auth from '@src/helpers/auth';
+import setRefreshToken from '@root/src/helpers/setRefreshToken';
 import checkBlackList from '@src/helpers/checkBlackList';
 import {
   NOT_CONFIRMED,
@@ -12,7 +12,7 @@ import {
   USER_NOT_FOUND,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
-import issueJWT from '@src/helpers/issueJWT';
+import { signAuthToken } from '@src/helpers/issueJWT';
 import {
   validateLogIn,
   normalizeJoiErrors,
@@ -70,7 +70,7 @@ export default async (req: Request, res: Response) => {
       },
     });
   }
-  const jwt = issueJWT(user);
-  auth(req, user);
+  setRefreshToken(req, user);
+  const jwt = signAuthToken(user);
   return res.status(200).send({ token: jwt.token, expiresIn: jwt.expires });
 };

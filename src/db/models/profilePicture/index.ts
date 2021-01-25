@@ -12,8 +12,12 @@ import Image from '../image';
 import User from '../user';
 
 interface ProfilePictureI {
+  cropedImageId: string;
+  currentProfilePicture: User;
   id: string;
-  originalImageId: string
+  originalImageId: string;
+  pendingImageId: string;
+  userId: string;
 }
 
 @Table({
@@ -24,6 +28,16 @@ interface ProfilePictureI {
   tableName: 'profilePicture',
 })
 export default class ProfilePicture extends Model implements ProfilePictureI {
+  @ForeignKey(() => Image)
+  @Column({
+    allowNull: false,
+    type: DataType.BIGINT,
+  })
+  cropedImageId!: string;
+
+  @HasOne(() => User, 'currentProfilePictureId')
+  currentProfilePicture!: User;
+
   @Column({
     allowNull: false,
     autoIncrement: true,
@@ -32,35 +46,12 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
   })
   id!: string;
 
-  @ForeignKey(() => User)
-  @Column({
-    allowNull: false,
-    type: DataType.BIGINT,
-  })
-  userId!: string;
-
-  @BelongsTo(() => User)
-  user!: User;
-
   @ForeignKey(() => Image)
   @Column({
     allowNull: false,
     type: DataType.BIGINT,
   })
   originalImageId!: string;
-
-  @BelongsTo(() => Image, 'originalImageId')
-  originalImage!: Image;
-
-  @ForeignKey(() => Image)
-  @Column({
-    allowNull: false,
-    type: DataType.BIGINT,
-  })
-  cropedImageId!: string;
-
-  @BelongsTo(() => Image, 'cropedImageId')
-  cropedImage!: Image;
 
   @ForeignKey(() => Image)
   @Column({
@@ -69,9 +60,22 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
   })
   pendingImageId!: string;
 
+  @ForeignKey(() => User)
+  @Column({
+    allowNull: false,
+    type: DataType.BIGINT,
+  })
+  userId!: string;
+
+  @BelongsTo(() => Image, 'cropedImageId')
+  cropedImage!: Image;
+
+  @BelongsTo(() => Image, 'originalImageId')
+  originalImage!: Image;
+
   @BelongsTo(() => Image, 'pendingImageId')
   pendingImage!: Image;
 
-  @HasOne(() => User, 'currentProfilePictureId')
-  currentProfilePicture!: User;
+  @BelongsTo(() => User)
+  user!: User;
 }

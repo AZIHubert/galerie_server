@@ -18,8 +18,9 @@ import initApp from '@src/server';
 
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 
-const cleanDatas = async () => {
+const cleanDatas = async (sequelize: Sequelize) => {
   await User.sync({ force: true });
+  await sequelize.model('Sessions').sync({ force: true });
 };
 
 const newUser = {
@@ -40,7 +41,7 @@ describe('users', () => {
   beforeEach(async (done) => {
     agent = request.agent(app);
     try {
-      await cleanDatas();
+      await cleanDatas(sequelize);
     } catch (err) {
       done(err);
     }
@@ -51,7 +52,7 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await cleanDatas();
+      await cleanDatas(sequelize);
       await sequelize.close();
     } catch (err) {
       done(err);

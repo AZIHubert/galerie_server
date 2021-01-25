@@ -3,7 +3,7 @@ import { verify } from 'jsonwebtoken';
 
 import { User } from '@src/db/models';
 
-import auth from '@src/helpers/auth';
+import setRefreshToken from '@root/src/helpers/setRefreshToken';
 import accEnv from '@src/helpers/accEnv';
 import {
   ALREADY_CONFIRMED,
@@ -12,7 +12,7 @@ import {
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
-import issueJWT from '@src/helpers/issueJWT';
+import { signAuthToken } from '@src/helpers/issueJWT';
 
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 
@@ -72,7 +72,7 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     res.status(500).send(err);
   }
-  const jwt = issueJWT(user);
-  auth(req, user);
+  const jwt = signAuthToken(user);
+  setRefreshToken(req, user);
   return res.status(200).send({ token: jwt.token, expiresIn: jwt.expires });
 };

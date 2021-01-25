@@ -25,11 +25,12 @@ const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
 const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
-const cleanDatas = async () => {
+const cleanDatas = async (sequelize: Sequelize) => {
   await BlackList.sync({ force: true });
   await Image.sync({ force: true });
   await ProfilePicture.sync({ force: true });
   await User.sync({ force: true });
+  await sequelize.model('Sessions').sync({ force: true });
   const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
   await Promise.all(cropedImages
     .map(async (image) => {
@@ -66,7 +67,7 @@ describe('users', () => {
   beforeEach(async (done) => {
     agent = request.agent(app);
     try {
-      await cleanDatas();
+      await cleanDatas(sequelize);
       const hashPassword = await hash(newUser.password, saltRounds);
       user = await User.create({
         ...newUser,
@@ -87,7 +88,7 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await cleanDatas();
+      await cleanDatas(sequelize);
       await sequelize.close();
     } catch (err) {
       done(err);

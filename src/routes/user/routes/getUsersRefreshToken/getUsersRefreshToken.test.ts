@@ -6,10 +6,14 @@ import request from 'supertest';
 import '@src/helpers/initEnv';
 
 import { User } from '@src/db/models';
-
 import initSequelize from '@src/helpers/initSequelize.js';
 import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
+
+const cleanDatas = async (sequelize: Sequelize) => {
+  await User.sync({ force: true });
+  await sequelize.model('Sessions').sync({ force: true });
+};
 
 const newUser = {
   userName: 'userName',
@@ -17,32 +21,29 @@ const newUser = {
   password: 'password',
 };
 
-const clearDatas = async (sequelize: Sequelize) => {
-  await User.sync({ force: true });
-  await sequelize.model('Sessions').sync({ force: true });
-};
-
 describe('users', () => {
-  let agent: request.SuperAgentTest;
-  let app: Server;
   let sequelize: Sequelize;
+  let app: Server;
   let user: User;
+  let agent: request.SuperAgentTest;
   let token: string;
   beforeAll(() => {
-    app = initApp();
     sequelize = initSequelize();
+    app = initApp();
+    agent = request.agent(app);
   });
   beforeEach(async (done) => {
     agent = request.agent(app);
     try {
-      await clearDatas(sequelize);
+      await cleanDatas(sequelize);
       const hashPassword = await hash(newUser.password, saltRounds);
       user = await User.create({
         ...newUser,
         confirmed: true,
         password: hashPassword,
       });
-      const { body } = await agent.get('/users/login')
+      const { body } = await agent
+        .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
@@ -55,7 +56,7 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await clearDatas(sequelize);
+      await cleanDatas(sequelize);
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -63,14 +64,16 @@ describe('users', () => {
     app.close();
     done();
   });
-  describe('logout', () => {
+  describe('refreshToken', () => {
     describe('GET', () => {
-      describe('should return status 204 and', () => {
-        it('logout', async () => {
-          const { status } = await agent
-            .get('/users/logout')
+      describe('should return status 200 and', () => {
+        it('should send a auth token', async () => {
+          const { body, status } = await agent
+            .get('/users/refreshToken/')
             .set('authorization', token);
-          expect(status).toBe(204);
+          expect(status).toBe(200);
+          expect(typeof body.token).toBe('string');
+          expect(body.expiresIn).toBe('1d');
         });
       });
     });

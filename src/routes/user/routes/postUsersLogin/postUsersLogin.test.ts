@@ -11,8 +11,9 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
 
-const clearDatas = async () => {
+const clearDatas = async (sequelize: Sequelize) => {
   await User.sync({ force: true });
+  await sequelize.model('Sessions').sync({ force: true });
 };
 
 const newUser = {
@@ -31,7 +32,7 @@ describe('users', () => {
   });
   beforeEach(async (done) => {
     try {
-      await clearDatas();
+      await clearDatas(sequelize);
       const hashPassword = await hash(newUser.password, saltRounds);
       user = await User.create({
         ...newUser,
@@ -45,7 +46,7 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await clearDatas();
+      await clearDatas(sequelize);
       await sequelize.close();
     } catch (err) {
       done(err);

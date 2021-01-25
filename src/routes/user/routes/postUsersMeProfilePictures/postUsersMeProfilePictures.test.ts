@@ -25,11 +25,12 @@ const newUser = {
   userName: 'userName',
 };
 
-const clearDatas = async () => {
+const clearDatas = async (sequelize: Sequelize) => {
   await User.sync({ force: true });
   await Image.sync({ force: true });
   await ProfilePicture.sync({ force: true });
   const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
+  await sequelize.model('Sessions').sync({ force: true });
   await Promise.all(originalImages
     .map(async (image) => {
       await image.delete();
@@ -62,7 +63,7 @@ describe('users', () => {
   beforeEach(async (done) => {
     agent = request.agent(app);
     try {
-      await clearDatas();
+      await clearDatas(sequelize);
       const hashPassword = await hash(newUser.password, saltRounds);
       user = await User.create({
         ...newUser,
@@ -89,7 +90,7 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await clearDatas();
+      await clearDatas(sequelize);
       await sequelize.close();
     } catch (err) {
       done(err);

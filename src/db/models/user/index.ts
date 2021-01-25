@@ -14,17 +14,25 @@ import ProfilePicture from '../profilePicture';
 import BlackList from '../blackList';
 
 interface UserI {
-  userName: string;
-  email: string;
-  blackListId: string;
-  password: string;
+  authTokenVersion: number;
+  blackListId?: string;
   confirmed: boolean;
-  googleId: string;
+  confirmTokenVersion: number;
+  currentProfilePictureId?: string;
+  defaultProfilePicture?: string;
+  email?: string;
+  emailTokenVersion: number;
+  facebookId?: string;
   galeries?: Galerie[];
-  profilePictures?: ProfilePicture[];
-  profilePictureId?: ProfilePicture;
+  googleId?: string;
+  id: string;
+  password: string;
+  profilePictures: ProfilePicture[];
+  resetPasswordTokenVersion: number;
   role: 'superAdmin' | 'admin' | 'user';
-  defaultProfilePicture: string;
+  updatedEmailTokenVersion: number;
+  userName: string;
+
 }
 
 @Table({
@@ -35,6 +43,70 @@ interface UserI {
   tableName: 'users',
 })
 export default class User extends Model implements UserI {
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  authTokenVersion!: number;
+
+  @ForeignKey(() => BlackList)
+  @Column({
+    type: DataType.BIGINT,
+  })
+  blackListId!: string;
+
+  @Default(false)
+  @Column({
+    allowNull: false,
+    type: DataType.BOOLEAN,
+  })
+  confirmed!: boolean;
+
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  confirmTokenVersion!: number;
+
+  @ForeignKey(() => ProfilePicture)
+  @Column({
+    type: DataType.BIGINT,
+  })
+  currentProfilePictureId!: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  defaultProfilePicture!: string;
+
+  @Column({
+    type: DataType.STRING,
+    unique: true,
+  })
+  email!: string;
+
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  emailTokenVersion!: number;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  facebookId!: string;
+
+  @HasMany(() => Galerie)
+  galeries!: Galerie[];
+
+  @Column({
+    type: DataType.STRING,
+  })
+  googleId!: string;
+
   @Column({
     allowNull: false,
     autoIncrement: true,
@@ -43,45 +115,20 @@ export default class User extends Model implements UserI {
   })
   id!: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
-    unique: true,
-  })
-  userName!: string;
-
-  @Column({
-    type: DataType.STRING,
-    unique: true,
-  })
-  email!: string;
+  @HasMany(() => ProfilePicture)
+  profilePictures!: ProfilePicture[];
 
   @Column({
     type: DataType.STRING,
   })
   password!: string;
 
-  @Column({
-    type: DataType.STRING,
-  })
-  googleId!: string;
-
-  @Column({
-    type: DataType.STRING,
-  })
-  facebookId!: string;
-
-  @Column({
-    type: DataType.STRING,
-  })
-  defaultProfilePicture!: string;
-
-  @Default(false)
+  @Default(0)
   @Column({
     allowNull: false,
-    type: DataType.BOOLEAN,
+    type: DataType.INTEGER,
   })
-  confirmed!: boolean;
+  resetPasswordTokenVersion!: number;
 
   @Default('user')
   @Column({
@@ -94,57 +141,18 @@ export default class User extends Model implements UserI {
     allowNull: false,
     type: DataType.INTEGER,
   })
-  authTokenVersion!: number;
-
-  @Default(0)
-  @Column({
-    allowNull: false,
-    type: DataType.INTEGER,
-  })
-  confirmTokenVersion!: number;
-
-  @Default(0)
-  @Column({
-    allowNull: false,
-    type: DataType.INTEGER,
-  })
-  emailTokenVersion!: number;
-
-  @Default(0)
-  @Column({
-    allowNull: false,
-    type: DataType.INTEGER,
-  })
   updatedEmailTokenVersion!: number;
 
-  @Default(0)
   @Column({
     allowNull: false,
-    type: DataType.INTEGER,
+    type: DataType.STRING,
+    unique: true,
   })
-  resetPasswordTokenVersion!: number;
-
-  @ForeignKey(() => ProfilePicture)
-  @Column({
-    type: DataType.BIGINT,
-  })
-  currentProfilePictureId!: string;
-
-  @BelongsTo(() => ProfilePicture)
-  currentProfilePicture!: ProfilePicture
-
-  @HasMany(() => Galerie)
-  galeries!: Galerie[];
-
-  @HasMany(() => ProfilePicture)
-  profilePictures!: ProfilePicture[];
-
-  @ForeignKey(() => BlackList)
-  @Column({
-    type: DataType.BIGINT,
-  })
-  blackListId!: string;
+  userName!: string;
 
   @BelongsTo(() => BlackList)
   blackList!: BlackList;
+
+  @BelongsTo(() => ProfilePicture)
+  currentProfilePicture!: ProfilePicture
 }

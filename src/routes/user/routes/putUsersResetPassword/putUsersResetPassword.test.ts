@@ -26,8 +26,9 @@ import saltRounds from '@src/helpers/saltRounds';
 import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 import initApp from '@src/server';
 
-const clearDatas = async () => {
+const clearDatas = async (sequelize: Sequelize) => {
   await User.sync({ force: true });
+  await sequelize.model('Sessions').sync({ force: true });
 };
 
 const newUser = {
@@ -46,7 +47,7 @@ describe('users', () => {
   });
   beforeEach(async (done) => {
     try {
-      await clearDatas();
+      await clearDatas(sequelize);
       const hashPassword = await bcrypt.hash(newUser.password, saltRounds);
       user = await User.create({
         ...newUser,
@@ -63,7 +64,7 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await clearDatas();
+      await clearDatas(sequelize);
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -392,7 +393,6 @@ describe('users', () => {
               confirmPassword: 'Aaoudjiuvhds9!',
             })
             .set('confirmation', 'Bearer token');
-          console.log(body);
           expect(status).toBe(404);
           expect(body).toStrictEqual({
             errors: USER_NOT_FOUND,

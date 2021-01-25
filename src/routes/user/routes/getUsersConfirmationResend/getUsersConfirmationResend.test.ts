@@ -20,6 +20,11 @@ const newUser = {
   userName: 'userName',
 };
 
+const clearDatas = async (sequelize: Sequelize) => {
+  await User.sync({ force: true });
+  await sequelize.model('Sessions').sync({ force: true });
+};
+
 describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
@@ -29,7 +34,7 @@ describe('users', () => {
   });
   beforeEach(async (done) => {
     try {
-      await User.sync({ force: true });
+      await clearDatas(sequelize);
     } catch (err) {
       done(err);
     }
@@ -37,7 +42,7 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await User.sync({ force: true });
+      await clearDatas(sequelize);
       await sequelize.close();
     } catch (err) {
       done(err);

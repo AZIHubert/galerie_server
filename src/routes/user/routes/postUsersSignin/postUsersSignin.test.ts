@@ -22,6 +22,11 @@ import * as email from '@src/helpers/email';
 import initSequelize from '@src/helpers/initSequelize.js';
 import initApp from '@src/server';
 
+const clearDatas = async (sequelize: Sequelize) => {
+  await User.sync({ force: true });
+  await sequelize.model('Sessions').sync({ force: true });
+};
+
 const newUser = {
   confirmPassword: 'Aaoudjiuvhds90!',
   email: 'user@email.com',
@@ -39,7 +44,7 @@ describe('users', () => {
   });
   beforeEach(async (done) => {
     try {
-      await User.sync({ force: true });
+      await clearDatas(sequelize);
     } catch (err) {
       done(err);
     }
@@ -50,7 +55,7 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      await User.sync({ force: true });
+      await clearDatas(sequelize);
       await sequelize.close();
       app.close();
       done();

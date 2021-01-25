@@ -13,7 +13,7 @@ interface BlackListI {
   adminId: string;
   id: string;
   reason: string;
-  time: number;
+  time?: number;
 }
 
 @Table({
@@ -21,6 +21,12 @@ interface BlackListI {
   tableName: 'blackList',
 })
 export default class BlackList extends Model implements BlackListI {
+  @ForeignKey(() => User)
+  @Column({
+    type: DataType.BIGINT,
+  })
+  adminId!: string;
+
   @Column({
     allowNull: false,
     autoIncrement: true,
@@ -29,23 +35,17 @@ export default class BlackList extends Model implements BlackListI {
   })
   id!: string;
 
-  @ForeignKey(() => User)
   @Column({
-    type: DataType.BIGINT,
+    allowNull: false,
+    type: DataType.STRING,
   })
-  adminId!: string;
-
-  @BelongsTo(() => User)
-  admin!: User;
+  reason!: string;
 
   @Column({
     type: DataType.INTEGER,
   })
   time!: number;
 
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
-  })
-  reason!: string;
+  @BelongsTo(() => User)
+  admin!: User;
 }

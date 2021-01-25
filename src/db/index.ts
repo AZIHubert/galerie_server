@@ -3,12 +3,20 @@ import { Sequelize } from 'sequelize-typescript';
 
 import accessEnv from '@src/helpers/accEnv';
 
+// import {
+//   BlackList,
+//   Galerie,
+//   Image,
+//   ProfilePicture,
+//   // Session,
+//   User,
+// } from './models';
+
 import BlackList from './models/blackList';
 import Galerie from './models/galerie';
 import Image from './models/image';
 import ProfilePicture from './models/profilePicture';
 import User from './models/user';
-// import Session from './models/session';
 
 const DB_USERNAME = accessEnv('DB_USERNAME');
 const DB_PASSWORD = accessEnv('DB_PASSWORD');
