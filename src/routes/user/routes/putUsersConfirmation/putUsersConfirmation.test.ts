@@ -106,7 +106,7 @@ describe('users', () => {
           const { body, status } = response;
           expect(status).toBe(200);
           expect(typeof body.token).toBe('string');
-          expect(body.expiresIn).toBe('1d');
+          expect(body.expiresIn).toBe('30m');
         });
       });
       describe('should return error 401 if', () => {
