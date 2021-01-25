@@ -1,5 +1,9 @@
 node_modules
 yarn-error.log
 dist
-src/db/config
-.env
+.env.production
+.env.test
+.env.development
+googleApi.json
+id_rsa_priv.authToken.pem
+id_rsa_priv.refreshToken.pem

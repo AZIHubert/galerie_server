@@ -11,15 +11,13 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
     unique: true,
   },
   email: {
-    allowNull: false,
     type: DataTypes.STRING,
     unique: true,
   },
   password: {
-    allowNul: true,
     type: DataTypes.STRING,
   },
-  createAt: {
+  createdAt: {
     allowNull: false,
     type: DataTypes.DATE,
   },
@@ -27,7 +25,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
     allowNull: false,
     type: DataTypes.DATE,
   },
-  deleteAt: {
+  deletedAt: {
     allowNull: true,
     type: DataTypes.DATE,
   },

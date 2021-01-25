@@ -1,2 +1,5 @@
-export { default as users } from './users';
-export { default as galeries } from './galeries';
+export { default as BlackList } from './blackList';
+export { default as Galerie } from './galerie';
+export { default as Image } from './image';
+export { default as ProfilePicture } from './profilePicture';
+export { default as User } from './user';

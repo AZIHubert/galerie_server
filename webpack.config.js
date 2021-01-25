@@ -28,6 +28,7 @@ module.exports = {
     alias: {
       '@sequelize': path.resolve(__dirname, './sequelize'),
       '@src': path.resolve(__dirname, './src'),
+      '@root': path.resolve(__dirname, './'),
     },
   },
   plugins: [
