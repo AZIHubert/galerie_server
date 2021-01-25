@@ -16,7 +16,6 @@ import {
   FIELD_MIN_LENGTH_OF_HEIGH,
   FIELD_NOT_A_STRING,
   TOKEN_NOT_FOUND,
-  USER_IS_LOGGED_IN,
   USER_NOT_FOUND,
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
@@ -24,6 +23,7 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import saltRounds from '@src/helpers/saltRounds';
+import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 import initApp from '@src/server';
 
 const clearDatas = async () => {
@@ -37,7 +37,6 @@ const newUser = {
 };
 
 describe('users', () => {
-  const verifyMocked = jest.spyOn(jwt, 'verify');
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
@@ -82,7 +81,12 @@ describe('users', () => {
           try {
             bcryptMock = jest.spyOn(bcrypt, 'hash');
             const { id, resetPasswordTokenVersion } = user;
-            verifyMocked.mockImplementationOnce(() => ({ id, resetPasswordTokenVersion }));
+            jest.spyOn(verifyConfirmation, 'resetPassword')
+              .mockImplementationOnce(() => ({
+                OK: true,
+                id,
+                resetPasswordTokenVersion,
+              }));
             response = await request(app)
               .put('/users/resetPassword')
               .send({
@@ -119,41 +123,16 @@ describe('users', () => {
         });
       });
       describe('should return error 400', () => {
-        describe('if token', () => {
-          const passwords = 'Aaoudjiuvhds9!';
-          it('not found', async () => {
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password: passwords,
-                confirmPassword: passwords,
-              });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: TOKEN_NOT_FOUND,
-            });
-            expect(verifyMocked).toHaveBeenCalledTimes(0);
-          });
-          it('is not "Bearer ...', async () => {
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password: passwords,
-                confirmPassword: passwords,
-              })
-              .set('confirmation', 'token');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: WRONG_TOKEN,
-            });
-            expect(verifyMocked).toHaveBeenCalledTimes(0);
-          });
-        });
         describe('if password', () => {
           beforeEach(async (done) => {
             try {
               const { id, resetPasswordTokenVersion } = user;
-              verifyMocked.mockImplementationOnce(() => ({ id, resetPasswordTokenVersion }));
+              jest.spyOn(verifyConfirmation, 'resetPassword')
+                .mockImplementationOnce(() => ({
+                  OK: true,
+                  id,
+                  resetPasswordTokenVersion,
+                }));
             } catch (err) {
               done(err);
             }
@@ -304,7 +283,12 @@ describe('users', () => {
           beforeEach(async (done) => {
             try {
               const { id, resetPasswordTokenVersion } = user;
-              verifyMocked.mockImplementationOnce(() => ({ id, resetPasswordTokenVersion }));
+              jest.spyOn(verifyConfirmation, 'resetPassword')
+                .mockImplementationOnce(() => ({
+                  OK: true,
+                  id,
+                  resetPasswordTokenVersion,
+                }));
               done();
             } catch (err) {
               done(err);
@@ -343,25 +327,32 @@ describe('users', () => {
         });
       });
       describe('should return error 401 if', () => {
-        it('user is auth', async () => {
-          const password = 'Aaoudjiuvhds9!';
-          const agent = request.agent(app);
-          await agent
-            .get('/users/login')
-            .send({
-              password: newUser.password,
-              userNameOrEmail: user.userName,
+        describe('if token', () => {
+          const passwords = 'Aaoudjiuvhds9!';
+          it('not found', async () => {
+            const { body, status } = await request(app)
+              .put('/users/resetPassword')
+              .send({
+                password: passwords,
+                confirmPassword: passwords,
+              });
+            expect(status).toBe(401);
+            expect(body).toStrictEqual({
+              errors: TOKEN_NOT_FOUND,
             });
-          const { body, status } = await agent
-            .put('/users/resetPassword')
-            .send({
-              password,
-              confirmPassword: password,
-            })
-            .set('confirmation', 'Bearer token');
-          expect(status).toBe(401);
-          expect(body).toStrictEqual({
-            errors: USER_IS_LOGGED_IN,
+          });
+          it('is not "Bearer ...', async () => {
+            const { body, status } = await request(app)
+              .put('/users/resetPassword')
+              .send({
+                password: passwords,
+                confirmPassword: passwords,
+              })
+              .set('confirmation', 'token');
+            expect(status).toBe(401);
+            expect(body).toStrictEqual({
+              errors: WRONG_TOKEN,
+            });
           });
         });
         it('resetPasswordToken version doesn\'t match', async () => {
@@ -388,9 +379,10 @@ describe('users', () => {
       describe('should return error 404 if', () => {
         it('user not found', async () => {
           const { resetPasswordTokenVersion } = user;
-          jest.spyOn(jwt, 'verify')
+          jest.spyOn(verifyConfirmation, 'resetPassword')
             .mockImplementationOnce(() => ({
-              id: 1000,
+              OK: true,
+              id: '1000',
               resetPasswordTokenVersion,
             }));
           const { body, status } = await request(app)

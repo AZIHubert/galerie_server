@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { sign, verify } from 'jsonwebtoken';
+import { sign } from 'jsonwebtoken';
 
 import { User } from '@src/db/models';
 
@@ -8,8 +8,6 @@ import {
   sendValidateEmailMessage,
 } from '@src/helpers/email';
 import {
-  TOKEN_NOT_FOUND,
-  WRONG_TOKEN,
   WRONG_TOKEN_USER_ID,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
@@ -17,45 +15,24 @@ import {
   validatesendUpdateNewEmailSchema,
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
+import { sendEmailToken } from '@src/helpers/verifyConfirmation';
 
-const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
 
 export default async (req: Request, res: Response) => {
-  const { confirmation } = req.headers;
-  if (!confirmation) {
-    return res.status(401).send({
-      errors: TOKEN_NOT_FOUND,
+  const verify = sendEmailToken(req);
+  if (!verify.OK) {
+    return res.status(verify.status).send({
+      errors: verify.errors,
     });
-  }
-  const token = (<string>confirmation).split(' ')[1];
-  if (!token) {
-    return res.status(401).send({
-      errors: WRONG_TOKEN,
-    });
-  }
-  let id: string;
-  let emailTokenVersion: number;
-  try {
-    const verifiedToken = verify(
-      token,
-      SEND_EMAIL_SECRET,
-    ) as {
-      id: string;
-      emailTokenVersion: number;
-    };
-    id = verifiedToken.id;
-    emailTokenVersion = verifiedToken.emailTokenVersion;
-  } catch (err) {
-    return res.status(500).send(err);
   }
   const user = req.user as User;
-  if (id !== user.id) {
+  if (verify.id !== user.id) {
     return res.status(401).send({
       errors: WRONG_TOKEN_USER_ID,
     });
   }
-  if (emailTokenVersion !== user.emailTokenVersion) {
+  if (verify.emailTokenVersion !== user.emailTokenVersion) {
     return res.status(401).send({
       errors: WRONG_TOKEN_VERSION,
     });

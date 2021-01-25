@@ -20,6 +20,7 @@ import {
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import saltRounds from '@src/helpers/saltRounds';
+import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 import initApp from '@src/server';
 
 const clearDatas = async () => {
@@ -37,6 +38,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
@@ -51,12 +53,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -86,13 +89,14 @@ describe('users', () => {
             let signMocked: jest.SpyInstance;
             beforeEach(async (done) => {
               const { id, emailTokenVersion } = user;
-              jest.spyOn(jwt, 'verify')
-                .mockImplementationOnce(() => ({ id, emailTokenVersion }));
+              jest.spyOn(verifyConfirmation, 'sendEmailToken')
+                .mockImplementationOnce(() => ({ OK: true, id, emailTokenVersion }));
               emailMocked = jest.spyOn(email, 'sendValidateEmailMessage');
               signMocked = jest.spyOn(jwt, 'sign');
               try {
                 response = await agent
                   .get('/users/me/updateEmail/confirm')
+                  .set('authorization', token)
                   .set('confirmation', 'Bearer token')
                   .send({
                     email: newEmail,
@@ -118,12 +122,13 @@ describe('users', () => {
           describe('should return 400 if email', () => {
             beforeEach(() => {
               const { id, emailTokenVersion } = user;
-              jest.spyOn(jwt, 'verify')
-                .mockImplementationOnce(() => ({ id, emailTokenVersion }));
+              jest.spyOn(verifyConfirmation, 'sendEmailToken')
+                .mockImplementationOnce(() => ({ OK: true, id, emailTokenVersion }));
             });
             it('is empty', async () => {
               const { status, body } = await agent
                 .get('/users/me/updateEmail/confirm')
+                .set('authorization', token)
                 .set('confirmation', 'Bearer confirmToken')
                 .send({});
               expect(status).toBe(400);
@@ -136,6 +141,7 @@ describe('users', () => {
             it('is an empty string', async () => {
               const { status, body } = await agent
                 .get('/users/me/updateEmail/confirm')
+                .set('authorization', token)
                 .set('confirmation', 'Bearer confirmToken')
                 .send({
                   email: '',
@@ -150,6 +156,7 @@ describe('users', () => {
             it('is not a string', async () => {
               const { status, body } = await agent
                 .get('/users/me/updateEmail/confirm')
+                .set('authorization', token)
                 .set('confirmation', 'Bearer confirmToken')
                 .send({
                   email: 12345678,
@@ -164,6 +171,7 @@ describe('users', () => {
             it('is not an email', async () => {
               const { status, body } = await agent
                 .get('/users/me/updateEmail/confirm')
+                .set('authorization', token)
                 .set('confirmation', 'Bearer confirmToken')
                 .send({
                   email: 'hello world',
@@ -178,6 +186,7 @@ describe('users', () => {
             it('is the same than the old one', async () => {
               const { status, body } = await agent
                 .get('/users/me/updateEmail/confirm')
+                .set('authorization', token)
                 .set('confirmation', 'Bearer confirmToken')
                 .send({
                   email: 'user@email.com',
@@ -193,7 +202,8 @@ describe('users', () => {
           describe('should return 401 if', () => {
             it('not found', async () => {
               const { status, body } = await agent
-                .get('/users/me/updateEmail/confirm');
+                .get('/users/me/updateEmail/confirm')
+                .set('authorization', token);
               expect(status).toBe(401);
               expect(body).toStrictEqual({
                 errors: TOKEN_NOT_FOUND,
@@ -202,6 +212,7 @@ describe('users', () => {
             it('is not \'Bearer ...\'', async () => {
               const { status, body } = await agent
                 .get('/users/me/updateEmail/confirm')
+                .set('authorization', token)
                 .set('confirmation', 'token');
               expect(status).toBe(401);
               expect(body).toStrictEqual({
@@ -209,13 +220,15 @@ describe('users', () => {
               });
             });
             it('is not correct version', async () => {
-              jest.spyOn(jwt, 'verify')
+              jest.spyOn(verifyConfirmation, 'sendEmailToken')
                 .mockImplementationOnce(() => ({
+                  OK: true,
                   id: user.id,
                   emailTokenVersion: user.emailTokenVersion + 1,
                 }));
               const { status, body } = await agent
                 .get('/users/me/updateEmail/confirm')
+                .set('authorization', token)
                 .set('confirmation', 'Bearer token');
               expect(status).toBe(401);
               expect(body).toStrictEqual({
@@ -223,13 +236,15 @@ describe('users', () => {
               });
             });
             it('id and user.id are not the same', async () => {
-              jest.spyOn(jwt, 'verify')
+              jest.spyOn(verifyConfirmation, 'sendEmailToken')
                 .mockImplementationOnce(() => ({
-                  id: 10000,
+                  OK: true,
+                  id: '1000',
                   emailTokenVersion: user.emailTokenVersion,
                 }));
               const { body, status } = await agent
                 .get('/users/me/updateEmail/confirm')
+                .set('authorization', token)
                 .set('confirmation', 'Bearer token');
               expect(body).toStrictEqual({
                 errors: WRONG_TOKEN_USER_ID,

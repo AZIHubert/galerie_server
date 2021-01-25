@@ -1,10 +1,8 @@
 import { Router } from 'express';
 import socketIo from 'socket.io';
 import {
-  confirmation,
-  login,
   shouldBeAdmin,
-  shouldBeAuth,
+  // shouldBeAuth,
   shouldBeConfirmed,
   shouldBeSuperAdmin,
   shouldNotBeAuth,
@@ -46,40 +44,41 @@ import {
 const router = Router();
 
 const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
-  router.get('/', shouldBeAuth, shouldBeConfirmed, getUsers);
+  router.get('/', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, getUsers); // set token to request
   router.post('/signin/', shouldNotBeAuth, postUsersSignin);
-  router.put('/confirmation/', shouldNotBeAuth, confirmation, passport.authenticate('local'), putUsersConfirmation);
   router.get('/confirmation/resend/', shouldNotBeAuth, getUsersConfirmationResend);
-  router.get('/login/', shouldNotBeAuth, login, passport.authenticate('local'), postUsersLogin);
+  router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation); // confirmation is not a middleware anymore
+  router.get('/login/', shouldNotBeAuth, postUsersLogin);
   router.get('/resetPassword/', shouldNotBeAuth, getUsersResetPassword);
   router.get('/resetPassword/resend/', shouldNotBeAuth, getUsersResetPasswordResend);
   router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
-  router.get('/me', shouldBeAuth, shouldBeConfirmed, getUsersMe);
-  router.get('/me/updateEmail/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, shouldBeConfirmed, getUsersMeUpdateEmail);
-  router.get('/me/updateEmail/resend/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, shouldBeConfirmed, getUsersMeUpdateEmailResend);
-  router.get('/me/updateEmail/confirm/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, shouldBeConfirmed, getUsersMeUpdateEmailConfirm);
-  router.get('/me/updateEmail/confirm/resend/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, shouldBeConfirmed, getUsersMeUpdateEmailConfirmResend);
-  router.put('/me/updateEmail/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, shouldBeConfirmed, putUsersMeUpdateEmail);
-  router.put('/me/updatePassword/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, shouldBeConfirmed, putUsersMeUpdatePassword);
-  router.post('/me/profilePictures/', shouldBeAuth, shouldBeConfirmed, uploadFile, postUsersMeProfilePictures(io));
-  router.get('/me/profilePictures/', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePictures);
-  router.get('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, getUsersMeProfilePicturesId);
-  router.put('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, putUsersMeProfilePicturesId);
-  router.delete('/me/profilePictures/:id/', shouldBeAuth, shouldBeConfirmed, deleteUsersMeProfilePicturesId);
-  router.get('/logout/', shouldBeAuth, shouldBeConfirmed, getUsersLogout);
-  router.get('/id/:id', shouldBeAuth, shouldBeConfirmed, getUsersIdId);
-  router.get('/userName/:userName/', shouldBeAuth, shouldBeConfirmed, getUsersUserNameUserName);
-  router.put('/role/:id/:role', shouldBeAuth, shouldBeConfirmed, shouldBeSuperAdmin, putUsersRoleIdRole); // role should be in the body
-  router.put('/blacklist/:id', shouldBeAuth, shouldBeConfirmed, shouldBeAdmin, putUsersBlacklistId);
-  router.get('/blacklist/', shouldBeAuth, shouldBeConfirmed, shouldBeAdmin, getUsersBlackList);
+  router.get('/me', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, getUsersMe); // set token to request
+  router.get('/me/updateEmail/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, shouldBeConfirmed, getUsersMeUpdateEmail); // set token to request
+  router.get('/me/updateEmail/resend/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, shouldBeConfirmed, getUsersMeUpdateEmailResend); // set token to request
+  router.get('/me/updateEmail/confirm/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, shouldBeConfirmed, getUsersMeUpdateEmailConfirm); // set token to request
+  router.get('/me/updateEmail/confirm/resend/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, shouldBeConfirmed, getUsersMeUpdateEmailConfirmResend); // set token to request
+  router.put('/me/updateEmail/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, shouldBeConfirmed, putUsersMeUpdateEmail); // set token to request
+  router.put('/me/updatePassword/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, shouldBeConfirmed, putUsersMeUpdatePassword); // set token to request
+  router.post('/me/profilePictures/', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, uploadFile, postUsersMeProfilePictures(io)); // set token to request
+  router.get('/me/profilePictures/', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, getUsersMeProfilePictures); // set token to request
+  router.get('/me/profilePictures/:id/', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, getUsersMeProfilePicturesId); // set token to request
+  router.put('/me/profilePictures/:id/', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, putUsersMeProfilePicturesId); // set token to request
+  router.delete('/me/profilePictures/:id/', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, deleteUsersMeProfilePicturesId); // set token to request
+  router.get('/logout/', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, getUsersLogout); // set token to request
+  router.get('/id/:id', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, getUsersIdId); // set token to request
+  router.get('/userName/:userName/', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, getUsersUserNameUserName); // set token to request
+  router.put('/role/:id/:role', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, shouldBeSuperAdmin, putUsersRoleIdRole); // role should be in the body
+  router.put('/blacklist/:id', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, shouldBeAdmin, putUsersBlacklistId); // set token to request
+  router.get('/blacklist/', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, shouldBeAdmin, getUsersBlackList); // set token to request
   router.get('/oauth/google', passport.authenticate('google', {
+    session: false,
     scope: [
       'profile',
       'email',
     ],
   }));
-  router.get('/oauth/google/redirect', passport.authenticate('google'));
-  router.delete('/me', shouldBeAuth, shouldBeConfirmed, deleteUsersMe);
+  router.get('/oauth/google/redirect', passport.authenticate('google')); // set token to request
+  router.delete('/me', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, deleteUsersMe);
   return router;
 };
 export default usersRoutes;
@@ -103,3 +102,17 @@ export default usersRoutes;
 // https://www.youtube.com/watch?v=xMEOT9J0IvI&list=PLYQSCk-qyTW2ewJ05f_GKHtTIzjynDgjK&index=5&ab_channel=ZachGollwitzer
 // https://www.youtube.com/watch?v=A23O4aUftXk&t=3233s&ab_channel=RyanMichaelHirst
 // https://www.youtube.com/watch?v=SBvmnHTQIPY&ab_channel=TraversyMedia
+// after google auth, create access token
+// after auth, set to session refresh token,
+// create a route refreshToken to verify refresh token and resend access token
+
+// add middleWare verify authToken version
+// replace all shouldBeAuth strategy
+// set all authorization token
+// passport.authenticate = jest.fn((authType, options, callback) => () => {
+//  callback('This is an error', null);
+// });
+
+// demain matin, finsish changes
+// demain aprem, continue Figma enough to become react
+// demain soir, set up react/react native

@@ -29,6 +29,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
@@ -44,12 +45,13 @@ describe('users', () => {
         password: hashPassword,
         role: 'admin',
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -76,7 +78,8 @@ describe('users', () => {
             userName: 'user2',
           });
           const { body, status } = await agent
-            .get('/users/blackList/');
+            .get('/users/blackList/')
+            .set('authorization', token);
           expect(status).toBe(200);
           expect(body.length).toBe(0);
         });
@@ -98,7 +101,8 @@ describe('users', () => {
             userName: 'user2',
           });
           const { body, status } = await agent
-            .get('/users/blackList/');
+            .get('/users/blackList/')
+            .set('authorization', token);
           const [returnedUser] = body;
           expect(status).toBe(200);
           expect(body.length).toBe(1);
@@ -132,7 +136,9 @@ describe('users', () => {
             password: 'password',
             userName: 'user2',
           });
-          const { body, status } = await agent.get('/users/blackList/');
+          const { body, status } = await agent
+            .get('/users/blackList/')
+            .set('authorization', token);
           const [{ blackList }] = body;
           expect(status).toBe(200);
           expect(body.length).toBe(1);
@@ -168,8 +174,9 @@ describe('users', () => {
               userName: 'user2',
             });
             const agentTwo = request.agent(app);
-            await agentTwo
+            const { body: { token: tokenTwo } } = await agentTwo
               .get('/users/login')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 userNameOrEmail: userTwo.userName,
@@ -183,13 +190,16 @@ describe('users', () => {
               },
             } = await agentTwo
               .post('/users/me/ProfilePictures')
-              .attach('image', `${__dirname}/../../ressources/image.jpg`);
+              .attach('image', `${__dirname}/../../ressources/image.jpg`)
+              .set('authorization', tokenTwo);
             const { id: blackListId } = await BlackList.create({
               adminId: user.id,
               reason: 'black list user two',
             });
             await userTwo.update({ blackListId });
-            const { body, status } = await agent.get('/users/blackList/');
+            const { body, status } = await agent
+              .get('/users/blackList/')
+              .set('authorization', token);
             const [{ currentProfilePicture }] = body;
             expect(status).toBe(200);
             expect(currentProfilePicture.id).toBe(id);
@@ -240,7 +250,7 @@ describe('users', () => {
               userName: 'user2',
             });
             const agentTwo = request.agent(app);
-            await agentTwo
+            const { body: { token: tokenTwo } } = await agentTwo
               .get('/users/login')
               .send({
                 password: newUser.password,
@@ -248,13 +258,16 @@ describe('users', () => {
               });
             await agentTwo
               .post('/users/me/ProfilePictures')
+              .set('authorization', tokenTwo)
               .attach('image', `${__dirname}/../../ressources/image.jpg`);
             const { id: blackListId } = await BlackList.create({
               adminId: user.id,
               reason: 'black list user two',
             });
             await userTwo.update({ blackListId });
-            const { body: [returnedUser], status } = await agent.get('/users/blackList/');
+            const { body: [returnedUser], status } = await agent
+              .get('/users/blackList/')
+              .set('authorization', token);
             expect(status).toBe(200);
             expect(returnedUser.currentProfilePicture.cropedImage.signedUrl).not.toBeNull();
             expect(returnedUser.currentProfilePicture.originalImage.signedUrl).not.toBeNull();

@@ -54,6 +54,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
@@ -68,12 +69,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -95,7 +97,8 @@ describe('users', () => {
         describe('should return status 200 and', () => {
           it('not find himself', async () => {
             const { body, status } = await agent
-              .get('/users/userName/user');
+              .get('/users/userName/user')
+              .set('authorization', token);
             expect(status).toBe(200);
             expect(body.length).toBe(0);
           });
@@ -106,7 +109,8 @@ describe('users', () => {
               password: 'password',
             });
             const { body, status } = await agent
-              .get('/users/userName/user');
+              .get('/users/userName/user')
+              .set('authorization', token);
             expect(status).toBe(200);
             expect(body.length).toBe(0);
           });
@@ -123,7 +127,8 @@ describe('users', () => {
               userName: 'user2',
             });
             const { body, status } = await agent
-              .get('/users/userName/user');
+              .get('/users/userName/user')
+              .set('authorization', token);
             expect(status).toBe(200);
             expect(body.length).toBe(0);
           });
@@ -135,7 +140,8 @@ describe('users', () => {
               confirmed: true,
             });
             const { body, status } = await agent
-              .get('/users/userName/user');
+              .get('/users/userName/user')
+              .set('authorization', token);
             expect(status).toBe(200);
             expect(body.length).toBe(1);
           });
@@ -153,7 +159,8 @@ describe('users', () => {
               confirmed: true,
             });
             const { body, status } = await agent
-              .get('/users/userName/user');
+              .get('/users/userName/user')
+              .set('authorization', token);
             expect(status).toBe(200);
             expect(body.length).toBe(2);
           });
@@ -165,7 +172,8 @@ describe('users', () => {
               confirmed: true,
             });
             const { body, status } = await agent
-              .get('/users/userName/user');
+              .get('/users/userName/user')
+              .set('authorization', token);
             expect(status).toBe(200);
             expect(body.length).toBe(1);
           });
@@ -181,7 +189,8 @@ describe('users', () => {
               confirmed: true,
             });
             const { body, status } = await agent
-              .get('/users/userName/user');
+              .get('/users/userName/user')
+              .set('authorization', token);
             const [returnedUser] = body;
             expect(status).toBe(200);
             expect(body.length).toBe(1);
@@ -213,7 +222,7 @@ describe('users', () => {
                 userName: 'user3',
               });
               const agentTwo = request.agent(app);
-              await agentTwo
+              const { body: { token: tokenTwo } } = await agentTwo
                 .get('/users/login')
                 .send({
                   password: newUser.password,
@@ -228,9 +237,11 @@ describe('users', () => {
                 },
               } = await agentTwo
                 .post('/users/me/ProfilePictures')
+                .set('authorization', tokenTwo)
                 .attach('image', `${__dirname}/../../ressources/image.jpg`);
               const { body: [{ currentProfilePicture }], status } = await agent
-                .get(`/users/userName/${userTwo.userName}`);
+                .get(`/users/userName/${userTwo.userName}`)
+                .set('authorization', token);
               expect(status).toBe(200);
               expect(currentProfilePicture.id).toBe(id);
               expect(currentProfilePicture.createdAt).toBeUndefined();
@@ -280,69 +291,23 @@ describe('users', () => {
                 userName: 'user3',
               });
               const agentTwo = request.agent(app);
-              await agentTwo.get('/users/login')
+              const { body: { token: tokenTwo } } = await agentTwo.get('/users/login')
                 .send({
                   password: newUser.password,
                   userNameOrEmail: userTwo.userName,
                 });
               await agentTwo.post('/users/me/ProfilePictures')
+                .set('authorization', tokenTwo)
                 .attach('image', `${__dirname}/../../ressources/image.jpg`);
               const { body: [{ currentProfilePicture }], status } = await agent
-                .get(`/users/userName/${userTwo.userName}`);
+                .get(`/users/userName/${userTwo.userName}`)
+                .set('authorization', token);
               expect(status).toBe(200);
               expect(currentProfilePicture.cropedImage.signedUrl).not.toBeNull();
               expect(currentProfilePicture.originalImage.signedUrl).not.toBeNull();
               expect(currentProfilePicture.pendingImage.signedUrl).not.toBeNull();
             });
           });
-          // it('include current profile pictures with relevent attributes,
-          // original/croped/pending image and signed urls', async () => {
-          //   const user = await User.create({
-          //     ...newUser,
-          //     confirmed: true,
-          //   });
-          //   const userTwo = await User.create({
-          //     userName: 'user2',
-          //     email: 'user2@email.com',
-          //     password: 'password',
-          //     confirmed: true,
-          //   });
-          //   await User.create({
-          //     userName: 'user3',
-          //     email: 'user3@email.com',
-          //     password: 'password',
-          //     confirmed: true,
-          //   });
-          //   const {
-          //     body: {
-          //       id,
-          //       originalImage: { id: originalImageId },
-          //       cropedImage: { id: cropedImageId },
-          //       pendingImage: { id: pendingImageId },
-          //     },
-          //   } = await request(app)
-          //     .post('/users/me/ProfilePictures')
-          //     .attach('image', `${__dirname}/../../ressources/image.jpg`);
-          //   const { body, status } = await request(app)
-          //     .get('/users/userName/user');
-          //   expect(status).toBe(200);
-          //   expect(body.length).toBe(2);
-          //   expect(body[0].currentProfilePicture).toBeNull();
-          //   expect(body[1].currentProfilePicture.id).toBe(id);
-          //   expect(body[1].currentProfilePicture.userId).toBeUndefined();
-          //   expect(body[1].currentProfilePicture.originalImageId).toBeUndefined();
-          //   expect(body[1].currentProfilePicture.cropedImageId).toBeUndefined();
-          //   expect(body[1].currentProfilePicture.pendingImageId).toBeUndefined();
-          //   expect(body[1].currentProfilePicture.createdAt).toBeUndefined();
-          //   expect(body[1].currentProfilePicture.updatedAt).toBeUndefined();
-          //   expect(body[1].currentProfilePicture.deletedAt).toBeUndefined();
-          //   expect(body[1].currentProfilePicture.originalImage.id).toBe(originalImageId);
-          //   expect(body[1].currentProfilePicture.cropedImage.id).toBe(cropedImageId);
-          //   expect(body[1].currentProfilePicture.pendingImage.id).toBe(pendingImageId);
-          //   expect(body[1].currentProfilePicture.originalImage.signedUrl).not.toBeNull();
-          //   expect(body[1].currentProfilePicture.cropedImage.signedUrl).not.toBeNull();
-          //   expect(body[1].currentProfilePicture.pendingImage.signedUrl).not.toBeNull();
-          // });
         });
       });
     });

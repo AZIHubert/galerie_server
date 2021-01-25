@@ -35,6 +35,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     app = initApp();
     sequelize = initSequelize();
@@ -49,12 +50,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -84,6 +86,7 @@ describe('users', () => {
             hashMocked = jest.spyOn(bcrypt, 'hash');
             response = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 updatedPassword,
@@ -121,6 +124,7 @@ describe('users', () => {
           it('is not sent', async () => {
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 confirmUpdatedPassword: updatedPassword,
                 updatedPassword,
@@ -135,6 +139,7 @@ describe('users', () => {
           it('is empty', async () => {
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: '',
                 confirmUpdatedPassword: updatedPassword,
@@ -152,6 +157,7 @@ describe('users', () => {
           it('and confirmed password are not send', async () => {
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
               });
@@ -167,6 +173,7 @@ describe('users', () => {
             const updatedPassword = 12345;
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 updatedPassword,
@@ -183,6 +190,7 @@ describe('users', () => {
             const updatedPassword = '';
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 updatedPassword,
@@ -199,6 +207,7 @@ describe('users', () => {
             const updatedPassword = 'Aa8!';
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 updatedPassword,
@@ -215,6 +224,7 @@ describe('users', () => {
             const updatedPassword = `Ac9!${'a'.repeat(31)}`;
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 updatedPassword,
@@ -231,6 +241,7 @@ describe('users', () => {
             const updatedPassword = 'aaoudjiuvhds9!';
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 updatedPassword,
@@ -247,6 +258,7 @@ describe('users', () => {
             const updatedPassword = 'AAOUDJIUVHDS9!';
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 updatedPassword,
@@ -263,6 +275,7 @@ describe('users', () => {
             const updatedPassword = 'Aaoudjiuvhds!';
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 updatedPassword,
@@ -279,6 +292,7 @@ describe('users', () => {
             const updatedPassword = 'Aaoudjiuvhds9';
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 updatedPassword,
@@ -296,6 +310,7 @@ describe('users', () => {
           it('is not set', async () => {
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 updatedPassword: 'Aaoudjiuvhds0!',
@@ -310,6 +325,7 @@ describe('users', () => {
           it('is not the same than updatedPassword', async () => {
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 updatedPassword: 'Aaoudjiuvhds9!',
@@ -328,6 +344,7 @@ describe('users', () => {
             const updatedPassword = 'Aaoudjiuvhds9!';
             const { status, body } = await agent
               .put('/users/me/updatePassword')
+              .set('authorization', token)
               .send({
                 password: 'wrongPassword',
                 updatedPassword,
@@ -340,38 +357,6 @@ describe('users', () => {
               },
             });
           });
-        });
-      });
-      describe('should return error 500 if', () => {
-        it('bcrypt fail to compare passwords', async () => {
-          const updatedPassword = 'Aaoudjiuvhds9!';
-          jest.spyOn(bcrypt, 'compare')
-            .mockImplementationOnce(() => {
-              throw new Error('something went wrong');
-            });
-          const { status } = await agent
-            .put('/users/me/updatePassword')
-            .send({
-              password: newUser.password,
-              updatedPassword,
-              confirmUpdatedPassword: updatedPassword,
-            });
-          expect(status).toBe(500);
-        });
-        it('bcrypt fail to hash updated password', async () => {
-          const updatedPassword = 'Aaoudjiuvhds9!';
-          jest.spyOn(bcrypt, 'hash')
-            .mockImplementationOnce(() => {
-              throw new Error('something went wrong');
-            });
-          const { status } = await agent
-            .put('/users/me/updatePassword')
-            .send({
-              password: newUser.password,
-              updatedPassword,
-              confirmUpdatedPassword: updatedPassword,
-            });
-          expect(status).toBe(500);
         });
       });
     });

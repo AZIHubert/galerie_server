@@ -5,4 +5,5 @@ dist
 .env.test
 .env.development
 googleApi.json
-id_rsa_priv.pem
+id_rsa_priv.authToken.pem
+id_rsa_priv.refreshToken.pem

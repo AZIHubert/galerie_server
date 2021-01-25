@@ -49,6 +49,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     app = initApp();
     sequelize = initSequelize();
@@ -63,12 +64,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -97,12 +99,17 @@ describe('users', () => {
                   originalImage,
                   pendingImage,
                 },
-              } = await agent.post('/users/me/ProfilePictures')
+              } = await agent
+                .post('/users/me/ProfilePictures')
+                .set('authorization', token)
                 .attach('image', `${__dirname}/../../ressources/image.jpg`);
-              await agent.post('/users/me/ProfilePictures')
+              await agent
+                .post('/users/me/ProfilePictures')
+                .set('authorization', token)
                 .attach('image', `${__dirname}/../../ressources/image.jpg`);
               const { body, status } = await agent
-                .put(`/users/me/profilePictures/${id}`);
+                .put(`/users/me/profilePictures/${id}`)
+                .set('authorization', token);
               expect(status).toBe(200);
               expect(body.id).toBe(id);
               expect(body.createdAt).toBeUndefined();
@@ -146,12 +153,15 @@ describe('users', () => {
             it('return signed urls if changed', async () => {
               const { body: { id } } = await agent
                 .post('/users/me/ProfilePictures')
+                .set('authorization', token)
                 .attach('image', `${__dirname}/../../ressources/image.jpg`);
               await agent
                 .post('/users/me/ProfilePictures')
+                .set('authorization', token)
                 .attach('image', `${__dirname}/../../ressources/image.jpg`);
               const { body, status } = await agent
-                .put(`/users/me/profilePictures/${id}`);
+                .put(`/users/me/profilePictures/${id}`)
+                .set('authorization', token);
               expect(status).toBe(200);
               expect(body.originalImage.signedUrl).not.toBeNull();
               expect(body.cropedImage.signedUrl).not.toBeNull();
@@ -160,10 +170,12 @@ describe('users', () => {
             it('delete current profile picture if params.id is the same than the current one', async () => {
               const { body: { id } } = await agent
                 .post('/users/me/ProfilePictures')
+                .set('authorization', token)
                 .attach('image', `${__dirname}/../../ressources/image.jpg`);
               await user.update({ currentProfilePictureId: id });
               const { status } = await agent
-                .put(`/users/me/profilePictures/${id}`);
+                .put(`/users/me/profilePictures/${id}`)
+                .set('authorization', token);
               await user.reload();
               expect(status).toBe(200);
               expect(user.currentProfilePictureId).toBeNull();
@@ -172,7 +184,8 @@ describe('users', () => {
           describe('should return status 404 if', () => {
             it('profile picture id not found', async () => {
               const { body, status } = await agent
-                .put('/users/me/profilePictures/1');
+                .put('/users/me/profilePictures/1')
+                .set('authorization', token);
               expect(status).toBe(404);
               expect(body).toStrictEqual({
                 errors: 'profile picture not found',

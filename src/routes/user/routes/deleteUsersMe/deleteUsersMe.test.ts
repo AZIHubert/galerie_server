@@ -52,6 +52,7 @@ describe('users', () => {
   let app: Server;
   let user: User;
   let agent: request.SuperAgentTest;
+  let token: string;
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
@@ -67,12 +68,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -80,7 +82,7 @@ describe('users', () => {
   });
   afterAll(async (done) => {
     try {
-      // await cleanDatas();
+      await cleanDatas();
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -94,6 +96,7 @@ describe('users', () => {
         it('delete user', async () => {
           const { status } = await agent
             .delete('/users/me/')
+            .set('authorization', token)
             .send({ password: newUser.password });
           const users = await User.findAll();
           expect(status).toBe(204);
@@ -104,6 +107,7 @@ describe('users', () => {
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')
+            .set('authorization', token)
             .send({ password: newUser.password });
           const profilePictures = await ProfilePicture.findAll();
           expect(status).toBe(204);
@@ -114,6 +118,7 @@ describe('users', () => {
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')
+            .set('authorization', token)
             .send({ password: newUser.password });
           const originalImage = await Image.findAll({
             where: {
@@ -128,6 +133,7 @@ describe('users', () => {
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')
+            .set('authorization', token)
             .send({ password: newUser.password });
           const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
           expect(status).toBe(204);
@@ -138,6 +144,7 @@ describe('users', () => {
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')
+            .set('authorization', token)
             .send({ password: newUser.password });
           const cropedImages = await Image.findAll({
             where: {
@@ -152,6 +159,7 @@ describe('users', () => {
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')
+            .set('authorization', token)
             .send({ password: newUser.password });
           const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
           expect(status).toBe(204);
@@ -162,6 +170,7 @@ describe('users', () => {
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')
+            .set('authorization', token)
             .send({ password: newUser.password });
           const pendingImages = await Image.findAll({
             where: {
@@ -176,6 +185,7 @@ describe('users', () => {
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')
+            .set('authorization', token)
             .send({ password: newUser.password });
           const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
           expect(status).toBe(204);
@@ -190,16 +200,18 @@ describe('users', () => {
             userName: 'user2',
           });
           const agentTwo = request.agent(app);
-          await agentTwo
+          const { body: { token: tokenTwo } } = await agentTwo
             .get('/users/login')
             .send({
               password: newUser.password,
               userNameOrEmail: userTwo.userName,
             });
           await agentTwo.post('/users/me/ProfilePictures')
+            .set('authorization', tokenTwo)
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')
+            .set('authorization', token)
             .send({ password: newUser.password });
           const profilePictures = await ProfilePicture.findAll();
           const images = await Image.findAll();
@@ -216,6 +228,7 @@ describe('users', () => {
         it('logout', async () => {
           const { status } = await agent
             .delete('/users/me/')
+            .set('authorization', token)
             .send({ password: newUser.password });
           expect(status).toBe(204);
         });
@@ -223,7 +236,8 @@ describe('users', () => {
       describe('should return status 400', () => {
         it('password not send', async () => {
           const { body, status } = await agent
-            .delete('/users/me/');
+            .delete('/users/me/')
+            .set('authorization', token);
           expect(status).toBe(400);
           expect(body).toStrictEqual({
             errors: {
@@ -234,6 +248,7 @@ describe('users', () => {
         it('password dosen\'t match', async () => {
           const { body, status } = await agent
             .delete('/users/me/')
+            .set('authorization', token)
             .send({ password: 'wrongPassword' });
           expect(status).toBe(400);
           expect(body).toStrictEqual({

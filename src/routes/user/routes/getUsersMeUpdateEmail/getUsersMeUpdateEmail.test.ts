@@ -33,6 +33,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     app = initApp();
     sequelize = initSequelize();
@@ -47,12 +48,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -79,7 +81,9 @@ describe('users', () => {
             try {
               const emailMock = jest.spyOn(email, 'sendUpdateEmailMessage');
               const signMock = jest.spyOn(jwt, 'sign');
-              const { status } = await agent.get('/users/me/updateEmail/')
+              const { status } = await agent
+                .get('/users/me/updateEmail/')
+                .set('authorization', token)
                 .send({
                   password: newUser.password,
                 });
@@ -97,6 +101,7 @@ describe('users', () => {
             it('is not set', async () => {
               const { status, body } = await agent
                 .get('/users/me/updateEmail')
+                .set('authorization', token)
                 .send({});
               expect(status).toBe(400);
               expect(body).toStrictEqual({
@@ -108,6 +113,7 @@ describe('users', () => {
             it('is not a string', async () => {
               const { status, body } = await agent
                 .get('/users/me/updateEmail')
+                .set('authorization', token)
                 .send({
                   password: 123456,
                 });
@@ -121,6 +127,7 @@ describe('users', () => {
             it('is empty', async () => {
               const { status, body } = await agent
                 .get('/users/me/updateEmail')
+                .set('authorization', token)
                 .send({
                   password: '',
                 });
@@ -134,6 +141,7 @@ describe('users', () => {
             it('not match user password', async () => {
               const { status, body } = await agent
                 .get('/users/me/updateEmail')
+                .set('authorization', token)
                 .send({
                   password: 'wrongPassword',
                 });

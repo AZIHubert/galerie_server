@@ -1,6 +1,5 @@
 import bcrypt from 'bcrypt';
 import { Server } from 'http';
-// import jwt from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
 import request from 'supertest';
 
@@ -8,12 +7,8 @@ import '@src/helpers/initEnv';
 
 import User from '@src/db/models/user';
 import {
-  // NOT_AUTHENTICATED,
-  // NOT_CONFIRMED,
   NOT_SUPER_ADMIN,
   USER_NOT_FOUND,
-  // WRONG_TOKEN,
-  // WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import saltRounds from '@src/helpers/saltRounds';
@@ -34,6 +29,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
@@ -49,12 +45,13 @@ describe('users', () => {
         password: hashPassword,
         role: 'superAdmin',
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -85,7 +82,8 @@ describe('users', () => {
               });
               const { id, role } = userTwo;
               const { status } = await agent
-                .put(`/users/role/${id}/${role}`);
+                .put(`/users/role/${id}/${role}`)
+                .set('authorization', token);
               await userTwo.reload();
               expect(status).toBe(204);
               expect(userTwo.role).toBe('user');
@@ -100,12 +98,14 @@ describe('users', () => {
               });
               const { id } = userTwo;
               const { status: adminStatus } = await agent
-                .put(`/users/role/${id}/admin`);
+                .put(`/users/role/${id}/admin`)
+                .set('authorization', token);
               await userTwo.reload();
               expect(adminStatus).toBe(204);
               expect(userTwo.role).toBe('admin');
               const { status: superAdminStatus } = await agent
-                .put(`/users/role/${id}/superAdmin`);
+                .put(`/users/role/${id}/superAdmin`)
+                .set('authorization', token);
               await userTwo.reload();
               expect(superAdminStatus).toBe(204);
               expect(userTwo.role).toBe('superAdmin');
@@ -121,7 +121,8 @@ describe('users', () => {
                 role: 'user',
               });
               const { body, status } = await agent
-                .put(`/users/role/${id}/wrongRole`);
+                .put(`/users/role/${id}/wrongRole`)
+                .set('authorization', token);
               expect(status).toBe(400);
               expect(body).toStrictEqual({
                 errors: 'role should be admin or superAdmin',
@@ -136,7 +137,8 @@ describe('users', () => {
                 role: 'user',
               });
               const { body, status } = await agent
-                .put(`/users/role/${id}/user`);
+                .put(`/users/role/${id}/user`)
+                .set('authorization', token);
               expect(status).toBe(400);
               expect(body).toStrictEqual({
                 errors: 'role should not be user',
@@ -144,7 +146,8 @@ describe('users', () => {
             });
             it(':id is the same as current one', async () => {
               const { body, status } = await agent
-                .put(`/users/role/${user.id}/superAdmin`);
+                .put(`/users/role/${user.id}/superAdmin`)
+                .set('authorization', token);
               expect(status).toBe(400);
               expect(body).toStrictEqual({
                 errors: 'you can\'t modify your role yourself',
@@ -159,7 +162,8 @@ describe('users', () => {
                 role: 'superAdmin',
               });
               const { body, status } = await agent
-                .put(`/users/role/${id}/superAdmin`);
+                .put(`/users/role/${id}/superAdmin`)
+                .set('authorization', token);
               expect(status).toBe(400);
               expect(body).toStrictEqual({
                 errors: 'user is already a super admin',
@@ -184,14 +188,15 @@ describe('users', () => {
                 role: 'superAdmin',
               });
               const agentTwo = request.agent(app);
-              await agentTwo
+              const { body: { token: tokenTwo } } = await agentTwo
                 .get('/users/login')
                 .send({
                   password: newUser.password,
                   userNameOrEmail: userTwo.userName,
                 });
               const { body, status } = await agentTwo
-                .put(`/users/role/${id}/admin`);
+                .put(`/users/role/${id}/admin`)
+                .set('authorization', tokenTwo);
               expect(status).toBe(401);
               expect(body).toStrictEqual({
                 errors: NOT_SUPER_ADMIN,
@@ -213,14 +218,16 @@ describe('users', () => {
                 role: 'superAdmin',
               });
               const agentTwo = request.agent(app);
-              await agentTwo
+              const { body: { token: tokenTwo } } = await agentTwo
                 .get('/users/login')
+                .set('authorization', token)
                 .send({
                   password: newUser.password,
                   userNameOrEmail: userTwo.userName,
                 });
               const { body, status } = await agentTwo
-                .put(`/users/role/${id}/admin`);
+                .put(`/users/role/${id}/admin`)
+                .set('authorization', tokenTwo);
               expect(status).toBe(401);
               expect(body).toStrictEqual({
                 errors: NOT_SUPER_ADMIN,
@@ -230,7 +237,8 @@ describe('users', () => {
           describe('should return status 404 if', () => {
             it('user :id not found', async () => {
               const { body, status } = await agent
-                .put('/users/role/1000/superAdmin');
+                .put('/users/role/1000/superAdmin')
+                .set('authorization', token);
               expect(status).toBe(404);
               expect(body).toStrictEqual({
                 errors: USER_NOT_FOUND,
@@ -243,7 +251,8 @@ describe('users', () => {
                 password: 'password',
               });
               const { body, status } = await agent
-                .put(`/users/role/${id}/superAdmin`);
+                .put(`/users/role/${id}/superAdmin`)
+                .set('authorization', token);
               expect(status).toBe(404);
               expect(body).toStrictEqual({
                 errors: USER_NOT_FOUND,

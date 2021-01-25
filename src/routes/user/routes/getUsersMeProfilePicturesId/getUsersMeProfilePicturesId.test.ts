@@ -49,6 +49,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
@@ -63,12 +64,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -95,8 +97,11 @@ describe('users', () => {
               beforeEach(async (done) => {
                 try {
                   postResponse = await agent.post('/users/me/ProfilePictures')
+                    .set('authorization', token)
                     .attach('image', `${__dirname}/../../ressources/image.jpg`);
-                  getResponse = await agent.get(`/users/me/profilePictures/${postResponse.body.id}`);
+                  getResponse = await agent
+                    .get(`/users/me/profilePictures/${postResponse.body.id}`)
+                    .set('authorization', token);
                 } catch (err) {
                   done(err);
                 }
@@ -162,7 +167,9 @@ describe('users', () => {
             });
             describe('should return status 404 if', () => {
               it('profile picture id not found', async () => {
-                const { body, status } = await agent.get('/users/me/profilePictures/1');
+                const { body, status } = await agent
+                  .get('/users/me/profilePictures/1')
+                  .set('authorization', token);
                 expect(status).toBe(404);
                 expect(body).toStrictEqual({
                   errors: 'profile picture not found',

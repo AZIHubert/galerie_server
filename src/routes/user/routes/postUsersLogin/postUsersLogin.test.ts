@@ -55,7 +55,7 @@ describe('users', () => {
   });
   describe('login', () => {
     describe('POST', () => {
-      describe('should return status 204', () => {
+      describe('should return status 200', () => {
         it('set cookie', async () => {
           const { headers, status } = await request(app)
             .get('/users/login')
@@ -63,8 +63,19 @@ describe('users', () => {
               password: newUser.password,
               userNameOrEmail: user.userName,
             });
-          expect(status).toBe(204);
+          expect(status).toBe(200);
           expect(headers['set-cookie'][0]).toMatch(/sid=/);
+        });
+        it('return token', async () => {
+          const { body, status } = await request(app)
+            .get('/users/login')
+            .send({
+              password: newUser.password,
+              userNameOrEmail: user.userName,
+            });
+          expect(status).toBe(200);
+          expect(typeof body.token).toBe('string');
+          expect(body.expiresIn).toBe('1d');
         });
       });
     });

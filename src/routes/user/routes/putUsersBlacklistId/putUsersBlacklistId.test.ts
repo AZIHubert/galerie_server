@@ -35,6 +35,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
@@ -50,12 +51,13 @@ describe('users', () => {
         password: hashPassword,
         role: 'superAdmin',
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -89,7 +91,8 @@ describe('users', () => {
               blackListId,
             });
             const { status } = await agent
-              .put(`/users/blackList/${userTwo.id}`);
+              .put(`/users/blackList/${userTwo.id}`)
+              .set('authorization', token);
             await userTwo.reload();
             const blackLists = await BlackList.findAll();
             expect(status).toBe(204);
@@ -107,6 +110,7 @@ describe('users', () => {
             }, { include: [{ model: BlackList }] });
             const { status } = await agent
               .put(`/users/blackList/${userTwo.id}`)
+              .set('authorization', token)
               .send({ reason });
             await userTwo.reload();
             expect(status).toBe(204);
@@ -127,6 +131,7 @@ describe('users', () => {
             }, { include: [{ model: BlackList }] });
             const { status } = await agent
               .put(`/users/blackList/${userTwo.id}`)
+              .set('authorization', token)
               .send({ reason, time });
             await userTwo.reload();
             expect(status).toBe(204);
@@ -154,6 +159,7 @@ describe('users', () => {
             it('not send', async () => {
               const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
+                .set('authorization', token)
                 .send({});
               expect(status).toBe(400);
               expect(body).toStrictEqual({
@@ -165,6 +171,7 @@ describe('users', () => {
             it('empty', async () => {
               const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
+                .set('authorization', token)
                 .send({ reason: '' });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
@@ -176,6 +183,7 @@ describe('users', () => {
             it('not a string', async () => {
               const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
+                .set('authorization', token)
                 .send({ reason: 1234567890 });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
@@ -187,6 +195,7 @@ describe('users', () => {
             it('less than 10 characters', async () => {
               const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
+                .set('authorization', token)
                 .send({ reason: 'aaaaaaa a' });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
@@ -198,6 +207,7 @@ describe('users', () => {
             it('more than 200 characters', async () => {
               const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
+                .set('authorization', token)
                 .send({ reason: 'a'.repeat(201) });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
@@ -212,6 +222,7 @@ describe('users', () => {
             it('is not a number', async () => {
               const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
+                .set('authorization', token)
                 .send({ reason, time: 'time' });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
@@ -223,6 +234,7 @@ describe('users', () => {
             it('is less than 10mn', async () => {
               const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
+                .set('authorization', token)
                 .send({ reason, time: 1000 * 60 * 9 });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
@@ -234,6 +246,7 @@ describe('users', () => {
             it('is more than 1 year', async () => {
               const { body, status } = await agent
                 .put(`/users/blackList/${userTwo.id}`)
+                .set('authorization', token)
                 .send({ reason, time: 1000 * 60 * 60 * 24 * 365 * 2 });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
@@ -247,7 +260,8 @@ describe('users', () => {
         describe('should return status 401 if', () => {
           it('user.id and :id are the same', async () => {
             const { body, status } = await agent
-              .put(`/users/blackList/${user.id}`);
+              .put(`/users/blackList/${user.id}`)
+              .set('authorization', token);
             expect(status).toBe(401);
             expect(body).toStrictEqual({
               errors: 'you can\'t put your account on the black list',
@@ -270,14 +284,16 @@ describe('users', () => {
               userName: 'user3',
             });
             const agentTwo = request.agent(app);
-            await agentTwo
+            const { body: { token: tokenTwo } } = await agentTwo
               .get('/users/login')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 userNameOrEmail: userThree.userName,
               });
             const { body, status } = await agentTwo
-              .put(`/users/blackList/${id}`);
+              .put(`/users/blackList/${id}`)
+              .set('authorization', tokenTwo);
             expect(status).toBe(401);
             expect(body).toStrictEqual({
               errors: 'you can black listed a super admin',
@@ -300,14 +316,16 @@ describe('users', () => {
               userName: 'user3',
             });
             const agentTwo = request.agent(app);
-            await agentTwo
+            const { body: { token: tokenTwo } } = await agentTwo
               .get('/users/login')
+              .set('authorization', token)
               .send({
                 password: newUser.password,
                 userNameOrEmail: userThree.userName,
               });
             const { body, status } = await agentTwo
-              .put(`/users/blackList/${id}`);
+              .put(`/users/blackList/${id}`)
+              .set('authorization', tokenTwo);
             expect(status).toBe(401);
             expect(body).toStrictEqual({
               errors: 'you can black listed an admin',
@@ -323,6 +341,7 @@ describe('users', () => {
             });
             const { body, status } = await agent
               .put(`/users/blackList/${userTwo.id}`)
+              .set('authorization', token)
               .send({ reason: 'black list user' });
             expect(status).toBe(404);
             expect(body).toStrictEqual({
@@ -331,7 +350,8 @@ describe('users', () => {
           });
           it('user :id not found', async () => {
             const { body, status } = await agent
-              .put('/users/blackList/1000');
+              .put('/users/blackList/1000')
+              .set('authorization', token);
             expect(status).toBe(404);
             expect(body).toStrictEqual({
               errors: USER_NOT_FOUND,

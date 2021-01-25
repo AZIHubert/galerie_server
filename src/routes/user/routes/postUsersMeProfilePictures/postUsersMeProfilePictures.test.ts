@@ -52,6 +52,7 @@ describe('users', () => {
   let socket: Socket;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll((done) => {
     app = initApp().listen(PORT);
     socket = io(`http://127.0.0.1:${PORT}`);
@@ -68,12 +69,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -106,6 +108,7 @@ describe('users', () => {
             try {
               response = await agent
                 .post('/users/me/ProfilePictures')
+                .set('authorization', token)
                 .attach('image', `${__dirname}/../../ressources/image.jpg`);
               profilePictures = await ProfilePicture.findAll({
                 where: { userId: user.id },
@@ -227,6 +230,7 @@ describe('users', () => {
             });
             await agent
               .post('/users/me/ProfilePictures')
+              .set('authorization', token)
               .attach('image', `${__dirname}/../../ressources/image.jpg`);
             expect(finalPercentage).toBe(1);
             if (finalPercentage === 1) done();
@@ -235,7 +239,8 @@ describe('users', () => {
         describe('should return error 400 if', () => {
           it('image is not attached', async () => {
             const { body, status } = await agent
-              .post('/users/me/ProfilePictures');
+              .post('/users/me/ProfilePictures')
+              .set('authorization', token);
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: {
@@ -246,6 +251,7 @@ describe('users', () => {
           it('attached file\'s name is not \'image\'', async () => {
             const { body, status } = await agent
               .post('/users/me/ProfilePictures')
+              .set('authorization', token)
               .attach('file', `${__dirname}/../../ressources/image.jpg`);
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -255,6 +261,7 @@ describe('users', () => {
           it('multiple files are attached', async () => {
             const { body, status } = await agent
               .post('/users/me/ProfilePictures')
+              .set('authorization', token)
               .attach('image', `${__dirname}/../../ressources/image.jpg`)
               .attach('image', `${__dirname}/../../ressources/image.jpg`);
             expect(status).toBe(400);
@@ -265,6 +272,7 @@ describe('users', () => {
           it('attached file is not jpg/jpeg/png', async () => {
             const { body, status } = await agent
               .post('/users/me/ProfilePictures')
+              .set('authorization', token)
               .attach('image', `${__dirname}/../../ressources/text.txt`);
             expect(status).toBe(400);
             expect(body).toStrictEqual({

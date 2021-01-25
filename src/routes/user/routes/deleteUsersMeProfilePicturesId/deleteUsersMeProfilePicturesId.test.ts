@@ -50,6 +50,7 @@ describe('users', () => {
   let app: Server;
   let user: User;
   let agent: request.SuperAgentTest;
+  let token: string;
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
@@ -65,12 +66,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -93,25 +95,33 @@ describe('users', () => {
           describe('should return status 200 and', () => {
             it('do not remove current PP if it isn\'t the current one', async () => {
               const { body: { id } } = await agent.post('/users/me/ProfilePictures')
+                .set('authorization', token)
                 .attach('image', `${__dirname}/../../ressources/image.jpg`);
               const postResponse = await agent.post('/users/me/ProfilePictures')
+                .set('authorization', token)
                 .attach('image', `${__dirname}/../../ressources/image.jpg`);
               const { body: { id: currentId } } = postResponse;
-              const { status } = await agent.delete(`/users/me/profilePictures/${id}`);
+              const { status } = await agent
+                .delete(`/users/me/profilePictures/${id}`)
+                .set('authorization', token);
               await user.reload();
               expect(status).toBe(200);
               expect(user.currentProfilePictureId).toBe(currentId);
               await agent
-                .delete(`/users/me/profilePictures/${currentId}`);
+                .delete(`/users/me/profilePictures/${currentId}`)
+                .set('authorization', token);
             });
             let deleteResponse: request.Response;
             let postResponse: request.Response;
             beforeEach(async (done) => {
               try {
                 postResponse = await agent.post('/users/me/ProfilePictures')
+                  .set('authorization', token)
                   .attach('image', `${__dirname}/../../ressources/image.jpg`);
                 const { body: { id } } = postResponse;
-                deleteResponse = await agent.delete(`/users/me/profilePictures/${id}`);
+                deleteResponse = await agent
+                  .delete(`/users/me/profilePictures/${id}`)
+                  .set('authorization', token);
               } catch (err) {
                 done(err);
               }
@@ -167,7 +177,9 @@ describe('users', () => {
 
           describe('should return status 404 if', () => {
             it('profile picture id not found', async () => {
-              const { body, status } = await agent.delete('/users/me/profilePictures/1');
+              const { body, status } = await agent
+                .delete('/users/me/profilePictures/1')
+                .set('authorization', token);
               expect(status).toBe(404);
               expect(body).toStrictEqual({
                 errors: 'profile picture not found',

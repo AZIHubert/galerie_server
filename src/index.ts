@@ -32,3 +32,11 @@ initSequelize(() => {
 //
 //
 // change currentProfilePicture user field to currentProfilePictureId
+
+// const expires = moment().add(responseObj.expiresIn)
+// localStorage.setItem('token', token);
+// localStorage.setItem('expires', JSON.stringify(expires.valueOf()))
+// if expire => /users/refreshToken
+// const expiresAt = JSON.parse(localStorage.getItem('exipires))
+//
+// if(!moment().isBefore(moment(expiresAt))) => /users/refreshToken

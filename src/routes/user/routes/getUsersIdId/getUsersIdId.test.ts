@@ -58,6 +58,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     app = initApp();
     sequelize = initSequelize();
@@ -72,12 +73,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -105,7 +107,9 @@ describe('users', () => {
               password: hashPassword,
               userName: 'user3',
             });
-            const { body, status } = await agent.get(`/users/id/${id}`);
+            const { body, status } = await agent
+              .get(`/users/id/${id}`)
+              .set('authorization', token);
             expect(status).toBe(200);
             expect(typeof body.createdAt).toBe('string');
             expect(body.defaultProfilePicture).toBeNull();
@@ -139,15 +143,19 @@ describe('users', () => {
                   userName: 'user2',
                 });
                 const agentTwo = request.agent(app);
-                await agentTwo.get('/users/login')
+                const { body: { token: tokenTwo } } = await agentTwo
+                  .get('/users/login')
                   .send({
                     password: newUser.password,
                     userNameOrEmail: userTwo.userName,
                   });
                 postResponse = await agentTwo
                   .post('/users/me/ProfilePictures')
+                  .set('authorization', tokenTwo)
                   .attach('image', `${__dirname}/../../ressources/image.jpg`);
-                getResponse = await agent.get(`/users/id/${userTwo.id}`);
+                getResponse = await agent
+                  .get(`/users/id/${userTwo.id}`)
+                  .set('authorization', token);
               } catch (err) {
                 done(err);
               }
@@ -214,7 +222,9 @@ describe('users', () => {
         });
         describe('should return status 400 if', () => {
           it('params.id is the same than the current one', async () => {
-            const { body, status } = await agent.get(`/users/id/${user.id}`);
+            const { body, status } = await agent
+              .get(`/users/id/${user.id}`)
+              .set('authorization', token);
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: 'params.id is the same as your current one',
@@ -223,7 +233,9 @@ describe('users', () => {
         });
         describe('should return status 404 if', () => {
           it('user params.id not found', async () => {
-            const { body, status } = await agent.get('/users/id/1000');
+            const { body, status } = await agent
+              .get('/users/id/1000')
+              .set('authorization', token);
             expect(status).toBe(404);
             expect(body).toStrictEqual({
               errors: USER_NOT_FOUND,
@@ -235,7 +247,9 @@ describe('users', () => {
               email: 'user2@email.com',
               password: 'password',
             });
-            const { body, status } = await agent.get(`/users/id/${id}`);
+            const { body, status } = await agent
+              .get(`/users/id/${id}`)
+              .set('authorization', token);
             expect(status).toBe(404);
             expect(body).toStrictEqual({
               errors: USER_NOT_FOUND,
@@ -253,7 +267,9 @@ describe('users', () => {
               confirmed: true,
               blackListId,
             });
-            const { body, status } = await agent.get(`/users/id/${id}`);
+            const { body, status } = await agent
+              .get(`/users/id/${id}`)
+              .set('authorization', token);
             expect(status).toBe(404);
             expect(body).toStrictEqual({
               errors: USER_NOT_FOUND,

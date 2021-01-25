@@ -31,6 +31,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     app = initApp();
     sequelize = initSequelize();
@@ -45,12 +46,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -82,6 +84,7 @@ describe('users', () => {
               signMocked = jest.spyOn(jwt, 'sign');
               response = await agent
                 .get('/users/me/updateEmail/resend')
+                .set('authorization', token)
                 .send({
                   password: newUser.password,
                 });
@@ -108,6 +111,7 @@ describe('users', () => {
             it('password not send', async () => {
               const { body, status } = await agent
                 .get('/users/me/updateEmail/resend')
+                .set('authorization', token)
                 .send({});
               expect(status).toBe(400);
               expect(body).toStrictEqual({
@@ -117,6 +121,7 @@ describe('users', () => {
             it('passwords not match', async () => {
               const { body, status } = await agent
                 .get('/users/me/updateEmail/resend')
+                .set('authorization', token)
                 .send({
                   password: 'wrongPassword',
                 });

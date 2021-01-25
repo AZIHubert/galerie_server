@@ -7,9 +7,6 @@ import '@src/helpers/initEnv';
 
 import { User } from '@src/db/models';
 
-import {
-  NOT_AUTHENTICATED,
-} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
@@ -29,6 +26,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     app = initApp();
     sequelize = initSequelize();
@@ -43,11 +41,12 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent.get('/users/login')
+      const { body } = await agent.get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -67,18 +66,10 @@ describe('users', () => {
     describe('GET', () => {
       describe('should return status 204 and', () => {
         it('logout', async () => {
-          const { status } = await agent.get('/users/logout');
+          const { status } = await agent
+            .get('/users/logout')
+            .set('authorization', token);
           expect(status).toBe(204);
-        });
-      });
-      describe('should return status 401 and', () => {
-        it('be logout', async () => {
-          await agent.get('/users/logout');
-          const { body, status } = await agent.get('/users/logout');
-          expect(status).toBe(401);
-          expect(body).toStrictEqual({
-            errors: NOT_AUTHENTICATED,
-          });
         });
       });
     });

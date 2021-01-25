@@ -48,6 +48,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     app = initApp();
     sequelize = initSequelize();
@@ -62,12 +63,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -88,7 +90,9 @@ describe('users', () => {
       describe('GET', () => {
         describe('should return status 200 and', () => {
           it('get an empty array', async () => {
-            const { body, status } = await agent.get('/users/me/profilePictures');
+            const { body, status } = await agent
+              .get('/users/me/profilePictures')
+              .set('authorization', token);
             expect(status).toBe(200);
             expect(body.length).toBe(0);
           });
@@ -97,9 +101,13 @@ describe('users', () => {
             let postResponse: request.Response;
             beforeEach(async (done) => {
               try {
-                postResponse = await agent.post('/users/me/ProfilePictures')
+                postResponse = await agent
+                  .post('/users/me/ProfilePictures')
+                  .set('authorization', token)
                   .attach('image', `${__dirname}/../../ressources/image.jpg`);
-                getResponse = await agent.get('/users/me/profilePictures');
+                getResponse = await agent
+                  .get('/users/me/profilePictures')
+                  .set('authorization', token);
               } catch (err) {
                 done(err);
               }

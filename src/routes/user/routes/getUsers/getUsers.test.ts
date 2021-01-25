@@ -55,6 +55,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
@@ -69,12 +70,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -94,7 +96,9 @@ describe('users', () => {
     describe('should return status 200 and', () => {
       describe('get all users', () => {
         it('exept current', async () => {
-          const { body, status } = await agent.get('/users');
+          const { body, status } = await agent
+            .get('/users')
+            .set('authorization', token);
           expect(body.length).toBe(0);
           expect(status).toBe(200);
         });
@@ -105,7 +109,9 @@ describe('users', () => {
             password: 'password',
             userName: 'user3',
           });
-          const { body, status } = await agent.get('/users');
+          const { body, status } = await agent
+            .get('/users')
+            .set('authorization', token);
           expect(body.length).toBe(0);
           expect(status).toBe(200);
         });
@@ -121,7 +127,9 @@ describe('users', () => {
             password: 'password',
             userName: 'user2',
           });
-          const { body, status } = await agent.get('/users');
+          const { body, status } = await agent
+            .get('/users')
+            .set('authorization', token);
           expect(body.length).toBe(0);
           expect(status).toBe(200);
         });
@@ -132,7 +140,9 @@ describe('users', () => {
             password: 'password',
             userName: 'user2',
           });
-          const { body, status } = await agent.get('/users');
+          const { body, status } = await agent
+            .get('/users')
+            .set('authorization', token);
           expect(body.length).toBe(1);
           expect(status).toBe(200);
         });
@@ -147,7 +157,9 @@ describe('users', () => {
             password: 'password',
             userName: 'user2',
           });
-          const { body, status } = await agent.get('/users');
+          const { body, status } = await agent
+            .get('/users')
+            .set('authorization', token);
           const [returnedUser] = body;
           expect(status).toBe(200);
           expect(body.length).toBe(1);
@@ -180,7 +192,7 @@ describe('users', () => {
             userName: 'user3',
           });
           const agentTwo = request.agent(app);
-          await agentTwo
+          const { body: { token: tokenTow } } = await agentTwo
             .get('/users/login')
             .send({
               password: newUser.password,
@@ -195,8 +207,11 @@ describe('users', () => {
             },
           } = await agentTwo
             .post('/users/me/ProfilePictures')
+            .set('authorization', tokenTow)
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
-          const { body: [{ currentProfilePicture }], status } = await agent.get('/users');
+          const { body: [{ currentProfilePicture }], status } = await agent
+            .get('/users')
+            .set('authorization', token);
           expect(status).toBe(200);
           expect(currentProfilePicture.id).toBe(id);
           expect(currentProfilePicture.createdAt).toBeUndefined();
@@ -246,14 +261,18 @@ describe('users', () => {
             userName: 'user3',
           });
           const agentTwo = request.agent(app);
-          await agentTwo.get('/users/login')
+          const { body: { token: tokenTwo } } = await agentTwo
+            .get('/users/login')
             .send({
               password: newUser.password,
               userNameOrEmail: userTwo.userName,
             });
           await agentTwo.post('/users/me/ProfilePictures')
+            .set('authorization', tokenTwo)
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
-          const { body: [{ currentProfilePicture }], status } = await agent.get('/users');
+          const { body: [{ currentProfilePicture }], status } = await agent
+            .get('/users')
+            .set('authorization', token);
           expect(status).toBe(200);
           expect(currentProfilePicture.cropedImage.signedUrl).not.toBeNull();
           expect(currentProfilePicture.originalImage.signedUrl).not.toBeNull();

@@ -1,63 +1,34 @@
 import { compare } from 'bcrypt';
 import { Request, Response } from 'express';
-import { verify } from 'jsonwebtoken';
 
-import accEnv from '@src/helpers/accEnv';
 import User from '@root/src/db/models/user';
 import {
   FIELD_IS_REQUIRED,
-  TOKEN_NOT_FOUND,
   WRONG_PASSWORD,
-  WRONG_TOKEN,
   WRONG_TOKEN_USER_ID,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
-
-const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
+import { updateEmailToken } from '@src/helpers/verifyConfirmation';
 
 export default async (req: Request, res: Response) => {
-  const { confirmation } = req.headers;
-  if (!confirmation) {
-    return res.status(401).send({
-      errors: TOKEN_NOT_FOUND,
+  const verify = updateEmailToken(req);
+  if (!verify.OK) {
+    return res.status(verify.status).send({
+      errors: verify.errors,
     });
-  }
-  const token = (<string>confirmation).split(' ')[1];
-  if (!token) {
-    return res.status(401).send({
-      errors: WRONG_TOKEN,
-    });
-  }
-  let id: string;
-  let updatedEmailTokenVersion: number;
-  let updatedEmail: string;
-  try {
-    const verifiedToken = verify(
-      token,
-      UPDATE_EMAIL_SECRET,
-    ) as {
-      id: string;
-      updatedEmailTokenVersion: number;
-      updatedEmail: string;
-    };
-    id = verifiedToken.id;
-    updatedEmailTokenVersion = verifiedToken.updatedEmailTokenVersion;
-    updatedEmail = verifiedToken.updatedEmail;
-  } catch (err) {
-    return res.status(500).send(err);
   }
   const user = req.user as User;
-  if (id !== user.id) {
+  if (verify.id !== user.id) {
     return res.status(401).send({
       errors: WRONG_TOKEN_USER_ID,
     });
   }
-  if (updatedEmailTokenVersion !== user.updatedEmailTokenVersion) {
+  if (verify.updatedEmailTokenVersion !== user.updatedEmailTokenVersion) {
     return res.status(401).send({
       errors: WRONG_TOKEN_VERSION,
     });
   }
-  if (!updatedEmail) {
+  if (!verify.updatedEmail) {
     return res.status(401).send({
       errors: 'updated email not found',
     });
@@ -84,9 +55,8 @@ export default async (req: Request, res: Response) => {
     });
   }
   try {
-    const updatedUser = await User.findByPk(id);
-    await updatedUser!.update({ email: updatedEmail });
-    await updatedUser!.increment({
+    await user.update({ email: verify.updatedEmail });
+    await user.increment({
       authTokenVersion: 1,
       updatedEmailTokenVersion: 1,
     });

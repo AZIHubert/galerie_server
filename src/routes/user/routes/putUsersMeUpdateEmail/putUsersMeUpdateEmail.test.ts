@@ -1,6 +1,5 @@
 import { hash } from 'bcrypt';
 import { Server } from 'http';
-import jwt from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
 import request from 'supertest';
 
@@ -16,6 +15,7 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import saltRounds from '@src/helpers/saltRounds';
+import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 import initApp from '@src/server';
 
 const clearDatas = async () => {
@@ -34,6 +34,7 @@ describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+  let token: string;
   beforeAll(() => {
     app = initApp();
     sequelize = initSequelize();
@@ -48,12 +49,13 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      await agent
+      const { body } = await agent
         .get('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
         });
+      token = body.token;
     } catch (err) {
       done(err);
     }
@@ -80,11 +82,17 @@ describe('users', () => {
           let response: request.Response;
           beforeEach(async (done) => {
             const { id, updatedEmailTokenVersion } = user;
-            jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({ id, updatedEmailTokenVersion, updatedEmail }));
+            jest.spyOn(verifyConfirmation, 'updateEmailToken')
+              .mockImplementationOnce(() => ({
+                OK: true,
+                id,
+                updatedEmailTokenVersion,
+                updatedEmail,
+              }));
             try {
               response = await agent
                 .put('/users/me/updateEmail')
+                .set('authorization', token)
                 .set('confirmation', 'Bearer token')
                 .send({ password: newUser.password });
             } catch (err) {
@@ -109,14 +117,16 @@ describe('users', () => {
         describe('should return error 400 if', () => {
           it('if passwords not match', async () => {
             const { id, updatedEmailTokenVersion } = user;
-            jest.spyOn(jwt, 'verify')
+            jest.spyOn(verifyConfirmation, 'updateEmailToken')
               .mockImplementationOnce(() => ({
+                OK: true,
                 id,
                 updatedEmailTokenVersion,
                 updatedEmail,
               }));
             const { body, status } = await agent
               .put('/users/me/updateEmail')
+              .set('authorization', token)
               .set('confirmation', 'Bearer token')
               .send({
                 password: 'wrongPassword',
@@ -130,14 +140,16 @@ describe('users', () => {
           });
           it('if password not send', async () => {
             const { id, updatedEmailTokenVersion } = user;
-            jest.spyOn(jwt, 'verify')
+            jest.spyOn(verifyConfirmation, 'updateEmailToken')
               .mockImplementationOnce(() => ({
+                OK: true,
                 id,
                 updatedEmailTokenVersion,
                 updatedEmail,
               }));
             const { body, status } = await agent
               .put('/users/me/updateEmail')
+              .set('authorization', token)
               .set('confirmation', 'Bearer token')
               .send({});
             expect(status).toBe(400);
@@ -149,27 +161,18 @@ describe('users', () => {
           });
         });
         describe('should return error 401 if', () => {
-          it('if updatedEmail is not found in token', async () => {
-            const { id, updatedEmailTokenVersion } = user;
-            jest.spyOn(jwt, 'verify')
-              .mockImplementationOnce(() => ({ id, updatedEmailTokenVersion }));
-            const { body, status } = await agent
-              .put('/users/me/updateEmail')
-              .set('confirmation', 'Bearer token');
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: 'updated email not found',
-            });
-          });
           it('updatedEmailTokenVersion is not the same as current user updatedEmailTokenVersion', async () => {
             const { id, updatedEmailTokenVersion } = user;
-            jest.spyOn(jwt, 'verify')
+            jest.spyOn(verifyConfirmation, 'updateEmailToken')
               .mockImplementationOnce(() => ({
+                OK: true,
                 id,
                 updatedEmailTokenVersion: updatedEmailTokenVersion + 1,
+                updatedEmail,
               }));
             const { body, status } = await agent
               .put('/users/me/updateEmail')
+              .set('authorization', token)
               .set('confirmation', 'Bearer token');
             expect(status).toBe(401);
             expect(body).toStrictEqual({
@@ -179,7 +182,8 @@ describe('users', () => {
           describe('confirmation token is not', () => {
             it('set', async () => {
               const { body, status } = await agent
-                .put('/users/me/updateEmail');
+                .put('/users/me/updateEmail')
+                .set('authorization', token);
               expect(status).toBe(401);
               expect(body).toStrictEqual({
                 errors: TOKEN_NOT_FOUND,
@@ -188,6 +192,7 @@ describe('users', () => {
             it('\'Bearer ...\'', async () => {
               const { body, status } = await agent
                 .put('/users/me/updateEmail')
+                .set('authorization', token)
                 .set('confirmation', 'token');
               expect(status).toBe(401);
               expect(body).toStrictEqual({

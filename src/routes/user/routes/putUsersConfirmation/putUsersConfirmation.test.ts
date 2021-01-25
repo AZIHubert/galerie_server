@@ -10,7 +10,6 @@ import { User } from '@src/db/models';
 import accEnv from '@src/helpers/accEnv';
 import {
   ALREADY_CONFIRMED,
-  USER_IS_LOGGED_IN,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -63,7 +62,7 @@ describe('users', () => {
 
   describe('confirmation', () => {
     describe('PUT', () => {
-      describe('should return status 204 and', () => {
+      describe('should return status 200 and', () => {
         let jwtMock: jest.SpyInstance;
         let response: request.Response;
         beforeEach(async (done) => {
@@ -89,17 +88,24 @@ describe('users', () => {
           const { status } = response;
           const { confirmTokenVersion } = user;
           await user.reload();
-          expect(status).toBe(204);
+          expect(status).toBe(200);
           expect(user.confirmTokenVersion).toBe(confirmTokenVersion + 1);
         });
         it('confirm his email and send access/refresh token', async () => {
           const { status, headers } = response;
           await user.reload();
-          expect(status).toBe(204);
+          expect(status).toBe(200);
           expect(jwtMock).toHaveBeenCalledTimes(1);
           expect(jwtMock).toHaveBeenCalledWith('token', CONFIRM_SECRET);
           expect(user.confirmed).toBe(true);
           expect(headers).toHaveProperty('set-cookie');
+          expect(headers['set-cookie'][0]).toMatch(/sid=/);
+        });
+        it('return a token', async () => {
+          const { body, status } = response;
+          expect(status).toBe(200);
+          expect(typeof body.token).toBe('string');
+          expect(body.expiresIn).toBe('1d');
         });
       });
       describe('should return error 401 if', () => {
@@ -115,23 +121,6 @@ describe('users', () => {
             done(err);
           }
           done();
-        });
-        it('user is already authenticated', async () => {
-          const { id, confirmTokenVersion } = user;
-          jest.spyOn(jwt, 'verify')
-            .mockImplementationOnce(() => ({ id, confirmTokenVersion }));
-          await agent
-            .get('/users/login')
-            .send({
-              password: newUser.password,
-              userNameOrEmail: user.userName,
-            });
-          const { body, status } = await agent.put('/users/confirmation')
-            .set('confirmation', 'Bearer token');
-          expect(status).toBe(401);
-          expect(body).toStrictEqual({
-            errors: USER_IS_LOGGED_IN,
-          });
         });
         it('user is already confirmed', async () => {
           const { id, confirmTokenVersion } = user;
