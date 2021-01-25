@@ -12,7 +12,7 @@ import {
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
-import isseJWT from '@src/helpers/issueJWT';
+import issueJWT from '@src/helpers/issueJWT';
 
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 
@@ -72,7 +72,7 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     res.status(500).send(err);
   }
-  const jwt = isseJWT(user);
+  const jwt = issueJWT(user);
   auth(req, user);
   return res.status(200).send({ token: jwt.token, expiresIn: jwt.expires });
 };

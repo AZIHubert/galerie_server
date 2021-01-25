@@ -12,7 +12,7 @@ import {
   USER_NOT_FOUND,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
-import isseJWT from '@src/helpers/issueJWT';
+import issueJWT from '@src/helpers/issueJWT';
 import {
   validateLogIn,
   normalizeJoiErrors,
@@ -70,7 +70,7 @@ export default async (req: Request, res: Response) => {
       },
     });
   }
-  const jwt = isseJWT(user);
+  const jwt = issueJWT(user);
   auth(req, user);
   return res.status(200).send({ token: jwt.token, expiresIn: jwt.expires });
 };

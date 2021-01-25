@@ -41,14 +41,6 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('i
     allowNull: true,
     type: DataTypes.DATE,
   },
-  userId: {
-    allowNull: false,
-    references: {
-      key: 'id',
-      model: 'users',
-    },
-    type: DataTypes.BIGINT,
-  },
 }, {
   charset: 'utf8',
 });

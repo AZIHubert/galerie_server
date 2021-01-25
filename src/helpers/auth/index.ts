@@ -7,6 +7,12 @@ import { User } from '@src/db/models';
 
 const PRIV_KEY = fs.readFileSync(path.join('./id_rsa_priv.refreshToken.pem'));
 
+declare module 'express-session' {
+  export interface SessionData {
+    refreshToken: string;
+  }
+}
+
 const issueToken = ({ id, authTokenVersion }: User) => {
   const payload = {
     sub: id,

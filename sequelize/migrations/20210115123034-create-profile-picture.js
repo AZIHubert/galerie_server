@@ -33,6 +33,22 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('p
     },
     type: DataTypes.BIGINT,
   },
+  cropedImageId: {
+    allowNull: false,
+    references: {
+      key: 'id',
+      model: 'image',
+    },
+    type: DataTypes.BIGINT,
+  },
+  pendingImageId: {
+    allowNull: false,
+    references: {
+      key: 'id',
+      model: 'image',
+    },
+    type: DataTypes.BIGINT,
+  },
 }, {
   charset: 'utf8',
 });

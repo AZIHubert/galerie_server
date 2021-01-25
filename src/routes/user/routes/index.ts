@@ -12,6 +12,7 @@ export { default as getUsersMeUpdateEmailConfirm } from './getUsersMeUpdateEmail
 export { default as getUsersMeUpdateEmailConfirmResend } from './getUsersMeUpdateEmailConfirmResend';
 export { default as getUsersMeUpdateEmail } from './getUsersMeUpdateEmail';
 export { default as getUsersMeUpdateEmailResend } from './getUsersMeUpdateEmailResend';
+export { default as getUsersOauthGoogleRedirect } from './getUsersOauthGoogleRedirect';
 export { default as getUsersResetPassword } from './getUsersResetPassword';
 export { default as getUsersResetPasswordResend } from './getUsersResetPasswordResend';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';

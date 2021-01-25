@@ -19,6 +19,7 @@ import {
   getUsersConfirmationResend,
   getUsersIdId,
   getUsersLogout,
+  getUsersOauthGoogleRedirect,
   getUsersMe,
   getUsersMeProfilePictures,
   getUsersMeProfilePicturesId,
@@ -44,7 +45,7 @@ import {
 const router = Router();
 
 const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
-  router.get('/', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, getUsers); // set token to request
+  router.get('/', passport.authenticate('jwt'), shouldBeConfirmed, getUsers); // set token to request
   router.post('/signin/', shouldNotBeAuth, postUsersSignin);
   router.get('/confirmation/resend/', shouldNotBeAuth, getUsersConfirmationResend);
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation); // confirmation is not a middleware anymore
@@ -77,7 +78,7 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
       'email',
     ],
   }));
-  router.get('/oauth/google/redirect', passport.authenticate('google')); // set token to request
+  router.get('/oauth/google/redirect', passport.authenticate('google', { session: false }), getUsersOauthGoogleRedirect); // set token to request
   router.delete('/me', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, deleteUsersMe);
   return router;
 };
