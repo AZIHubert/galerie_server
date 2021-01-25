@@ -7,6 +7,7 @@ import { User } from '@src/db/models';
 
 import GoogleStrategy from './google';
 import LocalStrategy from './local';
+import FacebookStrategy from './facebook';
 
 passport.serializeUser((user, done) => {
   const currentUser = user as User;
@@ -50,6 +51,7 @@ const strategy = new JwtStrategy(options, async (payload, done) => {
 
 passport.use(strategy);
 passport.use('google', GoogleStrategy);
+passport.use('facebook', FacebookStrategy);
 passport.use('local', LocalStrategy);
 
 export default passport;

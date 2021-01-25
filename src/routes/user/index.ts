@@ -19,6 +19,7 @@ import {
   getUsersConfirmationResend,
   getUsersIdId,
   getUsersLogout,
+  getUsersOauthFacebookRedirect,
   getUsersOauthGoogleRedirect,
   getUsersMe,
   getUsersMeProfilePictures,
@@ -78,7 +79,14 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
       'email',
     ],
   }));
-  router.get('/oauth/google/redirect', passport.authenticate('google', { session: false }), getUsersOauthGoogleRedirect); // set token to request
+  router.get('/oauth/google/redirect', passport.authenticate('google', { session: false }), getUsersOauthGoogleRedirect);
+  router.get('/oauth/facebook', passport.authenticate('facebook', {
+    session: false,
+    scope: [
+      'email',
+    ],
+  }));
+  router.get('/oauth/facebook/redirect', passport.authenticate('facebook', { session: false }), getUsersOauthFacebookRedirect);
   router.delete('/me', passport.authenticate('jwt', { session: false }), shouldBeConfirmed, deleteUsersMe);
   return router;
 };

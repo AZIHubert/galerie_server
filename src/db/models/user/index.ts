@@ -69,6 +69,11 @@ export default class User extends Model implements UserI {
   @Column({
     type: DataType.STRING,
   })
+  facebookId!: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
   defaultProfilePicture!: string;
 
   @Default(false)

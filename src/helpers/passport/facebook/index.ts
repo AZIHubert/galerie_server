@@ -1,29 +1,29 @@
 import { Op } from 'sequelize';
-
 import User from '@src/db/models/user';
 
-import pgo from 'passport-google-oauth';
+import pf from 'passport-facebook';
 
 import accEnv from '@src/helpers/accEnv';
 import {
   USER_IS_BLACK_LISTED,
 } from '@src/helpers/errorMessages';
 
-const GOOGLE_CLIENT_ID = accEnv('GOOGLE_CLIENT_ID');
-const GOOGLE_SECRET = accEnv('GOOGLE_SECRET');
-const GOOGLE_CALLBACK_URL = accEnv('GOOGLE_CALLBACK_URL');
+const FACEBOOK_CLIENT_ID = accEnv('FACEBOOK_CLIENT_ID');
+const FACEBOOK_SECRET = accEnv('FACEBOOK_SECRET');
+const FACEBOOK_CALLBACK_URL = accEnv('FACEBOOK_CALLBACK_URL');
 
-const GoogleStrategy = pgo.OAuth2Strategy;
+const FacebookStrategy = pf.Strategy;
 
-export default new GoogleStrategy({
-  clientID: GOOGLE_CLIENT_ID,
-  clientSecret: GOOGLE_SECRET,
-  callbackURL: GOOGLE_CALLBACK_URL,
+export default new FacebookStrategy({
+  clientID: FACEBOOK_CLIENT_ID,
+  clientSecret: FACEBOOK_SECRET,
+  callbackURL: FACEBOOK_CALLBACK_URL,
+  profileFields: ['id', 'displayName', 'emails', 'photos'],
 }, async (_accessToken, _refreshToken, {
-  id: googleId,
-  displayName,
+  id: facebookId,
   emails,
   photos,
+  displayName,
 }, done) => {
   try {
     const email = emails ? emails[0].value : null;
@@ -31,7 +31,7 @@ export default new GoogleStrategy({
     const user = await User.findOne({
       where: {
         [Op.or]: [
-          { googleId },
+          { facebookId },
           { email },
         ],
       },
@@ -41,7 +41,7 @@ export default new GoogleStrategy({
         userName: displayName.replace(/ /g, ''),
         email,
         confirmed: true,
-        googleId,
+        facebookId,
         defaultProfilePicture,
       });
       return done(null, newUser);
@@ -50,6 +50,9 @@ export default new GoogleStrategy({
       return done({
         errors: USER_IS_BLACK_LISTED,
       });
+    }
+    if (!user.facebookId) {
+      await user.update({ facebookId });
     }
     if (
       email !== user.email
