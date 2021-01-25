@@ -1,4 +1,5 @@
 import { Op } from 'sequelize';
+
 import User from '@src/db/models/user';
 
 import pf from 'passport-facebook';
@@ -28,17 +29,31 @@ export default new FacebookStrategy({
   try {
     const email = emails ? emails[0].value : null;
     const defaultProfilePicture = photos ? photos[0].value : null;
-    const user = await User.findOne({
-      where: {
-        [Op.or]: [
-          { facebookId },
-          { email },
-        ],
-      },
-    });
+    let userEmail: User | null;
+    if (email) {
+      userEmail = await User.findOne({
+        where: {
+          email,
+          facebookId: {
+            [Op.not]: facebookId,
+          },
+        },
+      });
+      if (userEmail) {
+        if (userEmail.googleId) {
+          return done(null, false, {
+            message: 'you\'re email is already used for a google account',
+          });
+        }
+        return done(null, false, {
+          message: 'you\'re email is already used',
+        });
+      }
+    }
+    const user = await User.findOne({ where: { facebookId } });
     if (!user) {
       const newUser = await User.create({
-        userName: displayName.replace(/ /g, ''),
+        userName: `${displayName.replace(/ /g, '')}F`,
         email,
         confirmed: true,
         facebookId,
@@ -47,17 +62,12 @@ export default new FacebookStrategy({
       return done(null, newUser);
     }
     if (user.blackListId) {
-      return done({
-        errors: USER_IS_BLACK_LISTED,
+      return done(null, false, {
+        message: USER_IS_BLACK_LISTED,
       });
     }
-    if (!user.facebookId) {
-      await user.update({ facebookId });
-    }
-    if (
-      email !== user.email
-      || defaultProfilePicture !== user.defaultProfilePicture
-    ) {
+    if (email !== user.email
+      || defaultProfilePicture !== user.defaultProfilePicture) {
       await user.update({ email, defaultProfilePicture });
     }
     return done(null, user);

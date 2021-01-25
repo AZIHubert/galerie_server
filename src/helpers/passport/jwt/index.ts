@@ -25,5 +25,11 @@ export default new JwtStrategy(options, async (payload, done) => {
   if (!user) {
     return done(null, false);
   }
+  if (user.authTokenVersion !== payload.authTokenVersion) {
+    return done(null, false);
+  }
+  if (!user.confirmed) {
+    return done(null, false);
+  }
   return done(null, user);
 });

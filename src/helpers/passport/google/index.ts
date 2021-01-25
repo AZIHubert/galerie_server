@@ -28,17 +28,31 @@ export default new GoogleStrategy({
   try {
     const email = emails ? emails[0].value : null;
     const defaultProfilePicture = photos ? photos[0].value : null;
-    const user = await User.findOne({
-      where: {
-        [Op.or]: [
-          { googleId },
-          { email },
-        ],
-      },
-    });
+    let userEmail: User | null;
+    if (email) {
+      userEmail = await User.findOne({
+        where: {
+          email,
+          facebookId: {
+            [Op.not]: googleId,
+          },
+        },
+      });
+      if (userEmail) {
+        if (userEmail.facebookId) {
+          return done(null, false, {
+            message: 'you\'re email is already used for a facebook account',
+          });
+        }
+        return done(null, false, {
+          message: 'you\'re email is already used',
+        });
+      }
+    }
+    const user = await User.findOne({ where: { googleId } });
     if (!user) {
       const newUser = await User.create({
-        userName: displayName.replace(/ /g, ''),
+        userName: `${displayName.replace(/ /g, '')}G`,
         email,
         confirmed: true,
         googleId,
