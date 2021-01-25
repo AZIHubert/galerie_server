@@ -2,6 +2,8 @@ import { Router } from 'express';
 import socketIo from 'socket.io';
 
 import {
+  facebookAuthentication,
+  googleAuthentication,
   shouldBeAdmin,
   shouldBeSuperAdmin,
   shouldNotBeAuth,
@@ -69,8 +71,8 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/logout/', passport.authenticate('jwt', { session: false }), getUsersLogout);
   router.get('/id/:id', passport.authenticate('jwt', { session: false }), getUsersIdId);
   router.get('/userName/:userName/', passport.authenticate('jwt', { session: false }), getUsersUserNameUserName);
-  router.put('/role/:id/:role', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, putUsersRoleIdRole);
-  router.put('/blacklist/:id', passport.authenticate('jwt', { session: false }), shouldBeAdmin, putUsersBlacklistId);
+  router.put('/role/:id/', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, putUsersRoleIdRole);
+  router.put('/blacklist/:id/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, putUsersBlacklistId);
   router.get('/blacklist/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, getUsersBlackList);
   router.get('/oauth/google', passport.authenticate('google', {
     session: false,
@@ -79,32 +81,14 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
       'email',
     ],
   }));
-  router.get('/oauth/google/redirect', (req, res, next) => {
-    passport.authenticate('google', { session: false }, (_err, _user, info) => {
-      if (info) {
-        return res.status(401).send({
-          errors: info.message,
-        });
-      }
-      return next();
-    })(req, res, next);
-  }, getUsersOauthGoogleRedirect);
+  router.get('/oauth/google/redirect', googleAuthentication, getUsersOauthGoogleRedirect);
   router.get('/oauth/facebook', passport.authenticate('facebook', {
     session: false,
     scope: [
       'email',
     ],
   }));
-  router.get('/oauth/facebook/redirect', (req, res, next) => {
-    passport.authenticate('facebook', { session: false }, (_err, _user, info) => {
-      if (info) {
-        return res.status(401).send({
-          errors: info.message,
-        });
-      }
-      return next();
-    })(req, res, next);
-  }, getUsersOauthFacebookRedirect);
+  router.get('/oauth/facebook/redirect', facebookAuthentication, getUsersOauthFacebookRedirect);
   router.delete('/me', passport.authenticate('jwt', { session: false }), deleteUsersMe);
   router.get('/refreshToken', passport.authenticate('jwt', { session: false }), getUsersRefreshToken);
   return router;

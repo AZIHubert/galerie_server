@@ -25,54 +25,66 @@ export default new GoogleStrategy({
   emails,
   photos,
 }, done) => {
-  try {
-    const email = emails ? emails[0].value : null;
-    const defaultProfilePicture = photos ? photos[0].value : null;
-    let userEmail: User | null;
-    if (email) {
+  const email = emails ? emails[0].value : null;
+  const defaultProfilePicture = photos ? photos[0].value : null;
+  let userEmail: User | null;
+  if (email) {
+    try {
       userEmail = await User.findOne({
         where: {
           email,
-          facebookId: {
-            [Op.not]: googleId,
-          },
+          [Op.or]: [
+            {
+              googleId: {
+                [Op.not]: googleId,
+              },
+            },
+            {
+              googleId: null,
+            },
+          ],
         },
       });
-      if (userEmail) {
-        if (userEmail.facebookId) {
-          return done(null, false, {
-            message: 'you\'re email is already used for a facebook account',
-          });
-        }
+    } catch (err) {
+      return done(err, false);
+    }
+    if (userEmail) {
+      if (userEmail.facebookId) {
         return done(null, false, {
-          message: 'you\'re email is already used',
+          message: 'you\'re email is already used for a facebook account',
         });
       }
-    }
-    const user = await User.findOne({ where: { googleId } });
-    if (!user) {
-      const newUser = await User.create({
-        userName: `${displayName.replace(/ /g, '')}G`,
-        email,
-        confirmed: true,
-        googleId,
-        defaultProfilePicture,
-      });
-      return done(null, newUser);
-    }
-    if (user.blackListId) {
-      return done({
-        errors: USER_IS_BLACK_LISTED,
+      return done(null, false, {
+        message: 'you\'re email is already used',
       });
     }
-    if (
-      email !== user.email
-      || defaultProfilePicture !== user.defaultProfilePicture
-    ) {
-      await user.update({ email, defaultProfilePicture });
-    }
-    return done(null, user);
-  } catch (err) {
-    return done(err);
   }
+  let user: User | null;
+  try {
+    user = await User.findOne({ where: { googleId } });
+  } catch (err) {
+    return done(err, false);
+  }
+  if (!user) {
+    const newUser = await User.create({
+      userName: `${displayName.replace(/ /g, '')}G`,
+      email,
+      confirmed: true,
+      googleId,
+      defaultProfilePicture,
+    });
+    return done(null, newUser);
+  }
+  if (user.blackListId) {
+    return done({
+      errors: USER_IS_BLACK_LISTED,
+    });
+  }
+  if (
+    email !== user.email
+      || defaultProfilePicture !== user.defaultProfilePicture
+  ) {
+    await user.update({ email, defaultProfilePicture });
+  }
+  return done(null, user);
 });

@@ -2,11 +2,18 @@ import { Request, Response } from 'express';
 
 import { User } from '@src/db/models';
 import {
+  FIELD_IS_REQUIRED,
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 
 export default async (req: Request, res: Response) => {
-  const { role, id } = req.params;
+  const { id } = req.params;
+  const { role } = req.body;
+  if (!role) {
+    return res.status(400).send({
+      errors: FIELD_IS_REQUIRED,
+    });
+  }
   const currentUser = req.user as User;
   const { id: userId } = currentUser;
   if (id === userId) {
