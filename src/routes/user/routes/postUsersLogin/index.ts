@@ -4,7 +4,7 @@ import { Op } from 'sequelize';
 
 import { User } from '@src/db/models';
 
-import setRefreshToken from '@root/src/helpers/setRefreshToken';
+import setRefreshToken from '@src/helpers/setRefreshToken';
 import checkBlackList from '@src/helpers/checkBlackList';
 import {
   NOT_CONFIRMED,

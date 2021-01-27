@@ -79,5 +79,12 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send();
   }
   req.logOut();
+  req.session.destroy((sessionError) => {
+    if (sessionError) {
+      res.status(401).send({
+        errors: sessionError,
+      });
+    }
+  });
   return res.status(204).end();
 };

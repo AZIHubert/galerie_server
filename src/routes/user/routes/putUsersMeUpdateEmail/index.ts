@@ -1,7 +1,7 @@
 import { compare } from 'bcrypt';
 import { Request, Response } from 'express';
 
-import User from '@root/src/db/models/user';
+import User from '@src/db/models/user';
 import {
   FIELD_IS_REQUIRED,
   WRONG_PASSWORD,

@@ -3,7 +3,7 @@ import { verify } from 'jsonwebtoken';
 
 import { User } from '@src/db/models';
 
-import setRefreshToken from '@root/src/helpers/setRefreshToken';
+import setRefreshToken from '@src/helpers/setRefreshToken';
 import accEnv from '@src/helpers/accEnv';
 import {
   ALREADY_CONFIRMED,
