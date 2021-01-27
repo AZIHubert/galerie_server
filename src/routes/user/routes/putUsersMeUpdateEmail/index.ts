@@ -8,7 +8,7 @@ import {
   WRONG_TOKEN_USER_ID,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
-import { updateEmailToken } from '@helpers/verifyConfirmation';
+import { updateEmailToken } from '@src/helpers/verifyConfirmation';
 
 export default async (req: Request, res: Response) => {
   const verify = updateEmailToken(req);
