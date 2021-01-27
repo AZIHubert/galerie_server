@@ -13,7 +13,7 @@ import saltRounds from '@src/helpers/saltRounds';
 import {
   normalizeJoiErrors,
   validateModifyPasswordSchema,
-} from '@root/src/helpers/schemas';
+} from '@src/helpers/schemas';
 import { resetPassword } from '@src/helpers/verifyConfirmation';
 
 export default async (req: Request, res: Response) => {

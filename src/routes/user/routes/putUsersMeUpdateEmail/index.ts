@@ -1,14 +1,14 @@
 import { compare } from 'bcrypt';
 import { Request, Response } from 'express';
 
-import User from '@root/src/db/models/user';
+import User from '@src/db/models/user';
 import {
   FIELD_IS_REQUIRED,
   WRONG_PASSWORD,
   WRONG_TOKEN_USER_ID,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
-import { updateEmailToken } from '@src/helpers/verifyConfirmation';
+import { updateEmailToken } from '@helpers/verifyConfirmation';
 
 export default async (req: Request, res: Response) => {
   const verify = updateEmailToken(req);

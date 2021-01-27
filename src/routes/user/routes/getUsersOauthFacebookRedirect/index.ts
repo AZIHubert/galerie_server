@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { User } from '@src/db/models';
 
 import { signAuthToken } from '@src/helpers/issueJWT';
-import setRefreshToken from '@root/src/helpers/setRefreshToken';
+import setRefreshToken from '@src/helpers/setRefreshToken';
 
 export default (req: Request, res: Response) => {
   const user = req.user as User;
