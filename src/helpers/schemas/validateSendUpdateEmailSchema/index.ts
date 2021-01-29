@@ -10,6 +10,7 @@ import options from '../options';
 
 const sendUpdateEmailSchema = Joi.object({
   password: Joi.string()
+    .trim()
     .required()
     .empty()
     .messages({

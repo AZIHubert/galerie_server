@@ -19,7 +19,7 @@ import {
 const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 
 export default async (req: Request, res: Response) => {
-  const { error } = validateSendUpdateEmailSchema(req.body);
+  const { error, value } = validateSendUpdateEmailSchema(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
@@ -28,7 +28,7 @@ export default async (req: Request, res: Response) => {
   const user = req.user as User;
   let passwordsMatch: boolean;
   try {
-    passwordsMatch = await compare(req.body.password, user.password);
+    passwordsMatch = await compare(value.password, user.password);
   } catch (err) {
     return res.status(500).send(err);
   }
