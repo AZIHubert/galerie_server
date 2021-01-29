@@ -82,6 +82,14 @@ describe('users', () => {
           expect(emailMocked).toHaveBeenCalledTimes(1);
           expect(emailMocked).toBeCalledWith(user.email, expect.any(String));
         });
+        it('trim req email', async () => {
+          const { status } = await agent
+            .get('/users/resetPassword')
+            .send({
+              email: ` ${user.email} `,
+            });
+          expect(status).toBe(204);
+        });
       });
       describe('should return error 400 if', () => {
         it('not a valid email', async () => {

@@ -18,18 +18,18 @@ import {
 const RESET_PASSWORD_SECRET = accEnv('RESET_PASSWORD_SECRET');
 
 export default async (req: Request, res: Response) => {
-  const { error } = validateResetPasswordSchema(req.body);
+  const { error, value } = validateResetPasswordSchema(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
     });
   }
-  const { email } = req.body;
+  const { email } = value;
   let user: User | null;
   try {
     user = await User.findOne({
       where: {
-        email,
+        email: value.email,
         googleId: null,
       },
     });
