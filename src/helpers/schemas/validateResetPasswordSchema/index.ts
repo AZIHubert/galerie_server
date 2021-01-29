@@ -10,6 +10,7 @@ import options from '../options';
 
 const resetPasswordSchema = Joi.object({
   email: Joi.string()
+    .trim()
     .email({ minDomainSegments: 2 })
     .required()
     .empty()
