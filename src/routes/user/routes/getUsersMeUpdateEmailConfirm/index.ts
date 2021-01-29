@@ -37,17 +37,17 @@ export default async (req: Request, res: Response) => {
       errors: WRONG_TOKEN_VERSION,
     });
   }
-  if (user.email === req.body.email) {
+  const { error, value } = validatesendUpdateNewEmailSchema(req.body);
+  if (error) {
+    return res.status(400).send({
+      errors: normalizeJoiErrors(error),
+    });
+  }
+  if (user.email === value.email) {
     return res.status(400).send({
       errors: {
         email: 'should be a different one',
       },
-    });
-  }
-  const { error } = validatesendUpdateNewEmailSchema(req.body);
-  if (error) {
-    return res.status(400).send({
-      errors: normalizeJoiErrors(error),
     });
   }
   try {
@@ -55,7 +55,7 @@ export default async (req: Request, res: Response) => {
     sign(
       {
         id: user.id,
-        updatedEmail: req.body.email,
+        updatedEmail: value.email,
         updatedEmailTokenVersion: user.updatedEmailTokenVersion,
       },
       UPDATE_EMAIL_SECRET,

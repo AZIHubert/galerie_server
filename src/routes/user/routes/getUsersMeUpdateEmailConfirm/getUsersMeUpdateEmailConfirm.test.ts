@@ -112,6 +112,19 @@ describe('users', () => {
               await user.reload();
               expect(user.emailTokenVersion).toBe(emailTokenVersion + 1);
             });
+            it('should trim req email', async () => {
+              const { id, emailTokenVersion } = await user.reload();
+              jest.spyOn(verifyConfirmation, 'sendEmailToken')
+                .mockImplementationOnce(() => ({ OK: true, id, emailTokenVersion }));
+              const { status } = await agent
+                .get('/users/me/updateEmail/confirm')
+                .set('authorization', token)
+                .set('confirmation', 'Bearer token')
+                .send({
+                  email: ` ${newEmail} `,
+                });
+              expect(status).toBe(204);
+            });
             it('send an email and sign a token', async () => {
               const { status } = response;
               expect(status).toBe(204);

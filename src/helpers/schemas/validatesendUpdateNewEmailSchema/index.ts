@@ -11,6 +11,7 @@ import options from '../options';
 
 const sendUpdateNewEmailSchema = Joi.object({
   email: Joi.string()
+    .trim()
     .email({ minDomainSegments: 2 })
     .required()
     .empty()
