@@ -10,6 +10,7 @@ import {
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import { sendEmailToken } from '@src/helpers/verifyConfirmation';
+import { normalizeJoiErrors, validatesendUpdateNewEmailSchema } from '@root/src/helpers/schemas';
 
 const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
 
@@ -31,12 +32,25 @@ export default async (req: Request, res: Response) => {
       errors: WRONG_TOKEN_VERSION,
     });
   }
+  const { error, value } = validatesendUpdateNewEmailSchema(req.body);
+  if (error) {
+    return res.status(400).send({
+      errors: normalizeJoiErrors(error),
+    });
+  }
+  if (user.email === value.email) {
+    return res.status(400).send({
+      errors: {
+        email: 'should be a different one',
+      },
+    });
+  }
   try {
     await user.increment({ updatedEmailTokenVersion: 1 });
     sign(
       {
         id: user.id,
-        updatedEmail: req.body.email,
+        updatedEmail: value.email,
         updatedEmailTokenVersion: user.updatedEmailTokenVersion,
       },
       UPDATE_EMAIL_SECRET,

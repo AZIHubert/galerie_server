@@ -9,10 +9,14 @@ import { hash } from 'bcrypt';
 import User from '@src/db/models/user';
 import * as email from '@src/helpers/email';
 import {
+  FIELD_IS_EMAIL,
+  FIELD_IS_EMPTY,
+  FIELD_IS_REQUIRED,
+  FIELD_NOT_A_STRING,
   TOKEN_NOT_FOUND,
   WRONG_TOKEN,
-  WRONG_TOKEN_VERSION,
   WRONG_TOKEN_USER_ID,
+  WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import saltRounds from '@src/helpers/saltRounds';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -94,7 +98,10 @@ describe('users', () => {
                   response = await agent
                     .get('/users/me/updateEmail/confirm/resend')
                     .set('authorization', token)
-                    .set('confirmation', 'Bearer token');
+                    .set('confirmation', 'Bearer token')
+                    .send({
+                      email: 'user2@email.com',
+                    });
                 } catch (err) {
                   done(err);
                 }
@@ -113,6 +120,101 @@ describe('users', () => {
                 expect(emailMocked).toHaveBeenCalledTimes(1);
                 expect(emailMocked).toBeCalledWith(user.email, expect.any(String));
                 expect(signMocked).toHaveBeenCalledTimes(1);
+              });
+              it('should trim req email', async () => {
+                const { id, emailTokenVersion } = await user.reload();
+                jest.spyOn(verifyConfirmation, 'sendEmailToken')
+                  .mockImplementationOnce(() => ({ OK: true, id, emailTokenVersion }));
+                const { status } = await agent
+                  .get('/users/me/updateEmail/confirm/resend')
+                  .set('authorization', token)
+                  .set('confirmation', 'Bearer token')
+                  .send({ email: ' user2@email.com ' });
+                expect(status).toBe(204);
+              });
+            });
+            describe('should return error 400 if', () => {
+              beforeEach(() => {
+                const { id, emailTokenVersion } = user;
+                jest.spyOn(verifyConfirmation, 'sendEmailToken')
+                  .mockImplementationOnce(() => ({ OK: true, id, emailTokenVersion }));
+              });
+              describe('email', () => {
+                it('is not send', async () => {
+                  const { id, emailTokenVersion } = user;
+                  jest.spyOn(verifyConfirmation, 'sendEmailToken')
+                    .mockImplementationOnce(() => ({ OK: true, id, emailTokenVersion }));
+                  const { body, status } = await agent
+                    .get('/users/me/updateEmail/confirm/resend')
+                    .set('authorization', token)
+                    .set('confirmation', 'Bearer token')
+                    .send({});
+                  expect(status).toBe(400);
+                  expect(body).toStrictEqual({
+                    errors: { email: FIELD_IS_REQUIRED },
+                  });
+                });
+                it('is an empty string', async () => {
+                  const { status, body } = await agent
+                    .get('/users/me/updateEmail/confirm/resend')
+                    .set('authorization', token)
+                    .set('confirmation', 'Bearer token')
+                    .send({
+                      email: '',
+                    });
+                  expect(status).toBe(400);
+                  expect(body).toStrictEqual({
+                    errors: {
+                      email: FIELD_IS_EMPTY,
+                    },
+                  });
+                });
+                it('is not a string', async () => {
+                  const { status, body } = await agent
+                    .get('/users/me/updateEmail/confirm/resend')
+                    .set('authorization', token)
+                    .set('confirmation', 'Bearer token')
+                    .send({
+                      email: 12345678,
+                    });
+                  expect(status).toBe(400);
+                  expect(body).toStrictEqual({
+                    errors: {
+                      email: FIELD_NOT_A_STRING,
+                    },
+                  });
+                });
+                it('is not an email', async () => {
+                  const { status, body } = await agent
+                    .get('/users/me/updateEmail/confirm/resend')
+                    .set('authorization', token)
+                    .set('confirmation', 'Bearer token')
+                    .send({
+                      email: 'hello world',
+                    });
+                  expect(status).toBe(400);
+                  expect(body).toStrictEqual({
+                    errors: {
+                      email: FIELD_IS_EMAIL,
+                    },
+                  });
+                });
+
+                it('is the same than the old one', async () => {
+                  const { status, body } = await agent
+                    .get('/users/me/updateEmail/confirm/resend')
+                    .set('authorization', token)
+                    .set('confirmation', 'Bearer confirmToken')
+                    .send({
+                      email: user.email,
+                    });
+                  expect(status).toBe(400);
+                  expect(body).toStrictEqual({
+                    errors: {
+                      email: 'should be a different one',
+                    },
+                  });
+                });
               });
             });
             describe('should return error 401 if', () => {
