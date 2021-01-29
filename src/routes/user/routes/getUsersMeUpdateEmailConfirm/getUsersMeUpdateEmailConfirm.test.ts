@@ -139,7 +139,7 @@ describe('users', () => {
               jest.spyOn(verifyConfirmation, 'sendEmailToken')
                 .mockImplementationOnce(() => ({ OK: true, id, emailTokenVersion }));
             });
-            it('is empty', async () => {
+            it('is not set', async () => {
               const { status, body } = await agent
                 .get('/users/me/updateEmail/confirm')
                 .set('authorization', token)
@@ -203,7 +203,7 @@ describe('users', () => {
                 .set('authorization', token)
                 .set('confirmation', 'Bearer confirmToken')
                 .send({
-                  email: 'user@email.com',
+                  email: user.email,
                 });
               expect(status).toBe(400);
               expect(body).toStrictEqual({
