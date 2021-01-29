@@ -26,6 +26,7 @@ const modifyPasswordSchema = Joi.object({
     // At least one number.
     // At least one special char.
     .messages({
+      'string.base': FIELD_NOT_A_STRING,
       'any.required': FIELD_IS_REQUIRED,
       'string.empty': FIELD_IS_EMPTY,
       'string.min': FIELD_MIN_LENGTH_OF_HEIGH,

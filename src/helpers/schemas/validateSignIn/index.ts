@@ -39,7 +39,6 @@ const userSignInSchema = Joi.object({
       'any.required': FIELD_IS_REQUIRED,
     }),
   password: Joi.string()
-    .trim()
     .required()
     .empty()
     .pattern(new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,30}$'), { name: 'passwordError' })

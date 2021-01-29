@@ -115,9 +115,9 @@ describe('users', () => {
             const { status, body } = await request(app)
               .post('/users/signin')
               .send({
-                confirmPassword: ` ${newUser.confirmPassword} `,
+                confirmPassword: newUser.confirmPassword,
                 email: ` ${emailTwo} `,
-                password: ` ${newUser.password} `,
+                password: newUser.password,
                 userName: ` ${userTwo} `,
               });
             const passwordMatch = await bcrypt.compare(newUser.password, body.password);
