@@ -102,10 +102,19 @@ describe('users', () => {
             });
             it('sign a token and send an email', async () => {
               const { status } = response;
-              expect(status).toBe(201);
+              expect(status).toBe(204);
               expect(emailMocked).toHaveBeenCalledTimes(1);
               expect(emailMocked).toBeCalledWith(user.email, expect.any(String));
               expect(signMocked).toHaveBeenCalledTimes(1);
+            });
+            it('should trim password', async () => {
+              const { status } = await agent
+                .get('/users/me/updateEmail/resend')
+                .set('authorization', token)
+                .send({
+                  password: ` ${newUser.password} `,
+                });
+              expect(status).toBe(204);
             });
           });
           describe('return error 400 if', () => {

@@ -23,7 +23,7 @@ export default async (req: Request, res: Response) => {
   let passwordsMatch: boolean;
   const user = req.user as User;
   try {
-    passwordsMatch = await compare(req.body.password, user.password);
+    passwordsMatch = await compare(req.body.password.trim(), user.password);
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -53,5 +53,5 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     res.status(500).send(err);
   }
-  return res.status(201).end();
+  return res.status(204).end();
 };
