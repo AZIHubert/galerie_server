@@ -30,7 +30,7 @@ const normalizeSequelizeErrors = async (email: string, userName: string) => {
 };
 
 export default async (req: Request, res: Response) => {
-  const { error } = validateSignIn(req.body);
+  const { error, value } = validateSignIn(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
@@ -38,7 +38,7 @@ export default async (req: Request, res: Response) => {
   }
   let errors: any;
   try {
-    errors = await normalizeSequelizeErrors(req.body.email, req.body.userName);
+    errors = await normalizeSequelizeErrors(value.email, value.userName);
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -49,10 +49,10 @@ export default async (req: Request, res: Response) => {
   }
   let newUser: User;
   try {
-    const hashPassword = await bcrypt.hash(req.body.password, saltRounds);
+    const hashPassword = await bcrypt.hash(value.password, saltRounds);
     newUser = await User.create({
-      userName: req.body.userName,
-      email: req.body.email,
+      userName: value.userName,
+      email: value.email,
       password: hashPassword,
     });
     sign(
@@ -66,7 +66,7 @@ export default async (req: Request, res: Response) => {
       },
       (err, emailToken) => {
         if (err) throw new Error(`something went wrong: ${err}`);
-        if (emailToken) sendConfirmAccount(req.body.email, emailToken);
+        if (emailToken) sendConfirmAccount(value.email, emailToken);
       },
     );
   } catch (err) {
