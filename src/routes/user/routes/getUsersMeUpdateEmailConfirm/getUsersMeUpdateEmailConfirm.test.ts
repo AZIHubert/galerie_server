@@ -112,6 +112,39 @@ describe('users', () => {
               await user.reload();
               expect(user.emailTokenVersion).toBe(emailTokenVersion + 1);
             });
+            it('increment updatedEmailTokenVersion if resend is false', async () => {
+              const { id, emailTokenVersion } = await user.reload();
+              jest.spyOn(verifyConfirmation, 'sendEmailToken')
+                .mockImplementationOnce(() => ({ OK: true, id, emailTokenVersion }));
+              const { status } = await agent
+                .get('/users/me/updateEmail/confirm')
+                .set('authorization', token)
+                .set('confirmation', 'Bearer token')
+                .send({
+                  email: newEmail,
+                  resend: true,
+                });
+              const { updatedEmailTokenVersion } = user;
+              await user.reload();
+              expect(status).toBe(204);
+              expect(user.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion + 1);
+            });
+            it('don\'t increment updatedEmailTokenVersion if resend is false', async () => {
+              const { id, emailTokenVersion } = await user.reload();
+              jest.spyOn(verifyConfirmation, 'sendEmailToken')
+                .mockImplementationOnce(() => ({ OK: true, id, emailTokenVersion }));
+              const { status } = await agent
+                .get('/users/me/updateEmail/confirm')
+                .set('authorization', token)
+                .set('confirmation', 'Bearer token')
+                .send({
+                  email: newEmail,
+                });
+              const { updatedEmailTokenVersion } = user;
+              await user.reload();
+              expect(status).toBe(204);
+              expect(user.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion);
+            });
             it('should trim req email', async () => {
               const { id, emailTokenVersion } = await user.reload();
               jest.spyOn(verifyConfirmation, 'sendEmailToken')

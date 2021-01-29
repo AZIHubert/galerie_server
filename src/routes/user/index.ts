@@ -26,12 +26,9 @@ import {
   getUsersMeProfilePictures,
   getUsersMeProfilePicturesId,
   getUsersMeUpdateEmail,
-  getUsersMeUpdateEmailResend,
   getUsersMeUpdateEmailConfirm,
-  getUsersMeUpdateEmailConfirmResend,
   getUsersResetPassword,
   getUsersRefreshToken,
-  getUsersResetPasswordResend,
   getUsersUserNameUserName,
   postUsersSignin,
   putUsersBlacklistId,
@@ -54,13 +51,10 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.get('/login/', shouldNotBeAuth, postUsersLogin);
   router.get('/resetPassword/', shouldNotBeAuth, getUsersResetPassword);
-  router.get('/resetPassword/resend/', shouldNotBeAuth, getUsersResetPasswordResend);
   router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
   router.get('/me', passport.authenticate('jwt', { session: false }), getUsersMe);
   router.get('/me/updateEmail/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, getUsersMeUpdateEmail);
-  router.get('/me/updateEmail/resend/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, getUsersMeUpdateEmailResend);
   router.get('/me/updateEmail/confirm/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, getUsersMeUpdateEmailConfirm);
-  router.get('/me/updateEmail/confirm/resend/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, getUsersMeUpdateEmailConfirmResend);
   router.put('/me/updateEmail/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeUpdateEmail);
   router.put('/me/updatePassword/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeUpdatePassword);
   router.post('/me/profilePictures/', passport.authenticate('jwt', { session: false }), uploadFile, postUsersMeProfilePictures(io));
