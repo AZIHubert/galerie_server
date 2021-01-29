@@ -19,14 +19,14 @@ import {
 } from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
-  const { error } = validateLogIn(req.body);
+  const { error, value } = validateLogIn(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
     });
   }
   let user: User | null;
-  const { userNameOrEmail, password } = req.body;
+  const { userNameOrEmail, password } = value;
   try {
     user = await User.findOne({
       where: {

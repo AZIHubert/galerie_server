@@ -86,6 +86,15 @@ describe('users', () => {
           expect(typeof body.token).toBe('string');
           expect(body.expiresIn).toBe('30m');
         });
+        it('trim req body', async () => {
+          const { status } = await request(app)
+            .get('/users/login')
+            .send({
+              userNameOrEmail: ` ${user.userName} `,
+              password: ` ${newUser.password} `,
+            });
+          expect(status).toBe(200);
+        });
       });
       describe('if username or email', () => {
         it('is empty', async () => {
