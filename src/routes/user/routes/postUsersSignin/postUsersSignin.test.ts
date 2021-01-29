@@ -82,31 +82,50 @@ describe('users', () => {
             done(err);
           }
         });
-        it('should return a user from post with 200 status code', async () => {
-          const { status, body } = response;
-          expect(status).toBe(201);
-          expect(body).toHaveProperty('id');
-          expect(body).toHaveProperty('createdAt');
-          expect(body).toHaveProperty('updatedAt');
-          expect(body).toHaveProperty('password');
-          expect(body.userName).toEqual(newUser.userName);
-          expect(body.email).toEqual(newUser.email);
-          expect(body.deletedAt).toEqual(null);
-          expect(body.confirmed).toEqual(false);
-          expect(body.currentProfilePictureId).toBeNull();
-        });
-        it('should have an encrypted password', async () => {
-          const { body: { password } } = response;
-          const passwordMatch = await bcrypt.compare(newUser.password, password);
-          expect(bcryptMock).toHaveBeenCalledTimes(1);
-          expect(passwordMatch).toBe(true);
-        });
-        it('should send an email', async () => {
-          expect(sendConfirmAccountMocked).toHaveBeenCalledTimes(1);
-        });
-        it('should have one user after posting', async () => {
-          const allUsers = await User.findAll();
-          expect(allUsers.length).toBe(1);
+        describe('should return status 201 and', () => {
+          it('return a user', async () => {
+            const { status, body } = response;
+            expect(status).toBe(201);
+            expect(body).toHaveProperty('id');
+            expect(body).toHaveProperty('createdAt');
+            expect(body).toHaveProperty('updatedAt');
+            expect(body).toHaveProperty('password');
+            expect(body.userName).toEqual(newUser.userName);
+            expect(body.email).toEqual(newUser.email);
+            expect(body.deletedAt).toEqual(null);
+            expect(body.confirmed).toEqual(false);
+            expect(body.currentProfilePictureId).toBeNull();
+          });
+          it('have an encrypted password', async () => {
+            const { body: { password } } = response;
+            const passwordMatch = await bcrypt.compare(newUser.password, password);
+            expect(bcryptMock).toHaveBeenCalledTimes(1);
+            expect(passwordMatch).toBe(true);
+          });
+          it('send an email', async () => {
+            expect(sendConfirmAccountMocked).toHaveBeenCalledTimes(1);
+          });
+          it('have one user after posting', async () => {
+            const allUsers = await User.findAll();
+            expect(allUsers.length).toBe(1);
+          });
+          it('trim info', async () => {
+            const emailTwo = 'user2@email.com';
+            const userTwo = 'user2';
+            const { status, body } = await request(app)
+              .post('/users/signin')
+              .send({
+                confirmPassword: ` ${newUser.confirmPassword} `,
+                email: ` ${emailTwo} `,
+                password: ` ${newUser.password} `,
+                userName: ` ${userTwo} `,
+              });
+            const passwordMatch = await bcrypt.compare(newUser.password, body.password);
+            expect(status).toBe(201);
+            expect(body.userName).toBe(userTwo);
+            expect(body.email).toBe(emailTwo);
+            expect(passwordMatch).toBe(true);
+          });
         });
       });
     });
@@ -258,6 +277,21 @@ describe('users', () => {
           expect(body).toStrictEqual({
             errors: {
               password: FIELD_IS_EMPTY,
+            },
+          });
+        });
+        it('contain spaces', async () => {
+          const { status, body } = await request(app)
+            .post('/users/signin')
+            .send({
+              ...newUser,
+              password: 'p a s w o r d',
+              confirmPassword: 'p a s w o r d',
+            });
+          expect(status).toBe(400);
+          expect(body).toStrictEqual({
+            errors: {
+              password: FIELD_HAS_SPACES,
             },
           });
         });
