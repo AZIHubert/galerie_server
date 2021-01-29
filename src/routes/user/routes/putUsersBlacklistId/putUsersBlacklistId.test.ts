@@ -78,7 +78,7 @@ describe('users', () => {
     describe(':id', () => {
       describe('PUT', () => {
         describe('should return status 204 and', () => {
-          it('should unblack listed a user', async () => {
+          it('unblack listed a user', async () => {
             const { id: blackListId } = await BlackList.create({
               reason: 'black listed',
               adminId: user.id,
@@ -100,7 +100,7 @@ describe('users', () => {
             expect(userTwo.blackListId).toBeNull();
             expect(blackLists.length).toBe(0);
           });
-          it('should black list an user and set is role to user', async () => {
+          it('black list an user and set is role to user', async () => {
             const reason = 'black list user';
             const userTwo = await User.create({
               userName: 'user2',
@@ -120,7 +120,24 @@ describe('users', () => {
             expect(userTwo.blackList.adminId).toBe(user.id);
             expect(userTwo.blackList.time).toBe(null);
           });
-          it('should black list a user with a time', async () => {
+          it('trim reason', async () => {
+            const reason = 'black list user';
+            const userTwo = await User.create({
+              userName: 'user2',
+              email: 'user2@email.com',
+              password: 'password',
+              confirmed: true,
+              role: 'admin',
+            }, { include: [{ model: BlackList }] });
+            const { status } = await agent
+              .put(`/users/blackList/${userTwo.id}`)
+              .set('authorization', token)
+              .send({ reason: ` ${reason} ` });
+            await userTwo.reload();
+            expect(status).toBe(204);
+            expect(userTwo.blackList.reason).toBe(reason);
+          });
+          it('black list a user with a time', async () => {
             const time = 1000 * 60 * 10;
             const reason = 'black list user';
             const userTwo = await User.create({
