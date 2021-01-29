@@ -7,13 +7,14 @@ import '@src/helpers/initEnv';
 
 import User from '@src/db/models/user';
 import {
+  FIELD_HAS_SPACES,
   FIELD_IS_EMPTY,
   FIELD_IS_PASSWORD,
   FIELD_IS_REQUIRED,
+  FIELD_IS_CONFIRM_PASSWORD,
   FIELD_MAX_LENGTH_THRITY,
   FIELD_MIN_LENGTH_OF_HEIGH,
   FIELD_NOT_A_STRING,
-  FIELD_IS_CONFIRM_PASSWORD,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -167,6 +168,22 @@ describe('users', () => {
               errors: {
                 updatedPassword: FIELD_IS_REQUIRED,
                 confirmUpdatedPassword: FIELD_IS_REQUIRED,
+              },
+            });
+          });
+          it('contain spaces', async () => {
+            const { status, body } = await agent
+              .put('/users/me/updatePassword')
+              .set('authorization', token)
+              .send({
+                password: newUser.password,
+                confirmUpdatedPassword: 'A a s w o r d ! 9',
+                updatedPassword: 'A a s w o r d ! 9',
+              });
+            expect(status).toBe(400);
+            expect(body).toStrictEqual({
+              errors: {
+                updatedPassword: FIELD_HAS_SPACES,
               },
             });
           });

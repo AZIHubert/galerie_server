@@ -22,7 +22,8 @@ const sendUpdatePassword = Joi.object({
     }),
   updatedPassword: Joi.string()
     .required()
-    .pattern(new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,30}$'))
+    .pattern(new RegExp(/^\S*$/), { name: 'spacesError' })
+    .pattern(new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,30}$'), { name: 'passwordError' })
     .min(8)
     .max(30)
     .messages({
