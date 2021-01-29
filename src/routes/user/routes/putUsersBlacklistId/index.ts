@@ -54,7 +54,7 @@ export default async (req: Request, res: Response) => {
       return res.status(500).send(err);
     }
   }
-  const { error } = validateBlackListUser(req.body);
+  const { error, value } = validateBlackListUser(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
@@ -63,8 +63,8 @@ export default async (req: Request, res: Response) => {
   try {
     const { id: blackListId } = await BlackList.create({
       adminId: userId,
-      reason: req.body.reason,
-      time: req.body.time ? req.body.time : null,
+      reason: value.reason,
+      time: value.time ? value.time : null,
     });
     await user.update({ blackListId, role: 'user' });
   } catch (err) {

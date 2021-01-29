@@ -120,6 +120,22 @@ describe('users', () => {
             expect(userTwo.blackList.adminId).toBe(user.id);
             expect(userTwo.blackList.time).toBe(null);
           });
+          it('should trim reason', async () => {
+            const reason = 'black list user';
+            const userTwo = await User.create({
+              userName: 'user2',
+              email: 'user2@email.com',
+              password: 'password',
+              confirmed: true,
+              role: 'admin',
+            }, { include: [{ model: BlackList }] });
+            await agent
+              .put(`/users/blackList/${userTwo.id}`)
+              .set('authorization', token)
+              .send({ reason: ` ${reason} ` });
+            await userTwo.reload();
+            expect(userTwo.blackList.reason).toBe(reason);
+          });
           it('should black list a user with a time', async () => {
             const time = 1000 * 60 * 10;
             const reason = 'black list user';
