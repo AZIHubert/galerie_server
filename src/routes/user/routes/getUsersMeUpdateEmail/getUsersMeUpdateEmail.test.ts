@@ -108,7 +108,7 @@ describe('users', () => {
             await user.reload();
             expect(user.emailTokenVersion).toBe(emailTokenVersion + 1);
           });
-          it('should not increment emailTokenVersion if resend is false', async () => {
+          it('not increment emailTokenVersion if resend is false', async () => {
             await agent
               .get('/users/me/updateEmail/')
               .set('authorization', token)
@@ -118,15 +118,6 @@ describe('users', () => {
             const { emailTokenVersion } = user;
             await user.reload();
             expect(user.emailTokenVersion).toBe(emailTokenVersion);
-          });
-          it('should trim password', async () => {
-            const { status } = await agent
-              .get('/users/me/updateEmail/')
-              .set('authorization', token)
-              .send({
-                password: ` ${newUser.password} `,
-              });
-            expect(status).toBe(204);
           });
         });
         describe('should return error 400 if', () => {

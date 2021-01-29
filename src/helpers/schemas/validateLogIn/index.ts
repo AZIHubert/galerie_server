@@ -19,7 +19,6 @@ const userLogInSchema = Joi.object({
       'any.required': FIELD_IS_REQUIRED,
     }),
   password: Joi.string()
-    .trim()
     .required()
     .empty()
     .messages({

@@ -104,6 +104,7 @@ describe('users', () => {
           const { resetPasswordTokenVersion } = user;
           await user.reload();
           expect(user.resetPasswordTokenVersion).toBe(resetPasswordTokenVersion);
+        });
         it('trim req email', async () => {
           const { status } = await agent
             .get('/users/resetPassword')
@@ -112,58 +113,58 @@ describe('users', () => {
             });
           expect(status).toBe(204);
         });
-      });
-      describe('should return error 400 if', () => {
-        it('not a valid email', async () => {
-          const { body, status } = await agent
-            .get('/users/resetPassword')
-            .send({
-              email: 'abcde',
+        describe('should return error 400 if', () => {
+          it('not a valid email', async () => {
+            const { body, status } = await agent
+              .get('/users/resetPassword')
+              .send({
+                email: 'abcde',
+              });
+            expect(status).toBe(400);
+            expect(body).toStrictEqual({
+              errors: {
+                email: FIELD_IS_EMAIL,
+              },
             });
-          expect(status).toBe(400);
-          expect(body).toStrictEqual({
-            errors: {
-              email: FIELD_IS_EMAIL,
-            },
+          });
+          it('email is not set', async () => {
+            const { body, status } = await agent
+              .get('/users/resetPassword')
+              .send({});
+            expect(status).toBe(400);
+            expect(body).toStrictEqual({
+              errors: {
+                email: FIELD_IS_REQUIRED,
+              },
+            });
+          });
+          it('email is empty', async () => {
+            const { body, status } = await agent
+              .get('/users/resetPassword')
+              .send({
+                email: '',
+              });
+            expect(status).toBe(400);
+            expect(body).toStrictEqual({
+              errors: {
+                email: FIELD_IS_EMPTY,
+              },
+            });
           });
         });
-        it('email is not set', async () => {
-          const { body, status } = await agent
-            .get('/users/resetPassword')
-            .send({});
-          expect(status).toBe(400);
-          expect(body).toStrictEqual({
-            errors: {
-              email: FIELD_IS_REQUIRED,
-            },
-          });
-        });
-        it('email is empty', async () => {
-          const { body, status } = await agent
-            .get('/users/resetPassword')
-            .send({
-              email: '',
+        describe('should return error 404 if', () => {
+          it('email is not found', async () => {
+            const { body, status } = await agent
+              .get('/users/resetPassword')
+              .send({
+                email: 'user2@email.com',
+              });
+            expect(status).toBe(404);
+            expect(body).toStrictEqual({
+              errors: {
+                email: USER_NOT_FOUND,
+              },
             });
-          expect(status).toBe(400);
-          expect(body).toStrictEqual({
-            errors: {
-              email: FIELD_IS_EMPTY,
-            },
-          });
-        });
-      });
-      describe('should return error 404 if', () => {
-        it('email is not found', async () => {
-          const { body, status } = await agent
-            .get('/users/resetPassword')
-            .send({
-              email: 'user2@email.com',
-            });
-          expect(status).toBe(404);
-          expect(body).toStrictEqual({
-            errors: {
-              email: USER_NOT_FOUND,
-            },
           });
         });
       });

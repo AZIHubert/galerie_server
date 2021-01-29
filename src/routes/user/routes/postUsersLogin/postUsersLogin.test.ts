@@ -91,7 +91,7 @@ describe('users', () => {
             .get('/users/login')
             .send({
               userNameOrEmail: ` ${user.userName} `,
-              password: ` ${newUser.password} `,
+              password: newUser.password,
             });
           expect(status).toBe(200);
         });
