@@ -104,6 +104,13 @@ describe('users', () => {
           const { resetPasswordTokenVersion } = user;
           await user.reload();
           expect(user.resetPasswordTokenVersion).toBe(resetPasswordTokenVersion);
+        it('trim req email', async () => {
+          const { status } = await agent
+            .get('/users/resetPassword')
+            .send({
+              email: ` ${user.email} `,
+            });
+          expect(status).toBe(204);
         });
       });
       describe('should return error 400 if', () => {
