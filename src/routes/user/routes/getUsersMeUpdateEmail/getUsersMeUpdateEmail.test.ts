@@ -77,7 +77,7 @@ describe('users', () => {
   describe('me', () => {
     describe('updateEmail', () => {
       describe('GET', () => {
-        describe('should return status 205 and', () => {
+        describe('should return status 204 and', () => {
           it('create a token and send an email', async (done) => {
             try {
               const emailMock = jest.spyOn(email, 'sendUpdateEmailMessage');
@@ -95,6 +95,15 @@ describe('users', () => {
             } catch (err) {
               done(err);
             }
+          });
+          it('should trim password', async () => {
+            const { status } = await agent
+              .get('/users/me/updateEmail/')
+              .set('authorization', token)
+              .send({
+                password: ` ${newUser.password} `,
+              });
+            expect(status).toBe(204);
           });
         });
         describe('should return error 400 if', () => {
