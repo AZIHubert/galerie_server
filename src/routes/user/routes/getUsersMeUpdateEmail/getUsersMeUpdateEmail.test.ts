@@ -96,6 +96,29 @@ describe('users', () => {
               done(err);
             }
           });
+          it('increment emailTokenVersion if resend is true', async () => {
+            await agent
+              .get('/users/me/updateEmail/')
+              .set('authorization', token)
+              .send({
+                password: newUser.password,
+                resend: true,
+              });
+            const { emailTokenVersion } = user;
+            await user.reload();
+            expect(user.emailTokenVersion).toBe(emailTokenVersion + 1);
+          });
+          it('should not increment emailTokenVersion if resend is false', async () => {
+            await agent
+              .get('/users/me/updateEmail/')
+              .set('authorization', token)
+              .send({
+                password: newUser.password,
+              });
+            const { emailTokenVersion } = user;
+            await user.reload();
+            expect(user.emailTokenVersion).toBe(emailTokenVersion);
+          });
           it('should trim password', async () => {
             const { status } = await agent
               .get('/users/me/updateEmail/')

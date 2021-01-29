@@ -52,6 +52,9 @@ export default async (req: Request, res: Response) => {
   }
   try {
     await user.increment({ emailTokenVersion: 1 });
+    if (req.body.resend) {
+      await user.increment({ updatedEmailTokenVersion: 1 });
+    }
     sign(
       {
         id: user.id,

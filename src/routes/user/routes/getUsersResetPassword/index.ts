@@ -55,6 +55,9 @@ export default async (req: Request, res: Response) => {
     });
   }
   try {
+    if (req.body.resend) {
+      await user.increment({ resetPasswordTokenVersion: 1 });
+    }
     sign(
       {
         id: user.id,

@@ -82,6 +82,29 @@ describe('users', () => {
           expect(emailMocked).toHaveBeenCalledTimes(1);
           expect(emailMocked).toBeCalledWith(user.email, expect.any(String));
         });
+        it('increment resetPasswordTokenVersion if resend is true', async () => {
+          const { status } = await agent
+            .get('/users/resetPassword')
+            .send({
+              email: user.email,
+              resend: true,
+            });
+          expect(status).toBe(204);
+          const { resetPasswordTokenVersion } = user;
+          await user.reload();
+          expect(user.resetPasswordTokenVersion).toBe(resetPasswordTokenVersion + 1);
+        });
+        it('don\'t increment resetPasswordTokenVersion if resend is false', async () => {
+          const { status } = await agent
+            .get('/users/resetPassword')
+            .send({
+              email: user.email,
+            });
+          expect(status).toBe(204);
+          const { resetPasswordTokenVersion } = user;
+          await user.reload();
+          expect(user.resetPasswordTokenVersion).toBe(resetPasswordTokenVersion);
+        });
       });
       describe('should return error 400 if', () => {
         it('not a valid email', async () => {
