@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import socketIo from 'socket.io';
 
 import { User, Ticket } from '@src/db/models';
 
@@ -7,7 +8,8 @@ import {
   validateTicket,
 } from '@src/helpers/schemas';
 
-export default () => async (req: Request, res: Response) => {
+// eslint-disable-next-line no-unused-vars
+export default (_io: socketIo.Server) => async (req: Request, res: Response) => {
   const { error, value } = validateTicket(req.body);
   if (error) {
     return res.status(400).send({

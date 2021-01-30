@@ -1,2 +1,2 @@
-// eslint-disable-next-line import/prefer-default-export
 export { default as postTickets } from './postTickets';
+export { default as deleteTicketsId } from './deleteTicketsId';
