@@ -12,6 +12,7 @@ import accEnv from '@src/helpers/accEnv';
 import passport from '@src/helpers/passport';
 import initSequelize from '@src/helpers/initSequelize.js';
 import userRouter from '@src/routes/user';
+import ticketRouter from '@src/routes/ticket';
 
 const SESSION_SECRET = accEnv('SESSION_SECRET');
 
@@ -62,6 +63,7 @@ const initApp: () => http.Server = () => {
     socket.on('disconnect', () => {});
   });
   app.use('/users', userRouter(io));
+  app.use('/tickets', ticketRouter());
   return server;
 };
 

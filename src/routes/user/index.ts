@@ -26,7 +26,6 @@ import {
   getUsersMeProfilePictures,
   getUsersMeProfilePicturesId,
   getUsersMeUpdateEmail,
-  getUsersMeUpdateEmailResend,
   getUsersMeUpdateEmailConfirm,
   getUsersMeUpdateEmailConfirmResend,
   getUsersResetPassword,
@@ -58,7 +57,6 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
   router.get('/me', passport.authenticate('jwt', { session: false }), getUsersMe);
   router.get('/me/updateEmail/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, getUsersMeUpdateEmail);
-  router.get('/me/updateEmail/resend/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, getUsersMeUpdateEmailResend);
   router.get('/me/updateEmail/confirm/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, getUsersMeUpdateEmailConfirm);
   router.get('/me/updateEmail/confirm/resend/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, getUsersMeUpdateEmailConfirmResend);
   router.put('/me/updateEmail/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeUpdateEmail);

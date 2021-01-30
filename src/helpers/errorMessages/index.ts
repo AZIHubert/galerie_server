@@ -10,6 +10,7 @@ export const FIELD_IS_PASSWORD = 'need at least on lowercase, one uppercase, one
 export const FIELD_IS_REQUIRED = 'is required';
 export const FIELD_MAX_LENGTH_THRITY = 'should have a maximum length of 30';
 export const FIELD_MAX_LENGTH_TWO_HUNDRER = 'should have a maximum length of 200';
+export const FIELD_MIN_LENGTH_OF_FIVE = 'should have a minimum length of 5';
 export const FIELD_MIN_LENGTH_OF_TEN = 'should have a minimum length of 10';
 export const FIELD_MIN_LENGTH_OF_THREE = 'should have a minimum length of 3';
 export const FIELD_MIN_LENGTH_OF_HEIGH = 'should have a minimum length of 8';

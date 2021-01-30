@@ -11,7 +11,6 @@ export { default as getUsersMeProfilePicturesId } from './getUsersMeProfilePictu
 export { default as getUsersMeUpdateEmailConfirm } from './getUsersMeUpdateEmailConfirm';
 export { default as getUsersMeUpdateEmailConfirmResend } from './getUsersMeUpdateEmailConfirmResend';
 export { default as getUsersMeUpdateEmail } from './getUsersMeUpdateEmail';
-export { default as getUsersMeUpdateEmailResend } from './getUsersMeUpdateEmailResend';
 export { default as getUsersOauthFacebookRedirect } from './getUsersOauthFacebookRedirect';
 export { default as getUsersOauthGoogleRedirect } from './getUsersOauthGoogleRedirect';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
