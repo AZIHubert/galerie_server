@@ -24,12 +24,6 @@ interface TicketI {
   tableName: 'ticket',
 })
 export default class Ticket extends Model implements TicketI {
-  @ForeignKey(() => User)
-  @Column({
-    type: DataType.BIGINT,
-  })
-  userId!: string;
-
   @Column({
     allowNull: false,
     type: DataType.STRING,
@@ -49,6 +43,12 @@ export default class Ticket extends Model implements TicketI {
     type: DataType.BIGINT,
   })
   id!: string;
+
+  @ForeignKey(() => User)
+  @Column({
+    type: DataType.BIGINT,
+  })
+  userId!: string;
 
   @BelongsTo(() => User)
   user!: User;
