@@ -8,3 +8,4 @@ export { default as validateSendUpdateEmailSchema } from './validateSendUpdateEm
 export { default as validatesendUpdateNewEmailSchema } from './validatesendUpdateNewEmailSchema';
 export { default as validateSendUpdatePassword } from './validateSendUpdatePassword';
 export { default as validateSignIn } from './validateSignIn';
+export { default as validateTicket } from './validateTicket';

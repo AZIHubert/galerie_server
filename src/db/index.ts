@@ -2,11 +2,14 @@ import { Sequelize } from 'sequelize-typescript';
 
 import accessEnv from '@src/helpers/accEnv';
 
-import BlackList from './models/blackList';
-import Galerie from './models/galerie';
-import Image from './models/image';
-import ProfilePicture from './models/profilePicture';
-import User from './models/user';
+import {
+  BlackList,
+  Galerie,
+  Image,
+  ProfilePicture,
+  Ticket,
+  User,
+} from './models';
 
 const DB_USERNAME = accessEnv('DB_USERNAME');
 const DB_PASSWORD = accessEnv('DB_PASSWORD');
@@ -24,6 +27,7 @@ const sequelize = new Sequelize({
     Galerie,
     Image,
     ProfilePicture,
+    Ticket,
     User,
   ],
 });
