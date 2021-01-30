@@ -9,9 +9,10 @@ import {
   Default,
 } from 'sequelize-typescript';
 
+import BlackList from '../blackList';
 import Galerie from '../galerie';
 import ProfilePicture from '../profilePicture';
-import BlackList from '../blackList';
+import Ticket from '../ticket';
 
 interface UserI {
   authTokenVersion: number;
@@ -30,6 +31,7 @@ interface UserI {
   profilePictures: ProfilePicture[];
   resetPasswordTokenVersion: number;
   role: 'superAdmin' | 'admin' | 'user';
+  tickets: Ticket[];
   updatedEmailTokenVersion: number;
   userName: string;
 
@@ -135,6 +137,9 @@ export default class User extends Model implements UserI {
     type: DataType.STRING,
   })
   role!: 'superAdmin' | 'admin' | 'user';
+
+  @HasMany(() => Ticket)
+  tickets!: Ticket[];
 
   @Default(0)
   @Column({
