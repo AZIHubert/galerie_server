@@ -98,7 +98,7 @@ export default async (_req: Request, res: Response) => {
     });
     await Promise.all(
       tickets.map(async (ticket, index) => {
-        if (ticket.user.currentProfilePicture) {
+        if (ticket.user && ticket.user.currentProfilePicture) {
           const {
             currentProfilePicture: {
               cropedImage: {

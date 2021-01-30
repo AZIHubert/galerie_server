@@ -289,6 +289,39 @@ describe('tickets', () => {
         expect(returnedTicket.user.currentProfilePicture.pendingImage.signedUrl)
           .not.toBeNull();
       });
+      it('return tickets even if the user has deleted his account', async () => {
+        const hashPassword = await hash(newUser.password, saltRounds);
+        const userTwo = await User.create({
+          userName: 'user2',
+          email: 'user2@email.com',
+          confirmed: true,
+          password: hashPassword,
+        });
+        const agentTwo = request.agent(app);
+        const { body: { token: tokenTwo } } = await agentTwo
+          .get('/users/login')
+          .send({
+            password: newUser.password,
+            userNameOrEmail: userTwo.userName,
+          });
+        await agentTwo.post('/tickets')
+          .set('authorization', tokenTwo)
+          .send({
+            header: 'header ticket',
+            body: 'body ticket',
+          });
+        await agentTwo
+          .delete('/users/me')
+          .set('authorization', tokenTwo)
+          .send({ password: newUser.password });
+        const { status, body } = await agent
+          .get('/tickets')
+          .set('authorization', token);
+        const [returnedTicket] = body;
+        expect(status).toBe(200);
+        expect(body.length).toBe(1);
+        expect(returnedTicket.user).toBeNull();
+      });
     });
   });
 });
