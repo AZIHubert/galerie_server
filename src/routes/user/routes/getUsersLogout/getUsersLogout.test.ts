@@ -42,7 +42,7 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      const { body } = await agent.get('/users/login')
+      const { body } = await agent.post('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,

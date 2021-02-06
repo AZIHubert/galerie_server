@@ -11,13 +11,22 @@ import signedUrl from '@src/helpers/signedUrl';
 export default async (req: Request, res: Response) => {
   const { id } = req.user as User;
   const user = await User.findByPk(id, {
+    order: [
+      [
+        {
+          model: ProfilePicture,
+          as: 'profilePictures',
+        },
+        'createdAt',
+        'DESC',
+      ],
+    ],
     attributes: {
       exclude: [
         'authTokenVersion',
         'blackListId',
         'confirmed',
         'confirmTokenVersion',
-        'currentProfilePictureId',
         'emailTokenVersion',
         'googleId',
         'password',
@@ -81,7 +90,6 @@ export default async (req: Request, res: Response) => {
         as: 'profilePictures',
         attributes: {
           exclude: [
-            'createdAt',
             'cropedImageId',
             'deletedAt',
             'originalImageId',

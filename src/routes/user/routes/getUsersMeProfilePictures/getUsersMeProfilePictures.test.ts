@@ -65,7 +65,7 @@ describe('users', () => {
         password: hashPassword,
       });
       const { body } = await agent
-        .get('/users/login')
+        .post('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
@@ -128,7 +128,7 @@ describe('users', () => {
               expect(status).toBe(200);
               expect(body.length).toBe(1);
               expect(returnProfilePicture.id).toBe(currentProfilePictureId);
-              expect(returnProfilePicture.createdAt).toBeUndefined();
+              expect(returnProfilePicture.createdAt).not.toBeUndefined();
               expect(returnProfilePicture.cropedImageId).toBeUndefined();
               expect(returnProfilePicture.deletedAt).toBeUndefined();
               expect(returnProfilePicture.originalImageId).toBeUndefined();

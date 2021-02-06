@@ -70,7 +70,7 @@ describe('users', () => {
         password: hashPassword,
       });
       const { body } = await agent
-        .get('/users/login')
+        .post('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
@@ -94,27 +94,6 @@ describe('users', () => {
   describe('me', () => {
     describe('GET', () => {
       describe('should return status 200 and', () => {
-        it('get your own account with relevent properties', async () => {
-          const { body, status } = await agent
-            .get('/users/me')
-            .set('authorization', token);
-          expect(status).toBe(200);
-          expect(body.defaultProfilePicture).toBeNull();
-          expect(body.email).toBe(user.email);
-          expect(body.id).toBe(user.id);
-          expect(body.role).toBe(user.role);
-          expect(body.userName).toBe(user.userName);
-          expect(body.authTokenVersion).toBeUndefined();
-          expect(body.blackListId).toBeUndefined();
-          expect(body.confirmed).toBeUndefined();
-          expect(body.confirmTokenVersion).toBeUndefined();
-          expect(body.currentProfilePictureId).toBeUndefined();
-          expect(body.emailTokenVersion).toBeUndefined();
-          expect(body.googleId).toBeUndefined();
-          expect(body.password).toBeUndefined();
-          expect(body.resetPasswordTokenVersion).toBeUndefined();
-          expect(body.updatedEmailTokenVersion).toBeUndefined();
-        });
         let getResponse: request.Response;
         let postResponse: request.Response;
         beforeEach(async (done) => {
@@ -131,6 +110,28 @@ describe('users', () => {
           }
           done();
         });
+        it('get your own account with relevent properties', async () => {
+          const { body, status } = await agent
+            .get('/users/me')
+            .set('authorization', token);
+          expect(status).toBe(200);
+          expect(body.defaultProfilePicture).toBeNull();
+          expect(body.email).toBe(user.email);
+          expect(body.id).toBe(user.id);
+          expect(body.role).toBe(user.role);
+          expect(body.userName).toBe(user.userName);
+          expect(body.authTokenVersion).toBeUndefined();
+          expect(body.blackListId).toBeUndefined();
+          expect(body.confirmed).toBeUndefined();
+          expect(body.confirmTokenVersion).toBeUndefined();
+          expect(body.currentProfilePictureId).not.toBeUndefined();
+          expect(body.emailTokenVersion).toBeUndefined();
+          expect(body.googleId).toBeUndefined();
+          expect(body.password).toBeUndefined();
+          expect(body.resetPasswordTokenVersion).toBeUndefined();
+          expect(body.updatedEmailTokenVersion).toBeUndefined();
+        });
+
         describe('include current profile picture', () => {
           it('with only relevent attributes', async () => {
             const {
@@ -205,7 +206,7 @@ describe('users', () => {
             expect(status).toBe(200);
             expect(profilePictures.length).toBe(1);
             expect(returnProfilePicture.id).toBe(currentProfilePictureId);
-            expect(returnProfilePicture.createdAt).toBeUndefined();
+            expect(returnProfilePicture.createdAt).not.toBeUndefined();
             expect(returnProfilePicture.cropedImageId).toBeUndefined();
             expect(returnProfilePicture.deletedAt).toBeUndefined();
             expect(returnProfilePicture.originalImageId).toBeUndefined();

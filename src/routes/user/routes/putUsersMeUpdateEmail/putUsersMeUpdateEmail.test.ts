@@ -51,7 +51,7 @@ describe('users', () => {
         password: hashPassword,
       });
       const { body } = await agent
-        .get('/users/login')
+        .post('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,

@@ -7,11 +7,11 @@ import { User } from '@src/db/models';
 const PRIV_KEY = fs.readFileSync(path.join('./id_rsa_priv.authToken.pem'));
 
 export default ({ id, authTokenVersion }: User) => {
-  const expiresIn = '30m';
+  const expiresIn = 60 * 30;
   const payload = {
     sub: id,
     authTokenVersion,
-    iat: Date.now(),
+    iat: Math.floor(Date.now() / 1000),
   };
   const signedToken = sign(payload, PRIV_KEY, { expiresIn, algorithm: 'RS256' });
   return {

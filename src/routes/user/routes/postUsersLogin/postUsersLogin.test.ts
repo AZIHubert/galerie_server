@@ -67,7 +67,7 @@ describe('users', () => {
       describe('should return status 200', () => {
         it('set cookie', async () => {
           const { headers, status } = await request(app)
-            .get('/users/login')
+            .post('/users/login')
             .send({
               userNameOrEmail: user.userName,
               password: newUser.password,
@@ -77,18 +77,18 @@ describe('users', () => {
         });
         it('return token', async () => {
           const { body, status } = await request(app)
-            .get('/users/login')
+            .post('/users/login')
             .send({
               userNameOrEmail: user.userName,
               password: newUser.password,
             });
           expect(status).toBe(200);
           expect(typeof body.token).toBe('string');
-          expect(body.expiresIn).toBe('30m');
+          expect(body.expiresIn).toBe(1800);
         });
         it('trim req body', async () => {
           const { status } = await request(app)
-            .get('/users/login')
+            .post('/users/login')
             .send({
               userNameOrEmail: ` ${user.userName} `,
               password: newUser.password,
@@ -99,7 +99,7 @@ describe('users', () => {
       describe('if username or email', () => {
         it('is empty', async () => {
           const { body, status } = await agent
-            .get('/users/login')
+            .post('/users/login')
             .send({
               userNameOrEmail: '',
               password: newUser.password,
@@ -113,7 +113,7 @@ describe('users', () => {
         });
         it('is not a string', async () => {
           const { body, status } = await agent
-            .get('/users/login')
+            .post('/users/login')
             .send({
               userNameOrEmail: 123456789,
               password: newUser.password,
@@ -127,7 +127,7 @@ describe('users', () => {
         });
         it('is not send', async () => {
           const { body, status } = await agent
-            .get('/users/login')
+            .post('/users/login')
             .send({
               password: newUser.password,
             });
@@ -142,7 +142,7 @@ describe('users', () => {
       describe('if password', () => {
         it('is empty', async () => {
           const { body, status } = await agent
-            .get('/users/login')
+            .post('/users/login')
             .send({
               userNameOrEmail: user.email,
               password: '',
@@ -156,7 +156,7 @@ describe('users', () => {
         });
         it('is not a string', async () => {
           const { body, status } = await agent
-            .get('/users/login')
+            .post('/users/login')
             .send({
               userNameOrEmail: user.userName,
               password: 123456789,
@@ -170,7 +170,7 @@ describe('users', () => {
         });
         it('is not send', async () => {
           const { body, status } = await agent
-            .get('/users/login')
+            .post('/users/login')
             .send({
               userNameOrEmail: user.email,
             });
@@ -183,7 +183,7 @@ describe('users', () => {
         });
         it('not match', async () => {
           const { body, status } = await agent
-            .get('/users/login')
+            .post('/users/login')
             .send({
               userNameOrEmail: user.email,
               password: 'wrongPassword',

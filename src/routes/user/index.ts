@@ -25,7 +25,6 @@ import {
   getUsersMe,
   getUsersMeProfilePictures,
   getUsersMeProfilePicturesId,
-  getUsersMeUpdateEmail,
   getUsersMeUpdateEmailConfirm,
   getUsersResetPassword,
   getUsersRefreshToken,
@@ -34,8 +33,11 @@ import {
   putUsersBlacklistId,
   putUsersConfirmation,
   postUsersLogin,
+  postUsersAuthMobileFacebook,
+  postUsersAuthMobileGoogle,
   putUsersMeProfilePicturesId,
   postUsersMeProfilePictures,
+  postUsersMeUpdateEmail,
   putUsersMeUpdateEmail,
   putUsersMeUpdatePassword,
   putUsersResetPassword,
@@ -49,11 +51,11 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.post('/signin/', postUsersSignin);
   router.get('/confirmation/resend/', shouldNotBeAuth, getUsersConfirmationResend);
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
-  router.get('/login/', shouldNotBeAuth, postUsersLogin);
+  router.post('/login/', shouldNotBeAuth, postUsersLogin);
   router.get('/resetPassword/', shouldNotBeAuth, getUsersResetPassword);
   router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
   router.get('/me', passport.authenticate('jwt', { session: false }), getUsersMe);
-  router.get('/me/updateEmail/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, getUsersMeUpdateEmail);
+  router.post('/me/updateEmail/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, postUsersMeUpdateEmail);
   router.get('/me/updateEmail/confirm/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, getUsersMeUpdateEmailConfirm);
   router.put('/me/updateEmail/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeUpdateEmail);
   router.put('/me/updatePassword/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeUpdatePassword);
@@ -85,6 +87,8 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/oauth/facebook/redirect', facebookAuthentication, getUsersOauthFacebookRedirect);
   router.delete('/me', passport.authenticate('jwt', { session: false }), deleteUsersMe);
   router.get('/refreshToken', passport.authenticate('jwt', { session: false }), getUsersRefreshToken);
+  router.post('/auth/mobile/facebook', shouldNotBeAuth, postUsersAuthMobileFacebook);
+  router.post('/auth/mobile/google', shouldNotBeAuth, postUsersAuthMobileGoogle);
   return router;
 };
 export default usersRoutes;

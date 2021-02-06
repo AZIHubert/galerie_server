@@ -72,7 +72,7 @@ describe('users', () => {
         password: hashPassword,
       });
       const { body } = await agent
-        .get('/users/login')
+        .post('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
@@ -204,7 +204,7 @@ describe('users', () => {
           });
           const agentTwo = request.agent(app);
           const { body: { token: tokenTwo } } = await agentTwo
-            .get('/users/login')
+            .post('/users/login')
             .send({
               password: newUser.password,
               userNameOrEmail: userTwo.userName,

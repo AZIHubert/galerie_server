@@ -9,9 +9,9 @@ export default async (req: Request, res: Response) => {
   try {
     profilePictures = await ProfilePicture.findAll({
       where: { userId: id },
+      order: [['createdAt', 'DESC']],
       attributes: {
         exclude: [
-          'createdAt',
           'cropedImageId',
           'deletedAt',
           'originalImageId',
