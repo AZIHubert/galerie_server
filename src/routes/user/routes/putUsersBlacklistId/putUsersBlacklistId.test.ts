@@ -53,7 +53,7 @@ describe('users', () => {
         role: 'superAdmin',
       });
       const { body } = await agent
-        .get('/users/login')
+        .post('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
@@ -303,7 +303,7 @@ describe('users', () => {
             });
             const agentTwo = request.agent(app);
             const { body: { token: tokenTwo } } = await agentTwo
-              .get('/users/login')
+              .post('/users/login')
               .set('authorization', token)
               .send({
                 password: newUser.password,
@@ -335,7 +335,7 @@ describe('users', () => {
             });
             const agentTwo = request.agent(app);
             const { body: { token: tokenTwo } } = await agentTwo
-              .get('/users/login')
+              .post('/users/login')
               .set('authorization', token)
               .send({
                 password: newUser.password,

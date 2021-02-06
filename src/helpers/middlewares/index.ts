@@ -1,5 +1,6 @@
 export { default as facebookAuthentication } from './facebookAuthentication';
 export { default as googleAuthentication } from './googleAuthentication';
+export { default as mobileAuth } from './mobileAuth';
 export { default as shouldBeAdmin } from './shouldBeAdmin';
 export { default as shouldBeAuth } from './shouldBeAuth';
 export { default as shouldBeSuperAdmin } from './shouldBeSuperAdmin';

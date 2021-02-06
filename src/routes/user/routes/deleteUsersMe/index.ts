@@ -10,6 +10,12 @@ import {
 import gc from '@src/helpers/gc';
 
 export default async (req: Request, res: Response) => {
+  const user = req.user as User;
+  if (user.facebookId || user.googleId) {
+    return res.status(400).send({
+      errors: 'you can\'t delete your account if you\'re logged in with Facebook or Google',
+    });
+  }
   const { password } = req.body;
   if (!password) {
     return res.status(400).send({
@@ -18,14 +24,18 @@ export default async (req: Request, res: Response) => {
       },
     });
   }
-  const user = req.user as User;
-  const PasswordsMatch = await compare(password, user.password);
-  if (!PasswordsMatch) {
-    return res.status(400).send({
-      errors: {
-        password: WRONG_PASSWORD,
-      },
-    });
+  let passwordsMatch: boolean;
+  try {
+    passwordsMatch = await compare(password, user.password);
+    if (!passwordsMatch) {
+      return res.status(400).send({
+        errors: {
+          password: WRONG_PASSWORD,
+        },
+      });
+    }
+  } catch (err) {
+    return res.status(500).send(err);
   }
   try {
     await user.destroy();

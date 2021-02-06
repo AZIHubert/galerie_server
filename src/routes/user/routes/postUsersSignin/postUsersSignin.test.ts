@@ -92,7 +92,6 @@ describe('users', () => {
             expect(body).toHaveProperty('password');
             expect(body.userName).toEqual(newUser.userName);
             expect(body.email).toEqual(newUser.email);
-            expect(body.deletedAt).toEqual(null);
             expect(body.confirmed).toEqual(false);
             expect(body.currentProfilePictureId).toBeNull();
           });

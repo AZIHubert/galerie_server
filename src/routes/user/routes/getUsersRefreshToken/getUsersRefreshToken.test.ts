@@ -43,7 +43,7 @@ describe('users', () => {
         password: hashPassword,
       });
       const { body } = await agent
-        .get('/users/login')
+        .post('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
@@ -73,7 +73,7 @@ describe('users', () => {
             .set('authorization', token);
           expect(status).toBe(200);
           expect(typeof body.token).toBe('string');
-          expect(body.expiresIn).toBe('30m');
+          expect(body.expiresIn).toBe(1800);
         });
       });
     });

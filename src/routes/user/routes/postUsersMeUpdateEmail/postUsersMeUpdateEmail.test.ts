@@ -50,7 +50,7 @@ describe('users', () => {
         password: hashPassword,
       });
       const { body } = await agent
-        .get('/users/login')
+        .post('/users/login')
         .send({
           password: newUser.password,
           userNameOrEmail: user.userName,
@@ -76,14 +76,14 @@ describe('users', () => {
   });
   describe('me', () => {
     describe('updateEmail', () => {
-      describe('GET', () => {
+      describe('POST', () => {
         describe('should return status 204 and', () => {
           it('create a token and send an email', async (done) => {
             try {
               const emailMock = jest.spyOn(email, 'sendUpdateEmailMessage');
               const signMock = jest.spyOn(jwt, 'sign');
               const { status } = await agent
-                .get('/users/me/updateEmail/')
+                .post('/users/me/updateEmail/')
                 .set('authorization', token)
                 .send({
                   password: newUser.password,
@@ -98,7 +98,7 @@ describe('users', () => {
           });
           it('increment emailTokenVersion if resend is true', async () => {
             await agent
-              .get('/users/me/updateEmail/')
+              .post('/users/me/updateEmail/')
               .set('authorization', token)
               .send({
                 password: newUser.password,
@@ -110,7 +110,7 @@ describe('users', () => {
           });
           it('not increment emailTokenVersion if resend is false', async () => {
             await agent
-              .get('/users/me/updateEmail/')
+              .post('/users/me/updateEmail/')
               .set('authorization', token)
               .send({
                 password: newUser.password,
@@ -124,7 +124,7 @@ describe('users', () => {
           describe('password', () => {
             it('is not set', async () => {
               const { status, body } = await agent
-                .get('/users/me/updateEmail')
+                .post('/users/me/updateEmail')
                 .set('authorization', token)
                 .send({});
               expect(status).toBe(400);
@@ -136,7 +136,7 @@ describe('users', () => {
             });
             it('is not a string', async () => {
               const { status, body } = await agent
-                .get('/users/me/updateEmail')
+                .post('/users/me/updateEmail')
                 .set('authorization', token)
                 .send({
                   password: 123456,
@@ -150,7 +150,7 @@ describe('users', () => {
             });
             it('is empty', async () => {
               const { status, body } = await agent
-                .get('/users/me/updateEmail')
+                .post('/users/me/updateEmail')
                 .set('authorization', token)
                 .send({
                   password: '',
@@ -164,7 +164,7 @@ describe('users', () => {
             });
             it('not match user password', async () => {
               const { status, body } = await agent
-                .get('/users/me/updateEmail')
+                .post('/users/me/updateEmail')
                 .set('authorization', token)
                 .send({
                   password: 'wrongPassword',

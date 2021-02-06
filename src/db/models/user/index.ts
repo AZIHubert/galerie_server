@@ -38,10 +38,6 @@ interface UserI {
 }
 
 @Table({
-  defaultScope: {
-    attributes: { exclude: ['deletedAt'] },
-  },
-  paranoid: true,
   tableName: 'users',
 })
 export default class User extends Model implements UserI {

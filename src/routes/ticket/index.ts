@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import socketIo from 'socket.io';
 
 import { shouldBeSuperAdmin } from '@src/helpers/middlewares';
 import passport from '@src/helpers/passport';
@@ -13,8 +12,8 @@ import {
 
 const router = Router();
 
-const ticketsRouter: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
-  router.post('/', passport.authenticate('jwt', { session: false }), postTickets(io));
+const ticketsRouter: () => Router = () => {
+  router.post('/', passport.authenticate('jwt', { session: false }), postTickets);
   router.get('/', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, getTickets);
   router.get('/:id', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, getTicketsId);
   router.delete('/:id', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, deleteTicketsId);
