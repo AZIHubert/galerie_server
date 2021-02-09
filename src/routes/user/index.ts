@@ -87,8 +87,8 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/oauth/facebook/redirect', facebookAuthentication, getUsersOauthFacebookRedirect);
   router.delete('/me', passport.authenticate('jwt', { session: false }), deleteUsersMe);
   router.get('/refreshToken', passport.authenticate('jwt', { session: false }), getUsersRefreshToken);
-  router.post('/auth/mobile/facebook', shouldNotBeAuth, postUsersAuthMobileFacebook);
-  router.post('/auth/mobile/google', shouldNotBeAuth, postUsersAuthMobileGoogle);
+  router.post('/auth/facebook', shouldNotBeAuth, postUsersAuthMobileFacebook);
+  router.post('/auth/google', shouldNotBeAuth, postUsersAuthMobileGoogle);
   return router;
 };
 export default usersRoutes;
