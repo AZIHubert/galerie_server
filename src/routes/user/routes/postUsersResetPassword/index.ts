@@ -31,6 +31,7 @@ export default async (req: Request, res: Response) => {
       where: {
         email: value.email,
         googleId: null,
+        facebookId: null,
       },
     });
   } catch (err) {

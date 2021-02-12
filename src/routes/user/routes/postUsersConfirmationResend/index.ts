@@ -12,18 +12,19 @@ import {
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 
 export default async (req: Request, res: Response) => {
-  const { id } = req.body;
-  if (!id) {
+  const { email } = req.body;
+  if (!email) {
     return res.status(400).send({
-      errors: 'user id is required',
+      errors: 'user email is required',
     });
   }
   let user: User | null;
   try {
     user = await User.findOne({
       where: {
-        id,
+        email,
         googleId: null,
+        facebookId: null,
       },
     });
   } catch (err) {
@@ -43,7 +44,7 @@ export default async (req: Request, res: Response) => {
     await user.increment({ confirmTokenVersion: 1 });
     sign(
       {
-        id,
+        id: user.id,
         confirmTokenVersion: user.confirmTokenVersion,
       },
       CONFIRM_SECRET,

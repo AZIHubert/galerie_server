@@ -7,7 +7,7 @@ import {
   WRONG_TOKEN,
 } from '@src/helpers/errorMessages';
 
-const RESET_PASSWORD_SECRET = accEnv('SEND_EMAIL_SECRET');
+const RESET_PASSWORD_SECRET = accEnv('RESET_PASSWORD_SECRET');
 
 interface Error {
   OK: false;
@@ -45,10 +45,10 @@ export default (req: Request) => {
       RESET_PASSWORD_SECRET,
     ) as {
       id: string;
-      emailTokenVersion: number;
+      resetPasswordTokenVersion: number;
     };
     id = verifiedToken.id;
-    resetPasswordTokenVersion = verifiedToken.emailTokenVersion;
+    resetPasswordTokenVersion = verifiedToken.resetPasswordTokenVersion;
   } catch (err) {
     return {
       OK: false,

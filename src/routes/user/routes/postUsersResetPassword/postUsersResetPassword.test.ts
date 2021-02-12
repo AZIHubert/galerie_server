@@ -67,7 +67,7 @@ describe('users', () => {
     done();
   });
   describe('resetPassword', () => {
-    describe('GET', () => {
+    describe('POST', () => {
       describe('should return status 204 and', () => {
         it('send an email with and sign a token', async () => {
           const emailMocked = jest.spyOn(email, 'sendResetPassword');

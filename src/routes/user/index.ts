@@ -17,7 +17,7 @@ import {
   deleteUsersMeProfilePicturesId,
   getUsers,
   getUsersBlackList,
-  getUsersConfirmationResend,
+  postUsersConfirmationResend,
   getUsersIdId,
   getUsersLogout,
   getUsersOauthFacebookRedirect,
@@ -26,7 +26,6 @@ import {
   getUsersMeProfilePictures,
   getUsersMeProfilePicturesId,
   getUsersMeUpdateEmailConfirm,
-  getUsersResetPassword,
   getUsersRefreshToken,
   getUsersUserNameUserName,
   postUsersSignin,
@@ -38,6 +37,7 @@ import {
   putUsersMeProfilePicturesId,
   postUsersMeProfilePictures,
   postUsersMeUpdateEmail,
+  postUsersResetPassword,
   putUsersMeUpdateEmail,
   putUsersMeUpdatePassword,
   putUsersResetPassword,
@@ -49,10 +49,10 @@ const router = Router();
 const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/', passport.authenticate('jwt', { session: false }), getUsers);
   router.post('/signin/', postUsersSignin);
-  router.get('/confirmation/resend/', shouldNotBeAuth, getUsersConfirmationResend);
+  router.post('/confirmation/resend/', shouldNotBeAuth, postUsersConfirmationResend);
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.post('/login/', shouldNotBeAuth, postUsersLogin);
-  router.get('/resetPassword/', shouldNotBeAuth, getUsersResetPassword);
+  router.post('/resetPassword/', shouldNotBeAuth, postUsersResetPassword);
   router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
   router.get('/me', passport.authenticate('jwt', { session: false }), getUsersMe);
   router.post('/me/updateEmail/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, postUsersMeUpdateEmail);
@@ -86,7 +86,7 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   }));
   router.get('/oauth/facebook/redirect', facebookAuthentication, getUsersOauthFacebookRedirect);
   router.delete('/me', passport.authenticate('jwt', { session: false }), deleteUsersMe);
-  router.get('/refreshToken', passport.authenticate('jwt', { session: false }), getUsersRefreshToken);
+  router.get('/refreshToken', getUsersRefreshToken);
   router.post('/auth/facebook', shouldNotBeAuth, postUsersAuthMobileFacebook);
   router.post('/auth/google', shouldNotBeAuth, postUsersAuthMobileGoogle);
   return router;

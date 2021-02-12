@@ -2,7 +2,7 @@ export { default as deleteUsersMe } from './deleteUsersMe';
 export { default as deleteUsersMeProfilePicturesId } from './deleteUsersMeProfilePicturesId';
 export { default as getUsers } from './getUsers';
 export { default as getUsersBlackList } from './getUsersBlackList';
-export { default as getUsersConfirmationResend } from './getUsersConfirmationResend';
+export { default as postUsersConfirmationResend } from './postUsersConfirmationResend';
 export { default as getUsersIdId } from './getUsersIdId';
 export { default as getUsersLogout } from './getUsersLogout';
 export { default as getUsersMe } from './getUsersMe';
@@ -12,7 +12,7 @@ export { default as getUsersMeUpdateEmailConfirm } from './getUsersMeUpdateEmail
 export { default as getUsersOauthFacebookRedirect } from './getUsersOauthFacebookRedirect';
 export { default as getUsersOauthGoogleRedirect } from './getUsersOauthGoogleRedirect';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
-export { default as getUsersResetPassword } from './getUsersResetPassword';
+export { default as postUsersResetPassword } from './postUsersResetPassword';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 export { default as postUsersLogin } from './postUsersLogin';
 export { default as postUsersAuthMobileFacebook } from './postUsersAuthMobileFacebook';

@@ -56,7 +56,8 @@ const initApp: () => http.Server = () => {
   app.use(passport.session());
   app.use(
     cors({
-      origin: '*',
+      origin: true,
+      credentials: true,
     }),
   );
   io.on('connection', (socket) => {

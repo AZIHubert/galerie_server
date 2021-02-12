@@ -52,7 +52,7 @@ describe('users', () => {
   });
   describe('confirmation', () => {
     describe('resend', () => {
-      describe('GET', () => {
+      describe('POST', () => {
         describe('should return status 204 and', () => {
           let user: User;
           beforeEach(async (done) => {

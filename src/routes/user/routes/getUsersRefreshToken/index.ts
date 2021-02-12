@@ -6,13 +6,12 @@ import path from 'path';
 import { User } from '@src/db/models';
 
 import {
-  WRONG_TOKEN_USER_ID,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import setRefreshToken from '@src/helpers/setRefreshToken';
 
-export default (req: Request, res: Response) => {
+export default async (req: Request, res: Response) => {
   const { refreshToken } = req.session;
   if (!refreshToken) {
     return res.status(401).send({
@@ -36,13 +35,15 @@ export default (req: Request, res: Response) => {
     }));
     return res.status(500).send(err);
   }
-  const user = req.user as User;
-  if (id !== user.id) {
-    req.session.destroy((sessionError) => res.status(401).send({
-      errors: sessionError,
-    }));
-    return res.status(401).send({
-      errors: WRONG_TOKEN_USER_ID,
+  let user: User | null;
+  try {
+    user = await User.findByPk(id);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  if (!user) {
+    return res.status(404).send({
+      errors: 'user not found',
     });
   }
   if (authTokenVersion !== user.authTokenVersion) {
