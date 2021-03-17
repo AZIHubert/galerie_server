@@ -1,5 +1,6 @@
 import {
   BelongsTo,
+  BelongsToMany,
   Column,
   DataType,
   ForeignKey,
@@ -13,6 +14,7 @@ import BlackList from '../blackList';
 import Galerie from '../galerie';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
+import GalerieUser from '../GalerieUser';
 
 interface UserI {
   authTokenVersion: number;
@@ -35,7 +37,6 @@ interface UserI {
   tickets: Ticket[];
   updatedEmailTokenVersion: number;
   userName: string;
-
 }
 
 @Table({
@@ -98,7 +99,7 @@ export default class User extends Model implements UserI {
   })
   facebookId!: string;
 
-  @HasMany(() => Galerie)
+  @BelongsToMany(() => Galerie, () => GalerieUser)
   galeries!: Galerie[];
 
   @Column({
