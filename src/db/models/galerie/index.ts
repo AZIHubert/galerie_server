@@ -1,24 +1,34 @@
 import {
+  BelongsTo,
   BelongsToMany,
   Column,
   DataType,
+  ForeignKey,
   Model,
   Table,
 } from 'sequelize-typescript';
 
-import User from '../user';
+import BoardImage from '../boardImage';
 import GalerieUser from '../galerieUser';
+import User from '../user';
 
 interface GalerieI {
+  coverPictureId?: string;
   id: string;
   name: string;
-  users: User[]
+  users: User[];
 }
 
 @Table({
   tableName: 'galeries',
 })
 export default class Galerie extends Model implements GalerieI {
+  @ForeignKey(() => BoardImage)
+  @Column({
+    type: DataType.BIGINT,
+  })
+  coverPictureId!: string;
+
   @Column({
     allowNull: false,
     autoIncrement: true,
@@ -38,4 +48,7 @@ export default class Galerie extends Model implements GalerieI {
     type: DataType.BIGINT,
   })
   users!: User[];
+
+  @BelongsTo(() => BoardImage)
+  coverPicture!: BoardImage
 }

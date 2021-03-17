@@ -4,6 +4,7 @@ import accessEnv from '@src/helpers/accEnv';
 
 import {
   BlackList,
+  BoardImage
   Galerie,
   GalerieUser,
   Image,
@@ -25,6 +26,7 @@ const sequelize = new Sequelize({
   logging: false,
   models: [
     BlackList,
+    BoardImage,
     Galerie,
     GalerieUser,
     Image,

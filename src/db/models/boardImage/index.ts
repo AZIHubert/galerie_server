@@ -1,5 +1,4 @@
 import {
-  BelongsTo,
   Column,
   DataType,
   ForeignKey,
@@ -8,20 +7,20 @@ import {
 } from 'sequelize-typescript';
 
 import Image from '../image';
-import User from '../user';
+import Galerie from '../galerie';
 
-interface ProfilePictureI {
+interface BoardImageI {
   cropedImageId?: string;
   id: string;
   originalImageId?: string;
   pendingImageId?: string;
-  userId: string;
+  galerieId: string;
 }
 
 @Table({
-  tableName: 'profilePicture',
+  tableName: 'boardImage',
 })
-export default class ProfilePicture extends Model implements ProfilePictureI {
+export default class boardImage extends Model implements BoardImageI {
   @ForeignKey(() => Image)
   @Column({
     type: DataType.BIGINT,
@@ -48,22 +47,10 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
   })
   pendingImageId!: string;
 
-  @ForeignKey(() => User)
+  @ForeignKey(() => Galerie)
   @Column({
     allowNull: false,
     type: DataType.BIGINT,
   })
-  userId!: string;
-
-  @BelongsTo(() => Image, 'cropedImageId')
-  cropedImage!: Image;
-
-  @BelongsTo(() => Image, 'originalImageId')
-  originalImage!: Image;
-
-  @BelongsTo(() => Image, 'pendingImageId')
-  pendingImage!: Image;
-
-  @BelongsTo(() => User)
-  user!: User;
+  galerieId!: string;
 }
