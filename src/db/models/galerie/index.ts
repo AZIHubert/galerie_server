@@ -16,11 +16,11 @@ interface GalerieI {
   coverPictureId?: string;
   id: string;
   name: string;
-  users: User[];
+  GalerieUser?: GalerieUser;
 }
 
 @Table({
-  tableName: 'galeries',
+  tableName: 'galerie',
 })
 export default class Galerie extends Model implements GalerieI {
   @ForeignKey(() => BoardImage)
@@ -44,11 +44,10 @@ export default class Galerie extends Model implements GalerieI {
   name!: string;
 
   @BelongsToMany(() => User, () => GalerieUser)
-  @Column({
-    type: DataType.BIGINT,
-  })
   users!: User[];
 
   @BelongsTo(() => BoardImage)
-  coverPicture!: BoardImage
+  coverPicture!: BoardImage;
+
+  GalerieUser!: GalerieUser;
 }

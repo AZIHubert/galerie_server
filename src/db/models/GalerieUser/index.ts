@@ -10,9 +10,9 @@ import Galerie from '../galerie';
 import User from '../user';
 
 interface GalerieUserI {
-  userId?: string;
   galerieId?: string;
   role?: string;
+  userId?: string;
 }
 
 @Table({
@@ -34,5 +34,5 @@ export default class GalerieUser extends Model implements GalerieUserI {
   @Column({
     type: DataType.STRING,
   })
-  role!: string;
+  role!: 'creator' | 'admin' | 'user';
 }

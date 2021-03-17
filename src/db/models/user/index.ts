@@ -27,6 +27,7 @@ interface UserI {
   emailTokenVersion: number;
   facebookId?: string;
   galeries?: Galerie[];
+  GalerieUser: GalerieUser;
   googleId?: string;
   id: string;
   password: string;
@@ -99,9 +100,6 @@ export default class User extends Model implements UserI {
   })
   facebookId!: string;
 
-  @BelongsToMany(() => Galerie, () => GalerieUser)
-  galeries!: Galerie[];
-
   @Column({
     type: DataType.STRING,
   })
@@ -163,5 +161,10 @@ export default class User extends Model implements UserI {
   blackList!: BlackList;
 
   @BelongsTo(() => ProfilePicture)
-  currentProfilePicture!: ProfilePicture
+  currentProfilePicture!: ProfilePicture;
+
+  @BelongsToMany(() => Galerie, () => GalerieUser)
+  galeries!: Galerie[];
+
+  GalerieUser!: GalerieUser;
 }

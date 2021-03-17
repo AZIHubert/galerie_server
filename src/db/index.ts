@@ -4,7 +4,7 @@ import accessEnv from '@src/helpers/accEnv';
 
 import {
   BlackList,
-  BoardImage
+  BoardImage,
   Galerie,
   GalerieUser,
   Image,

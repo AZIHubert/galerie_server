@@ -22,9 +22,11 @@ const galerieSchema = Joi.object({
       'string.min': FIELD_MIN_LENGTH_OF_THREE,
       'string.max': FIELD_MAX_LENGTH_THRITY,
       'string.empty': FIELD_IS_EMPTY,
-      'string.required': FIELD_IS_REQUIRED,
+      'any.required': FIELD_IS_REQUIRED,
     }),
 });
 
-export default (passwords: any) => galerieSchema
-  .validate(passwords, options);
+export default (galerie: {
+  name: string;
+}) => galerieSchema
+  .validate(galerie, options);

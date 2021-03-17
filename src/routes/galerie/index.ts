@@ -1,5 +1,11 @@
 import { Router } from 'express';
 
+import passport from '@src/helpers/passport';
+
+import {
+  postGaleries,
+} from './routes';
+
 const router = Router();
 
 const galeriesRoutes: () => Router = () => {
@@ -12,10 +18,17 @@ const galeriesRoutes: () => Router = () => {
   router.get('/:id/invits', () => {}); // get all invit to a galerie
   router.get('/:id/invits/:invitId', () => {}); // get a invit to a galerie
   router.get('/:id/users', () => {}); // get all user from a galerie
-  router.post('/', () => {}); // create a galerie
+  router.post('/', passport.authenticate('jwt', { session: false }), postGaleries); // create a galerie
   router.post('/:id/images', () => {}); // post a picture on a galerie
   router.post('/:id/invits', () => {}); // create a invite for a galerie
-  router.put('/:id', () => {}); // update a galerie
+  router.put('/:id', () => {
+    // check if galerie exist and user is subscribe to this galerie
+    // check if name is valid
+    // check if name exist
+    // update name
+    // check if image exist
+    // update coverPicture
+  }); // update a galerie
   router.put('/:id/images/:id'); // like or unlike a galerie
   router.put('/:id/subscribe/', () => {}); // subscribe to a galerie
   router.put('/:id/unsubscribe/', () => {}); // unsubscribe to a galerie
