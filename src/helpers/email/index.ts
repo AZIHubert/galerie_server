@@ -73,7 +73,7 @@ const validateEmailMessage = (email: string, token: string) => ({
     <body>
       <h1>Galeries</h1>
       <p>Please click this link to validate your email:</p>
-      <a target="_blank" href='https://www.localhost:1234/updateEmail/${token}'>
+      <a target="_blank" href='https://www.localhost:1234/validateEmail/${token}'>
         https://www.localhost:1234/updateEmail/${token}
       </a>
     </body>

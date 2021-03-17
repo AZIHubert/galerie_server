@@ -18,6 +18,13 @@ export default async (req: Request, res: Response) => {
   }
   const { id: userId, currentProfilePictureId } = currentUser;
   let profilePicture: ProfilePicture | null;
+  if (currentProfilePictureId === id) {
+    try {
+      await currentUser.update({ currentProfilePictureId: null });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+  }
   try {
     profilePicture = await ProfilePicture.findOne({
       where: {
@@ -44,6 +51,11 @@ export default async (req: Request, res: Response) => {
     pendingImage,
   } = profilePicture;
   try {
+    await profilePicture.update({
+      cropedImageId: null,
+      originalImageId: null,
+      pendingImageId: null,
+    });
     await gc
       .bucket(originalImage.bucketName)
       .file(originalImage.fileName)
@@ -71,18 +83,13 @@ export default async (req: Request, res: Response) => {
         id: pendingImage.id,
       },
     });
-    await ProfilePicture.destroy({
-      where: { id },
-    });
+    await profilePicture.destroy();
   } catch (err) {
     return res.status(500).send(err);
   }
-  if (currentProfilePictureId === id) {
-    try {
-      await currentUser.update({ currentProfilePictureId: null });
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-  }
-  return res.status(200).send({ id });
+
+  return res.status(200).send({
+    type: 'DELETE',
+    id,
+  });
 };

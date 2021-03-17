@@ -109,7 +109,8 @@ describe('users', () => {
           expect(users.length).toBe(0);
         });
         it('delete all profile pictures', async () => {
-          await agent.post('/users/me/ProfilePictures')
+          await agent
+            .post('/users/me/ProfilePictures')
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')
@@ -120,7 +121,8 @@ describe('users', () => {
           expect(profilePictures.length).toBe(0);
         });
         it('delete all profile picture\'s original images', async () => {
-          await agent.post('/users/me/ProfilePictures')
+          await agent
+            .post('/users/me/ProfilePictures')
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')
@@ -135,7 +137,8 @@ describe('users', () => {
           expect(originalImage.length).toBe(0);
         });
         it('delete all profile picture\'s original image\'s files', async () => {
-          await agent.post('/users/me/ProfilePictures')
+          await agent
+            .post('/users/me/ProfilePictures')
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')

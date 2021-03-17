@@ -32,7 +32,9 @@ export default async (req: Request, res: Response) => {
   }
   if (!user) {
     return res.status(404).send({
-      errors: USER_NOT_FOUND,
+      errors: {
+        email: USER_NOT_FOUND,
+      },
     });
   }
   if (user.confirmed) {

@@ -13,14 +13,14 @@ import {
 import options from '../options';
 
 const sendUpdatePassword = Joi.object({
-  password: Joi.string()
+  currentPassword: Joi.string()
     .required()
     .empty()
     .messages({
       'string.empty': FIELD_IS_EMPTY,
       'any.required': FIELD_IS_REQUIRED,
     }),
-  updatedPassword: Joi.string()
+  newPassword: Joi.string()
     .required()
     .pattern(new RegExp(/^\S*$/), { name: 'spacesError' })
     .pattern(new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,30}$'), { name: 'passwordError' })
@@ -34,9 +34,9 @@ const sendUpdatePassword = Joi.object({
       'string.max': FIELD_MAX_LENGTH_THRITY,
       'string.pattern.base': FIELD_IS_PASSWORD,
     }),
-  confirmUpdatedPassword: Joi.string()
+  confirmNewPassword: Joi.string()
     .required()
-    .valid(Joi.ref('updatedPassword'))
+    .valid(Joi.ref('newPassword'))
     .messages({
       'any.required': FIELD_IS_REQUIRED,
       'any.only': FIELD_IS_CONFIRM_PASSWORD,

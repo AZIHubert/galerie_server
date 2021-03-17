@@ -30,6 +30,7 @@ export default async (req: Request, res: Response) => {
         'emailTokenVersion',
         'googleId',
         'password',
+        'profilePictures',
         'resetPasswordTokenVersion',
         'updatedEmailTokenVersion',
       ],

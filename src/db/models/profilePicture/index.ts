@@ -12,25 +12,20 @@ import Image from '../image';
 import User from '../user';
 
 interface ProfilePictureI {
-  cropedImageId: string;
+  cropedImageId?: string;
   currentProfilePicture: User;
   id: string;
-  originalImageId: string;
-  pendingImageId: string;
+  originalImageId?: string;
+  pendingImageId?: string;
   userId: string;
 }
 
 @Table({
-  defaultScope: {
-    attributes: { exclude: ['deletedAt'] },
-  },
-  paranoid: true,
   tableName: 'profilePicture',
 })
 export default class ProfilePicture extends Model implements ProfilePictureI {
   @ForeignKey(() => Image)
   @Column({
-    allowNull: false,
     type: DataType.BIGINT,
   })
   cropedImageId!: string;
@@ -48,14 +43,12 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
 
   @ForeignKey(() => Image)
   @Column({
-    allowNull: false,
     type: DataType.BIGINT,
   })
   originalImageId!: string;
 
   @ForeignKey(() => Image)
   @Column({
-    allowNull: false,
     type: DataType.BIGINT,
   })
   pendingImageId!: string;

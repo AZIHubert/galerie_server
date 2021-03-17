@@ -17,7 +17,6 @@ interface Error {
 interface Success {
   OK: true;
   id: string;
-  emailTokenVersion: number;
 }
 
 export default (req: Request) => {
@@ -38,17 +37,14 @@ export default (req: Request) => {
     } as Error;
   }
   let id: string;
-  let emailTokenVersion: number;
   try {
     const verifiedToken = verify(
       token,
       SEND_EMAIL_SECRET,
     ) as {
       id: string;
-      emailTokenVersion: number;
     };
     id = verifiedToken.id;
-    emailTokenVersion = verifiedToken.emailTokenVersion;
   } catch (err) {
     return {
       OK: false,
@@ -59,6 +55,5 @@ export default (req: Request) => {
   return {
     OK: true,
     id,
-    emailTokenVersion,
   } as Success;
 };

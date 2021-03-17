@@ -8,6 +8,8 @@ import {
   WRONG_TOKEN_USER_ID,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
+import { signAuthToken } from '@src/helpers/issueJWT';
+import setRefreshToken from '@src/helpers/setRefreshToken';
 import { updateEmailToken } from '@src/helpers/verifyConfirmation';
 
 export default async (req: Request, res: Response) => {
@@ -63,5 +65,7 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(204).end();
+  setRefreshToken(req, user);
+  const jwt = signAuthToken(user);
+  return res.status(200).send({ token: jwt.token, expiresIn: jwt.expires });
 };

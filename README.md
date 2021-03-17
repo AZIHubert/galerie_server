@@ -91,3 +91,12 @@ Install webpack and use it with babel
     3. interact with other user
         - black list users
         - black list galeries
+
+Signin return only email
+remove emailTokenVersion
+object error field => return all errors at once
+add user.pseudonym,
+when user.create
+username = `@${userName}`
+pseudonym = userName
+add route put/user/pseudonym

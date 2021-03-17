@@ -32,7 +32,7 @@ export default async (req: Request, res: Response) => {
       where: {
         [Op.or]: [
           {
-            userName: userNameOrEmail,
+            userName: `@${userNameOrEmail}`,
           },
           {
             email: userNameOrEmail,
