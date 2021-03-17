@@ -14,7 +14,7 @@ import BlackList from '../blackList';
 import Galerie from '../galerie';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
-import GalerieUser from '../GalerieUser';
+import GalerieUser from '../galerieUser';
 
 interface UserI {
   authTokenVersion: number;
