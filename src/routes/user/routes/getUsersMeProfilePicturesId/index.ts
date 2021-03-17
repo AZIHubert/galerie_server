@@ -15,7 +15,6 @@ export default async (req: Request, res: Response) => {
       },
       attributes: {
         exclude: [
-          'createdAt',
           'cropedImageId',
           'deletedAt',
           'originalImageId',
@@ -87,5 +86,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(200).send(profilePicture);
+  return res.status(200).send({
+    type: 'GET',
+    profilePicture,
+  });
 };

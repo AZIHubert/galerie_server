@@ -23,10 +23,6 @@ interface ImageI {
 }
 
 @Table({
-  defaultScope: {
-    attributes: { exclude: ['deletedAt'] },
-  },
-  paranoid: true,
   tableName: 'image',
 })
 export default class Image extends Model implements ImageI {
@@ -36,7 +32,9 @@ export default class Image extends Model implements ImageI {
   })
   bucketName!: string;
 
-  @HasOne(() => ProfilePicture)
+  @HasOne(() => ProfilePicture, {
+    onDelete: 'CASCADE',
+  })
   cropedProfilePicture!: ProfilePicture;
 
   @Column({
@@ -71,10 +69,14 @@ export default class Image extends Model implements ImageI {
   })
   size!: number;
 
-  @HasOne(() => ProfilePicture)
+  @HasOne(() => ProfilePicture, {
+    onDelete: 'CASCADE',
+  })
   originalProfilePicture!: ProfilePicture;
 
-  @HasOne(() => ProfilePicture)
+  @HasOne(() => ProfilePicture, {
+    onDelete: 'CASCADE',
+  })
   pendingProfilePicture!: ProfilePicture;
 
   @Column({

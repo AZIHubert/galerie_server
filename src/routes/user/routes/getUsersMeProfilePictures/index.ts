@@ -4,12 +4,22 @@ import { Image, ProfilePicture, User } from '@src/db/models';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
+  const limit = 20;
+  const { page } = req.query;
+  let offset: number;
+  if (typeof page === 'string') {
+    offset = ((+page || 1) - 1) * limit;
+  } else {
+    offset = 0;
+  }
   const { id } = req.user as User;
   let profilePictures: ProfilePicture[];
   try {
     profilePictures = await ProfilePicture.findAll({
       where: { userId: id },
       order: [['createdAt', 'DESC']],
+      limit,
+      offset,
       attributes: {
         exclude: [
           'cropedImageId',

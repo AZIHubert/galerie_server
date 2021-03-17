@@ -22,6 +22,8 @@ const cleanDatas = async () => {
   await User.sync({ force: true });
   await Image.sync({ force: true });
   await ProfilePicture.sync({ force: true });
+};
+const cleanGoogleBuckets = async () => {
   const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
   await Promise.all(originalImages
     .map(async (image) => {
@@ -81,6 +83,7 @@ describe('users', () => {
   afterAll(async (done) => {
     try {
       await cleanDatas();
+      await cleanGoogleBuckets();
       await sequelize.close();
     } catch (err) {
       done(err);

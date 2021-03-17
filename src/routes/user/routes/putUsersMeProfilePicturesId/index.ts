@@ -72,7 +72,9 @@ export default async (req: Request, res: Response) => {
   if (user.currentProfilePictureId === id) {
     try {
       await user.update({ currentProfilePictureId: null });
-      return res.status(200).end();
+      return res.status(200).send({
+        type: 'PUT',
+      });
     } catch (err) {
       return res.status(500).send(err);
     }
@@ -94,7 +96,10 @@ export default async (req: Request, res: Response) => {
       profilePicture.pendingImage.fileName,
     );
     profilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
-    return res.status(200).send(profilePicture);
+    return res.status(200).send({
+      type: 'PUT',
+      profilePicture,
+    });
   } catch (err) {
     return res.status(500).send(err);
   }

@@ -27,6 +27,8 @@ const cleanDatas = async (sequelize: Sequelize) => {
   await ProfilePicture.sync({ force: true });
   await User.sync({ force: true });
   await sequelize.model('Sessions').sync({ force: true });
+};
+const cleanGoogleBuckets = async () => {
   const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
   await Promise.all(originalImages
     .map(async (image) => {
@@ -86,6 +88,7 @@ describe('users', () => {
   afterAll(async (done) => {
     try {
       await cleanDatas(sequelize);
+      await cleanGoogleBuckets();
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -106,7 +109,8 @@ describe('users', () => {
           expect(users.length).toBe(0);
         });
         it('delete all profile pictures', async () => {
-          await agent.post('/users/me/ProfilePictures')
+          await agent
+            .post('/users/me/ProfilePictures')
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')
@@ -117,7 +121,8 @@ describe('users', () => {
           expect(profilePictures.length).toBe(0);
         });
         it('delete all profile picture\'s original images', async () => {
-          await agent.post('/users/me/ProfilePictures')
+          await agent
+            .post('/users/me/ProfilePictures')
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')
@@ -132,7 +137,8 @@ describe('users', () => {
           expect(originalImage.length).toBe(0);
         });
         it('delete all profile picture\'s original image\'s files', async () => {
-          await agent.post('/users/me/ProfilePictures')
+          await agent
+            .post('/users/me/ProfilePictures')
             .attach('image', `${__dirname}/../../ressources/image.jpg`);
           const { status } = await agent
             .delete('/users/me/')

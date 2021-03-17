@@ -39,7 +39,7 @@ const initApp: () => http.Server = () => {
   const app: express.Application = express();
   const server = new http.Server(app);
   const io = new socketIo.Server(server);
-  app.use(bodyParser.json());
+  app.use(bodyParser.json({ limit: '4MB' }));
   app.use(bodyParser.urlencoded({ extended: true, limit: '5m' }));
   app.use(cookieParser());
   app.use(session({
@@ -47,7 +47,7 @@ const initApp: () => http.Server = () => {
       maxAge: 1000 * 60 * 60 * 24 * 7,
       secure: false,
     },
-    resave: true,
+    resave: false,
     saveUninitialized: true,
     secret: SESSION_SECRET,
     store: sequelizeStore,
@@ -56,7 +56,8 @@ const initApp: () => http.Server = () => {
   app.use(passport.session());
   app.use(
     cors({
-      origin: '*',
+      origin: true,
+      credentials: true,
     }),
   );
   io.on('connection', (socket) => {

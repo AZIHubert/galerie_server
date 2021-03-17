@@ -14,10 +14,18 @@ const sendUpdateNewEmailSchema = Joi.object({
     .trim()
     .email({ minDomainSegments: 2 })
     .required()
+    .lowercase()
     .empty()
     .messages({
       'string.base': FIELD_NOT_A_STRING,
       'string.email': FIELD_IS_EMAIL,
+      'string.empty': FIELD_IS_EMPTY,
+      'any.required': FIELD_IS_REQUIRED,
+    }),
+  password: Joi.string()
+    .required()
+    .empty()
+    .messages({
       'string.empty': FIELD_IS_EMPTY,
       'any.required': FIELD_IS_REQUIRED,
     }),

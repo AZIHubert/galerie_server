@@ -33,6 +33,7 @@ const userSignInSchema = Joi.object({
     .email({ minDomainSegments: 2 })
     .required()
     .empty()
+    .lowercase()
     .messages({
       'string.email': FIELD_IS_EMAIL,
       'string.empty': FIELD_IS_EMPTY,

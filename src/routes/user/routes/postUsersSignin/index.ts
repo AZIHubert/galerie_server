@@ -1,20 +1,15 @@
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
-import { sign } from 'jsonwebtoken';
 
 import User from '@src/db/models/user';
-import accEnv from '@src/helpers/accEnv';
 import {
   ALREADY_TAKEN,
 } from '@src/helpers/errorMessages';
-import { sendConfirmAccount } from '@src/helpers/email';
 import saltRounds from '@src/helpers/saltRounds';
 import {
   validateSignIn,
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
-
-const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 
 const normalizeSequelizeErrors = async (email: string, userName: string) => {
   const normalizeErrors: any = {};
@@ -38,7 +33,7 @@ export default async (req: Request, res: Response) => {
   }
   let errors: any;
   try {
-    errors = await normalizeSequelizeErrors(value.email, value.userName);
+    errors = await normalizeSequelizeErrors(value.email, `@${value.userName}`);
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -51,26 +46,15 @@ export default async (req: Request, res: Response) => {
   try {
     const hashPassword = await bcrypt.hash(value.password, saltRounds);
     newUser = await User.create({
-      userName: value.userName,
+      userName: `@${value.userName}`,
       email: value.email,
       password: hashPassword,
+      pseudonym: value.userName,
     });
-    sign(
-      {
-        id: newUser.id,
-        confirmTokenVersion: newUser.confirmTokenVersion,
-      },
-      CONFIRM_SECRET,
-      {
-        expiresIn: '2d',
-      },
-      (err, emailToken) => {
-        if (err) throw new Error(`something went wrong: ${err}`);
-        if (emailToken) sendConfirmAccount(value.email, emailToken);
-      },
-    );
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(201).send(newUser);
+  return res.status(201).send({
+    email: newUser.email,
+  });
 };

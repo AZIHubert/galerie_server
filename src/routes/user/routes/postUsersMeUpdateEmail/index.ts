@@ -40,13 +40,9 @@ export default async (req: Request, res: Response) => {
     });
   }
   try {
-    if (req.body.resend) {
-      await user.increment({ emailTokenVersion: 1 });
-    }
     sign(
       {
         id: user.id,
-        emailTokenVersion: user.emailTokenVersion,
       },
       SEND_EMAIL_SECRET,
       {
@@ -55,7 +51,7 @@ export default async (req: Request, res: Response) => {
       (err, emailToken) => {
         if (err) throw new Error(`something went wrong: ${err}`);
         if (emailToken) {
-          sendUpdateEmailMessage(user.email, 'emailToken');
+          sendUpdateEmailMessage(user.email, emailToken);
         }
       },
     );

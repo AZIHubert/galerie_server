@@ -67,13 +67,13 @@ describe('users', () => {
     done();
   });
   describe('resetPassword', () => {
-    describe('GET', () => {
+    describe('POST', () => {
       describe('should return status 204 and', () => {
         it('send an email with and sign a token', async () => {
           const emailMocked = jest.spyOn(email, 'sendResetPassword');
           const jwtMocked = jest.spyOn(jwt, 'sign');
           const { status } = await agent
-            .get('/users/resetPassword')
+            .post('/users/resetPassword')
             .send({
               email: user.email,
             });
@@ -84,7 +84,7 @@ describe('users', () => {
         });
         it('increment resetPasswordTokenVersion if resend is true', async () => {
           const { status } = await agent
-            .get('/users/resetPassword')
+            .post('/users/resetPassword')
             .send({
               email: user.email,
               resend: true,
@@ -96,7 +96,7 @@ describe('users', () => {
         });
         it('don\'t increment resetPasswordTokenVersion if resend is false', async () => {
           const { status } = await agent
-            .get('/users/resetPassword')
+            .post('/users/resetPassword')
             .send({
               email: user.email,
             });
@@ -107,7 +107,7 @@ describe('users', () => {
         });
         it('trim req email', async () => {
           const { status } = await agent
-            .get('/users/resetPassword')
+            .post('/users/resetPassword')
             .send({
               email: ` ${user.email} `,
             });
@@ -116,7 +116,7 @@ describe('users', () => {
         describe('should return error 400 if', () => {
           it('not a valid email', async () => {
             const { body, status } = await agent
-              .get('/users/resetPassword')
+              .post('/users/resetPassword')
               .send({
                 email: 'abcde',
               });
@@ -129,7 +129,7 @@ describe('users', () => {
           });
           it('email is not set', async () => {
             const { body, status } = await agent
-              .get('/users/resetPassword')
+              .post('/users/resetPassword')
               .send({});
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -140,7 +140,7 @@ describe('users', () => {
           });
           it('email is empty', async () => {
             const { body, status } = await agent
-              .get('/users/resetPassword')
+              .post('/users/resetPassword')
               .send({
                 email: '',
               });
@@ -155,7 +155,7 @@ describe('users', () => {
         describe('should return error 404 if', () => {
           it('email is not found', async () => {
             const { body, status } = await agent
-              .get('/users/resetPassword')
+              .post('/users/resetPassword')
               .send({
                 email: 'user2@email.com',
               });

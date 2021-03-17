@@ -26,7 +26,6 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('p
     type: DataTypes.BIGINT,
   },
   originalImageId: {
-    allowNull: false,
     references: {
       key: 'id',
       model: 'image',
@@ -34,7 +33,6 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('p
     type: DataTypes.BIGINT,
   },
   cropedImageId: {
-    allowNull: false,
     references: {
       key: 'id',
       model: 'image',
@@ -42,7 +40,6 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('p
     type: DataTypes.BIGINT,
   },
   pendingImageId: {
-    allowNull: false,
     references: {
       key: 'id',
       model: 'image',

@@ -25,17 +25,13 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
   const { file } = req;
   if (!file) {
     return res.status(400).send({
-      errors: {
-        image: FILE_IS_REQUIRED,
-      },
+      errors: FILE_IS_REQUIRED,
     });
   }
   const isImage = checkExtension(file);
   if (!isImage) {
     return res.status(400).send({
-      errors: {
-        image: FILE_IS_IMAGE,
-      },
+      errors: FILE_IS_IMAGE,
     });
   }
   const user = req.user as User;
@@ -161,6 +157,10 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
   const pendingImagePromise: Promise<Image> = new Promise((resolve, reject) => {
     const image = sharp(buffer)
       .blur(10)
+      .modulate({
+        saturation: 2.2,
+        brightness: 1.4,
+      })
       .resize(1, 1);
     image
       .toBuffer({ resolveWithObject: true })
@@ -248,7 +248,6 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
     profilePicture = await ProfilePicture.findByPk(id, {
       attributes: {
         exclude: [
-          'createdAt',
           'cropedImageId',
           'deletedAt',
           'originalImageId',
@@ -315,5 +314,8 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(200).send(profilePicture);
+  return res.status(200).send({
+    type: 'POST',
+    profilePicture,
+  });
 };

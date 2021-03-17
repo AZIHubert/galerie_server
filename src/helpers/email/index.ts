@@ -23,9 +23,10 @@ const confirmAccountMessage = (email: string, token: string) => ({
   html: `<html>
     <body>
       <h1>Galeries</h1>
+      <p>thank you for using galeries</p>
       <p>Please click this link to confirm your email:</p>
-      <a href='https://www.localhost:3000/confirmation/${token}'>
-        https://www.localhost:3000/confirmation/${token}
+      <a target='_blank' href='https://www.localhost:1234/confirmation/${token}'>
+        https://www.localhost:1234/confirmation/${token}
       </a>
     </body>
   </html>`,
@@ -40,8 +41,8 @@ const resetPasswordMessage = (email: string, token: string) => ({
     <body>
       <h1>Galeries</h1>
       <p>Please click this link to reset your password:</p>
-      <a href='https://www.localhost:3000/resetPassword/${token}'>
-        https://www.localhost:3000/resetPassword/${token}
+      <a target="_blank" href='https://www.localhost:1234/resetPassword/${token}'>
+        https://www.localhost:1234/resetPassword/${token}
       </a>
     </body>
   </html>`,
@@ -56,8 +57,8 @@ const updateEmailMessage = (email: string, token: string) => ({
     <body>
       <h1>Galeries</h1>
       <p>Please click this link to update your email:</p>
-      <a href='https://www.localhost:3000/updateEmail/${token}'>
-        https://www.localhost:3000/updateEmail/${token}
+      <a target="_blank" href='https://www.localhost:1234/updateEmail/${token}'>
+        https://www.localhost:1234/updateEmail/${token}
       </a>
     </body>
   </html>`,
@@ -72,8 +73,8 @@ const validateEmailMessage = (email: string, token: string) => ({
     <body>
       <h1>Galeries</h1>
       <p>Please click this link to validate your email:</p>
-      <a href='https://www.localhost:3000/updateEmail/${token}'>
-        https://www.localhost:3000/updateEmail/${token}
+      <a target="_blank" href='https://www.localhost:1234/validateEmail/${token}'>
+        https://www.localhost:1234/updateEmail/${token}
       </a>
     </body>
   </html>`,

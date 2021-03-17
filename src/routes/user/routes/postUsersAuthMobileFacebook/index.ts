@@ -64,7 +64,8 @@ export default async (req: Request, res: Response) => {
   const defaultProfilePicture = picture ? picture.data.url : null;
   if (!user) {
     const newUser = await User.create({
-      userName: `${name.replace(/ /g, '')}`,
+      userName: `@${name.replace(/ /g, '')}`,
+      pseudonym: name.replace(/ /g, ''),
       email,
       confirmed: true,
       facebookId,

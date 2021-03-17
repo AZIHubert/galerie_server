@@ -29,6 +29,7 @@ interface UserI {
   id: string;
   password: string;
   profilePictures: ProfilePicture[];
+  pseudonym?: string;
   resetPasswordTokenVersion: number;
   role: 'superAdmin' | 'admin' | 'user';
   tickets: Ticket[];
@@ -120,6 +121,12 @@ export default class User extends Model implements UserI {
     type: DataType.STRING,
   })
   password!: string;
+
+  @Column({
+    allowNull: false,
+    type: DataType.STRING,
+  })
+  pseudonym!: string;
 
   @Default(0)
   @Column({

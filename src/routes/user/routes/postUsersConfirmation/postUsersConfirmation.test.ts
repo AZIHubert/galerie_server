@@ -52,7 +52,7 @@ describe('users', () => {
   });
   describe('confirmation', () => {
     describe('resend', () => {
-      describe('GET', () => {
+      describe('POST', () => {
         describe('should return status 204 and', () => {
           let user: User;
           beforeEach(async (done) => {
@@ -64,10 +64,10 @@ describe('users', () => {
             done();
           });
           it('increment confirmTokenVersion', async () => {
-            const { id, confirmTokenVersion } = user;
+            const { email: userEmail, confirmTokenVersion } = user;
             const { status } = await request(app)
-              .get('/users/confirmation/resend')
-              .send({ id });
+              .post('/users/confirmation/resend')
+              .send({ email: userEmail });
             await user.reload();
             expect(status).toBe(204);
             expect(user!.confirmTokenVersion).toBe(confirmTokenVersion + 1);
@@ -75,10 +75,10 @@ describe('users', () => {
           it('sign a token and send an email', async () => {
             const signMocked = jest.spyOn(jwt, 'sign');
             const emailMocked = jest.spyOn(email, 'sendConfirmAccount');
-            const { id } = user;
+            const { email: userEmail } = user;
             const { status } = await request(app)
-              .get('/users/confirmation/resend')
-              .send({ id });
+              .post('/users/confirmation/resend')
+              .send({ email: userEmail });
             expect(status).toBe(204);
             expect(signMocked).toHaveBeenCalledTimes(1);
             expect(emailMocked).toHaveBeenCalledTimes(1);
@@ -87,23 +87,23 @@ describe('users', () => {
         describe('should return error 400 if', () => {
           it('id is not send', async () => {
             const { status, body } = await request(app)
-              .get('/users/confirmation/resend')
+              .post('/users/confirmation/resend')
               .send({});
             expect(status).toBe(400);
             expect(body).toStrictEqual({
-              errors: 'user id is required',
+              errors: 'user email is required',
             });
           });
           it('user is already confirmed', async () => {
-            const { id } = await User.create({
+            const { email: userEmail } = await User.create({
               userName: 'user',
               email: 'user@email.com',
               password: 'password',
               confirmed: true,
             });
             const { status, body } = await request(app)
-              .get('/users/confirmation/resend')
-              .send({ id });
+              .post('/users/confirmation/resend')
+              .send({ email: userEmail });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: ALREADY_CONFIRMED,
@@ -113,8 +113,8 @@ describe('users', () => {
         describe('should return status 404 if', () => {
           it('user id not found', async () => {
             const { status, body } = await request(app)
-              .get('/users/confirmation/resend')
-              .send({ id: '1' });
+              .post('/users/confirmation/resend')
+              .send({ email: 'ufoundEmail@email.com' });
             expect(status).toBe(404);
             expect(body).toStrictEqual({
               errors: USER_NOT_FOUND,
