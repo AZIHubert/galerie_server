@@ -7,3 +7,4 @@ export { default as shouldBeSuperAdmin } from './shouldBeSuperAdmin';
 export { default as shouldNotBeAuth } from './shouldNotBeAuth';
 export { default as shouldNotBeGoogleOrFacebookUser } from './shouldNotBeGoogleOrFacebookUser';
 export { default as uploadFile } from './uploadFile';
+export { default as uploadFiles } from './uploadFiles';

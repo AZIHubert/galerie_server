@@ -1,9 +1,14 @@
-module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('boardImage', {
+module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('galeriePicture', {
   id: {
     allowNull: false,
     autoIncrement: true,
     primaryKey: true,
     type: DataTypes.BIGINT,
+  },
+  index: {
+    allowNull: false,
+    defaultValue: 0,
+    type: DataTypes.INTEGER,
   },
   createdAt: {
     allowNull: false,
@@ -12,14 +17,6 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('b
   updatedAt: {
     allowNull: false,
     type: DataTypes.DATE,
-  },
-  userId: {
-    allowNull: false,
-    references: {
-      key: 'id',
-      model: 'users',
-    },
-    type: DataTypes.BIGINT,
   },
   originalImageId: {
     references: {
@@ -46,4 +43,4 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('b
   charset: 'utf8',
 });
 
-module.exports.down = (queryInterface) => queryInterface.dropTable('boardImage');
+module.exports.down = (queryInterface) => queryInterface.dropTable('galeriePicture');

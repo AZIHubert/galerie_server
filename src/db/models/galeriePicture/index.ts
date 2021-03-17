@@ -1,26 +1,29 @@
 import {
+  BelongsTo,
   Column,
   DataType,
+  Default,
   ForeignKey,
   Model,
   Table,
 } from 'sequelize-typescript';
 
 import Image from '../image';
-import Galerie from '../galerie';
+import Frame from '../frame';
 
-interface BoardImageI {
+interface GaleriePictureI {
   cropedImageId?: string;
   id: string;
+  index: number;
   originalImageId?: string;
   pendingImageId?: string;
-  galerieId: string;
+  frameId: string;
 }
 
 @Table({
-  tableName: 'boardImage',
+  tableName: 'galeriePicture',
 })
-export default class boardImage extends Model implements BoardImageI {
+export default class GaleriePicture extends Model implements GaleriePictureI {
   @ForeignKey(() => Image)
   @Column({
     type: DataType.BIGINT,
@@ -35,6 +38,13 @@ export default class boardImage extends Model implements BoardImageI {
   })
   id!: string;
 
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  index!: number;
+
   @ForeignKey(() => Image)
   @Column({
     type: DataType.BIGINT,
@@ -47,10 +57,22 @@ export default class boardImage extends Model implements BoardImageI {
   })
   pendingImageId!: string;
 
-  @ForeignKey(() => Galerie)
+  @ForeignKey(() => Frame)
   @Column({
     allowNull: false,
     type: DataType.BIGINT,
   })
-  galerieId!: string;
+  frameId!: string;
+
+  @BelongsTo(() => Image, 'cropedImageId')
+  cropedImage!: Image;
+
+  @BelongsTo(() => Image, 'originalImageId')
+  originalImage!: Image;
+
+  @BelongsTo(() => Image, 'pendingImageId')
+  pendingImage!: Image;
+
+  @BelongsTo(() => Frame)
+  frame!: Frame;
 }

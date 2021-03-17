@@ -15,6 +15,7 @@ import Galerie from '../galerie';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
 import GalerieUser from '../galerieUser';
+import Frame from '../frame';
 
 interface UserI {
   authTokenVersion: number;
@@ -113,9 +114,6 @@ export default class User extends Model implements UserI {
   })
   id!: string;
 
-  @HasMany(() => ProfilePicture)
-  profilePictures!: ProfilePicture[];
-
   @Column({
     type: DataType.STRING,
   })
@@ -140,9 +138,6 @@ export default class User extends Model implements UserI {
   })
   role!: 'superAdmin' | 'admin' | 'user';
 
-  @HasMany(() => Ticket)
-  tickets!: Ticket[];
-
   @Default(0)
   @Column({
     allowNull: false,
@@ -165,6 +160,15 @@ export default class User extends Model implements UserI {
 
   @BelongsToMany(() => Galerie, () => GalerieUser)
   galeries!: Galerie[];
+
+  @HasMany(() => ProfilePicture)
+  profilePictures!: ProfilePicture[];
+
+  @HasMany(() => Ticket)
+  tickets!: Ticket[];
+
+  @HasMany(() => Frame)
+  frames!: Frame[];
 
   GalerieUser!: GalerieUser;
 }
