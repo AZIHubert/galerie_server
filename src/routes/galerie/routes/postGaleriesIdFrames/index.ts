@@ -25,14 +25,19 @@ const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
   const { id: galerieId } = req.params;
-  const galerie = await Galerie.findByPk(galerieId, {
-    include: [{
-      model: User,
-      where: {
-        id: userId,
-      },
-    }],
-  });
+  let galerie: Galerie | null;
+  try {
+    galerie = await Galerie.findByPk(galerieId, {
+      include: [{
+        model: User,
+        where: {
+          id: userId,
+        },
+      }],
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
   if (!galerie) {
     return res.status(404).send({
       errors: 'galerie not found',
@@ -279,7 +284,6 @@ export default async (req: Request, res: Response) => {
           model: GaleriePicture,
           attributes: {
             exclude: [
-              'id',
               'cropedImageId',
               'originalImageId',
               'pendingImageId',
