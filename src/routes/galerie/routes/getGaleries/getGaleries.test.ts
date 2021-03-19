@@ -61,9 +61,6 @@ describe('galeries', () => {
   let user: User;
   let agent: request.SuperAgentTest;
   let token: string;
-  // let galerieId: string;
-  // let pictureId: string;
-  // let frameId: string;
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();

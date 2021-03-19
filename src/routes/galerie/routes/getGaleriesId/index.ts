@@ -6,25 +6,14 @@ import {
   Image,
   User,
 } from '@src/db/models';
-
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
-  const limit = 20;
-  const { page } = req.query;
-  let offset: number;
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
-  }
   const { id: userId } = req.user as User;
-  let galeries: Galerie[];
+  const { id: galerieId } = req.params;
+  let galerie: Galerie | null;
   try {
-    galeries = await Galerie.findAll({
-      order: [['createdAt', 'DESC']],
-      limit,
-      offset,
+    galerie = await Galerie.findByPk(galerieId, {
       include: [{
         model: User,
         where: {
@@ -93,49 +82,48 @@ export default async (req: Request, res: Response) => {
         ],
       }],
     });
-    let error: any;
-    try {
-      await Promise.all(galeries.map(async (galerie, index) => {
-        if (galerie.coverPicture) {
-          const {
-            cropedImage: {
-              bucketName: cropedImageBucketName,
-              fileName: cropedImageFileName,
-            },
-            originalImage: {
-              bucketName: originalImageBucketName,
-              fileName: originalImageFileName,
-            },
-            pendingImage: {
-              bucketName: pendingImageBucketName,
-              fileName: pendingImageFileName,
-            },
-          } = galerie.coverPicture;
-          const cropedImageSignedUrl = await signedUrl(
-            cropedImageBucketName,
-            cropedImageFileName,
-          );
-          galeries[index].coverPicture.cropedImage.signedUrl = cropedImageSignedUrl;
-          const originalImageSignedUrl = await signedUrl(
-            originalImageBucketName,
-            originalImageFileName,
-          );
-          galeries[index].coverPicture.originalImage.signedUrl = originalImageSignedUrl;
-          const pendingImageSignedUrl = await signedUrl(
-            pendingImageBucketName,
-            pendingImageFileName,
-          );
-          galeries[index].coverPicture.pendingImage.signedUrl = pendingImageSignedUrl;
-        }
-      }));
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-    if (error) {
-      return res.status(500).send(error);
-    }
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(200).send(galeries);
+  if (!galerie) {
+    return res.status(404).send({
+      errors: 'galerie not found',
+    });
+  }
+  if (galerie.coverPicture) {
+    try {
+      const {
+        cropedImage: {
+          bucketName: cropedImageBucketName,
+          fileName: cropedImageFileName,
+        },
+        originalImage: {
+          bucketName: originalImageBucketName,
+          fileName: originalImageFileName,
+        },
+        pendingImage: {
+          bucketName: pendingImageBucketName,
+          fileName: pendingImageFileName,
+        },
+      } = galerie.coverPicture;
+      const cropedImageSignedUrl = await signedUrl(
+        cropedImageBucketName,
+        cropedImageFileName,
+      );
+      galerie.coverPicture.cropedImage.signedUrl = cropedImageSignedUrl;
+      const originalImageSignedUrl = await signedUrl(
+        originalImageBucketName,
+        originalImageFileName,
+      );
+      galerie.coverPicture.originalImage.signedUrl = originalImageSignedUrl;
+      const pendingImageSignedUrl = await signedUrl(
+        pendingImageBucketName,
+        pendingImageFileName,
+      );
+      galerie.coverPicture.pendingImage.signedUrl = pendingImageSignedUrl;
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+  }
+  return res.status(200).send(galerie);
 };

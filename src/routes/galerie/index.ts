@@ -4,10 +4,11 @@ import {
   uploadFiles,
 } from '@src/helpers/middlewares';
 import passport from '@src/helpers/passport';
-
 import {
   deleteGaleriesIdFramesId,
   getGaleries,
+  getGaleriesId,
+  getGaleriesIdFrames,
   postGaleries,
   postGaleriesIdFrames,
   putGaleriesId,
@@ -25,18 +26,10 @@ const galeriesRoutes: () => Router = () => {
     // shouls delete all images from Google Storage
     // should delete all galerieUser models
   }); // delete a galerie
-  router.delete('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId);
+  router.delete('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId); // DONE
   router.get('/', passport.authenticate('jwt', { session: false }), getGaleries); // DONE
-  router.get('/:id', () => {
-    // check if galerie exist
-    // check if user have subscribe to this galerie
-    // return this galerie
-  }); // get one galerie
-  router.get('/:id/frames/', () => {
-    // check if galerie exist
-    // check if user have subscribe to this galerie
-    // return all frame (limit 20)
-  });
+  router.get('/:id', passport.authenticate('jwt', { session: false }), getGaleriesId); // DONE
+  router.get('/:id/frames/', passport.authenticate('jwt', { session: false }), getGaleriesIdFrames);
   router.get('/:id/frames/:frameId', () => {
     // check if galerie exist
     // check if user have subscribe to this galerie
