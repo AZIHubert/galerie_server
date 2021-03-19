@@ -7,6 +7,7 @@ import passport from '@src/helpers/passport';
 
 import {
   deleteGaleriesIdFramesId,
+  getGaleries,
   postGaleries,
   postGaleriesIdFrames,
   putGaleriesId,
@@ -25,9 +26,7 @@ const galeriesRoutes: () => Router = () => {
     // should delete all galerieUser models
   }); // delete a galerie
   router.delete('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId);
-  router.get('/', () => {
-    // Get all galerie where user has subscribe
-  }); // get all galeries
+  router.get('/', passport.authenticate('jwt', { session: false }), getGaleries); // DONE
   router.get('/:id', () => {
     // check if galerie exist
     // check if user have subscribe to this galerie
@@ -93,6 +92,7 @@ const galeriesRoutes: () => Router = () => {
     // remove this user to the galerie
     // destroy all frames updloaded by this user
   }); // remove user from a galerie
+  // put user role admin/user if current user is creator/admin
   return router;
 };
 
