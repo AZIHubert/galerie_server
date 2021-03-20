@@ -13,6 +13,7 @@ import {
 
 import {
   deleteGaleriesIdFramesId,
+  deleteGaleriesIdUsersUserId,
   getGaleries,
   getGaleriesId,
   getGaleriesIdFrames,
@@ -36,6 +37,7 @@ const galeriesRoutes: () => Router = () => {
     // should delete all galerieUser models
   }); // delete a galerie
   router.delete('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId); // DONE
+  router.delete('/:id/users/:userId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUsersUserId); // DONE
   router.get('/', passport.authenticate('jwt', { session: false }), getGaleries); // should set users profile pictures
   router.get('/:id', passport.authenticate('jwt', { session: false }), getGaleriesId); // should set users profile pictures
   router.get('/:id/frames/', passport.authenticate('jwt', { session: false }), getGaleriesIdFrames); // should populate user
@@ -76,7 +78,7 @@ const galeriesRoutes: () => Router = () => {
     // remove galerieUser to this galerie
     // remove all frame upload by this user
   }); // unsubscribe to a galerie
-  router.delete('/:id/users/:userId', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  router.put('/:id/users/:userId', passport.authenticate('jwt', { session: false }), async (req, res) => {
     const { id: userId } = req.user as User;
     const { id: galerieId, userId: UId } = req.params;
     let galerie: Galerie | null;
@@ -106,66 +108,53 @@ const galeriesRoutes: () => Router = () => {
       .users
       .filter((user) => user.id === userId)[0]
       .GalerieUser;
-    let user: User | null;
     if (role === 'user') {
       return res.status(400).send({
-        errors: 'you should be an admin or the creator to this galerie to delete a user',
+        errors: 'you should be an admin or the creator to update the role of a user',
       });
     }
+    let galerieUser: GalerieUser | null;
     try {
-      user = await User.findOne({
+      galerieUser = await GalerieUser.findOne({
         where: {
-          id: UId,
+          galerieId,
+          userId: UId,
         },
-        include: [{
-          model: Galerie,
-          where: {
-            id: galerieId,
-          },
-        }],
       });
     } catch (err) {
       return res.status(500).send(err);
     }
-    if (!user) {
+    if (!galerieUser) {
       return res.status(404).send({
         errors: 'user not found',
       });
     }
-    if (user.GalerieUser.role === 'creator') {
+    if (galerieUser.role === 'creator') {
       return res.status(400).send({
-        errors: 'you can\'t delete the creator of this galerie',
+        errors: 'you can\'t change the role of the creator of this galerie',
       });
     }
     if (
-      user.GalerieUser.role === 'admin'
+      galerieUser.role === 'admin'
       && role !== 'creator'
     ) {
       return res.status(400).send({
-        errors: 'you should be the creator of this galerie to delete an admin',
+        errors: 'you should be the creator of this galerie to update the role of an admin',
       });
     }
+    const updatedRole = galerieUser.role === 'user' ? 'admin' : 'user';
     try {
-      await GalerieUser.destroy({
-        where: {
-          userId: UId,
-          galerieId,
-        },
+      await galerieUser.update({
+        role: updatedRole,
       });
     } catch (err) {
       return res.status(500).send(err);
     }
-    return res.status(200).end({
-      userId: UId,
-      galerieId,
+    return res.status(200).send({
+      id: UId,
+      role: updatedRole,
     });
-    // check if galerie exist
-    // check if user is creator or admin
-    // check if user userId exist
-    // check if user userId is subscribe to this galerie
-    // remove this user to the galerie
-    // destroy all frames updloaded by this user
-  }); // remove user from a galerie
+  });
   // put user role admin/user if current user is creator/admin
   return router;
 };
