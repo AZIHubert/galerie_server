@@ -4,6 +4,7 @@ import {
   Galerie,
   GaleriePicture,
   Image,
+  ProfilePicture,
   User,
 } from '@src/db/models';
 import signedUrl from '@src/helpers/signedUrl';
@@ -33,6 +34,58 @@ export default async (req: Request, res: Response) => {
             'updatedEmailTokenVersion',
           ],
         },
+        include: [
+          {
+            model: ProfilePicture,
+            as: 'currentProfilePicture',
+            attributes: {
+              exclude: [
+                'createdAt',
+                'cropedImageId',
+                'deletedAt',
+                'originalImageId',
+                'pendingImageId',
+                'updatedAt',
+                'userId',
+              ],
+            },
+            include: [
+              {
+                model: Image,
+                as: 'cropedImage',
+                attributes: {
+                  exclude: [
+                    'createdAt',
+                    'deletedAt',
+                    'updatedAt',
+                  ],
+                },
+              },
+              {
+                model: Image,
+                as: 'originalImage',
+                attributes: {
+                  exclude: [
+                    'createdAt',
+                    'deletedAt',
+                    'updatedAt',
+                  ],
+                },
+              },
+              {
+                model: Image,
+                as: 'pendingImage',
+                attributes: {
+                  exclude: [
+                    'createdAt',
+                    'deletedAt',
+                    'updatedAt',
+                  ],
+                },
+              },
+            ],
+          },
+        ],
       }, {
         model: GaleriePicture,
         attributes: {
@@ -121,6 +174,54 @@ export default async (req: Request, res: Response) => {
         pendingImageFileName,
       );
       galerie.coverPicture.pendingImage.signedUrl = pendingImageSignedUrl;
+      await Promise
+        .all(galerie.users.map(async (user, userIndex) => {
+          if (galerie && user.currentProfilePicture) {
+            const {
+              currentProfilePicture: {
+                cropedImage: {
+                  bucketName: userCropedImageBucketName,
+                  fileName: userCropedImageFileName,
+                },
+                originalImage: {
+                  bucketName: userOriginalImageBucketName,
+                  fileName: userOriginalImageFileName,
+                },
+                pendingImage: {
+                  bucketName: userPendingImageBucketName,
+                  fileName: userPendingImageFileName,
+                },
+              },
+            } = user;
+            const userCropedImageSignedUrl = await signedUrl(
+              userCropedImageBucketName,
+              userCropedImageFileName,
+            );
+            galerie
+              .users[userIndex]
+              .currentProfilePicture
+              .cropedImage
+              .signedUrl = userCropedImageSignedUrl;
+            const userOriginalImageSignedUrl = await signedUrl(
+              userOriginalImageBucketName,
+              userOriginalImageFileName,
+            );
+            galerie
+              .users[userIndex]
+              .currentProfilePicture
+              .originalImage
+              .signedUrl = userOriginalImageSignedUrl;
+            const userPendingImageSignedUrl = await signedUrl(
+              userPendingImageBucketName,
+              userPendingImageFileName,
+            );
+            galerie
+              .users[userIndex]
+              .currentProfilePicture
+              .pendingImage
+              .signedUrl = userPendingImageSignedUrl;
+          }
+        }));
     } catch (err) {
       return res.status(500).send(err);
     }

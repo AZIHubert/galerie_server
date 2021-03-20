@@ -4,24 +4,15 @@ import {
   Frame,
   Galerie,
   GaleriePicture,
-  Image,
   ProfilePicture,
+  Image,
   User,
 } from '@src/db/models';
-
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
-  const limit = 20;
-  const { page } = req.query;
-  let offset: number;
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
-  }
   const { id: userId } = req.user as User;
-  const { id: galerieId } = req.params;
+  const { id: galerieId, frameId } = req.params;
   let galerie: Galerie | null;
   try {
     galerie = await Galerie.findByPk(galerieId, {
@@ -40,19 +31,12 @@ export default async (req: Request, res: Response) => {
       errors: 'galerie not found',
     });
   }
-  let frames: Frame[];
+  let frame: Frame | null;
   try {
-    frames = await Frame.findAll({
-      order: [['createdAt', 'DESC']],
-      limit,
-      offset,
-      attributes: {
-        exclude: [
-          'userId',
-        ],
-      },
+    frame = await Frame.findOne({
       where: {
         galerieId,
+        id: frameId,
       },
       include: [{
         model: GaleriePicture,
@@ -162,55 +146,21 @@ export default async (req: Request, res: Response) => {
         ],
       }],
     });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  if (!frame) {
+    return res.status(404).send({
+      errors: 'frame not found',
+    });
+  }
+  try {
     await Promise.all(
-      frames.map(async (frame, index) => {
-        await Promise.all(
-          frame
-            .galeriePictures
-            .map(async (galeriePicture, galeriePicturesIndex) => {
-              const {
-                cropedImage: {
-                  bucketName: cropedImageBucketName,
-                  fileName: cropedImageFileName,
-                },
-                originalImage: {
-                  bucketName: originalImageBucketName,
-                  fileName: originalImageFileName,
-                },
-                pendingImage: {
-                  bucketName: pendingImageBucketName,
-                  fileName: pendingImageFileName,
-                },
-              } = galeriePicture;
-              const cropedImageSignedUrl = await signedUrl(
-                cropedImageBucketName,
-                cropedImageFileName,
-              );
-              frames[index]
-                .galeriePictures[galeriePicturesIndex]
-                .cropedImage
-                .signedUrl = cropedImageSignedUrl;
-              const originalImageSignedUrl = await signedUrl(
-                originalImageBucketName,
-                originalImageFileName,
-              );
-              frames[index]
-                .galeriePictures[galeriePicturesIndex]
-                .originalImage
-                .signedUrl = originalImageSignedUrl;
-              const pendingImageSignedUrl = await signedUrl(
-                pendingImageBucketName,
-                pendingImageFileName,
-              );
-              frames[index]
-                .galeriePictures[galeriePicturesIndex]
-                .pendingImage
-                .signedUrl = pendingImageSignedUrl;
-            }),
-        );
-        if (frame.user.currentProfilePictureId) {
-          const {
-            currentProfilePicture: {
+      frame
+        .galeriePictures
+        .map(async (galeriePicture, index) => {
+          if (frame) {
+            const {
               cropedImage: {
                 bucketName: cropedImageBucketName,
                 fileName: cropedImageFileName,
@@ -223,28 +173,69 @@ export default async (req: Request, res: Response) => {
                 bucketName: pendingImageBucketName,
                 fileName: pendingImageFileName,
               },
-            },
-          } = frame.user;
-          const cropedImageSignedUrl = await signedUrl(
-            cropedImageBucketName,
-            cropedImageFileName,
-          );
-          frames[index].user.currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
-          const originalImageSignedUrl = await signedUrl(
-            originalImageBucketName,
-            originalImageFileName,
-          );
-          frames[index].user.currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
-          const pendingImageSignedUrl = await signedUrl(
-            pendingImageBucketName,
-            pendingImageFileName,
-          );
-          frames[index].user.currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
-        }
-      }),
+            } = galeriePicture;
+            const cropedImageSignedUrl = await signedUrl(
+              cropedImageBucketName,
+              cropedImageFileName,
+            );
+            frame
+              .galeriePictures[index]
+              .cropedImage
+              .signedUrl = cropedImageSignedUrl;
+            const originalImageSignedUrl = await signedUrl(
+              originalImageBucketName,
+              originalImageFileName,
+            );
+            frame
+              .galeriePictures[index]
+              .originalImage
+              .signedUrl = originalImageSignedUrl;
+            const pendingImageSignedUrl = await signedUrl(
+              pendingImageBucketName,
+              pendingImageFileName,
+            );
+            frame
+              .galeriePictures[index]
+              .pendingImage
+              .signedUrl = pendingImageSignedUrl;
+          }
+        }),
     );
+    if (frame.user.currentProfilePictureId) {
+      const {
+        currentProfilePicture: {
+          cropedImage: {
+            bucketName: cropedImageBucketName,
+            fileName: cropedImageFileName,
+          },
+          originalImage: {
+            bucketName: originalImageBucketName,
+            fileName: originalImageFileName,
+          },
+          pendingImage: {
+            bucketName: pendingImageBucketName,
+            fileName: pendingImageFileName,
+          },
+        },
+      } = frame.user;
+      const cropedImageSignedUrl = await signedUrl(
+        cropedImageBucketName,
+        cropedImageFileName,
+      );
+      frame.user.currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
+      const originalImageSignedUrl = await signedUrl(
+        originalImageBucketName,
+        originalImageFileName,
+      );
+      frame.user.currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
+      const pendingImageSignedUrl = await signedUrl(
+        pendingImageBucketName,
+        pendingImageFileName,
+      );
+      frame.user.currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+    }
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(200).send(frames);
+  return res.status(200).send(frame);
 };
