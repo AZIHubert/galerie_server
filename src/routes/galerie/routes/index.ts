@@ -8,3 +8,4 @@ export { default as getGaleriesIdUsers } from './getGaleriesIdUsers';
 export { default as postGaleries } from './postGaleries';
 export { default as postGaleriesIdFrames } from './postGaleriesIdFrames';
 export { default as putGaleriesId } from './putGaleriesId';
+export { default as putGaleriesIdUsersUserId } from './putGaleriesIdUsersUserId';
