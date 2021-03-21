@@ -207,13 +207,12 @@ describe('galeries', () => {
                 galerieId,
                 role: 'user',
               });
-              const { body: loginUserTwo } = await agent
+              const { body: { token: tokenTwo } } = await agent
                 .post('/users/login')
                 .send({
                   password: newUser.password,
                   userNameOrEmail: userTwo.email,
                 });
-              const tokenTwo = loginUserTwo.token;
               const { body, status } = await agent
                 .delete(`/galeries/${galerieId}/frames/${frameId}`)
                 .set('authorization', tokenTwo);

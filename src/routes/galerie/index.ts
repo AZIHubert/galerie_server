@@ -6,6 +6,7 @@ import {
 import passport from '@src/helpers/passport';
 
 import {
+  deleteGalerieId,
   deleteGaleriesIdFramesId,
   deleteGaleriesIdInvitationsId,
   deleteGaleriesIdUnsubscribe,
@@ -28,15 +29,7 @@ import {
 const router = Router();
 
 const galeriesRoutes: () => Router = () => {
-  router.delete('/:id', () => {
-    // galerie should exist
-    // user should be the creator
-    // should delete all frames
-    // should delete all galerie pictures
-    // should delete all images
-    // shouls delete all images from Google Storage
-    // should delete all galerieUser models
-  }); // delete a galerie
+  router.delete('/:id', passport.authenticate('jwt', { session: false }), deleteGalerieId);
   router.delete('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId);
   router.delete('/:id/unsubscribe/', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUnsubscribe);
   router.delete('/:id/users/:userId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUsersUserId);
