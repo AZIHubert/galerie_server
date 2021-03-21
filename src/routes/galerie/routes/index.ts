@@ -7,6 +7,7 @@ export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';
 export { default as getGaleriesIdFramesId } from './getGaleriesIdFramesId';
 export { default as getGaleriesIdUsers } from './getGaleriesIdUsers';
 export { default as postGaleries } from './postGaleries';
+export { default as postGaleriesIdInvitations } from './postGaleriesIdInvitations';
 export { default as postGaleriesIdFrames } from './postGaleriesIdFrames';
 export { default as putGaleriesId } from './putGaleriesId';
 export { default as putGaleriesIdUsersUserId } from './putGaleriesIdUsersUserId';

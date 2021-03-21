@@ -33,12 +33,12 @@ export default async (req: Request, res: Response) => {
   }
   if (user.role === 'superAdmin') {
     return res.status(401).send({
-      errors: 'you can black listed a super admin',
+      errors: 'you can\'t black listed a super admin',
     });
   }
   if (role === 'admin' && user.role === 'admin') {
     return res.status(401).send({
-      errors: 'you can black listed an admin',
+      errors: 'you can\'t black listed an admin',
     });
   }
   if (user.blackListId) {

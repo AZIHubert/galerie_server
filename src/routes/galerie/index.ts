@@ -16,6 +16,7 @@ import {
   getGaleriesIdUsers,
   postGaleries,
   postGaleriesIdFrames,
+  postGaleriesIdInvitations,
   putGaleriesId,
   putGaleriesIdUsersUserId,
 } from './routes';
@@ -35,6 +36,12 @@ const galeriesRoutes: () => Router = () => {
   router.delete('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId); // DONE
   router.delete('/:id/unsubscribe/', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUnsubscribe); // DONE
   router.delete('/:id/users/:userId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUsersUserId); // DONE
+  router.delete('/:id/invitations/:invitationId', passport.authenticate('jwt', { session: false }), () => {
+    // Check if galerie exist
+    // check if user's role is not "user"
+    // check if invitation exist
+    // destroy invitation
+  });
   router.get('/', passport.authenticate('jwt', { session: false }), getGaleries); // should set users profile pictures
   router.get('/:id', passport.authenticate('jwt', { session: false }), getGaleriesId); // should set users profile pictures
   router.get('/:id/frames/', passport.authenticate('jwt', { session: false }), getGaleriesIdFrames); // should populate user
@@ -54,16 +61,7 @@ const galeriesRoutes: () => Router = () => {
   router.get('/:id/users', passport.authenticate('jwt', { session: false }), getGaleriesIdUsers); // DONE
   router.post('/', passport.authenticate('jwt', { session: false }), postGaleries); // DONE
   router.post('/:id/frames', passport.authenticate('jwt', { session: false }), uploadFiles, postGaleriesIdFrames); // DONE
-  router.post('/:id/invits', () => {
-    // check if galerie exist
-    // check if user is admin or creator
-    // invit =>
-    // id
-    // galerieId
-    // userId
-    // date (how long, if null, infinit)
-    // numberOfInvit (how many, if null, infinit)
-  });
+  router.post('/:id/invitations', passport.authenticate('jwt', { session: false }), postGaleriesIdInvitations); // DONE
   router.put('/:id', passport.authenticate('jwt', { session: false }), putGaleriesId); // DONE
   router.put('/:id/frames/:id', () => {
     // Need to create model Like

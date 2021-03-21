@@ -57,4 +57,7 @@ export default class Invitation extends Model implements InvitationI {
 
   @BelongsTo(() => Galerie)
   galerie!: Galerie;
+
+  @BelongsTo(() => User)
+  user!: User;
 }
