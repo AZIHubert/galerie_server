@@ -5,6 +5,7 @@ import {
   Galerie,
   GaleriePicture,
   Image,
+  Like,
   User,
 } from '@src/db/models';
 
@@ -115,8 +116,10 @@ export default async (req: Request, res: Response) => {
         });
       }),
     );
-
     await GaleriePicture.destroy({
+      where: { frameId },
+    });
+    await Like.destroy({
       where: { frameId },
     });
     await frame.destroy();

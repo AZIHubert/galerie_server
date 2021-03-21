@@ -13,4 +13,5 @@ export { default as postGaleries } from './postGaleries';
 export { default as postGaleriesIdInvitations } from './postGaleriesIdInvitations';
 export { default as postGaleriesIdFrames } from './postGaleriesIdFrames';
 export { default as putGaleriesId } from './putGaleriesId';
+export { default as putGaleriesIdFramesId } from './putGaleriesIdFramesId';
 export { default as putGaleriesIdUsersUserId } from './putGaleriesIdUsersUserId';
