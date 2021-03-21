@@ -5,6 +5,7 @@ export { default as Galerie } from './galerie';
 export { default as GalerieUser } from './galerieUser';
 export { default as Image } from './image';
 export { default as Invitation } from './invitation';
+export { default as Like } from './like';
 export { default as ProfilePicture } from './profilePicture';
 export { default as User } from './user';
 export { default as Ticket } from './ticket';
