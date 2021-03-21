@@ -13,6 +13,7 @@ import {
   getGaleriesId,
   getGaleriesIdFrames,
   getGaleriesIdFramesId,
+  getGaleriesIdInvitations,
   getGaleriesIdUsers,
   postGaleries,
   postGaleriesIdFrames,
@@ -36,21 +37,12 @@ const galeriesRoutes: () => Router = () => {
   router.delete('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId); // DONE
   router.delete('/:id/unsubscribe/', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUnsubscribe); // DONE
   router.delete('/:id/users/:userId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUsersUserId); // DONE
-  router.delete('/:id/invitations/:invitationId', passport.authenticate('jwt', { session: false }), () => {
-    // Check if galerie exist
-    // check if user's role is not "user"
-    // check if invitation exist
-    // destroy invitation
-  });
-  router.get('/', passport.authenticate('jwt', { session: false }), getGaleries); // should set users profile pictures
-  router.get('/:id', passport.authenticate('jwt', { session: false }), getGaleriesId); // should set users profile pictures
-  router.get('/:id/frames/', passport.authenticate('jwt', { session: false }), getGaleriesIdFrames); // should populate user
-  router.get('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), getGaleriesIdFramesId); // should populate user
-  router.get('/:id/invits', () => {
-    // check if galerie exist
-    // check if user is the creator or an admin of this galerie
-    // return all invit to this galerie (limit 20)
-  }); // get all invit to a galerie
+  router.delete('/:id/invitations/:invitationId', passport.authenticate('jwt', { session: false }), () => {});
+  router.get('/', passport.authenticate('jwt', { session: false }), getGaleries); // DONE
+  router.get('/:id', passport.authenticate('jwt', { session: false }), getGaleriesId); // DONE
+  router.get('/:id/frames/', passport.authenticate('jwt', { session: false }), getGaleriesIdFrames); // DONE
+  router.get('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), getGaleriesIdFramesId); // DONE
+  router.get('/:id/invitations', passport.authenticate('jwt', { session: false }), getGaleriesIdInvitations); // DONE
   router.get('/:id/invits/:invitId', () => {
     // check if galerie exist
     // check if user is the creator or an admin of this galerie
@@ -63,11 +55,7 @@ const galeriesRoutes: () => Router = () => {
   router.post('/:id/frames', passport.authenticate('jwt', { session: false }), uploadFiles, postGaleriesIdFrames); // DONE
   router.post('/:id/invitations', passport.authenticate('jwt', { session: false }), postGaleriesIdInvitations); // DONE
   router.put('/:id', passport.authenticate('jwt', { session: false }), putGaleriesId); // DONE
-  router.put('/:id/frames/:id', () => {
-    // Need to create model Like
-    // if user haven't like this frame add a frame
-    // if user has already like this frame, delete this frame
-  }); // like or unlike a galerie
+  router.put('/:id/frames/:id', passport.authenticate('jwt', { session: false }), () => {});
   router.put('/subscribe/', () => {
     // Create a model Subscription
     // need token

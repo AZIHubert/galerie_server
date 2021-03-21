@@ -34,6 +34,7 @@ export default async (req: Request, res: Response) => {
           'currentProfilePictureId',
           'email',
           'emailTokenVersion',
+          'facebookId',
           'googleId',
           'password',
           'resetPasswordTokenVersion',
