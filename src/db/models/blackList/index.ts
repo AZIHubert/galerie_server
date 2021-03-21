@@ -17,7 +17,6 @@ interface BlackListI {
 }
 
 @Table({
-  paranoid: true,
   tableName: 'blackList',
 })
 export default class BlackList extends Model implements BlackListI {

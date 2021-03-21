@@ -11,11 +11,12 @@ import {
 } from 'sequelize-typescript';
 
 import BlackList from '../blackList';
+import Frame from '../frame';
 import Galerie from '../galerie';
+import GalerieUser from '../galerieUser';
+import Invitation from '../invitation';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
-import GalerieUser from '../galerieUser';
-import Frame from '../frame';
 
 interface UserI {
   authTokenVersion: number;
@@ -169,6 +170,9 @@ export default class User extends Model implements UserI {
 
   @HasMany(() => Frame)
   frames!: Frame[];
+
+  @HasMany(() => Invitation)
+  invitations!: Invitation[];
 
   GalerieUser!: GalerieUser;
 }

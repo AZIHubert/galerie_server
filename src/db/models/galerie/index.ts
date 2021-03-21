@@ -12,6 +12,7 @@ import {
 import Frame from '../frame';
 import GaleriePicture from '../galeriePicture';
 import GalerieUser from '../galerieUser';
+import Invitation from '../invitation';
 import User from '../user';
 
 interface GalerieI {
@@ -53,6 +54,9 @@ export default class Galerie extends Model implements GalerieI {
 
   @HasMany(() => Frame)
   frames!: Frame[];
+
+  @HasMany(() => Invitation)
+  invitations!: Invitation[];
 
   GalerieUser!: GalerieUser;
 }
