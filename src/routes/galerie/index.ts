@@ -7,6 +7,7 @@ import passport from '@src/helpers/passport';
 
 import {
   deleteGaleriesIdFramesId,
+  deleteGaleriesIdInvitationsId,
   deleteGaleriesIdUnsubscribe,
   deleteGaleriesIdUsersUserId,
   getGaleries,
@@ -38,12 +39,7 @@ const galeriesRoutes: () => Router = () => {
   router.delete('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId);
   router.delete('/:id/unsubscribe/', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUnsubscribe);
   router.delete('/:id/users/:userId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUsersUserId);
-  router.delete('/:id/invitations/:invitationId', passport.authenticate('jwt', { session: false }), () => {
-    // check if galerie exist
-    // check if user's role is not "user"
-    // check if invitation exist
-    // delete invitation
-  });
+  router.delete('/:id/invitations/:invitationId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdInvitationsId);
   router.get('/', passport.authenticate('jwt', { session: false }), getGaleries);
   router.get('/:id', passport.authenticate('jwt', { session: false }), getGaleriesId);
   router.get('/:id/frames/', passport.authenticate('jwt', { session: false }), getGaleriesIdFrames);
