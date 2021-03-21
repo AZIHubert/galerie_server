@@ -17,6 +17,7 @@ import GalerieUser from '../galerieUser';
 import Invitation from '../invitation';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
+import Like from '../like';
 
 interface UserI {
   authTokenVersion: number;
@@ -161,6 +162,9 @@ export default class User extends Model implements UserI {
 
   @BelongsToMany(() => Galerie, () => GalerieUser)
   galeries!: Galerie[];
+
+  @BelongsToMany(() => Frame, () => Like)
+  likes!: Frame[];
 
   @HasMany(() => ProfilePicture)
   profilePictures!: ProfilePicture[];

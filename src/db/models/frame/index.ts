@@ -1,5 +1,6 @@
 import {
   BelongsTo,
+  BelongsToMany,
   Column,
   DataType,
   ForeignKey,
@@ -11,6 +12,7 @@ import {
 import Galerie from '../galerie';
 import GaleriePicture from '../galeriePicture';
 import User from '../user';
+import Like from '../like';
 
 interface FrameI {
   galerieId?: string;
@@ -38,6 +40,9 @@ export default class Frame extends Model implements FrameI {
 
   @BelongsTo(() => User)
   user!: User;
+
+  @BelongsToMany(() => User, () => Like)
+  likes!: User[];
 
   @HasMany(() => GaleriePicture)
   galeriePictures!: GaleriePicture[]
