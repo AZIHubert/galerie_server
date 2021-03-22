@@ -3,6 +3,7 @@ import {
   BelongsToMany,
   Column,
   DataType,
+  Default,
   ForeignKey,
   HasMany,
   Model,
@@ -20,12 +21,19 @@ interface GalerieI {
   id: string;
   name: string;
   GalerieUser?: GalerieUser;
+  archived?: boolean;
 }
 
 @Table({
   tableName: 'galerie',
 })
 export default class Galerie extends Model implements GalerieI {
+  @Default(false)
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  archived!: boolean
+
   @ForeignKey(() => GaleriePicture)
   @Column({
     type: DataType.BIGINT,

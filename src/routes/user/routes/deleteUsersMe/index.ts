@@ -3,9 +3,15 @@ import { Request, Response } from 'express';
 
 import {
   Image,
+  GalerieUser,
   ProfilePicture,
   Ticket,
   User,
+  Invitation,
+  Like,
+  Galerie,
+  Frame,
+  GaleriePicture,
 } from '@src/db/models';
 
 import {
@@ -117,6 +123,109 @@ export default async (req: Request, res: Response) => {
         await ticket.update({ userId: null });
       }),
     );
+    const galerieUsers = await GalerieUser.findAll({
+      where: {
+        userId: user.id,
+      },
+    });
+    const frames = await Frame.findAll({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    await Promise.all(frames.map(async (frame) => {
+      const galeriePictures = await GaleriePicture.findAll({
+        where: {
+          frameId: frame.id,
+        },
+        include: [
+          {
+            all: true,
+          },
+        ],
+      });
+      await Promise.all(
+        galeriePictures.map(async (galeriePicture) => {
+          const {
+            originalImage,
+            cropedImage,
+            pendingImage,
+          } = galeriePicture;
+          await galeriePicture.destroy();
+          await gc
+            .bucket(originalImage.bucketName)
+            .file(originalImage.fileName)
+            .delete();
+          await Image.destroy({
+            where: {
+              id: originalImage.id,
+            },
+          });
+          await gc
+            .bucket(cropedImage.bucketName)
+            .file(cropedImage.fileName)
+            .delete();
+          await Image.destroy({
+            where: {
+              id: cropedImage.id,
+            },
+          });
+          await gc
+            .bucket(pendingImage.bucketName)
+            .file(pendingImage.fileName)
+            .delete();
+          await Image.destroy({
+            where: {
+              id: pendingImage.id,
+            },
+          });
+        }),
+      );
+      await Like.destroy({
+        where: { frameId: '1' },
+      });
+      await frame.destroy();
+    }));
+    let galerie: Galerie | null;
+    await Promise.all(galerieUsers.map(async (galerieUser) => {
+      await galerieUser.destroy();
+      if (galerieUser.role === 'creator') {
+        await Galerie.update({
+          archived: true,
+        }, {
+          where: {
+            id: galerieUser.galerieId,
+          },
+        });
+        await Invitation.destroy({
+          where: {
+            galerieId: galerieUser.galerieId,
+          },
+        });
+      }
+      galerie = await Galerie.findByPk(galerieUser.galerieId);
+      const allUsers = await GalerieUser.findAll({
+        where: {
+          galerieId: galerieUser.galerieId,
+        },
+      });
+      if (galerie) {
+        if (!allUsers.length) {
+          await galerie.destroy();
+        } else if (
+          galerie
+          && frames.map((frame) => frame.id).includes(galerie.coverPictureId)
+        ) {
+          await galerie.update({ coverPictureId: null });
+        }
+      }
+    }));
+    await Invitation.destroy({
+      where: {
+        userId: user.id,
+      },
+    });
     await user.destroy();
   } catch (err) {
     return res.status(500).send();

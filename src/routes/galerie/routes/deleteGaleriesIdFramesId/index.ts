@@ -87,6 +87,7 @@ export default async (req: Request, res: Response) => {
           cropedImage,
           pendingImage,
         } = galeriePicture;
+        await galeriePicture.destroy();
         await gc
           .bucket(originalImage.bucketName)
           .file(originalImage.fileName)
@@ -116,9 +117,6 @@ export default async (req: Request, res: Response) => {
         });
       }),
     );
-    await GaleriePicture.destroy({
-      where: { frameId },
-    });
     await Like.destroy({
       where: { frameId },
     });
