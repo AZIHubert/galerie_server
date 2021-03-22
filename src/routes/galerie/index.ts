@@ -21,6 +21,7 @@ import {
   postGaleries,
   postGaleriesIdFrames,
   postGaleriesIdInvitations,
+  postGaleriesSubscribeCode,
   putGaleriesId,
   putGaleriesIdFramesId,
   putGaleriesIdUsersUserId,
@@ -46,15 +47,7 @@ const galeriesRoutes: () => Router = () => {
   router.post('/:id/invitations', passport.authenticate('jwt', { session: false }), postGaleriesIdInvitations);
   router.put('/:id', passport.authenticate('jwt', { session: false }), putGaleriesId);
   router.put('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), putGaleriesIdFramesId);
-  router.put('/subscribe/', () => {
-    // Create a model Subscription
-    // need token
-    // check if token is valid
-    // check if token.id is a valid galerie.id
-    // check if user is not a subscriber of this galerie
-    // add user to this galerie
-    // delete the invitation (remove 1 to invitation.numberOfInvitation)
-  }); // subscribe to a galerie
+  router.post('/subscribe/:code', passport.authenticate('jwt', { session: false }), postGaleriesSubscribeCode);
   router.put('/:id/users/:userId', passport.authenticate('jwt', { session: false }), putGaleriesIdUsersUserId);
   return router;
 };

@@ -218,7 +218,6 @@ export default async (req: Request, res: Response) => {
       }],
     });
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
   if (!frame) {
@@ -356,7 +355,6 @@ export default async (req: Request, res: Response) => {
       frame.user.currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
     }
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
   return res.status(200).send(frame);

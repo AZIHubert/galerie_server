@@ -19,6 +19,10 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('i
     },
     type: DataTypes.BIGINT,
   },
+  code: {
+    allowNull: false,
+    type: DataTypes.STRING,
+  },
   numOfInvit: {
     allowNull: true,
     type: DataTypes.INTEGER,

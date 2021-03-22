@@ -12,6 +12,7 @@ import Galerie from '../galerie';
 import User from '../user';
 
 interface InvitationI {
+  code: string;
   galerieId: string;
   id: string;
   numOfInvit: number | null;
@@ -42,6 +43,11 @@ export default class Invitation extends Model implements InvitationI {
     type: DataType.INTEGER,
   })
   numOfInvit!: number | null;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  code!: string;
 
   @ForeignKey(() => User)
   @Column({

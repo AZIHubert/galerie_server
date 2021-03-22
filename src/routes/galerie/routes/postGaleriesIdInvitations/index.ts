@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { customAlphabet } from 'nanoid';
 
 import {
   Galerie,
@@ -56,6 +57,7 @@ export default async (req: Request, res: Response) => {
       ...value,
       userId,
       galerieId,
+      code: `${customAlphabet('1234567890', 4)()}-${customAlphabet('abcdefghjkmnpqrstuvwxyz23456789', 10)()}}`,
     });
     invitation = await Invitation.findByPk(id, {
       attributes: {
