@@ -32,7 +32,7 @@ const router = Router();
 const galeriesRoutes: () => Router = () => {
   router.delete('/:id', passport.authenticate('jwt', { session: false }), deleteGalerieId);
   router.delete('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId);
-  router.delete('/:id/unsubscribe/', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUnsubscribe); // if archived and userGalerie.length <= 0 destroy galerie
+  router.delete('/:id/unsubscribe/', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUnsubscribe);
   router.delete('/:id/users/:userId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUsersUserId);
   router.delete('/:id/invitations/:invitationId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdInvitationsId);
   router.get('/', passport.authenticate('jwt', { session: false }), getGaleries);
@@ -43,10 +43,10 @@ const galeriesRoutes: () => Router = () => {
   router.get('/:id/invitations/:invitationId', passport.authenticate('jwt', { session: false }), getGaleriesIdInvitationsId);
   router.get('/:id/users', passport.authenticate('jwt', { session: false }), getGaleriesIdUsers);
   router.post('/', passport.authenticate('jwt', { session: false }), postGaleries);
-  router.post('/:id/frames', passport.authenticate('jwt', { session: false }), uploadFiles, postGaleriesIdFrames); // if archived, return 400
-  router.post('/:id/invitations', passport.authenticate('jwt', { session: false }), postGaleriesIdInvitations); // if archived, return 400
-  router.post('/subscribe/:code', passport.authenticate('jwt', { session: false }), postGaleriesSubscribeCode); // if archived, return 400
-  router.put('/:id', passport.authenticate('jwt', { session: false }), putGaleriesId); // if archived, return 400
+  router.post('/:id/frames', passport.authenticate('jwt', { session: false }), uploadFiles, postGaleriesIdFrames);
+  router.post('/:id/invitations', passport.authenticate('jwt', { session: false }), postGaleriesIdInvitations);
+  router.post('/subscribe/:code', passport.authenticate('jwt', { session: false }), postGaleriesSubscribeCode);
+  router.put('/:id', passport.authenticate('jwt', { session: false }), putGaleriesId);
   router.put('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), putGaleriesIdFramesId);
   router.put('/:id/users/:userId', passport.authenticate('jwt', { session: false }), putGaleriesIdUsersUserId);
   return router;

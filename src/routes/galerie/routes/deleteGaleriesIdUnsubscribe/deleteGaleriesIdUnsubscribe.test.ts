@@ -140,6 +140,62 @@ describe('galeries', () => {
           });
           expect(galerieUser).toBeNull();
         });
+        it('and delete galerie if they\'re no user left', async () => {
+          const { body: { id: galerieId } } = await agent
+            .post('/galeries')
+            .set('authorization', token)
+            .send({ name: 'galerie name' });
+          const hashPassword = await hash(newUser.password, saltRounds);
+          const userTwo = await User.create({
+            ...newUser,
+            confirmed: true,
+            email: 'user2@email.com',
+            password: hashPassword,
+            userName: 'user2',
+          });
+          await GalerieUser.create({
+            userId: userTwo.id,
+            galerieId,
+            role: 'admin',
+          });
+          await agent
+            .delete('/users/me/')
+            .set('authorization', token)
+            .send({
+              password: newUser.password,
+              userNameOrEmail: user.email,
+              deleteAccountSentence: 'delete my account',
+            });
+          const { body: { token: tokenTwo } } = await agent
+            .post('/users/login')
+            .send({
+              password: newUser.password,
+              userNameOrEmail: userTwo.email,
+            });
+          await agent
+            .post(`/galeries/${galerieId}/frames`)
+            .set('authorization', token)
+            .attach('image', `${__dirname}/../../ressources/image.jpg`);
+          const { body, status } = await agent
+            .delete(`/galeries/${galerieId}/unsubscribe`)
+            .set('authorization', tokenTwo);
+          const galerie = await Galerie.findByPk(galerieId);
+          const frames = await Frame.findAll({
+            where: {
+              galerieId,
+            },
+          });
+          const galeriePictures = await GaleriePicture.findAll();
+          const images = await Image.findAll();
+          expect(status).toEqual(200);
+          expect(body).toStrictEqual({
+            id: galerieId,
+          });
+          expect(galerie).toBeNull();
+          expect(frames.length).toBeFalsy();
+          expect(galeriePictures.length).toBeFalsy();
+          expect(images.length).toBeFalsy();
+        });
       });
       describe('should return error 400 if', () => {
         it('current user is the creator of this galerie', async () => {

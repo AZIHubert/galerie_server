@@ -27,7 +27,7 @@ export default async (req: Request, res: Response) => {
   }
   try {
     const galerie = await Galerie.findByPk(invitation.galerieId);
-    if (!galerie) {
+    if (!galerie || galerie.archived) {
       await invitation.destroy();
       return res.status(400).send({
         errors: 'this invitation is not valid',
@@ -78,7 +78,6 @@ export default async (req: Request, res: Response) => {
       });
     }
   }
-
   try {
     if (invitation.numOfInvit) {
       await invitation.decrement({ numOfInvit: 1 });

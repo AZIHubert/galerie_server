@@ -38,6 +38,11 @@ export default async (req: Request, res: Response) => {
       errors: 'galerie not found',
     });
   }
+  if (galerie.archived) {
+    return res.status(400).send({
+      errors: 'you cannot update an archived galerie',
+    });
+  }
   const { role } = galerie
     .users
     .filter((user) => user.id === userId)[0]

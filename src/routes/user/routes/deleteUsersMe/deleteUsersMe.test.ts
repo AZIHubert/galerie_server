@@ -303,7 +303,38 @@ describe('users', () => {
           expect(galerie).toBeNull();
           expect(galerieUsers.length).toEqual(0);
         });
-        it('should archive galeries if one user is still subscribe', () => {});
+        it('should archive galeries if one user is still subscribe', async () => {
+          const { body: { id: galerieId } } = await agent
+            .post('/galeries/')
+            .set('authorization', token)
+            .send({ name: 'galerie name' });
+          const hashPassword = await hash(newUser.password, saltRounds);
+          const userTwo = await User.create({
+            ...newUser,
+            userName: 'user2',
+            email: 'user2@email.com',
+            confirmed: true,
+            password: hashPassword,
+          });
+          await GalerieUser.create({
+            userId: userTwo.id,
+            galerieId,
+            role: 'user',
+          });
+          const { status } = await agent
+            .delete('/users/me/')
+            .set('authorization', token)
+            .send({
+              password: newUser.password,
+              userNameOrEmail: user.email,
+              deleteAccountSentence: 'delete my account',
+            });
+          const galerie = await Galerie.findByPk(galerieId);
+          const galerieUsers = await GalerieUser.findAll();
+          expect(status).toBe(204);
+          expect(galerie?.archived).toBeTruthy();
+          expect(galerieUsers.length).toEqual(1);
+        });
         it('should destroy all invitations create by the user', async () => {
           const { body: { id: galerieId } } = await agent
             .post('/galeries/')
@@ -329,7 +360,50 @@ describe('users', () => {
           });
           expect(invitations.length).toEqual(0);
         });
-        it('should destroy all invitation from user\'s created galerie', () => {});
+        it('should destroy all invitation from user\'s created galerie', async () => {
+          const { body: { id: galerieId } } = await agent
+            .post('/galeries/')
+            .set('authorization', token)
+            .send({ name: 'galerie name' });
+          const hashPassword = await hash(newUser.password, saltRounds);
+          const userTwo = await User.create({
+            ...newUser,
+            userName: 'user2',
+            email: 'user2@email.com',
+            confirmed: true,
+            password: hashPassword,
+          });
+          await GalerieUser.create({
+            userId: userTwo.id,
+            galerieId,
+            role: 'user',
+          });
+          const { body: { token: tokenTwo } } = await agent
+            .post('/users/login')
+            .send({
+              password: newUser.password,
+              userNameOrEmail: userTwo.email,
+            });
+          await agent
+            .post(`/galeries/${galerieId}/invitations`)
+            .set('authorization', tokenTwo)
+            .send({});
+          const { status } = await agent
+            .delete('/users/me/')
+            .set('authorization', token)
+            .send({
+              password: newUser.password,
+              userNameOrEmail: user.email,
+              deleteAccountSentence: 'delete my account',
+            });
+          expect(status).toBe(204);
+          const invitations = await Invitation.findAll({
+            where: {
+              galerieId,
+            },
+          });
+          expect(invitations.length).toEqual(0);
+        });
         it('should destroy all frames', async () => {
           const { body: { id: galerieId } } = await agent
             .post('/galeries/')
