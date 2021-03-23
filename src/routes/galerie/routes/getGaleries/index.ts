@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Galerie,
@@ -11,6 +12,7 @@ import {
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
+  const { id } = req.user as User;
   const limit = 20;
   const { page } = req.query;
   let offset: number;
@@ -19,85 +21,14 @@ export default async (req: Request, res: Response) => {
   } else {
     offset = 0;
   }
-  const { id: userId } = req.user as User;
   let galeries: Galerie[];
+  const galerieWithUsers: Galerie[] = [];
   try {
     galeries = await Galerie.findAll({
       order: [['createdAt', 'DESC']],
       limit,
       offset,
       include: [{
-        model: User,
-        where: {
-          id: userId,
-        },
-        attributes: {
-          exclude: [
-            'authTokenVersion',
-            'confirmed',
-            'confirmTokenVersion',
-            'email',
-            'emailTokenVersion',
-            'facebookId',
-            'googleId',
-            'password',
-            'resetPasswordTokenVersion',
-            'updatedEmailTokenVersion',
-          ],
-        },
-        include: [
-          {
-            model: ProfilePicture,
-            as: 'currentProfilePicture',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'cropedImageId',
-                'deletedAt',
-                'originalImageId',
-                'pendingImageId',
-                'updatedAt',
-                'userId',
-              ],
-            },
-            include: [
-              {
-                model: Image,
-                as: 'cropedImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-              {
-                model: Image,
-                as: 'originalImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-              {
-                model: Image,
-                as: 'pendingImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-            ],
-          },
-        ],
-      }, {
         model: GaleriePicture,
         attributes: {
           exclude: [
@@ -177,58 +108,139 @@ export default async (req: Request, res: Response) => {
           pendingImageFileName,
         );
         galeries[index].coverPicture.pendingImage.signedUrl = pendingImageSignedUrl;
-        await Promise
-          .all(galerie.users.map(async (user, userIndex) => {
-            if (user.currentProfilePicture) {
-              const {
-                currentProfilePicture: {
-                  cropedImage: {
-                    bucketName: userCropedImageBucketName,
-                    fileName: userCropedImageFileName,
-                  },
-                  originalImage: {
-                    bucketName: userOriginalImageBucketName,
-                    fileName: userOriginalImageFileName,
-                  },
-                  pendingImage: {
-                    bucketName: userPendingImageBucketName,
-                    fileName: userPendingImageFileName,
-                  },
-                },
-              } = user;
-              const userCropedImageSignedUrl = await signedUrl(
-                userCropedImageBucketName,
-                userCropedImageFileName,
-              );
-              galeries[index]
-                .users[userIndex]
-                .currentProfilePicture
-                .cropedImage
-                .signedUrl = userCropedImageSignedUrl;
-              const userOriginalImageSignedUrl = await signedUrl(
-                userOriginalImageBucketName,
-                userOriginalImageFileName,
-              );
-              galeries[index]
-                .users[userIndex]
-                .currentProfilePicture
-                .originalImage
-                .signedUrl = userOriginalImageSignedUrl;
-              const userPendingImageSignedUrl = await signedUrl(
-                userPendingImageBucketName,
-                userPendingImageFileName,
-              );
-              galeries[index]
-                .users[userIndex]
-                .currentProfilePicture
-                .pendingImage
-                .signedUrl = userPendingImageSignedUrl;
-            }
-          }));
       }
+      const users = await User.findAll({
+        limit: 3,
+        where: {
+          blackListId: null,
+          confirmed: true,
+          id: {
+            [Op.not]: id,
+          },
+        },
+        attributes: {
+          exclude: [
+            'authTokenVersion',
+            'blackListId',
+            'confirmed',
+            'confirmTokenVersion',
+            'currentProfilePictureId',
+            'email',
+            'emailTokenVersion',
+            'googleId',
+            'password',
+            'resetPasswordTokenVersion',
+            'updatedEmailTokenVersion',
+          ],
+        },
+        include: [{
+          model: Galerie,
+          where: {
+            id: galerie.id,
+          },
+        }, {
+          model: ProfilePicture,
+          as: 'currentProfilePicture',
+          attributes: {
+            exclude: [
+              'createdAt',
+              'cropedImageId',
+              'deletedAt',
+              'originalImageId',
+              'pendingImageId',
+              'updatedAt',
+              'userId',
+            ],
+          },
+          include: [
+            {
+              model: Image,
+              as: 'cropedImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'deletedAt',
+                  'updatedAt',
+                ],
+              },
+            },
+            {
+              model: Image,
+              as: 'originalImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'deletedAt',
+                  'updatedAt',
+                ],
+              },
+            },
+            {
+              model: Image,
+              as: 'pendingImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'deletedAt',
+                  'updatedAt',
+                ],
+              },
+            },
+          ],
+        }],
+      });
+      await Promise
+        .all(users.map(async (user, userIndex) => {
+          if (user.currentProfilePicture) {
+            const {
+              currentProfilePicture: {
+                cropedImage: {
+                  bucketName: userCropedImageBucketName,
+                  fileName: userCropedImageFileName,
+                },
+                originalImage: {
+                  bucketName: userOriginalImageBucketName,
+                  fileName: userOriginalImageFileName,
+                },
+                pendingImage: {
+                  bucketName: userPendingImageBucketName,
+                  fileName: userPendingImageFileName,
+                },
+              },
+            } = user;
+            const userCropedImageSignedUrl = await signedUrl(
+              userCropedImageBucketName,
+              userCropedImageFileName,
+            );
+            users[userIndex]
+              .currentProfilePicture
+              .cropedImage
+              .signedUrl = userCropedImageSignedUrl;
+            const userOriginalImageSignedUrl = await signedUrl(
+              userOriginalImageBucketName,
+              userOriginalImageFileName,
+            );
+            users[userIndex]
+              .currentProfilePicture
+              .originalImage
+              .signedUrl = userOriginalImageSignedUrl;
+            const userPendingImageSignedUrl = await signedUrl(
+              userPendingImageBucketName,
+              userPendingImageFileName,
+            );
+            users[userIndex]
+              .currentProfilePicture
+              .pendingImage
+              .signedUrl = userPendingImageSignedUrl;
+          }
+        }));
+      galerieWithUsers.push({
+        ...galerie.toJSON(),
+        users: users.map((user) => user.toJSON()),
+      } as Galerie);
     }));
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(200).send(galeries);
+  return res.status(200).send(galerieWithUsers);
 };

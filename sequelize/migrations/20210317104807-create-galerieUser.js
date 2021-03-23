@@ -13,6 +13,17 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('g
     },
     type: DataTypes.BIGINT,
   },
+  role: {
+    type: DataTypes.STRING,
+  },
+  createdAt: {
+    allowNull: false,
+    type: DataTypes.DATE,
+  },
+  updatedAt: {
+    allowNull: false,
+    type: DataTypes.DATE,
+  },
 }, {
   charset: 'utf8',
 });

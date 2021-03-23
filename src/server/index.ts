@@ -48,8 +48,8 @@ const initApp: () => http.Server = () => {
       maxAge: 1000 * 60 * 60 * 24 * 7,
       secure: false,
     },
-    resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
+    resave: true,
     secret: SESSION_SECRET,
     store: sequelizeStore,
   }));
@@ -57,8 +57,14 @@ const initApp: () => http.Server = () => {
   app.use(passport.session());
   app.use(
     cors({
-      origin: true,
+      origin: [
+        'http://www.localhost:1234',
+        'http://localhost:1234',
+        'https://www.localhost:1234',
+      ],
       credentials: true,
+      methods: ['GET', 'POST'],
+      exposedHeaders: ['set-cookie'],
     }),
   );
   io.on('connection', (socket) => {

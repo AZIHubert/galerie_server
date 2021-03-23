@@ -20,6 +20,7 @@ interface GalerieI {
   coverPictureId?: string;
   id: string;
   name: string;
+  defaultCoverPicture?: string
   GalerieUser?: GalerieUser;
   archived?: boolean;
 }
@@ -53,6 +54,12 @@ export default class Galerie extends Model implements GalerieI {
     type: DataType.STRING,
   })
   name!: string;
+
+  @Column({
+    allowNull: true,
+    type: DataType.STRING,
+  })
+  defaultCoverPicture!: string;
 
   @BelongsToMany(() => User, () => GalerieUser)
   users!: User[];
