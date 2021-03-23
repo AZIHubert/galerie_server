@@ -3,7 +3,6 @@ import {
   Column,
   DataType,
   ForeignKey,
-  HasOne,
   Model,
   Table,
 } from 'sequelize-typescript';
@@ -13,7 +12,6 @@ import User from '../user';
 
 interface ProfilePictureI {
   cropedImageId?: string;
-  currentProfilePicture: User;
   id: string;
   originalImageId?: string;
   pendingImageId?: string;
@@ -29,9 +27,6 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
     type: DataType.BIGINT,
   })
   cropedImageId!: string;
-
-  @HasOne(() => User, 'currentProfilePictureId')
-  currentProfilePicture!: User;
 
   @Column({
     allowNull: false,

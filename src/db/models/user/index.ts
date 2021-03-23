@@ -1,5 +1,6 @@
 import {
   BelongsTo,
+  BelongsToMany,
   Column,
   DataType,
   ForeignKey,
@@ -10,9 +11,13 @@ import {
 } from 'sequelize-typescript';
 
 import BlackList from '../blackList';
+import Frame from '../frame';
 import Galerie from '../galerie';
+import GalerieUser from '../galerieUser';
+import Invitation from '../invitation';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
+import Like from '../like';
 
 interface UserI {
   authTokenVersion: number;
@@ -25,6 +30,7 @@ interface UserI {
   emailTokenVersion: number;
   facebookId?: string;
   galeries?: Galerie[];
+  GalerieUser: GalerieUser;
   googleId?: string;
   id: string;
   password: string;
@@ -35,7 +41,6 @@ interface UserI {
   tickets: Ticket[];
   updatedEmailTokenVersion: number;
   userName: string;
-
 }
 
 @Table({
@@ -98,9 +103,6 @@ export default class User extends Model implements UserI {
   })
   facebookId!: string;
 
-  @HasMany(() => Galerie)
-  galeries!: Galerie[];
-
   @Column({
     type: DataType.STRING,
   })
@@ -113,9 +115,6 @@ export default class User extends Model implements UserI {
     type: DataType.BIGINT,
   })
   id!: string;
-
-  @HasMany(() => ProfilePicture)
-  profilePictures!: ProfilePicture[];
 
   @Column({
     type: DataType.STRING,
@@ -141,9 +140,6 @@ export default class User extends Model implements UserI {
   })
   role!: 'superAdmin' | 'admin' | 'user';
 
-  @HasMany(() => Ticket)
-  tickets!: Ticket[];
-
   @Default(0)
   @Column({
     allowNull: false,
@@ -162,5 +158,25 @@ export default class User extends Model implements UserI {
   blackList!: BlackList;
 
   @BelongsTo(() => ProfilePicture)
-  currentProfilePicture!: ProfilePicture
+  currentProfilePicture!: ProfilePicture;
+
+  @BelongsToMany(() => Galerie, () => GalerieUser)
+  galeries!: Galerie[];
+
+  @BelongsToMany(() => Frame, () => Like)
+  likes!: Frame[];
+
+  @HasMany(() => ProfilePicture)
+  profilePictures!: ProfilePicture[];
+
+  @HasMany(() => Ticket)
+  tickets!: Ticket[];
+
+  @HasMany(() => Frame)
+  frames!: Frame[];
+
+  @HasMany(() => Invitation)
+  invitations!: Invitation[];
+
+  GalerieUser!: GalerieUser;
 }

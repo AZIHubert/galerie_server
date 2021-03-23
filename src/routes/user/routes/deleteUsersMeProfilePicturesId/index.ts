@@ -4,18 +4,13 @@ import Image from '@src/db/models/image';
 import ProfilePicture from '@src/db/models/profilePicture';
 import User from '@src/db/models/user';
 import gc from '@src/helpers/gc';
-import {
-  USER_NOT_FOUND,
-} from '@src/helpers/errorMessages';
+// import {
+//   USER_NOT_FOUND,
+// } from '@src/helpers/errorMessages';
 
 export default async (req: Request, res: Response) => {
   const { id } = req.params;
   const currentUser = req.user as User;
-  if (!currentUser) {
-    return res.status(404).send({
-      errors: USER_NOT_FOUND,
-    });
-  }
   const { id: userId, currentProfilePictureId } = currentUser;
   let profilePicture: ProfilePicture | null;
   if (currentProfilePictureId === id) {

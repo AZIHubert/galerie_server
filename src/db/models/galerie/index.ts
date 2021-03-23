@@ -1,22 +1,45 @@
 import {
   BelongsTo,
+  BelongsToMany,
   Column,
   DataType,
+  Default,
   ForeignKey,
+  HasMany,
   Model,
   Table,
 } from 'sequelize-typescript';
 
+import Frame from '../frame';
+import GaleriePicture from '../galeriePicture';
+import GalerieUser from '../galerieUser';
+import Invitation from '../invitation';
 import User from '../user';
 
+interface GalerieI {
+  coverPictureId?: string;
+  id: string;
+  name: string;
+  GalerieUser?: GalerieUser;
+  archived?: boolean;
+}
+
 @Table({
-  defaultScope: {
-    attributes: { exclude: ['deletedAt'] },
-  },
-  paranoid: true,
-  tableName: 'galeries',
+  tableName: 'galerie',
 })
-export default class Galerie extends Model {
+export default class Galerie extends Model implements GalerieI {
+  @Default(false)
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  archived!: boolean
+
+  @ForeignKey(() => GaleriePicture)
+  @Column({
+    type: DataType.BIGINT,
+  })
+  coverPictureId!: string;
+
   @Column({
     allowNull: false,
     autoIncrement: true,
@@ -31,13 +54,17 @@ export default class Galerie extends Model {
   })
   name!: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.BIGINT,
-  })
-  @ForeignKey(() => User)
-  userId!: string;
+  @BelongsToMany(() => User, () => GalerieUser)
+  users!: User[];
 
-  @BelongsTo(() => User)
-  user!: User;
+  @BelongsTo(() => GaleriePicture)
+  coverPicture!: GaleriePicture;
+
+  @HasMany(() => Frame)
+  frames!: Frame[];
+
+  @HasMany(() => Invitation)
+  invitations!: Invitation[];
+
+  GalerieUser!: GalerieUser;
 }

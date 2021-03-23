@@ -1,4 +1,4 @@
-module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('galeries', {
+module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('galerie', {
   id: {
     allowNull: false,
     autoIncrement: true,
@@ -9,15 +9,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('g
     allowNull: false,
     type: DataTypes.STRING,
   },
-  userId: {
-    allowNull: false,
-    references: {
-      key: 'id',
-      model: 'users',
-    },
-    type: DataTypes.BIGINT,
-  },
-  createAt: {
+  createdAt: {
     allowNull: false,
     type: DataTypes.DATE,
   },
@@ -33,4 +25,4 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('g
   charset: 'utf8',
 });
 
-module.exports.down = (queryInterface) => queryInterface.dropTable('galeries');
+module.exports.down = (queryInterface) => queryInterface.dropTable('galerie');
