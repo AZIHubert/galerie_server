@@ -88,5 +88,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(200).send({ ...galerie.toJSON(), users: [] });
+  return res.status(200).send({
+    galerie: { ...galerie.toJSON(), users: [] },
+    type: 'POST',
+  });
 };
