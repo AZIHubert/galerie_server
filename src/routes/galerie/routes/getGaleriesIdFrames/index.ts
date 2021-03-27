@@ -368,5 +368,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(200).send(frames);
+  return res.status(200).send({
+    galerieId,
+    frames,
+  });
 };

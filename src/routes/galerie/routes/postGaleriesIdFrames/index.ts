@@ -293,6 +293,8 @@ export default async (req: Request, res: Response) => {
               'originalImageId',
               'pendingImageId',
               'updatedAt',
+              'frameId',
+              'createdAt',
             ],
           },
           include: [
