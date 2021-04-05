@@ -5,10 +5,11 @@ import { v4 as uuidv4 } from 'uuid';
 import gc from '@src/helpers/gc';
 import accEnv from '@src/helpers/accEnv';
 import {
+  Frame,
   GaleriePicture,
   Galerie,
-  Frame,
   Image,
+  ProfilePicture,
   User,
 } from '@src/db/models';
 import checkExtension from '@src/helpers/checkExtension';
@@ -125,7 +126,7 @@ export default async (req: Request, res: Response) => {
     });
     const cropedImagePromise: Promise<Image> = new Promise((resolve, reject) => {
       const image = sharp(buffer)
-        .resize(200, 200);
+        .resize(600, 600);
       image
         .toBuffer({ resolveWithObject: true })
         .then((value) => {
@@ -333,6 +334,77 @@ export default async (req: Request, res: Response) => {
             },
           ],
         },
+        {
+          model: User,
+          as: 'user',
+          attributes: {
+            exclude: [
+              'authTokenVersion',
+              'blackListId',
+              'confirmed',
+              'confirmTokenVersion',
+              'email',
+              'emailTokenVersion',
+              'facebookId',
+              'googleId',
+              'password',
+              'resetPasswordTokenVersion',
+              'updatedEmailTokenVersion',
+            ],
+          },
+          include: [
+            {
+              model: ProfilePicture,
+              as: 'currentProfilePicture',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'cropedImageId',
+                  'deletedAt',
+                  'originalImageId',
+                  'pendingImageId',
+                  'updatedAt',
+                  'userId',
+                ],
+              },
+              include: [
+                {
+                  model: Image,
+                  as: 'cropedImage',
+                  attributes: {
+                    exclude: [
+                      'createdAt',
+                      'deletedAt',
+                      'updatedAt',
+                    ],
+                  },
+                },
+                {
+                  model: Image,
+                  as: 'originalImage',
+                  attributes: {
+                    exclude: [
+                      'createdAt',
+                      'deletedAt',
+                      'updatedAt',
+                    ],
+                  },
+                },
+                {
+                  model: Image,
+                  as: 'pendingImage',
+                  attributes: {
+                    exclude: [
+                      'createdAt',
+                      'deletedAt',
+                      'updatedAt',
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
+        },
       ],
     });
     if (!returnedFrame) {
@@ -356,6 +428,39 @@ export default async (req: Request, res: Response) => {
           .signedUrl = url.pendingImageSignedUrl;
       }
     });
+    if (returnedFrame.user.currentProfilePicture) {
+      const {
+        currentProfilePicture: {
+          cropedImage: {
+            bucketName: cropedImageBucketName,
+            fileName: cropedImageFileName,
+          },
+          originalImage: {
+            bucketName: originalImageBucketName,
+            fileName: originalImageFileName,
+          },
+          pendingImage: {
+            bucketName: pendingImageBucketName,
+            fileName: pendingImageFileName,
+          },
+        },
+      } = returnedFrame.user;
+      const cropedImageSignedUrl = await signedUrl(
+        cropedImageBucketName,
+        cropedImageFileName,
+      );
+      returnedFrame.user.currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
+      const originalImageSignedUrl = await signedUrl(
+        originalImageBucketName,
+        originalImageFileName,
+      );
+      returnedFrame.user.currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
+      const pendingImageSignedUrl = await signedUrl(
+        pendingImageBucketName,
+        pendingImageFileName,
+      );
+      returnedFrame.user.currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+    }
   } catch (err) {
     return res.status(500).send(err);
   }
