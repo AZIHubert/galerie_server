@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
 
-import { Op } from 'sequelize';
-
 import signedUrl from '@src/helpers/signedUrl';
 
 import {
@@ -38,9 +36,6 @@ export default async (req: Request, res: Response) => {
       where: {
         blackListId: null,
         confirmed: true,
-        id: {
-          [Op.not]: userId,
-        },
       },
       attributes: {
         exclude: [
@@ -153,5 +148,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(200).send(users);
+  return res.status(200).send({
+    id: galerieId,
+    users,
+  });
 };

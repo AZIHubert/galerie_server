@@ -63,7 +63,7 @@ const initApp: () => http.Server = () => {
         'https://www.localhost:1234',
       ],
       credentials: true,
-      methods: ['GET', 'POST'],
+      // methods: ['GET', 'POST'],
       exposedHeaders: ['set-cookie'],
     }),
   );

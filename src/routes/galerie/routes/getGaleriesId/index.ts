@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import {
   Galerie,
   GaleriePicture,
+  GalerieUser,
   Image,
   ProfilePicture,
   User,
@@ -143,6 +144,22 @@ export default async (req: Request, res: Response) => {
       errors: 'galerie not found',
     });
   }
+  let role: string;
+  try {
+    const galerieUser = await GalerieUser.findOne({
+      where: {
+        galerieId,
+        userId,
+      },
+    });
+    if (galerieUser) {
+      role = galerieUser.role;
+    } else {
+      role = 'user';
+    }
+  } catch (err) {
+    return res.status(500).send(err);
+  }
   if (galerie.coverPicture) {
     try {
       const {
@@ -226,5 +243,11 @@ export default async (req: Request, res: Response) => {
       return res.status(500).send(err);
     }
   }
-  return res.status(200).send(galerie);
+  return res.status(200).send({
+    galerie: {
+      ...galerie.toJSON(),
+      role,
+    },
+    type: 'GET',
+  });
 };

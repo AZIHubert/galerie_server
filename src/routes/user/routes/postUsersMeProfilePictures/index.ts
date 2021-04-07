@@ -94,7 +94,7 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
   });
   const cropedImagePromise: Promise<Image> = new Promise((resolve, reject) => {
     const image = sharp(buffer)
-      .resize(200, 200);
+      .resize(600, 600);
     image
       .toBuffer({ resolveWithObject: true })
       .then((value) => {

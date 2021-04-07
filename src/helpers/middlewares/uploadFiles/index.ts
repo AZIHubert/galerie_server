@@ -7,7 +7,7 @@ export default (req: Request, res: Response, next: NextFunction) => {
     limits: {
       fileSize: 5 * 1024 * 1024,
     },
-  }).array('image', 6);
+  }).array('images', 6);
 
   upload(req, res, (err: any) => {
     if (err instanceof multer.MulterError) {

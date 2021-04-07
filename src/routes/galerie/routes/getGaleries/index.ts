@@ -4,6 +4,7 @@ import { Op } from 'sequelize';
 import {
   Galerie,
   GaleriePicture,
+  GalerieUser,
   Image,
   ProfilePicture,
   User,
@@ -22,13 +23,18 @@ export default async (req: Request, res: Response) => {
     offset = 0;
   }
   let galeries: Galerie[];
-  const galerieWithUsers: Galerie[] = [];
+  const galerieWithUsers: Array<any> = [];
   try {
     galeries = await Galerie.findAll({
       order: [['createdAt', 'DESC']],
       limit,
       offset,
       include: [{
+        model: User,
+        where: {
+          id,
+        },
+      }, {
         model: GaleriePicture,
         attributes: {
           exclude: [
@@ -77,7 +83,17 @@ export default async (req: Request, res: Response) => {
         ],
       }],
     });
+    const galerieUsers: {[key:string]: 'user' | 'admin' | 'creator'} = {};
     await Promise.all(galeries.map(async (galerie, index) => {
+      const galerieUser = await GalerieUser.findOne({
+        where: {
+          galerieId: galerie.id,
+          userId: id,
+        },
+      });
+      if (galerieUser) {
+        galerieUsers[galerie.id] = galerieUser.role;
+      }
       if (galerie.coverPicture) {
         const {
           cropedImage: {
@@ -237,7 +253,8 @@ export default async (req: Request, res: Response) => {
       galerieWithUsers.push({
         ...galerie.toJSON(),
         users: users.map((user) => user.toJSON()),
-      } as Galerie);
+        role: galerieUser ? galerieUser.role : 'user',
+      });
     }));
   } catch (err) {
     return res.status(500).send(err);
