@@ -8,8 +8,6 @@ export { default as getUsersLogout } from './getUsersLogout';
 export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersMeProfilePictures } from './getUsersMeProfilePictures';
 export { default as getUsersMeProfilePicturesId } from './getUsersMeProfilePicturesId';
-export { default as getUsersOauthFacebookRedirect } from './getUsersOauthFacebookRedirect';
-export { default as getUsersOauthGoogleRedirect } from './getUsersOauthGoogleRedirect';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
 export { default as postUsersResetPassword } from './postUsersResetPassword';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';

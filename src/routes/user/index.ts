@@ -2,8 +2,6 @@ import { Router } from 'express';
 import socketIo from 'socket.io';
 
 import {
-  facebookAuthentication,
-  googleAuthentication,
   shouldBeAdmin,
   shouldBeSuperAdmin,
   shouldNotBeAuth,
@@ -20,8 +18,6 @@ import {
   postUsersConfirmation,
   getUsersIdId,
   getUsersLogout,
-  getUsersOauthFacebookRedirect,
-  getUsersOauthGoogleRedirect,
   getUsersMe,
   getUsersMeProfilePictures,
   getUsersMeProfilePicturesId,
@@ -72,21 +68,6 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.put('/role/:id/', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, putUsersRoleIdRole);
   router.put('/blacklist/:id/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, putUsersBlacklistId);
   router.get('/blacklist/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, getUsersBlackList);
-  router.get('/oauth/google', passport.authenticate('google', {
-    session: false,
-    scope: [
-      'profile',
-      'email',
-    ],
-  }));
-  router.get('/oauth/google/redirect', googleAuthentication, getUsersOauthGoogleRedirect);
-  router.get('/oauth/facebook', passport.authenticate('facebook', {
-    session: false,
-    scope: [
-      'email',
-    ],
-  }));
-  router.get('/oauth/facebook/redirect', facebookAuthentication, getUsersOauthFacebookRedirect);
   router.delete('/me', passport.authenticate('jwt', { session: false }), deleteUsersMe);
   router.get('/refreshToken', getUsersRefreshToken);
   router.post('/auth/facebook', shouldNotBeAuth, postUsersAuthMobileFacebook);
