@@ -35,3 +35,5 @@ when accept a invit, send notification to all admins/creators
 add notification id to user
 
 notificationUser => userId, NotificationId
+
+Test create notification invitation

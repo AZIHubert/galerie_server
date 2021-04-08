@@ -1,9 +1,12 @@
 import { Request, Response } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Invitation,
   GalerieUser,
   Galerie,
+  Notification,
+  NotificationUser,
   User,
 } from '@src/db/models';
 
@@ -90,6 +93,48 @@ export default async (req: Request, res: Response) => {
       galerieId: invitation.galerieId,
       role: 'user',
     });
+    const users = await User.findAll({
+      include: [{
+        model: User,
+        where: {
+          [Op.or]: [
+            { role: 'admin' },
+            { role: 'creator' },
+          ],
+        },
+      }],
+    });
+    await Promise.all(
+      users.map(async (user) => {
+        if (invitation) {
+          let notification = await Notification.findOne({
+            where: {
+              galerieId: invitation.galerieId,
+              type: 'invitation',
+            },
+          });
+          if (!notification) {
+            notification = await Notification.create({
+              galerieId: invitation.galerieId,
+              type: 'invitation',
+              user: user.id,
+            });
+          }
+          const notificationUser = await NotificationUser.findOne({
+            where: {
+              notificationId: notification.id,
+              userId,
+            },
+          });
+          if (!notificationUser) {
+            await NotificationUser.create({
+              notificationId: notification.id,
+              userId,
+            });
+          }
+        }
+      }),
+    );
   } catch (err) {
     return res.status(500).send(err);
   }

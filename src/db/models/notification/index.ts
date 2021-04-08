@@ -13,8 +13,8 @@ import NotificationUser from '../notificationUser';
 import User from '../user';
 
 interface NotificationI {
-  frameId: string;
-  galerieId: string;
+  frameId?: string;
+  galerieId?: string;
   id: string;
   type: 'frame' | 'invitation';
   userId: string;
