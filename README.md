@@ -21,7 +21,7 @@ frame.text = 'lorem ipsum';
 1/2/3... accept your invitation
 
 type = frame/invitation
-notificationUserId has many
+us has many
 numOfUsers
 frameId
 galerieId
@@ -33,3 +33,5 @@ and numOfUsers - 1, if numOfUsers === 0. delete notification
 when accept a invit, send notification to all admins/creators
 
 add notification id to user
+
+notificationUser => userId, NotificationId

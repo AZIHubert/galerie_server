@@ -1,14 +1,7 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('notification', {
-  userId: {
-    references: {
-      key: 'id',
-      model: 'users',
-    },
-    type: DataTypes.BIGINT,
-  },
-  type: {
+  createdAt: {
     allowNull: false,
-    type: DataTypes.STRING,
+    type: DataTypes.DATE,
   },
   frameId: {
     allowNull: true,
@@ -25,13 +18,20 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('n
     },
     type: DataTypes.BIGINT,
   },
-  createdAt: {
+  type: {
     allowNull: false,
-    type: DataTypes.DATE,
+    type: DataTypes.STRING,
   },
   updatedAt: {
     allowNull: false,
     type: DataTypes.DATE,
+  },
+  userId: {
+    references: {
+      key: 'id',
+      model: 'users',
+    },
+    type: DataTypes.BIGINT,
   },
 }, {
   charset: 'utf8',

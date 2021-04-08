@@ -15,6 +15,8 @@ import Frame from '../frame';
 import Galerie from '../galerie';
 import GalerieUser from '../galerieUser';
 import Invitation from '../invitation';
+import Notification from '../notification';
+import NotificationUser from '../notificationUser';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
 import Like from '../like';
@@ -163,11 +165,17 @@ export default class User extends Model implements UserI {
   @BelongsToMany(() => Galerie, () => GalerieUser)
   galeries!: Galerie[];
 
+  @BelongsToMany(() => Notification, () => NotificationUser)
+  notificationsUser!: Notification[]
+
   @BelongsToMany(() => Frame, () => Like)
   likes!: Frame[];
 
   @HasMany(() => ProfilePicture)
   profilePictures!: ProfilePicture[];
+
+  @HasMany(() => Notification)
+  notifications!: Notification[]
 
   @HasMany(() => Ticket)
   tickets!: Ticket[];
