@@ -14,6 +14,7 @@ interface BlackListI {
   id: string;
   reason: string;
   time?: number;
+  userId: string;
 }
 
 @Table({
@@ -44,6 +45,12 @@ export default class BlackList extends Model implements BlackListI {
     type: DataType.INTEGER,
   })
   time!: number;
+
+  @ForeignKey(() => User)
+  @Column({
+    type: DataType.BIGINT,
+  })
+  userId!: string;
 
   @BelongsTo(() => User)
   admin!: User;

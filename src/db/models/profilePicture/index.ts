@@ -12,6 +12,7 @@ import User from '../user';
 
 interface ProfilePictureI {
   cropedImageId?: string;
+  current: boolean;
   id: string;
   originalImageId?: string;
   pendingImageId?: string;
@@ -27,6 +28,12 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
     type: DataType.BIGINT,
   })
   cropedImageId!: string;
+
+  @Column({
+    allowNull: false,
+    type: DataType.BOOLEAN,
+  })
+  current!: boolean;
 
   @Column({
     allowNull: false,

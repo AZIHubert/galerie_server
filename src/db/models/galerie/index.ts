@@ -1,17 +1,14 @@
 import {
-  BelongsTo,
   BelongsToMany,
   Column,
   DataType,
   Default,
-  ForeignKey,
   HasMany,
   Model,
   Table,
 } from 'sequelize-typescript';
 
 import Frame from '../frame';
-import GaleriePicture from '../galeriePicture';
 import GalerieUser from '../galerieUser';
 import Invitation from '../invitation';
 import User from '../user';
@@ -21,7 +18,6 @@ interface GalerieI {
   id: string;
   name: string;
   defaultCoverPicture?: string
-  GalerieUser?: GalerieUser;
   archived?: boolean;
 }
 
@@ -33,13 +29,7 @@ export default class Galerie extends Model implements GalerieI {
   @Column({
     type: DataType.BOOLEAN,
   })
-  archived!: boolean
-
-  @ForeignKey(() => GaleriePicture)
-  @Column({
-    type: DataType.BIGINT,
-  })
-  coverPictureId!: string;
+  archived!: boolean;
 
   @Column({
     allowNull: false,
@@ -63,9 +53,6 @@ export default class Galerie extends Model implements GalerieI {
 
   @BelongsToMany(() => User, () => GalerieUser)
   users!: User[];
-
-  @BelongsTo(() => GaleriePicture)
-  coverPicture!: GaleriePicture;
 
   @HasMany(() => Frame)
   frames!: Frame[];

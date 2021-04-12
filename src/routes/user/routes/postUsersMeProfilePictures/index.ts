@@ -233,10 +233,11 @@ export default (io: socketIo.Server) => async (req: Request, res: Response) => {
       pendingImagePromise,
     ]);
     const { id } = await ProfilePicture.create({
-      userId,
-      originalImageId,
       cropedImageId,
+      current: true,
+      originalImageId,
       pendingImageId,
+      userId,
     });
     profilePicture = await ProfilePicture.findByPk(id, {
       attributes: {

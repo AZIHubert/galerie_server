@@ -1,17 +1,20 @@
 import { compare } from 'bcrypt';
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 
 import {
-  Image,
+  Frame,
+  Galerie,
+  GaleriePicture,
   GalerieUser,
+  Image,
+  Invitation,
+  Like,
   ProfilePicture,
   Ticket,
   User,
-  Invitation,
-  Like,
-  Galerie,
-  Frame,
-  GaleriePicture,
 } from '@src/db/models';
 
 import {
@@ -22,50 +25,64 @@ import gc from '@src/helpers/gc';
 
 export default async (req: Request, res: Response) => {
   const user = req.user as User;
-  if (user.facebookId || user.googleId) {
-    return res.status(400).send({
-      errors: 'you can\'t delete your account if you\'re logged in with Facebook or Google',
-    });
-  }
   const {
     deleteAccountSentence,
     password,
     userNameOrEmail,
   } = req.body;
-  if (!password) {
+
+  // Check if user is made with google or facebook
+  // if true, the user can't delete his account
+  // you need a password for it
+  // but accont created with Google or Facebook doesn't have one
+  if (user.facebookId || user.googleId) {
     return res.status(400).send({
-      errors: {
-        password: FIELD_IS_REQUIRED,
-      },
+      errors: 'you can\'t delete your account if you\'re logged in with Facebook or Google',
     });
   }
+
+  // return error if
+  // deleteAccountSentence/userNameOrEmail/password
+  // are not send or not match
   const errors: {
     deleteAccountSentence?: string;
-    userNameOrEmail?: string;
     password?: string;
+    userNameOrEmail?: string;
   } = {};
-  if (userNameOrEmail !== user.email && `@${userNameOrEmail}` !== user.userName) {
+  if (!userNameOrEmail) {
+    errors.userNameOrEmail = FIELD_IS_REQUIRED;
+  } else if (
+    userNameOrEmail !== user.email
+    && `@${userNameOrEmail}` !== user.userName
+  ) {
     errors.userNameOrEmail = 'wrong user name or email';
   }
-  if (deleteAccountSentence !== 'delete my account') {
+  if (!deleteAccountSentence) {
+    errors.deleteAccountSentence = FIELD_IS_REQUIRED;
+  } else if (deleteAccountSentence !== 'delete my account') {
     errors.deleteAccountSentence = 'wrong sentence';
   }
-  let passwordsMatch: boolean;
-  try {
-    passwordsMatch = await compare(password, user.password);
-    if (!passwordsMatch) {
-      errors.password = WRONG_PASSWORD;
+  if (!password) {
+    errors.password = FIELD_IS_REQUIRED;
+  } else {
+    let passwordsMatch: boolean;
+    try {
+      passwordsMatch = await compare(password, user.password);
+      if (!passwordsMatch) {
+        errors.password = WRONG_PASSWORD;
+      }
+    } catch (err) {
+      return res.status(500).send(err);
     }
-  } catch (err) {
-    return res.status(500).send(err);
   }
   if (Object.keys(errors).length) {
     return res.status(400).send({
       errors,
     });
   }
+
   try {
-    await user.update({ currentProfilePictureId: null });
+    // Destroy all Profile Pictures
     const profilePictures = await ProfilePicture.findAll({
       where: {
         userId: user.id,
@@ -73,8 +90,8 @@ export default async (req: Request, res: Response) => {
     });
     await Promise.all(
       profilePictures.map(async ({
-        id,
         cropedImageId,
+        id,
         originalImageId,
         pendingImageId,
       }) => {
@@ -113,43 +130,35 @@ export default async (req: Request, res: Response) => {
         }
       }),
     );
-    const tickets = await Ticket.findAll({
-      where: {
-        userId: user.id,
-      },
-    });
-    await Promise.all(
-      tickets.map(async (ticket) => {
-        await ticket.update({ userId: null });
-      }),
-    );
-    const galerieUsers = await GalerieUser.findAll({
-      where: {
-        userId: user.id,
-      },
-    });
-    const frames = await Frame.findAll({
+
+    // Destroy all tickets
+    await Ticket.destroy({
       where: {
         userId: user.id,
       },
     });
 
+    // Destroy all frames/likes/galeriePictures/images
+    // And images from Google buckets
+    const frames = await Frame.findAll({
+      where: {
+        userId: user.id,
+      },
+    });
     await Promise.all(frames.map(async (frame) => {
       const galeriePictures = await GaleriePicture.findAll({
+        include: [{
+          all: true,
+        }],
         where: {
           frameId: frame.id,
         },
-        include: [
-          {
-            all: true,
-          },
-        ],
       });
       await Promise.all(
         galeriePictures.map(async (galeriePicture) => {
           const {
-            originalImage,
             cropedImage,
+            originalImage,
             pendingImage,
           } = galeriePicture;
           await galeriePicture.destroy();
@@ -183,53 +192,66 @@ export default async (req: Request, res: Response) => {
         }),
       );
       await Like.destroy({
-        where: { frameId: '1' },
+        where: { frameId: frame.id },
       });
       await frame.destroy();
     }));
-    let galerie: Galerie | null;
+
+    // Destroy all galerieUser related to this user.
+    // If user is the creator of the galerie
+    // and if is the only one left on this galerie
+    // destroy this galerie.
+    // Else, set this galerie as archive.
+    const galerieUsers = await GalerieUser.findAll({
+      where: {
+        userId: user.id,
+      },
+    });
     await Promise.all(galerieUsers.map(async (galerieUser) => {
       await galerieUser.destroy();
-      if (galerieUser.role === 'creator') {
-        await Galerie.update({
-          archived: true,
-        }, {
-          where: {
-            id: galerieUser.galerieId,
-          },
-        });
-        await Invitation.destroy({
-          where: {
-            galerieId: galerieUser.galerieId,
-          },
-        });
-      }
-      galerie = await Galerie.findByPk(galerieUser.galerieId);
       const allUsers = await GalerieUser.findAll({
         where: {
           galerieId: galerieUser.galerieId,
         },
       });
-      if (galerie) {
+      if (galerieUser.role === 'creator') {
         if (!allUsers.length) {
-          await galerie.destroy();
-        } else if (
-          galerie
-          && frames.map((frame) => frame.id).includes(galerie.coverPictureId)
-        ) {
-          await galerie.update({ coverPictureId: null });
+          await Galerie.destroy({
+            where: {
+              id: galerieUser.galerieId,
+            },
+          });
+        } else {
+          await Galerie.update({
+            archived: true,
+          }, {
+            where: {
+              id: galerieUser.galerieId,
+            },
+          });
+          await Invitation.destroy({
+            where: {
+              galerieId: galerieUser.galerieId,
+            },
+          });
         }
       }
     }));
+
+    // destroy all invitations
     await Invitation.destroy({
       where: {
         userId: user.id,
       },
     });
+
+    // destroy user
     await user.destroy();
   } catch (err) {
     return res.status(500).send();
   }
+
+  // destroy session and log out
   req.logOut();
   req.session.destroy((sessionError) => {
     if (sessionError) {

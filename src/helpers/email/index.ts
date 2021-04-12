@@ -13,7 +13,6 @@ const mailConfig = {
     pass: MAIL_PASSWORD,
   },
 };
-const transporter = nodemailer.createTransport(mailConfig);
 
 const confirmAccountMessage = (email: string, token: string) => ({
   from: 'Galeries <sender@mail.com>',
@@ -80,28 +79,44 @@ const validateEmailMessage = (email: string, token: string) => ({
   </html>`,
 });
 
-export const sendConfirmAccount = (email: string, token: string) => transporter.sendMail(
-  confirmAccountMessage(email, token),
-  (err) => {
-    if (err) transporter.close();
-  },
-);
-export const sendResetPassword = (email: string, token: string) => transporter.sendMail(
-  resetPasswordMessage(email, token),
-  (err) => {
-    if (err) transporter.close();
-  },
-);
-export const sendUpdateEmailMessage = (email: string, token: string) => transporter.sendMail(
-  updateEmailMessage(email, token),
-  (err) => {
-    if (err) transporter.close();
-  },
-);
+export const sendConfirmAccount = (email: string, token: string) => {
+  const transporter = nodemailer.createTransport(mailConfig);
+  transporter.sendMail(
+    confirmAccountMessage(email, token),
+    (err) => {
+      if (err) transporter.close();
+    },
+  );
+  transporter.close();
+};
+export const sendResetPassword = (email: string, token: string) => {
+  const transporter = nodemailer.createTransport(mailConfig);
+  transporter.sendMail(
+    resetPasswordMessage(email, token),
+    (err) => {
+      if (err) transporter.close();
+    },
+  );
+  transporter.close();
+};
+export const sendUpdateEmailMessage = (email: string, token: string) => {
+  const transporter = nodemailer.createTransport(mailConfig);
+  transporter.sendMail(
+    updateEmailMessage(email, token),
+    (err) => {
+      if (err) transporter.close();
+    },
+  );
+  transporter.close();
+};
 
-export const sendValidateEmailMessage = (email: string, token: string) => transporter.sendMail(
-  validateEmailMessage(email, token),
-  (err) => {
-    if (err) transporter.close();
-  },
-);
+export const sendValidateEmailMessage = (email: string, token: string) => {
+  const transporter = nodemailer.createTransport(mailConfig);
+  transporter.sendMail(
+    validateEmailMessage(email, token),
+    (err) => {
+      if (err) transporter.close();
+    },
+  );
+  transporter.close();
+};

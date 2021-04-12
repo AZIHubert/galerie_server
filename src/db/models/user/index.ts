@@ -1,16 +1,13 @@
 import {
-  BelongsTo,
   BelongsToMany,
   Column,
   DataType,
-  ForeignKey,
   HasMany,
   Model,
   Table,
   Default,
 } from 'sequelize-typescript';
 
-import BlackList from '../blackList';
 import Frame from '../frame';
 import Galerie from '../galerie';
 import GalerieUser from '../galerieUser';
@@ -23,7 +20,6 @@ import Like from '../like';
 
 interface UserI {
   authTokenVersion: number;
-  blackListId?: string;
   confirmed: boolean;
   confirmTokenVersion: number;
   currentProfilePictureId?: string;
@@ -56,12 +52,6 @@ export default class User extends Model implements UserI {
   })
   authTokenVersion!: number;
 
-  @ForeignKey(() => BlackList)
-  @Column({
-    type: DataType.BIGINT,
-  })
-  blackListId!: string;
-
   @Default(false)
   @Column({
     allowNull: false,
@@ -75,12 +65,6 @@ export default class User extends Model implements UserI {
     type: DataType.INTEGER,
   })
   confirmTokenVersion!: number;
-
-  @ForeignKey(() => ProfilePicture)
-  @Column({
-    type: DataType.BIGINT,
-  })
-  currentProfilePictureId!: string;
 
   @Column({
     type: DataType.STRING,
@@ -155,12 +139,6 @@ export default class User extends Model implements UserI {
     unique: true,
   })
   userName!: string;
-
-  @BelongsTo(() => BlackList)
-  blackList!: BlackList;
-
-  @BelongsTo(() => ProfilePicture)
-  currentProfilePicture!: ProfilePicture;
 
   @BelongsToMany(() => Galerie, () => GalerieUser)
   galeries!: Galerie[];

@@ -56,9 +56,9 @@ const cleanDatas = async (sequelize: Sequelize) => {
 };
 
 const newUser = {
-  pseudonym: 'userName',
   email: 'user@email.com',
   password: 'password',
+  pseudonym: 'userName',
   userName: '@userName',
 };
 
@@ -93,18 +93,24 @@ describe('galeries', () => {
           userNameOrEmail: user.email,
         });
       token = body.token;
-      const { body: createGalerieBody } = await agent
+      const { body: { galerie } } = await agent
         .post('/galeries')
         .set('authorization', token)
         .send({ name: originalGalerieName });
-      galerieId = createGalerieBody.id;
-      const { body: createFrameBody } = await agent
+      galerieId = galerie.id;
+      const {
+        body: {
+          frame: {
+            galeriePictures,
+          },
+        },
+      } = await agent
         .post(`/galeries/${galerieId}/frames`)
         .set('authorization', token)
-        .attach('image', `${__dirname}/../../ressources/image.jpg`)
-        .attach('image', `${__dirname}/../../ressources/image.jpg`)
-        .attach('image', `${__dirname}/../../ressources/image.jpg`);
-      pictureId = createFrameBody.galeriePictures[0].id;
+        .attach('images', `${__dirname}/../../ressources/image.jpg`)
+        .attach('images', `${__dirname}/../../ressources/image.jpg`)
+        .attach('images', `${__dirname}/../../ressources/image.jpg`);
+      pictureId = galeriePictures[0].id;
     } catch (err) {
       done(err);
     }
@@ -296,15 +302,21 @@ describe('galeries', () => {
               userNameOrEmail: userTwo.email,
             });
           const tokenTwo = loginUserTwo.token;
-          const { body: createGalerieBody } = await agent
+          const {
+            body: {
+              galerie: {
+                id,
+              },
+            },
+          } = await agent
             .post('/galeries')
             .set('authorization', tokenTwo)
             .send({ name: 'galerie name' });
-          const galerieTwoId = createGalerieBody.id;
           const { body, status } = await agent
-            .put(`/galeries/${galerieTwoId}`)
+            .put(`/galeries/${id}`)
             .set('authorization', token)
             .send({ name: 'new galerie name' });
+          console.log(body);
           expect(status).toBe(404);
           expect(body).toStrictEqual({
             errors: 'galerie not found',

@@ -37,3 +37,9 @@ add notification id to user
 notificationUser => userId, NotificationId
 
 Test create notification invitation
+
+Add frame numOfLikes (number)
+
+// sequelize migration blacklist userId
+user profile picture => current
+galerie cover picture => current

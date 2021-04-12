@@ -102,68 +102,128 @@ describe('galeries', () => {
     describe('frames', () => {
       describe('POST', () => {
         describe('should return status 200 and', () => {
-          it('return no frame', async () => {
-            const { body: createGalerieBody } = await agent
+          it('should return the galerie\'s id', async () => {
+            const {
+              body: {
+                galerie: {
+                  id: galerieId,
+                },
+              },
+            } = await agent
               .post('/galeries')
               .set('authorization', token)
               .send({ name: 'galerie name' });
-            const galerieId = createGalerieBody.id;
-            const { body, status } = await agent
+            const {
+              body: {
+                galerieId: getGalerieId,
+              },
+              status,
+            } = await agent
               .get(`/galeries/${galerieId}/frames`)
               .set('authorization', token);
             expect(status).toEqual(200);
-            expect(body.length).toEqual(0);
+            expect(getGalerieId).toEqual(galerieId);
+          });
+          it('return no frame', async () => {
+            const {
+              body: {
+                galerie: {
+                  id: galerieId,
+                },
+              },
+            } = await agent
+              .post('/galeries')
+              .set('authorization', token)
+              .send({ name: 'galerie name' });
+            const {
+              body: {
+                frames,
+              },
+              status,
+            } = await agent
+              .get(`/galeries/${galerieId}/frames`)
+              .set('authorization', token);
+            expect(status).toEqual(200);
+            expect(frames.length).toEqual(0);
           });
           it('return one frame', async () => {
-            const { body: { id: galerieId } } = await agent
+            const {
+              body: {
+                galerie: {
+                  id: galerieId,
+                },
+              },
+            } = await agent
               .post('/galeries')
               .set('authorization', token)
               .send({ name: 'galerie name' });
-            const { body: { id: frameId } } = await agent
+            const {
+              body: {
+                frame: {
+                  id: frameId,
+                },
+              },
+            } = await agent
               .post(`/galeries/${galerieId}/frames`)
               .set('authorization', token)
-              .attach('image', `${__dirname}/../../ressources/image.jpg`);
-            const { body, status } = await agent
+              .attach('images', `${__dirname}/../../ressources/image.jpg`);
+            const {
+              body: {
+                frames,
+              },
+              status,
+            } = await agent
               .get(`/galeries/${galerieId}/frames`)
               .set('authorization', token);
             expect(status).toEqual(200);
-            expect(body.length).toEqual(1);
-            const [frame] = body;
+            expect(frames.length).toEqual(1);
+            const [frame] = frames;
             expect(frame.id).toEqual(frameId);
             expect(frame.galeriePictures[0].cropedImage.signedUrl).not.toBeNull();
             expect(frame.galeriePictures[0].originalImage.signedUrl).not.toBeNull();
             expect(frame.galeriePictures[0].pendingImage.signedUrl).not.toBeNull();
           });
           it('return five frames', async () => {
-            const { body: { id: galerieId } } = await agent
+            const {
+              body: {
+                galerie: {
+                  id: galerieId,
+                },
+              },
+            } = await agent
               .post('/galeries')
               .set('authorization', token)
               .send({ name: 'galerie name' });
             await agent
               .post(`/galeries/${galerieId}/frames`)
               .set('authorization', token)
-              .attach('image', `${__dirname}/../../ressources/image.jpg`);
+              .attach('images', `${__dirname}/../../ressources/image.jpg`);
             await agent
               .post(`/galeries/${galerieId}/frames`)
               .set('authorization', token)
-              .attach('image', `${__dirname}/../../ressources/image.jpg`);
+              .attach('images', `${__dirname}/../../ressources/image.jpg`);
             await agent
               .post(`/galeries/${galerieId}/frames`)
               .set('authorization', token)
-              .attach('image', `${__dirname}/../../ressources/image.jpg`);
+              .attach('images', `${__dirname}/../../ressources/image.jpg`);
             await agent
               .post(`/galeries/${galerieId}/frames`)
               .set('authorization', token)
-              .attach('image', `${__dirname}/../../ressources/image.jpg`);
+              .attach('images', `${__dirname}/../../ressources/image.jpg`);
             await agent
               .post(`/galeries/${galerieId}/frames`)
               .set('authorization', token)
-              .attach('image', `${__dirname}/../../ressources/image.jpg`);
-            const { body, status } = await agent
+              .attach('images', `${__dirname}/../../ressources/image.jpg`);
+            const {
+              body: {
+                frames,
+              },
+              status,
+            } = await agent
               .get(`/galeries/${galerieId}/frames`)
               .set('authorization', token);
             expect(status).toEqual(200);
-            expect(body.length).toEqual(5);
+            expect(frames.length).toEqual(5);
           });
         });
         describe('should return error 404 if', () => {

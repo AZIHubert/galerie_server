@@ -12,9 +12,10 @@ import saltRounds from '@src/helpers/saltRounds';
 import initApp from '@src/server';
 
 const newUser = {
-  userName: 'userName',
   email: 'user@email.com',
   password: 'password',
+  pseudonym: 'pseudonym',
+  userName: 'userName',
 };
 
 const clearDatas = async (sequelize: Sequelize) => {
@@ -42,10 +43,11 @@ describe('users', () => {
         confirmed: true,
         password: hashPassword,
       });
-      const { body } = await agent.post('/users/login')
+      const { body } = await agent
+        .post('/users/login')
         .send({
           password: newUser.password,
-          userNameOrEmail: user.userName,
+          userNameOrEmail: user.email,
         });
       token = body.token;
     } catch (err) {

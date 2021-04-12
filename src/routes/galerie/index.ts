@@ -49,6 +49,28 @@ const galeriesRoutes: () => Router = () => {
   router.put('/:id', passport.authenticate('jwt', { session: false }), putGaleriesId);
   router.put('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), putGaleriesIdFramesId);
   router.put('/:id/users/:userId', passport.authenticate('jwt', { session: false }), putGaleriesIdUsersUserId);
+  router.post('/:id/frames/:frameId/likes', () => {
+    // check if galerie exist
+    // check if user is subscribe to this galerie
+    // check if frame exist
+    // check if like with frameId and userId exist
+    //  if not
+    //    create likes with frameId and userId
+    //    create a notification with type like
+    //    increment numOfLikes
+    //  else,
+    //    remove like
+    //    decrement numOfLikes
+    //    check if notification of type like with frameId and userId exist
+    //    if exist, destroy it
+  });
+  router.get('/:id/frames/:frameId/likes', () => {
+    // check if galerie exist
+    // check if user is subscribe to this galerie
+    // check if frame exist
+    // get all like from this fram
+    // include user.userName, user.profilePicture
+  });
   return router;
 };
 

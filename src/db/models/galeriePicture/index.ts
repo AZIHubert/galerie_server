@@ -12,6 +12,7 @@ import Image from '../image';
 import Frame from '../frame';
 
 interface GaleriePictureI {
+  coverPicture: boolean;
   cropedImageId?: string;
   id: string;
   index: number;
@@ -24,6 +25,11 @@ interface GaleriePictureI {
   tableName: 'galeriePicture',
 })
 export default class GaleriePicture extends Model implements GaleriePictureI {
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  coverPicture!: boolean;
+
   @ForeignKey(() => Image)
   @Column({
     type: DataType.BIGINT,
