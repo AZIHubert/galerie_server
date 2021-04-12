@@ -8,7 +8,6 @@ import { Op } from 'sequelize';
 import {
   Frame,
   Galerie,
-  GaleriePicture,
   GalerieUser,
   Image,
   Invitation,
@@ -151,61 +150,61 @@ export default async (req: Request, res: Response) => {
   // And images from Google buckets
   try {
     const frames = await Frame.findAll({
+      include: [{
+        all: true,
+        include: [{
+          all: true,
+        }],
+      }],
       where: {
         userId: user.id,
       },
     });
-    await Promise.all(frames.map(async (frame) => {
-      const galeriePictures = await GaleriePicture.findAll({
-        include: [{
-          all: true,
-        }],
-        where: {
-          frameId: frame.id,
-        },
-      });
-      await Promise.all(
-        galeriePictures.map(async (galeriePicture) => {
-          const {
-            cropedImage,
-            originalImage,
-            pendingImage,
-          } = galeriePicture;
-          await galeriePicture.destroy();
-          await Image.destroy({
-            where: {
-              [Op.or]: [
-                {
-                  id: cropedImage.id,
-                },
-                {
-                  id: originalImage.id,
-                },
-                {
-                  id: pendingImage.id,
-                },
-              ],
-            },
-          });
-          await gc
-            .bucket(originalImage.bucketName)
-            .file(originalImage.fileName)
-            .delete();
-          await gc
-            .bucket(cropedImage.bucketName)
-            .file(cropedImage.fileName)
-            .delete();
-          await gc
-            .bucket(pendingImage.bucketName)
-            .file(pendingImage.fileName)
-            .delete();
-        }),
-      );
-      await Like.destroy({
-        where: { frameId: frame.id },
-      });
-      await frame.destroy();
-    }));
+    await Promise.all(
+      frames.map(async (frame) => {
+        await frame.destroy();
+        await Promise.all(
+          frame.galeriePictures.map(async (galeriePicture) => {
+            const {
+              cropedImage,
+              originalImage,
+              pendingImage,
+            } = galeriePicture;
+            await galeriePicture.destroy();
+            await Image.destroy({
+              where: {
+                [Op.or]: [
+                  {
+                    id: cropedImage.id,
+                  },
+                  {
+                    id: originalImage.id,
+                  },
+                  {
+                    id: pendingImage.id,
+                  },
+                ],
+              },
+            });
+            await gc
+              .bucket(originalImage.bucketName)
+              .file(originalImage.fileName)
+              .delete();
+            await gc
+              .bucket(cropedImage.bucketName)
+              .file(cropedImage.fileName)
+              .delete();
+            await gc
+              .bucket(pendingImage.bucketName)
+              .file(pendingImage.fileName)
+              .delete();
+          }),
+        );
+        await Like.destroy({
+          where: { frameId: frame.id },
+        });
+      }),
+    );
   } catch (err) {
     return res.status(500).send(err);
   }
