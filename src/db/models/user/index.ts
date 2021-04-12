@@ -6,8 +6,10 @@ import {
   Model,
   Table,
   Default,
+  HasOne,
 } from 'sequelize-typescript';
 
+import BlackList from '../blackList';
 import Frame from '../frame';
 import Galerie from '../galerie';
 import GalerieUser from '../galerieUser';
@@ -149,6 +151,9 @@ export default class User extends Model implements UserI {
   @BelongsToMany(() => Frame, () => Like)
   likes!: Frame[];
 
+  @HasMany(() => BlackList, 'adminId')
+  blackLists!: BlackList[];
+
   @HasMany(() => ProfilePicture)
   profilePictures!: ProfilePicture[];
 
@@ -163,6 +168,9 @@ export default class User extends Model implements UserI {
 
   @HasMany(() => Invitation)
   invitations!: Invitation[];
+
+  @HasOne(() => BlackList, 'userId')
+  blackList!: BlackList;
 
   GalerieUser!: GalerieUser;
 }

@@ -54,6 +54,7 @@ describe('users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
+      await cleanGoogleBuckets();
       user = await createUser({});
       const { body } = await login(app, user.email, userPassword);
       token = body.token;
@@ -142,7 +143,7 @@ describe('users', () => {
         });
 
         it('don\'t delete other profile pictures', async () => {
-          const userTwo = await createUser({
+          const { email } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
           });
@@ -150,7 +151,7 @@ describe('users', () => {
             body: {
               token: tokenTwo,
             },
-          } = await login(app, userTwo.email, userPassword);
+          } = await login(app, email, userPassword);
           await postProfilePicture(app, tokenTwo);
           await deleteUser(app, token, {
             deleteAccountSentence: 'delete my account',

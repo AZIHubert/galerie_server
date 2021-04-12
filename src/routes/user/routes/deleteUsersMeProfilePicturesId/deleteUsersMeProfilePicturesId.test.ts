@@ -42,6 +42,7 @@ describe('users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
+      await cleanGoogleBuckets();
       user = await createUser({});
       const { body } = await login(app, user.email, userPassword);
       token = body.token;

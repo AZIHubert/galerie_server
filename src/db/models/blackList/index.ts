@@ -52,6 +52,9 @@ export default class BlackList extends Model implements BlackListI {
   })
   userId!: string;
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, 'adminId')
   admin!: User;
+
+  @BelongsTo(() => User, 'userId')
+  user!: User;
 }

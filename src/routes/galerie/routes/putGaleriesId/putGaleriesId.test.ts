@@ -316,7 +316,6 @@ describe('galeries', () => {
             .put(`/galeries/${id}`)
             .set('authorization', token)
             .send({ name: 'new galerie name' });
-          console.log(body);
           expect(status).toBe(404);
           expect(body).toStrictEqual({
             errors: 'galerie not found',
