@@ -1,36 +1,31 @@
 import { Response, Request } from 'express';
+import { Op } from 'sequelize';
 
-import Image from '@src/db/models/image';
-import ProfilePicture from '@src/db/models/profilePicture';
-import User from '@src/db/models/user';
+import {
+  Image,
+  ProfilePicture,
+  User,
+} from '@src/db/models';
+
 import gc from '@src/helpers/gc';
-// import {
-//   USER_NOT_FOUND,
-// } from '@src/helpers/errorMessages';
 
 export default async (req: Request, res: Response) => {
   const { id } = req.params;
-  const currentUser = req.user as User;
-  const { id: userId, currentProfilePictureId } = currentUser;
+  const { id: userId } = req.user as User;
+
+  // Check if profile picture exist
   let profilePicture: ProfilePicture | null;
-  if (currentProfilePictureId === id) {
-    try {
-      await currentUser.update({ currentProfilePictureId: null });
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-  }
   try {
     profilePicture = await ProfilePicture.findOne({
-      where: {
-        id,
-        userId,
-      },
       include: [
         {
           all: true,
         },
       ],
+      where: {
+        id,
+        userId,
+      },
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -40,51 +35,49 @@ export default async (req: Request, res: Response) => {
       errors: 'profile picture not found',
     });
   }
+
+  // Delete profile picture/images
+  // and all image from Google buckets.
   const {
-    originalImage,
     cropedImage,
+    originalImage,
     pendingImage,
   } = profilePicture;
   try {
-    await profilePicture.update({
-      cropedImageId: null,
-      originalImageId: null,
-      pendingImageId: null,
+    await profilePicture.destroy();
+    await Image.destroy({
+      where: {
+        [Op.or]: [
+          {
+            id: cropedImage.id,
+          },
+          {
+            id: originalImage.id,
+          },
+          {
+            id: pendingImage.id,
+          },
+        ],
+      },
     });
     await gc
       .bucket(originalImage.bucketName)
       .file(originalImage.fileName)
       .delete();
-    await Image.destroy({
-      where: {
-        id: originalImage.id,
-      },
-    });
     await gc
       .bucket(cropedImage.bucketName)
       .file(cropedImage.fileName)
       .delete();
-    await Image.destroy({
-      where: {
-        id: cropedImage.id,
-      },
-    });
     await gc
       .bucket(pendingImage.bucketName)
       .file(pendingImage.fileName)
       .delete();
-    await Image.destroy({
-      where: {
-        id: pendingImage.id,
-      },
-    });
-    await profilePicture.destroy();
   } catch (err) {
     return res.status(500).send(err);
   }
 
   return res.status(200).send({
-    type: 'DELETE',
+    action: 'DELETE',
     id,
   });
 };

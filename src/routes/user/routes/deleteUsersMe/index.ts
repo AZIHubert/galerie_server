@@ -3,6 +3,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Frame,
@@ -81,65 +82,74 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Destroy all profile pictures/images
+  // and images from Google buckets.
   try {
-    // Destroy all Profile Pictures
     const profilePictures = await ProfilePicture.findAll({
+      include: [
+        {
+          all: true,
+        },
+      ],
       where: {
         userId: user.id,
       },
     });
     await Promise.all(
-      profilePictures.map(async ({
-        cropedImageId,
-        id,
-        originalImageId,
-        pendingImageId,
-      }) => {
-        const profilePicture = await ProfilePicture.findByPk(id);
-        if (profilePicture) {
-          await profilePicture.update({
-            cropedImageId: null,
-            originalImageId: null,
-            pendingImageId: null,
-          });
-          const originalImage = await Image.findByPk(originalImageId);
-          if (originalImage) {
-            await originalImage.destroy();
-            await gc
-              .bucket(originalImage.bucketName)
-              .file(originalImage.fileName)
-              .delete();
-          }
-          const cropedImage = await Image.findByPk(cropedImageId);
-          if (cropedImage) {
-            await cropedImage.destroy();
-            await gc
-              .bucket(cropedImage.bucketName)
-              .file(cropedImage.fileName)
-              .delete();
-          }
-          const pendingImage = await Image.findByPk(pendingImageId);
-          if (pendingImage) {
-            await pendingImage.destroy();
-            await gc
-              .bucket(pendingImage.bucketName)
-              .file(pendingImage.fileName)
-              .delete();
-          }
-          await profilePicture.destroy();
-        }
+      profilePictures.map(async (profilePicture) => {
+        const {
+          cropedImage,
+          originalImage,
+          pendingImage,
+        } = profilePicture;
+        await profilePicture.destroy();
+        await Image.destroy({
+          where: {
+            [Op.or]: [
+              {
+                id: cropedImage.id,
+              },
+              {
+                id: originalImage.id,
+              },
+              {
+                id: pendingImage.id,
+              },
+            ],
+          },
+        });
+        await gc
+          .bucket(cropedImage.bucketName)
+          .file(cropedImage.fileName)
+          .delete();
+        await gc
+          .bucket(originalImage.bucketName)
+          .file(originalImage.fileName)
+          .delete();
+        await gc
+          .bucket(pendingImage.bucketName)
+          .file(pendingImage.fileName)
+          .delete();
       }),
     );
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
-    // Destroy all tickets
+  // Destroy all tickets
+  try {
     await Ticket.destroy({
       where: {
         userId: user.id,
       },
     });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
-    // Destroy all frames/likes/galeriePictures/images
-    // And images from Google buckets
+  // Destroy all frames/galeriePictures/images/likes
+  // And images from Google buckets
+  try {
     const frames = await Frame.findAll({
       where: {
         userId: user.id,
@@ -162,33 +172,33 @@ export default async (req: Request, res: Response) => {
             pendingImage,
           } = galeriePicture;
           await galeriePicture.destroy();
+          await Image.destroy({
+            where: {
+              [Op.or]: [
+                {
+                  id: cropedImage.id,
+                },
+                {
+                  id: originalImage.id,
+                },
+                {
+                  id: pendingImage.id,
+                },
+              ],
+            },
+          });
           await gc
             .bucket(originalImage.bucketName)
             .file(originalImage.fileName)
             .delete();
-          await Image.destroy({
-            where: {
-              id: originalImage.id,
-            },
-          });
           await gc
             .bucket(cropedImage.bucketName)
             .file(cropedImage.fileName)
             .delete();
-          await Image.destroy({
-            where: {
-              id: cropedImage.id,
-            },
-          });
           await gc
             .bucket(pendingImage.bucketName)
             .file(pendingImage.fileName)
             .delete();
-          await Image.destroy({
-            where: {
-              id: pendingImage.id,
-            },
-          });
         }),
       );
       await Like.destroy({
@@ -196,12 +206,16 @@ export default async (req: Request, res: Response) => {
       });
       await frame.destroy();
     }));
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
-    // Destroy all galerieUser related to this user.
-    // If user is the creator of the galerie
-    // and if is the only one left on this galerie
-    // destroy this galerie.
-    // Else, set this galerie as archive.
+  // Destroy all galerieUser related to this user.
+  // If user is the creator of the galerie
+  // and if is the only one left on this galerie
+  // destroy this galerie.
+  // Else, set this galerie as archive.
+  try {
     const galerieUsers = await GalerieUser.findAll({
       where: {
         userId: user.id,
@@ -237,15 +251,23 @@ export default async (req: Request, res: Response) => {
         }
       }
     }));
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
-    // destroy all invitations
+  // destroy all invitations
+  try {
     await Invitation.destroy({
       where: {
         userId: user.id,
       },
     });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
-    // destroy user
+  // destroy user
+  try {
     await user.destroy();
   } catch (err) {
     return res.status(500).send();

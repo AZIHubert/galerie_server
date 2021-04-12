@@ -95,7 +95,9 @@ describe('users', () => {
           expect(users.length).toBe(0);
         });
 
-        it('delete all frames/galeries/images/invitations/profile pictures', async () => {
+        it('delete all frames/galeries/images/invitations/profile/tickets pictures and all images from Google buckets', async () => {
+          // TODO:
+          // post ticket
           await postProfilePicture(app, token);
           const {
             body: {
