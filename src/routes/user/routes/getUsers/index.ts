@@ -166,7 +166,9 @@ export default async (req: Request, res: Response) => {
         }
         const userWithProfilePicture: any = {
           ...user.toJSON(),
-          currentProfilePicture: currentProfilePicture ? currentProfilePicture.toJSON() : {},
+          currentProfilePicture: currentProfilePicture
+            ? currentProfilePicture.toJSON()
+            : undefined,
         };
         delete userWithProfilePicture.blackList;
         usersWithProfilePicture.push(userWithProfilePicture);

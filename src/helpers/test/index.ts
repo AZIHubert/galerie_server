@@ -4,6 +4,7 @@ export { default as deleteProfilePicture } from './deleteProfilePicture';
 export { default as deleteUser } from './deleteUser';
 export { default as getBlackListedUsers } from './getBlackListedUsers';
 export { default as getUsers } from './getUsers';
+export { default as getUserId } from './getUserId';
 export { default as login } from './login';
 export { default as postFrame } from './postFrame';
 export { default as postGalerie } from './postGalerie';
