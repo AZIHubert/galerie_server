@@ -8,41 +8,33 @@ import {
   ProfilePicture,
   User,
 } from '@src/db/models';
+
 import {
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
+  let currentProfilePicture: ProfilePicture | null;
   const { id } = req.user as User;
   let user: User | null;
-  let currentProfilePicture: ProfilePicture | null;
+
+  // fetch current user
   try {
     user = await User.findByPk(id, {
       attributes: {
         exclude: [
           'authTokenVersion',
-          'blackListId',
           'confirmed',
           'confirmTokenVersion',
-          'emailTokenVersion',
+          'email',
+          'facebookId',
           'googleId',
           'password',
-          'profilePictures',
           'resetPasswordTokenVersion',
           'updatedEmailTokenVersion',
         ],
       },
-      order: [
-        [
-          {
-            model: ProfilePicture,
-            as: 'profilePictures',
-          },
-          'createdAt',
-          'DESC',
-        ],
-      ],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -52,46 +44,56 @@ export default async (req: Request, res: Response) => {
       errors: USER_NOT_FOUND,
     });
   }
+
+  // fetch current profile picture
   try {
     currentProfilePicture = await ProfilePicture.findOne({
+      attributes: {
+        exclude: [
+          'createdAt',
+          'cropedImageId',
+          'current',
+          'originalImageId',
+          'pendingImageId',
+          'updatedAt',
+          'userId',
+        ],
+      },
       include: [
         {
-          model: Image,
           as: 'cropedImage',
           attributes: {
             exclude: [
               'createdAt',
-              'deletedAt',
               'updatedAt',
             ],
           },
+          model: Image,
         },
         {
-          model: Image,
           as: 'originalImage',
           attributes: {
             exclude: [
               'createdAt',
-              'deletedAt',
               'updatedAt',
             ],
           },
+          model: Image,
         },
         {
-          model: Image,
           as: 'pendingImage',
           attributes: {
             exclude: [
               'createdAt',
-              'deletedAt',
               'updatedAt',
             ],
           },
+          model: Image,
         },
       ],
       where: {
-        userId: user.id,
         current: true,
+        userId: user.id,
       },
     });
     if (currentProfilePicture) {
@@ -113,25 +115,28 @@ export default async (req: Request, res: Response) => {
         cropedImageBucketName,
         cropedImageFileName,
       );
-      currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
       const originalImageSignedUrl = await signedUrl(
         originalImageBucketName,
         originalImageFileName,
       );
-      currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
       const pendingImageSignedUrl = await signedUrl(
         pendingImageBucketName,
         pendingImageFileName,
       );
+      currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
+      currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
       currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
     }
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(200).send({
+
+  // Compose final returned user.
+  const userWithProfilePicture = {
     ...user.toJSON(),
     currentProfilePicture: currentProfilePicture
       ? currentProfilePicture.toJSON()
-      : null,
-  });
+      : undefined,
+  };
+  return res.status(200).send(userWithProfilePicture);
 };

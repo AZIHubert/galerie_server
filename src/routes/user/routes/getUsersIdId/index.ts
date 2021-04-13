@@ -14,6 +14,7 @@ import { USER_NOT_FOUND } from '@src/helpers/errorMessages';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
+  let currentProfilePicture: ProfilePicture | null;
   const { id } = req.params;
   const { id: userId } = req.user as User;
   let user: User | null;
@@ -64,7 +65,6 @@ export default async (req: Request, res: Response) => {
   }
 
   // Fetch current profile picture
-  let currentProfilePicture: ProfilePicture | null;
   try {
     currentProfilePicture = await ProfilePicture.findOne({
       attributes: {
