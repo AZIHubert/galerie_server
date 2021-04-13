@@ -5,6 +5,7 @@ export { default as deleteUser } from './deleteUser';
 export { default as getBlackListedUsers } from './getBlackListedUsers';
 export { default as getProfilePicture } from './getProfilePicture';
 export { default as getProfilePictures } from './getProfilePictures';
+export { default as getRefreshToken } from './getRefreshToken';
 export { default as getMe } from './getMe';
 export { default as getUsers } from './getUsers';
 export { default as getUserId } from './getUserId';
