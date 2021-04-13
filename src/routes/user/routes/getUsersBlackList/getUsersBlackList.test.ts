@@ -138,7 +138,7 @@ describe('users', () => {
           expect(new Date(returnedUser.blackList.admin.updatedAt)).toEqual(user.updatedAt);
           expect(returnedUser.blackList.admin.userName).toEqual(user.userName);
         });
-        it('should return only the first 20th black listed users', async () => {
+        it('should return a pack of 20 black listed users', async () => {
           const numOfUsers = new Array(25).fill(0);
           await Promise.all(
             numOfUsers.map(async (_, index) => {
