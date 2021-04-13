@@ -1,22 +1,27 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 
-import { Image, ProfilePicture, User } from '@src/db/models';
+import {
+  Image,
+  ProfilePicture,
+  User,
+} from '@src/db/models';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { id: userId } = req.user as User;
   let profilePicture: ProfilePicture | null;
+  const { id: userId } = req.user as User;
+
+  // Fetch profile picture
   try {
     profilePicture = await ProfilePicture.findOne({
-      where: {
-        id,
-        userId,
-      },
       attributes: {
         exclude: [
+          'createdAt',
           'cropedImageId',
-          'deletedAt',
           'originalImageId',
           'pendingImageId',
           'updatedAt',
@@ -25,39 +30,40 @@ export default async (req: Request, res: Response) => {
       },
       include: [
         {
-          model: Image,
           as: 'cropedImage',
           attributes: {
             exclude: [
               'createdAt',
-              'deletedAt',
               'updatedAt',
             ],
           },
+          model: Image,
         },
         {
-          model: Image,
           as: 'originalImage',
           attributes: {
             exclude: [
               'createdAt',
-              'deletedAt',
               'updatedAt',
             ],
           },
+          model: Image,
         },
         {
-          model: Image,
           as: 'pendingImage',
           attributes: {
             exclude: [
               'createdAt',
-              'deletedAt',
               'updatedAt',
             ],
           },
+          model: Image,
         },
       ],
+      where: {
+        id,
+        userId,
+      },
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -67,27 +73,50 @@ export default async (req: Request, res: Response) => {
       errors: 'profile picture not found',
     });
   }
+
+  // fetch signed urls
   try {
+    const {
+      cropedImage: {
+        bucketName: cropedImageBucketName,
+        fileName: cropedImageFileName,
+      },
+      originalImage: {
+        bucketName: originalImageBucketName,
+        fileName: originalImageFileName,
+      },
+      pendingImage: {
+        bucketName: pendingImageBucketName,
+        fileName: pendingImageFileName,
+      },
+    } = profilePicture;
     const cropedImageSignedUrl = await signedUrl(
-      profilePicture.cropedImage.bucketName,
-      profilePicture.cropedImage.fileName,
+      cropedImageBucketName,
+      cropedImageFileName,
     );
-    profilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
     const originalImageSignedUrl = await signedUrl(
-      profilePicture.originalImage.bucketName,
-      profilePicture.originalImage.fileName,
+      originalImageBucketName,
+      originalImageFileName,
     );
-    profilePicture.originalImage.signedUrl = originalImageSignedUrl;
     const pendingImageSignedUrl = await signedUrl(
-      profilePicture.pendingImage.bucketName,
-      profilePicture.pendingImage.fileName,
+      pendingImageBucketName,
+      pendingImageFileName,
     );
-    profilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+    profilePicture
+      .cropedImage
+      .signedUrl = cropedImageSignedUrl;
+    profilePicture
+      .originalImage
+      .signedUrl = originalImageSignedUrl;
+    profilePicture
+      .pendingImage
+      .signedUrl = pendingImageSignedUrl;
   } catch (err) {
     return res.status(500).send(err);
   }
+
   return res.status(200).send({
-    type: 'GET',
+    action: 'GET',
     profilePicture,
   });
 };
