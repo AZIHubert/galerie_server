@@ -87,14 +87,6 @@ describe('users', () => {
           const { body } = await getUsers(app, token);
           expect(body.length).toBe(0);
         });
-        it('return one user', async () => {
-          await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          const { body } = await getUsers(app, token);
-          expect(body.length).toBe(1);
-        });
         it('should return only the first 20th users order by userName', async () => {
           const numOfUsers = new Array(25).fill(0);
           await Promise.all(

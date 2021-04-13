@@ -1,43 +1,67 @@
 import { Request, Response } from 'express';
 import { Op } from 'sequelize';
 
-import BlackList from '@src/db/models/blackList';
-import Image from '@src/db/models/image';
-import ProfilePicture from '@src/db/models/profilePicture';
-import User from '@src/db/models/user';
+import {
+  BlackList,
+  Image,
+  ProfilePicture,
+  User,
+} from '@src/db/models';
+
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
+  let direction = 'DESC';
   const { id } = req.user as User;
-  let users: User[];
+  const limit = 20;
+  let offset: number;
+  let order = 'createdAt';
+  const {
+    direction: queryDirection,
+    order: queryOrder,
+    page,
+  } = req.query;
+  const usersWithProfilePicture: Array<any> = [];
+
+  if (typeof page === 'string') {
+    offset = ((+page || 1) - 1) * limit;
+  } else {
+    offset = 0;
+  }
+
+  if (
+    queryDirection === 'ASC'
+    || queryDirection === 'DESC'
+  ) {
+    direction = queryDirection;
+  }
+
+  if (
+    queryOrder === 'createdAt'
+    || queryOrder === 'pseudonym'
+    || queryOrder === 'userName'
+  ) {
+    order = queryOrder;
+  }
+
   try {
-    users = await User.findAll({
-      where: {
-        id: {
-          [Op.not]: id,
-        },
-        blackListId: {
-          [Op.not]: null,
-        },
-      },
+    // Get all black listed user
+    const users = await User.findAll({
       attributes: {
         exclude: [
           'authTokenVersion',
-          'blackListId',
           'confirmed',
           'confirmTokenVersion',
-          'currentProfilePictureId',
+          'email',
           'emailTokenVersion',
+          'facebookId',
           'googleId',
           'password',
           'resetPasswordTokenVersion',
-          'role',
-          'updatedEmailTokenVersion',
         ],
       },
       include: [
         {
-          model: BlackList,
           as: 'blackList',
           attributes: {
             exclude: [
@@ -47,120 +71,230 @@ export default async (req: Request, res: Response) => {
           },
           include: [
             {
-              model: User,
               as: 'admin',
               attributes: {
                 exclude: [
                   'authTokenVersion',
-                  'blackListId',
                   'confirmed',
                   'confirmTokenVersion',
-                  'createdAt',
-                  'currentProfilePictureId',
-                  'deletedAt',
                   'email',
                   'emailTokenVersion',
+                  'facebookId',
                   'googleId',
                   'password',
                   'resetPasswordTokenVersion',
-                  'updatedAt',
                   'updatedEmailTokenVersion',
                 ],
               },
+              model: User,
             },
           ],
+          model: BlackList,
         },
-        {
-          model: ProfilePicture,
-          as: 'currentProfilePicture',
+      ],
+      limit,
+      offset,
+      order: [[order, direction]],
+      where: {
+        '$blackList.id$': {
+          [Op.not]: null,
+        },
+        confirmed: true,
+        id: {
+          [Op.not]: id,
+        },
+      },
+
+    });
+
+    await Promise.all(
+      users.map(async (user) => {
+        // get black listed user's current profile picture
+        const currentProfilePicture = await ProfilePicture.findOne({
           attributes: {
             exclude: [
               'createdAt',
               'cropedImageId',
-              'deletedAt',
-              'pendingImageId',
+              'current',
               'originalImageId',
+              'pendingImageId',
               'updatedAt',
               'userId',
             ],
           },
           include: [
             {
-              model: Image,
               as: 'cropedImage',
               attributes: {
                 exclude: [
                   'createdAt',
-                  'deletedAt',
                   'updatedAt',
                 ],
               },
+              model: Image,
             },
             {
-              model: Image,
               as: 'originalImage',
               attributes: {
                 exclude: [
                   'createdAt',
-                  'deletedAt',
                   'updatedAt',
                 ],
               },
+              model: Image,
             },
             {
-              model: Image,
               as: 'pendingImage',
               attributes: {
                 exclude: [
                   'createdAt',
-                  'deletedAt',
                   'updatedAt',
                 ],
               },
+              model: Image,
             },
           ],
-        },
-      ],
-    });
-    await Promise.all(
-      users.map(async (user, index) => {
-        if (user.currentProfilePicture) {
+          where: {
+            current: true,
+            userId: user.id,
+          },
+        });
+        if (currentProfilePicture) {
           const {
-            currentProfilePicture: {
-              originalImage: {
-                bucketName: originalImageBucketName,
-                fileName: originalImageFileName,
+            cropedImage: {
+              bucketName: cropedImageBucketName,
+              fileName: cropedImageFileName,
+            },
+            originalImage: {
+              bucketName: originalImageBucketName,
+              fileName: originalImageFileName,
+            },
+            pendingImage: {
+              bucketName: pendingImageBucketName,
+              fileName: pendingImageFileName,
+            },
+          } = currentProfilePicture;
+          const cropedImageSignedUrl = await signedUrl(
+            cropedImageBucketName,
+            cropedImageFileName,
+          );
+          const originalImageSignedUrl = await signedUrl(
+            originalImageBucketName,
+            originalImageFileName,
+          );
+          const pendingImageSignedUrl = await signedUrl(
+            pendingImageBucketName,
+            pendingImageFileName,
+          );
+          currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
+          currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
+          currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+        }
+
+        // Get admin's current profile picture
+        let adminCurrentProfilePicture: ProfilePicture | null = null;
+        if (user.blackList.admin) {
+          adminCurrentProfilePicture = await ProfilePicture.findOne({
+            attributes: {
+              exclude: [
+                'createdAt',
+                'cropedImageId',
+                'current',
+                'originalImageId',
+                'pendingImageId',
+                'updatedAt',
+                'userId',
+              ],
+            },
+            include: [
+              {
+                as: 'cropedImage',
+                attributes: {
+                  exclude: [
+                    'createdAt',
+                    'updatedAt',
+                  ],
+                },
+                model: Image,
               },
+              {
+                as: 'originalImage',
+                attributes: {
+                  exclude: [
+                    'createdAt',
+                    'updatedAt',
+                  ],
+                },
+                model: Image,
+              },
+              {
+                as: 'pendingImage',
+                attributes: {
+                  exclude: [
+                    'createdAt',
+                    'updatedAt',
+                  ],
+                },
+                model: Image,
+              },
+            ],
+            where: {
+              current: true,
+              userId: user.blackList.admin.id,
+            },
+          });
+          if (adminCurrentProfilePicture) {
+            const {
               cropedImage: {
                 bucketName: cropedImageBucketName,
                 fileName: cropedImageFileName,
+              },
+              originalImage: {
+                bucketName: originalImageBucketName,
+                fileName: originalImageFileName,
               },
               pendingImage: {
                 bucketName: pendingImageBucketName,
                 fileName: pendingImageFileName,
               },
-            },
-          } = user;
-          const originalImageSignedUrl = await signedUrl(
-            originalImageBucketName,
-            originalImageFileName,
-          );
-          users[index].currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
-          const cropedImageSignedUrl = await signedUrl(
-            cropedImageBucketName,
-            cropedImageFileName,
-          );
-          users[index].currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
-          const pendingImageSignedUrl = await signedUrl(
-            pendingImageBucketName,
-            pendingImageFileName,
-          );
-          users[index].currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+            } = adminCurrentProfilePicture;
+            const cropedImageSignedUrl = await signedUrl(
+              cropedImageBucketName,
+              cropedImageFileName,
+            );
+            const originalImageSignedUrl = await signedUrl(
+              originalImageBucketName,
+              originalImageFileName,
+            );
+            const pendingImageSignedUrl = await signedUrl(
+              pendingImageBucketName,
+              pendingImageFileName,
+            );
+            adminCurrentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
+            adminCurrentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
+            adminCurrentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+          }
         }
+        const userWithProfilePicture: any = {
+          ...user.toJSON(),
+          currentProfilePicture: currentProfilePicture
+            ? currentProfilePicture.toJSON()
+            : undefined,
+          blackList: {
+            ...user.blackList.toJSON(),
+            admin: {
+              ...user.blackList.admin.toJSON(),
+              currentProfilePicture: adminCurrentProfilePicture
+                ? adminCurrentProfilePicture.toJSON()
+                : undefined,
+            },
+          },
+        };
+        usersWithProfilePicture.push(userWithProfilePicture);
       }),
     );
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.send(users);
+  return res.send(usersWithProfilePicture);
 };

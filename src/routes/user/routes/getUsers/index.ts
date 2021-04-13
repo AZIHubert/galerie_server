@@ -14,11 +14,32 @@ import {
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
+  let direction = 'DESC';
   const { id } = req.user as User;
   const limit = 20;
   let offset: number;
-  const { page } = req.query;
+  let order = 'createdAt';
+  const {
+    direction: queryDirection,
+    order: queryOrder,
+    page,
+  } = req.query;
   const usersWithProfilePicture: Array<any> = [];
+
+  if (
+    queryDirection === 'ASC'
+    || queryDirection === 'DESC'
+  ) {
+    direction = queryDirection;
+  }
+
+  if (
+    queryOrder === 'createdAt'
+    || queryOrder === 'pseudonym'
+    || queryOrder === 'userName'
+  ) {
+    order = queryOrder;
+  }
 
   if (typeof page === 'string') {
     offset = ((+page || 1) - 1) * limit;
@@ -51,7 +72,7 @@ export default async (req: Request, res: Response) => {
       ],
       limit,
       offset,
-      order: [['createdAt', 'DESC']],
+      order: [[order, direction]],
       where: {
         $blackList$: null,
         confirmed: true,

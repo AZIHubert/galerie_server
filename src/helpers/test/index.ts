@@ -2,6 +2,7 @@ export { default as cleanGoogleBuckets } from './cleanGoogleBuckets';
 export { default as createUser } from './createUser';
 export { default as deleteProfilePicture } from './deleteProfilePicture';
 export { default as deleteUser } from './deleteUser';
+export { default as getBlackListedUsers } from './getBlackListedUsers';
 export { default as getUsers } from './getUsers';
 export { default as login } from './login';
 export { default as postFrame } from './postFrame';

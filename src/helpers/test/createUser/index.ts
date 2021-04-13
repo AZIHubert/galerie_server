@@ -10,17 +10,20 @@ export default async ({
   confirmed = true,
   email,
   password,
+  role = 'user',
   userName,
 }: {
   confirmed?: boolean;
   email?: string;
   password?: string;
+  role?: 'admin' | 'user'
   userName?: string;
 }) => {
   const newUser = {
     confirmed,
     email: email === undefined ? 'user@email.com' : email,
     pseudonym: userName || 'pseudonym',
+    role,
     userName: userName === undefined ? '@userName' : `@${userName}`,
   };
   const hashPassword = await hash(

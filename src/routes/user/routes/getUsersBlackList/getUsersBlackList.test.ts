@@ -1,7 +1,5 @@
-import { hash } from 'bcrypt';
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
-import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
@@ -9,58 +7,50 @@ import {
   BlackList,
   User,
 } from '@src/db/models';
+
 import initSequelize from '@src/helpers/initSequelize.js';
-import saltRounds from '@src/helpers/saltRounds';
+import {
+  cleanGoogleBuckets,
+  createUser,
+  getBlackListedUsers,
+  login,
+  postProfilePicture,
+} from '@src/helpers/test';
+
 import initApp from '@src/server';
 
-const cleanDatas = async (sequelize: Sequelize) => {
-  await BlackList.sync({ force: true });
-  await User.sync({ force: true });
-  await sequelize.model('Sessions').sync({ force: true });
-};
-
-const newUser = {
-  email: 'user@email.com',
-  password: 'password',
-  userName: 'userName',
-};
+const userPassword = 'Password0!';
 
 describe('users', () => {
-  let agent: request.SuperAgentTest;
   let app: Server;
   let sequelize: Sequelize;
-  let user: User;
   let token: string;
+  let user: User;
+
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
   });
+
   beforeEach(async (done) => {
-    agent = request.agent(app);
     try {
-      await cleanDatas(sequelize);
-      const hashPassword = await hash(newUser.password, saltRounds);
-      user = await User.create({
-        ...newUser,
-        confirmed: true,
-        password: hashPassword,
+      await sequelize.sync({ force: true });
+      await cleanGoogleBuckets();
+      user = await createUser({
         role: 'admin',
       });
-      const { body } = await agent
-        .post('/users/login')
-        .send({
-          password: newUser.password,
-          userNameOrEmail: user.userName,
-        });
+      const { body } = await login(app, user.email, userPassword);
       token = body.token;
     } catch (err) {
       done(err);
     }
     done();
   });
+
   afterAll(async (done) => {
     try {
-      await cleanDatas(sequelize);
+      await sequelize.sync({ force: true });
+      await cleanGoogleBuckets();
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -68,212 +58,197 @@ describe('users', () => {
     app.close();
     done();
   });
+
   describe('blackList', () => {
+    // TODO:
+    it('should return black listed user even if admin is deleted', () => {});
     describe('GET', () => {
       describe('should return status 200 and', () => {
         it('don\'t return non black listed user', async () => {
-          await User.create({
-            confirmed: true,
+          await createUser({
+            confirmed: false,
             email: 'user2@email.com',
-            password: 'password',
             userName: 'user2',
           });
-          const { body, status } = await agent
-            .get('/users/blackList/')
-            .set('authorization', token);
+          const { body, status } = await getBlackListedUsers(app, token);
           expect(status).toBe(200);
           expect(body.length).toBe(0);
         });
         it('get all black listed users with relevent attributes', async () => {
+          const {
+            createdAt,
+            id,
+            pseudonym,
+            updatedAt,
+            userName,
+          } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
           const reason = 'black list user two';
-          const { id: blackListIdOne } = await BlackList.create({
+          const {
+            createdAt: blackListCreatedAt,
+            id: blackListId,
+            updatedAt: blackListUpdatedAt,
+          } = await BlackList.create({
             adminId: user.id,
             reason,
+            userId: id,
           });
+          const {
+            body: [returnedUser],
+          } = await getBlackListedUsers(app, token);
+          expect(returnedUser.authTokenVersion).toBeUndefined();
+          expect(returnedUser.confirmed).toBeUndefined();
+          expect(returnedUser.confirmTokenVersion).toBeUndefined();
+          expect(new Date(returnedUser.createdAt)).toEqual(createdAt);
+          expect(returnedUser.defaultProfilePicture).toBeNull();
+          expect(returnedUser.email).toBeUndefined();
+          expect(returnedUser.emailTokenVersion).toBeUndefined();
+          expect(returnedUser.facebookId).toBeUndefined();
+          expect(returnedUser.googleId).toBeUndefined();
+          expect(returnedUser.id).toEqual(id);
+          expect(returnedUser.password).toBeUndefined();
+          expect(returnedUser.pseudonym).toEqual(pseudonym);
+          expect(returnedUser.resetPasswordTokenVersion).toBeUndefined();
+          expect(new Date(returnedUser.updatedAt)).toEqual(updatedAt);
+          expect(returnedUser.userName).toEqual(userName);
+          expect(returnedUser.blackList.adminId).toBeUndefined();
+          expect(new Date(returnedUser.blackList.createdAt)).toEqual(blackListCreatedAt);
+          expect(returnedUser.blackList.id).toEqual(blackListId);
+          expect(returnedUser.blackList.reason).toEqual(reason);
+          expect(returnedUser.blackList.time).toEqual(null);
+          expect(new Date(returnedUser.blackList.updatedAt)).toEqual(blackListUpdatedAt);
+          expect(returnedUser.blackList.userId).toBeUndefined();
+          expect(returnedUser.blackList.admin.authTokenVersion).toBeUndefined();
+          expect(returnedUser.blackList.admin.confirmed).toBeUndefined();
+          expect(returnedUser.blackList.admin.confirmTokenVersion).toBeUndefined();
+          expect(new Date(returnedUser.blackList.admin.createdAt)).toEqual(user.createdAt);
+          expect(returnedUser.blackList.admin.defaultProfilePicture).toBeNull();
+          expect(returnedUser.blackList.admin.email).toBeUndefined();
+          expect(returnedUser.blackList.admin.emailTokenVersion).toBeUndefined();
+          expect(returnedUser.blackList.admin.facebookId).toBeUndefined();
+          expect(returnedUser.blackList.admin.googleId).toBeUndefined();
+          expect(returnedUser.blackList.admin.id).toEqual(user.id);
+          expect(returnedUser.blackList.admin.password).toBeUndefined();
+          expect(returnedUser.blackList.admin.pseudonym).toEqual(user.pseudonym);
+          expect(returnedUser.blackList.admin.resetPasswordTokenVersion).toBeUndefined();
+          expect(returnedUser.blackList.admin.role).toEqual(user.role);
+          expect(returnedUser.blackList.admin.updatedEmailTokenVersion).toBeUndefined();
+          expect(new Date(returnedUser.blackList.admin.updatedAt)).toEqual(user.updatedAt);
+          expect(returnedUser.blackList.admin.userName).toEqual(user.userName);
+        });
+        it('should return only the first 20th black listed users', async () => {
+          const numOfUsers = new Array(25).fill(0);
+          await Promise.all(
+            numOfUsers.map(async (_, index) => {
+              const { id } = await createUser({
+                email: `user${index + 2}@email.com`,
+                userName: `user${index + 2}`,
+              });
+              await BlackList.create({
+                adminId: user.id,
+                reason: 'black list reason',
+                userId: id,
+              });
+            }),
+          );
+          const { body: bodyFirst } = await getBlackListedUsers(app, token);
+          const { body: bodySecond } = await getBlackListedUsers(app, token, 2);
+          expect(bodyFirst.length).toEqual(20);
+          expect(bodySecond.length).toEqual(5);
+        });
+        it('should include users current profile picture', async () => {
           const {
             email,
             id,
-            userName,
-          } = await User.create({
-            blackListId: blackListIdOne,
-            confirmed: true,
+          } = await createUser({
             email: 'user2@email.com',
-            password: 'password',
             userName: 'user2',
           });
-          const { body, status } = await agent
-            .get('/users/blackList/')
-            .set('authorization', token);
-          const [returnedUser] = body;
-          expect(status).toBe(200);
-          expect(body.length).toBe(1);
-          expect(returnedUser.defaultProfilePicture).toBeNull();
-          expect(returnedUser.email).toBe(email);
-          expect(typeof returnedUser.createdAt).toBe('string');
-          expect(returnedUser.id).toBe(id);
-          expect(typeof returnedUser.updatedAt).toBe('string');
-          expect(returnedUser.userName).toBe(userName);
-          expect(returnedUser.authTokenVersion).toBeUndefined();
-          expect(returnedUser.blackListId).toBeUndefined();
-          expect(returnedUser.confirmed).toBeUndefined();
-          expect(returnedUser.confirmTokenVersion).toBeUndefined();
-          expect(returnedUser.currentProfilePictureId).toBeUndefined();
-          expect(returnedUser.emailTokenVersion).toBeUndefined();
-          expect(returnedUser.password).toBeUndefined();
-          expect(returnedUser.resetPasswordTokenVersion).toBeUndefined();
-          expect(returnedUser.role).toBeUndefined();
-          expect(returnedUser.updatedEmailTokenVersion).toBeUndefined();
-        });
-        it('include black list with relevent attributes', async () => {
-          const reason = 'black list user two';
-          const { id: blackListId } = await BlackList.create({
-            adminId: user.id,
-            reason,
-          });
-          await User.create({
-            blackListId,
-            confirmed: true,
-            email: 'user2@email.com',
-            password: 'password',
-            userName: 'user2',
-          });
-          const { body, status } = await agent
-            .get('/users/blackList/')
-            .set('authorization', token);
-          const [{ blackList }] = body;
-          expect(status).toBe(200);
-          expect(body.length).toBe(1);
-          expect(blackList.admin.id).toBe(user.id);
-          expect(blackList.id).toBe(blackListId);
-          expect(blackList.reason).toBe(reason);
-          expect(blackList.time).toBe(null);
-          expect(blackList.adminId).toBeUndefined();
-          expect(blackList.deletedAt).toBeNull();
-          expect(blackList.userId).toBeUndefined();
-          expect(blackList.admin.authTokenVersion).toBeUndefined();
-          expect(blackList.admin.blackListId).toBeUndefined();
-          expect(blackList.admin.confirmed).toBeUndefined();
-          expect(blackList.admin.confirmTokenVersion).toBeUndefined();
-          expect(blackList.admin.createdAt).toBeUndefined();
-          expect(blackList.admin.currentProfilePictureId).toBeUndefined();
-          expect(blackList.admin.email).toBeUndefined();
-          expect(blackList.admin.emailTokenVersion).toBeUndefined();
-          expect(blackList.admin.deletedAt).toBeUndefined();
-          expect(blackList.admin.googleId);
-          expect(blackList.admin.password).toBeUndefined();
-          expect(blackList.admin.resetPasswordTokenVersion).toBeUndefined();
-          expect(blackList.admin.updatedAt).toBeUndefined();
-          expect(blackList.admin.updatedEmailTokenVersion).toBeUndefined();
-        });
-        describe('include current profile picture', () => {
-          it('with only relevent attributes', async () => {
-            const hashPassword = await hash(newUser.password, saltRounds);
-            const userTwo = await User.create({
-              confirmed: true,
-              email: 'user2@email.com',
-              password: hashPassword,
-              userName: 'user2',
-            });
-            const agentTwo = request.agent(app);
-            const { body: { token: tokenTwo } } = await agentTwo
-              .post('/users/login')
-              .set('authorization', token)
-              .send({
-                password: newUser.password,
-                userNameOrEmail: userTwo.userName,
-              });
-            const {
-              body: {
-                cropedImage,
-                id,
-                originalImage,
-                pendingImage,
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await login(app, email, userPassword);
+          const {
+            body: {
+              profilePicture: {
+                id: profilePictureId,
               },
-            } = await agentTwo
-              .post('/users/me/ProfilePictures')
-              .attach('image', `${__dirname}/../../ressources/image.jpg`)
-              .set('authorization', tokenTwo);
-            const { id: blackListId } = await BlackList.create({
-              adminId: user.id,
-              reason: 'black list user two',
-            });
-            await userTwo.update({ blackListId });
-            const { body, status } = await agent
-              .get('/users/blackList/')
-              .set('authorization', token);
-            const [{ currentProfilePicture }] = body;
-            expect(status).toBe(200);
-            expect(currentProfilePicture.id).toBe(id);
-            expect(currentProfilePicture.createdAt).toBeUndefined();
-            expect(currentProfilePicture.cropedImageId).toBeUndefined();
-            expect(currentProfilePicture.deletedAt).toBeUndefined();
-            expect(currentProfilePicture.originalImageId).toBeUndefined();
-            expect(currentProfilePicture.pendingImageId).toBeUndefined();
-            expect(currentProfilePicture.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.userId).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.id).toBe(cropedImage.id);
-            expect(currentProfilePicture.cropedImage.bucketName).toBe(cropedImage.bucketName);
-            expect(currentProfilePicture.cropedImage.fileName).toBe(cropedImage.fileName);
-            expect(currentProfilePicture.cropedImage.format).toBe(cropedImage.format);
-            expect(currentProfilePicture.cropedImage.height).toBe(cropedImage.height);
-            expect(currentProfilePicture.cropedImage.size).toBe(cropedImage.size);
-            expect(currentProfilePicture.cropedImage.width).toBe(cropedImage.width);
-            expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.deletedAt).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.originalImage.id).toBe(originalImage.id);
-            expect(currentProfilePicture.originalImage.bucketName).toBe(originalImage.bucketName);
-            expect(currentProfilePicture.originalImage.fileName).toBe(originalImage.fileName);
-            expect(currentProfilePicture.originalImage.format).toBe(originalImage.format);
-            expect(currentProfilePicture.originalImage.height).toBe(originalImage.height);
-            expect(currentProfilePicture.originalImage.size).toBe(originalImage.size);
-            expect(currentProfilePicture.originalImage.width).toBe(originalImage.width);
-            expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
-            expect(currentProfilePicture.originalImage.deletedAt).toBeUndefined();
-            expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.id).toBe(pendingImage.id);
-            expect(currentProfilePicture.pendingImage.bucketName).toBe(pendingImage.bucketName);
-            expect(currentProfilePicture.pendingImage.fileName).toBe(pendingImage.fileName);
-            expect(currentProfilePicture.pendingImage.format).toBe(pendingImage.format);
-            expect(currentProfilePicture.pendingImage.height).toBe(pendingImage.height);
-            expect(currentProfilePicture.pendingImage.size).toBe(pendingImage.size);
-            expect(currentProfilePicture.pendingImage.width).toBe(pendingImage.width);
-            expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.deletedAt).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
+            },
+          } = await postProfilePicture(app, tokenTwo);
+          await BlackList.create({
+            adminId: user.id,
+            reason: 'black list reason',
+            userId: id,
           });
-          it('with signed urls', async () => {
-            const hashPassword = await hash(newUser.password, saltRounds);
-            const userTwo = await User.create({
-              confirmed: true,
-              email: 'user2@email.com',
-              password: hashPassword,
-              userName: 'user2',
-            });
-            const agentTwo = request.agent(app);
-            const { body: { token: tokenTwo } } = await agentTwo
-              .post('/users/login')
-              .send({
-                password: newUser.password,
-                userNameOrEmail: userTwo.userName,
-              });
-            await agentTwo
-              .post('/users/me/ProfilePictures')
-              .set('authorization', tokenTwo)
-              .attach('image', `${__dirname}/../../ressources/image.jpg`);
-            const { id: blackListId } = await BlackList.create({
-              adminId: user.id,
-              reason: 'black list user two',
-            });
-            await userTwo.update({ blackListId });
-            const { body: [returnedUser], status } = await agent
-              .get('/users/blackList/')
-              .set('authorization', token);
-            expect(status).toBe(200);
-            expect(returnedUser.currentProfilePicture.cropedImage.signedUrl).not.toBeNull();
-            expect(returnedUser.currentProfilePicture.originalImage.signedUrl).not.toBeNull();
-            expect(returnedUser.currentProfilePicture.pendingImage.signedUrl).not.toBeNull();
+          const {
+            body: [{
+              currentProfilePicture,
+            }],
+          } = await getBlackListedUsers(app, token);
+          expect(currentProfilePicture.createdAt).toBeUndefined();
+          expect(currentProfilePicture.cropedImageId).toBeUndefined();
+          expect(currentProfilePicture.current).toBeUndefined();
+          expect(currentProfilePicture.id).toEqual(profilePictureId);
+          expect(currentProfilePicture.originalImageId).toBeUndefined();
+          expect(currentProfilePicture.pendingImageId).toBeUndefined();
+          expect(currentProfilePicture.updatedAt).toBeUndefined();
+          expect(currentProfilePicture.userId).toBeUndefined();
+          expect(currentProfilePicture.cropedImage.signedUrl).toBeTruthy();
+          expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
+          expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
+          expect(currentProfilePicture.originalImage.signedUrl).toBeTruthy();
+          expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
+          expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
+          expect(currentProfilePicture.pendingImage.signedUrl).toBeTruthy();
+          expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
+          expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
+        });
+        it('should include admin current profile picture', async () => {
+          const {
+            body: {
+              profilePicture: {
+                id: profilePictureId,
+              },
+            },
+          } = await postProfilePicture(app, token);
+          const { id } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
           });
+          await BlackList.create({
+            adminId: user.id,
+            reason: 'black list reason',
+            userId: id,
+          });
+          const {
+            body: [{
+              blackList: {
+                admin: {
+                  currentProfilePicture,
+                },
+              },
+            }],
+          } = await getBlackListedUsers(app, token);
+          expect(currentProfilePicture.createdAt).toBeUndefined();
+          expect(currentProfilePicture.cropedImageId).toBeUndefined();
+          expect(currentProfilePicture.current).toBeUndefined();
+          expect(currentProfilePicture.id).toEqual(profilePictureId);
+          expect(currentProfilePicture.originalImageId).toBeUndefined();
+          expect(currentProfilePicture.pendingImageId).toBeUndefined();
+          expect(currentProfilePicture.updatedAt).toBeUndefined();
+          expect(currentProfilePicture.userId).toBeUndefined();
+          expect(currentProfilePicture.cropedImage.signedUrl).toBeTruthy();
+          expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
+          expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
+          expect(currentProfilePicture.originalImage.signedUrl).toBeTruthy();
+          expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
+          expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
+          expect(currentProfilePicture.pendingImage.signedUrl).toBeTruthy();
+          expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
+          expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
         });
       });
     });
