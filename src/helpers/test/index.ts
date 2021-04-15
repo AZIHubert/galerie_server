@@ -9,6 +9,7 @@ export { default as getRefreshToken } from './getRefreshToken';
 export { default as getMe } from './getMe';
 export { default as getUsers } from './getUsers';
 export { default as getUserId } from './getUserId';
+export { default as getUsersUserName } from './getUsersUserName';
 export { default as login } from './login';
 export { default as postFrame } from './postFrame';
 export { default as postGalerie } from './postGalerie';

@@ -1,90 +1,53 @@
-import { hash } from 'bcrypt';
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
-import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
 import {
   BlackList,
-  Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
-import accEnv from '@src/helpers/accEnv';
-import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
-import saltRounds from '@src/helpers/saltRounds';
+import {
+  cleanGoogleBuckets,
+  createUser,
+  getUsersUserName,
+  login,
+  postProfilePicture,
+} from '@src/helpers/test';
+
 import initApp from '@src/server';
 
-const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
-const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
-
-const clearDatas = async (sequelize: Sequelize) => {
-  await BlackList.sync({ force: true });
-  await User.sync({ force: true });
-  await Image.sync({ force: true });
-  await ProfilePicture.sync({ force: true });
-  await sequelize.model('Sessions').sync({ force: true });
-  const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
-  await Promise.all(originalImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
-  await Promise.all(cropedImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
-  await Promise.all(pendingImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-};
-
-const newUser = {
-  email: 'user@email.com',
-  password: 'password',
-  userName: 'userName',
-};
+const userPassword = 'Password0!';
 
 describe('users', () => {
-  let agent: request.SuperAgentTest;
   let app: Server;
   let sequelize: Sequelize;
-  let user: User;
   let token: string;
+  let user: User;
+
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
   });
+
   beforeEach(async (done) => {
-    agent = request.agent(app);
     try {
-      await clearDatas(sequelize);
-      const hashPassword = await hash(newUser.password, saltRounds);
-      user = await User.create({
-        ...newUser,
-        confirmed: true,
-        password: hashPassword,
-      });
-      const { body } = await agent
-        .post('/users/login')
-        .send({
-          password: newUser.password,
-          userNameOrEmail: user.userName,
-        });
+      await sequelize.sync({ force: true });
+      await cleanGoogleBuckets();
+      user = await createUser({});
+      const { body } = await login(app, user.email, userPassword);
       token = body.token;
     } catch (err) {
       done(err);
     }
     done();
   });
+
   afterAll(async (done) => {
     try {
-      await clearDatas(sequelize);
+      await sequelize.sync({ force: true });
+      await cleanGoogleBuckets();
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -92,222 +55,145 @@ describe('users', () => {
     app.close();
     done();
   });
+
   describe('name', () => {
     describe(':userName', () => {
       describe('GET', () => {
         describe('should return status 200 and', () => {
-          it('not find himself', async () => {
-            const { body, status } = await agent
-              .get('/users/userName/user')
-              .set('authorization', token);
+          it('should not return current user', async () => {
+            const {
+              body,
+              status,
+            } = await getUsersUserName(app, token, user.userName);
             expect(status).toBe(200);
             expect(body.length).toBe(0);
           });
-          it('not find not confirmed users', async () => {
-            await User.create({
-              userName: 'user2',
+          it('should not return not confirmed users', async () => {
+            const { userName } = await createUser({
+              confirmed: false,
               email: 'user2@email.com',
-              password: 'password',
+              userName: 'user2',
             });
-            const { body, status } = await agent
-              .get('/users/userName/user')
-              .set('authorization', token);
-            expect(status).toBe(200);
+            const { body } = await getUsersUserName(app, token, userName);
             expect(body.length).toBe(0);
           });
-          it('not find black listed users', async () => {
-            const { id: blackListId } = await BlackList.create({
-              adminId: user.id,
-              reason: 'black list user',
-            });
-            await User.create({
-              blackListId,
-              confirmed: true,
-              email: 'user2@email.com',
-              password: 'password',
-              userName: 'user2',
-            });
-            const { body, status } = await agent
-              .get('/users/userName/user')
-              .set('authorization', token);
-            expect(status).toBe(200);
-            expect(body.length).toBe(0);
-          });
-          it('get 1 user', async () => {
-            await User.create({
-              userName: 'user2',
-              email: 'user2@email.com',
-              password: 'password',
-              confirmed: true,
-            });
-            const { body, status } = await agent
-              .get('/users/userName/user')
-              .set('authorization', token);
-            expect(status).toBe(200);
-            expect(body.length).toBe(1);
-          });
-          it('get 2 users', async () => {
-            await User.create({
-              userName: 'user2',
-              email: 'user2@email.com',
-              password: 'password',
-              confirmed: true,
-            });
-            await User.create({
-              userName: 'testusertest',
-              email: 'user3@email.com',
-              password: 'password',
-              confirmed: true,
-            });
-            const { body, status } = await agent
-              .get('/users/userName/user')
-              .set('authorization', token);
-            expect(status).toBe(200);
-            expect(body.length).toBe(2);
-          });
-          it('should be case insensitive', async () => {
-            await User.create({
-              userName: 'User2',
-              email: 'user2@email.com',
-              password: 'password',
-              confirmed: true,
-            });
-            const { body, status } = await agent
-              .get('/users/userName/user')
-              .set('authorization', token);
-            expect(status).toBe(200);
-            expect(body.length).toBe(1);
-          });
-          it('return relevent attributes', async () => {
+          it('should not return black listed users', async () => {
             const {
               id,
-              role,
               userName,
-            } = await User.create({
-              userName: 'user2',
+            } = await createUser({
               email: 'user2@email.com',
-              password: 'password',
-              confirmed: true,
+              userName: 'user2',
             });
-            const { body, status } = await agent
-              .get('/users/userName/user')
-              .set('authorization', token);
-            const [returnedUser] = body;
-            expect(status).toBe(200);
-            expect(body.length).toBe(1);
-            expect(typeof returnedUser.createdAt).toBe('string');
-            expect(returnedUser.defaultProfilePicture).toBeNull();
-            expect(returnedUser.id).toBe(id);
-            expect(returnedUser.role).toBe(role);
-            expect(typeof returnedUser.updatedAt).toBe('string');
-            expect(returnedUser.userName).toBe(userName);
+            await BlackList.create({
+              adminId: user.id,
+              reason: 'black list user',
+              userId: id,
+            });
+            const { body } = await getUsersUserName(app, token, userName);
+            expect(body.length).toBe(0);
+          });
+          it('should return users with relevent attributes', async () => {
+            const {
+              createdAt,
+              id,
+              pseudonym,
+              role,
+              updatedAt,
+              userName,
+            } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            const {
+              body: [returnedUser],
+            } = await getUsersUserName(app, token, userName);
             expect(returnedUser.authTokenVersion).toBeUndefined();
-            expect(returnedUser.blackListId).toBeUndefined();
+            expect(returnedUser.blackList).toBeUndefined();
             expect(returnedUser.confirmed).toBeUndefined();
             expect(returnedUser.confirmTokenVersion).toBeUndefined();
-            expect(returnedUser.currentProfilePictureId).toBeUndefined();
+            expect(new Date(returnedUser.createdAt)).toEqual(createdAt);
+            expect(returnedUser.defaultProfilePicture).toBeNull();
             expect(returnedUser.email).toBeUndefined();
-            expect(returnedUser.emailTokenVersion).toBeUndefined();
+            expect(returnedUser.facebookId).toBeUndefined();
             expect(returnedUser.googleId).toBeUndefined();
+            expect(returnedUser.id).toEqual(id);
             expect(returnedUser.password).toBeUndefined();
+            expect(returnedUser.pseudonym).toEqual(pseudonym);
             expect(returnedUser.resetPasswordTokenVersion).toBeUndefined();
+            expect(returnedUser.role).toEqual(role);
             expect(returnedUser.updatedEmailTokenVersion).toBeUndefined();
+            expect(new Date(returnedUser.updatedAt)).toEqual(updatedAt);
+            expect(returnedUser.userName).toEqual(userName);
           });
-          describe('include current profile picture', () => {
-            it('with only relevent attributes', async () => {
-              const hashPassword = await hash(newUser.password, saltRounds);
-              const userTwo = await User.create({
-                confirmed: true,
-                email: 'user3@email.com',
-                password: hashPassword,
-                userName: 'user3',
-              });
-              const agentTwo = request.agent(app);
-              const { body: { token: tokenTwo } } = await agentTwo
-                .post('/users/login')
-                .send({
-                  password: newUser.password,
-                  userNameOrEmail: userTwo.userName,
+          it('should return a pack of 20 users', async () => {
+            const userName = 'user';
+            const numOfUsers = new Array(25).fill(0);
+            await Promise.all(
+              numOfUsers.map(async (_, index) => {
+                await createUser({
+                  email: `user${index + 2}@email.com`,
+                  userName: `${userName}${index + 2}`,
                 });
-              const {
-                body: {
-                  cropedImage,
+              }),
+            );
+            const { body: bodyPageOne } = await getUsersUserName(app, token, userName, 1);
+            const { body: bodyPageTwo } = await getUsersUserName(app, token, userName, 2);
+            expect(bodyPageOne.length).toBe(20);
+            expect(bodyPageTwo.length).toBe(5);
+          });
+          it('should be case insensitive', async () => {
+            const {
+              userName,
+            } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            const { body } = await getUsersUserName(app, token, userName.toUpperCase());
+            expect(body.length).toBe(1);
+          });
+          it('should return current profile picture with relevent attributes', async () => {
+            const {
+              email,
+              userName,
+            } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            const {
+              body: {
+                token: tokenTwo,
+              },
+            } = await login(app, email, userPassword);
+            const {
+              body: {
+                profilePicture: {
                   id,
-                  originalImage,
-                  pendingImage,
                 },
-              } = await agentTwo
-                .post('/users/me/ProfilePictures')
-                .set('authorization', tokenTwo)
-                .attach('image', `${__dirname}/../../ressources/image.jpg`);
-              const { body: [{ currentProfilePicture }], status } = await agent
-                .get(`/users/userName/${userTwo.userName}`)
-                .set('authorization', token);
-              expect(status).toBe(200);
-              expect(currentProfilePicture.id).toBe(id);
-              expect(currentProfilePicture.createdAt).toBeUndefined();
-              expect(currentProfilePicture.cropedImageId).toBeUndefined();
-              expect(currentProfilePicture.deletedAt).toBeUndefined();
-              expect(currentProfilePicture.originalImageId).toBeUndefined();
-              expect(currentProfilePicture.pendingImageId).toBeUndefined();
-              expect(currentProfilePicture.updatedAt).toBeUndefined();
-              expect(currentProfilePicture.userId).toBeUndefined();
-              expect(currentProfilePicture.cropedImage.id).toBe(cropedImage.id);
-              expect(currentProfilePicture.cropedImage.bucketName).toBe(cropedImage.bucketName);
-              expect(currentProfilePicture.cropedImage.fileName).toBe(cropedImage.fileName);
-              expect(currentProfilePicture.cropedImage.format).toBe(cropedImage.format);
-              expect(currentProfilePicture.cropedImage.height).toBe(cropedImage.height);
-              expect(currentProfilePicture.cropedImage.size).toBe(cropedImage.size);
-              expect(currentProfilePicture.cropedImage.width).toBe(cropedImage.width);
-              expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-              expect(currentProfilePicture.cropedImage.deletedAt).toBeUndefined();
-              expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-              expect(currentProfilePicture.originalImage.id).toBe(originalImage.id);
-              expect(currentProfilePicture.originalImage.bucketName).toBe(originalImage.bucketName);
-              expect(currentProfilePicture.originalImage.fileName).toBe(originalImage.fileName);
-              expect(currentProfilePicture.originalImage.format).toBe(originalImage.format);
-              expect(currentProfilePicture.originalImage.height).toBe(originalImage.height);
-              expect(currentProfilePicture.originalImage.size).toBe(originalImage.size);
-              expect(currentProfilePicture.originalImage.width).toBe(originalImage.width);
-              expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
-              expect(currentProfilePicture.originalImage.deletedAt).toBeUndefined();
-              expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-              expect(currentProfilePicture.pendingImage.id).toBe(pendingImage.id);
-              expect(currentProfilePicture.pendingImage.bucketName).toBe(pendingImage.bucketName);
-              expect(currentProfilePicture.pendingImage.fileName).toBe(pendingImage.fileName);
-              expect(currentProfilePicture.pendingImage.format).toBe(pendingImage.format);
-              expect(currentProfilePicture.pendingImage.height).toBe(pendingImage.height);
-              expect(currentProfilePicture.pendingImage.size).toBe(pendingImage.size);
-              expect(currentProfilePicture.pendingImage.width).toBe(pendingImage.width);
-              expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-              expect(currentProfilePicture.pendingImage.deletedAt).toBeUndefined();
-              expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-            });
-            it('with signed urls', async () => {
-              const hashPassword = await hash(newUser.password, saltRounds);
-              const userTwo = await User.create({
-                confirmed: true,
-                email: 'user3@email.com',
-                password: hashPassword,
-                userName: 'user3',
-              });
-              const agentTwo = request.agent(app);
-              const { body: { token: tokenTwo } } = await agentTwo.post('/users/login')
-                .send({
-                  password: newUser.password,
-                  userNameOrEmail: userTwo.userName,
-                });
-              await agentTwo.post('/users/me/ProfilePictures')
-                .set('authorization', tokenTwo)
-                .attach('image', `${__dirname}/../../ressources/image.jpg`);
-              const { body: [{ currentProfilePicture }], status } = await agent
-                .get(`/users/userName/${userTwo.userName}`)
-                .set('authorization', token);
-              expect(status).toBe(200);
-              expect(currentProfilePicture.cropedImage.signedUrl).not.toBeNull();
-              expect(currentProfilePicture.originalImage.signedUrl).not.toBeNull();
-              expect(currentProfilePicture.pendingImage.signedUrl).not.toBeNull();
-            });
+              },
+            } = await postProfilePicture(app, tokenTwo);
+            const {
+              body: [{
+                currentProfilePicture,
+              }],
+            } = await getUsersUserName(app, token, userName);
+            expect(currentProfilePicture.createdAt).toBeUndefined();
+            expect(currentProfilePicture.cropedImageId).toBeUndefined();
+            expect(currentProfilePicture.current).toBeUndefined();
+            expect(currentProfilePicture.id).toEqual(id);
+            expect(currentProfilePicture.originalImageId).toBeUndefined();
+            expect(currentProfilePicture.pendingImageId).toBeUndefined();
+            expect(currentProfilePicture.updatedAt).toBeUndefined();
+            expect(currentProfilePicture.userId).toBeUndefined();
+            expect(currentProfilePicture.cropedImage.signedUrl).toBeTruthy();
+            expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
+            expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
+            expect(currentProfilePicture.originalImage.signedUrl).toBeTruthy();
+            expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
+            expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
+            expect(currentProfilePicture.pendingImage.signedUrl).toBeTruthy();
+            expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
+            expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
           });
         });
       });

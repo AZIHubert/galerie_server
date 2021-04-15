@@ -82,6 +82,8 @@ export default async (req: Request, res: Response) => {
       },
     });
 
+    // Fetch current profile pictures
+    // and their signed url.
     await Promise.all(
       users.map(async (user) => {
         const currentProfilePicture = await ProfilePicture.findOne({
@@ -160,9 +162,15 @@ export default async (req: Request, res: Response) => {
             pendingImageBucketName,
             pendingImageFileName,
           );
-          currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
-          currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
-          currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+          currentProfilePicture
+            .cropedImage
+            .signedUrl = cropedImageSignedUrl;
+          currentProfilePicture
+            .originalImage
+            .signedUrl = originalImageSignedUrl;
+          currentProfilePicture
+            .pendingImage
+            .signedUrl = pendingImageSignedUrl;
         }
         const userWithProfilePicture: any = {
           ...user.toJSON(),

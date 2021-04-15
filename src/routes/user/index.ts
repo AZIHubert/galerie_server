@@ -49,6 +49,8 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.post('/confirmation/', shouldNotBeAuth, postUsersConfirmation);
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.post('/login/', shouldNotBeAuth, postUsersLogin);
+  router.post('/login/facebook', shouldNotBeAuth, postUsersAuthMobileFacebook);
+  router.post('/login/google', shouldNotBeAuth, postUsersAuthMobileGoogle);
   router.post('/resetPassword/', shouldNotBeAuth, postUsersResetPassword);
   router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
   router.get('/me', passport.authenticate('jwt', { session: false }), getUsersMe);
@@ -70,8 +72,6 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.get('/blacklist/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, getUsersBlackList);
   router.delete('/me', passport.authenticate('jwt', { session: false }), deleteUsersMe);
   router.get('/refreshToken', getUsersRefreshToken);
-  router.post('/auth/facebook', shouldNotBeAuth, postUsersAuthMobileFacebook);
-  router.post('/auth/google', shouldNotBeAuth, postUsersAuthMobileGoogle);
   return router;
 };
 export default usersRoutes;

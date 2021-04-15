@@ -148,7 +148,7 @@ describe('users', () => {
             const { body, status } = await getUserId(app, token, user.id);
             expect(status).toBe(400);
             expect(body).toStrictEqual({
-              errors: 'params.id is the same as your current one',
+              errors: 'params.id cannot be the same as your current one',
             });
           });
         });

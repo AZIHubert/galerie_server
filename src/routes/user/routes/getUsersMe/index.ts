@@ -9,9 +9,7 @@ import {
   User,
 } from '@src/db/models';
 
-import {
-  USER_NOT_FOUND,
-} from '@src/helpers/errorMessages';
+import { USER_NOT_FOUND } from '@src/helpers/errorMessages';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
@@ -123,9 +121,15 @@ export default async (req: Request, res: Response) => {
         pendingImageBucketName,
         pendingImageFileName,
       );
-      currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
-      currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
-      currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+      currentProfilePicture
+        .cropedImage
+        .signedUrl = cropedImageSignedUrl;
+      currentProfilePicture
+        .originalImage
+        .signedUrl = originalImageSignedUrl;
+      currentProfilePicture
+        .pendingImage
+        .signedUrl = pendingImageSignedUrl;
     }
   } catch (err) {
     return res.status(500).send(err);

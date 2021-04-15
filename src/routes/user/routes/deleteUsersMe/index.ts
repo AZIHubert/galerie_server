@@ -24,12 +24,12 @@ import {
 import gc from '@src/helpers/gc';
 
 export default async (req: Request, res: Response) => {
-  const user = req.user as User;
   const {
     deleteAccountSentence,
     password,
     userNameOrEmail,
   } = req.body;
+  const user = req.user as User;
 
   // Check if user is made with google or facebook
   // if true, the user can't delete his account
@@ -49,14 +49,6 @@ export default async (req: Request, res: Response) => {
     password?: string;
     userNameOrEmail?: string;
   } = {};
-  if (!userNameOrEmail) {
-    errors.userNameOrEmail = FIELD_IS_REQUIRED;
-  } else if (
-    userNameOrEmail !== user.email
-    && `@${userNameOrEmail}` !== user.userName
-  ) {
-    errors.userNameOrEmail = 'wrong user name or email';
-  }
   if (!deleteAccountSentence) {
     errors.deleteAccountSentence = FIELD_IS_REQUIRED;
   } else if (deleteAccountSentence !== 'delete my account') {
@@ -74,6 +66,14 @@ export default async (req: Request, res: Response) => {
     } catch (err) {
       return res.status(500).send(err);
     }
+  }
+  if (!userNameOrEmail) {
+    errors.userNameOrEmail = FIELD_IS_REQUIRED;
+  } else if (
+    userNameOrEmail !== user.email
+    && `@${userNameOrEmail}` !== user.userName
+  ) {
+    errors.userNameOrEmail = 'wrong user name or email';
   }
   if (Object.keys(errors).length) {
     return res.status(400).send({

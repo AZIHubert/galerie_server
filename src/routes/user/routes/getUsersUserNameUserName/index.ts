@@ -1,36 +1,64 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 import { Op } from 'sequelize';
 
-import Image from '@src/db/models/image';
-import ProfilePicture from '@src/db/models/profilePicture';
-import User from '@src/db/models/user';
+import {
+  BlackList,
+  Image,
+  ProfilePicture,
+  User,
+} from '@src/db/models';
+
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
-  let users: User[];
-  const { userName } = req.params;
+  let direction = 'DESC';
   const { id } = req.user as User;
+  const limit = 20;
+  let offset: number;
+  let order = 'createdAt';
+  const { userName } = req.params;
+  let users: User[];
+  const {
+    direction: queryDirection,
+    order: queryOrder,
+    page,
+  } = req.query;
+  const usersWithProfilePicture: Array<any> = [];
+
+  if (
+    queryDirection === 'ASC'
+    || queryDirection === 'DESC'
+  ) {
+    direction = queryDirection;
+  }
+
+  if (
+    queryOrder === 'createdAt'
+    || queryOrder === 'pseudonym'
+    || queryOrder === 'userName'
+  ) {
+    order = queryOrder;
+  }
+
+  if (typeof page === 'string') {
+    offset = ((+page || 1) - 1) * limit;
+  } else {
+    offset = 0;
+  }
+
   try {
+    // Fetch all user which matches with requested userName
     users = await User.findAll({
-      where: {
-        id: {
-          [Op.not]: id,
-        },
-        confirmed: true,
-        blackListId: null,
-        userName: {
-          [Op.iLike]: `%${userName.toLowerCase()}%`,
-        },
-      },
       attributes: {
         exclude: [
           'authTokenVersion',
-          'blackListId',
           'confirmed',
           'confirmTokenVersion',
-          'currentProfilePictureId',
           'email',
-          'emailTokenVersion',
+          'facebookId',
           'googleId',
           'password',
           'resetPasswordTokenVersion',
@@ -39,13 +67,35 @@ export default async (req: Request, res: Response) => {
       },
       include: [
         {
-          model: ProfilePicture,
-          as: 'currentProfilePicture',
+          as: 'blackList',
+          model: BlackList,
+        },
+      ],
+      limit,
+      offset,
+      order: [[order, direction]],
+      where: {
+        $blackList$: null,
+        id: {
+          [Op.not]: id,
+        },
+        confirmed: true,
+        userName: {
+          [Op.iLike]: `%${userName.toLowerCase()}%`,
+        },
+      },
+    });
+
+    // Fetch current profile pictures
+    // and their signed url.
+    await Promise.all(
+      users.map(async (user) => {
+        const currentProfilePicture = await ProfilePicture.findOne({
           attributes: {
             exclude: [
               'createdAt',
               'cropedImageId',
-              'deletedAt',
+              'current',
               'originalImageId',
               'pendingImageId',
               'updatedAt',
@@ -54,46 +104,43 @@ export default async (req: Request, res: Response) => {
           },
           include: [
             {
-              model: Image,
               as: 'cropedImage',
               attributes: {
                 exclude: [
                   'createdAt',
-                  'deletedAt',
                   'updatedAt',
                 ],
               },
+              model: Image,
             },
             {
-              model: Image,
               as: 'originalImage',
               attributes: {
                 exclude: [
                   'createdAt',
-                  'deletedAt',
                   'updatedAt',
                 ],
               },
+              model: Image,
             },
             {
-              model: Image,
               as: 'pendingImage',
               attributes: {
                 exclude: [
                   'createdAt',
-                  'deletedAt',
                   'updatedAt',
                 ],
               },
+              model: Image,
             },
           ],
-        },
-      ],
-    });
-    await Promise.all(users.map(async (user, index) => {
-      if (user.currentProfilePicture) {
-        const {
-          currentProfilePicture: {
+          where: {
+            current: true,
+            userId: user.id,
+          },
+        });
+        if (currentProfilePicture) {
+          const {
             cropedImage: {
               bucketName: cropedImageBucketName,
               fileName: cropedImageFileName,
@@ -106,27 +153,41 @@ export default async (req: Request, res: Response) => {
               bucketName: pendingImageBucketName,
               fileName: pendingImageFileName,
             },
-          },
-        } = user;
-        const cropedImageSignedUrl = await signedUrl(
-          cropedImageBucketName,
-          cropedImageFileName,
-        );
-        users[index].currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
-        const originalImageSignedUrl = await signedUrl(
-          originalImageBucketName,
-          originalImageFileName,
-        );
-        users[index].currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
-        const pendingImageSignedUrl = await signedUrl(
-          pendingImageBucketName,
-          pendingImageFileName,
-        );
-        users[index].currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
-      }
-    }));
+          } = currentProfilePicture;
+          const cropedImageSignedUrl = await signedUrl(
+            cropedImageBucketName,
+            cropedImageFileName,
+          );
+          const originalImageSignedUrl = await signedUrl(
+            originalImageBucketName,
+            originalImageFileName,
+          );
+          const pendingImageSignedUrl = await signedUrl(
+            pendingImageBucketName,
+            pendingImageFileName,
+          );
+          currentProfilePicture
+            .cropedImage
+            .signedUrl = cropedImageSignedUrl;
+          currentProfilePicture
+            .originalImage
+            .signedUrl = originalImageSignedUrl;
+          currentProfilePicture
+            .pendingImage
+            .signedUrl = pendingImageSignedUrl;
+        }
+        const userWithProfilePicture: any = {
+          ...user.toJSON(),
+          currentProfilePicture: currentProfilePicture
+            ? currentProfilePicture.toJSON()
+            : undefined,
+        };
+        delete userWithProfilePicture.blackList;
+        usersWithProfilePicture.push(userWithProfilePicture);
+      }),
+    );
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(200).send(users);
+  return res.status(200).send(usersWithProfilePicture);
 };

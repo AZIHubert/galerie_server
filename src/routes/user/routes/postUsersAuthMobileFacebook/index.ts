@@ -3,9 +3,9 @@ import { Op } from 'sequelize';
 
 import { User } from '@src/db/models';
 
-import {
-  USER_IS_BLACK_LISTED,
-} from '@src/helpers/errorMessages';
+// import {
+//   USER_IS_BLACK_LISTED,
+// } from '@src/helpers/errorMessages';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import setRefreshToken from '@src/helpers/setRefreshToken';
 
@@ -73,11 +73,11 @@ export default async (req: Request, res: Response) => {
     });
     return res.status(200).send(newUser);
   }
-  if (user.blackListId) {
-    return res.status(400).send({
-      errors: USER_IS_BLACK_LISTED,
-    });
-  }
+  // if (user.blackListId) {
+  //   return res.status(400).send({
+  //     errors: USER_IS_BLACK_LISTED,
+  //   });
+  // }
   if (email !== user.email
       || defaultProfilePicture !== user.defaultProfilePicture) {
     await user.update({ email, defaultProfilePicture });

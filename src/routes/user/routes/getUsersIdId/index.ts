@@ -19,15 +19,15 @@ export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
   let user: User | null;
 
-  // Cannot fetch current user
-  // To do that, user get users/me instead.
+  // Don't allow to fetch current user.
+  // To do that, use GET /users/me instead.
   if (id === userId) {
     return res.status(400).send({
-      errors: 'params.id is the same as your current one',
+      errors: 'params.id cannot be the same as your current one',
     });
   }
 
-  // Fetch confirmed/non blacklisted user with id
+  // Fetch confirmed/non blacklisted user with id.
   try {
     user = await User.findOne({
       attributes: {
@@ -142,9 +142,15 @@ export default async (req: Request, res: Response) => {
         pendingImageBucketName,
         pendingImageFileName,
       );
-      currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
-      currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
-      currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+      currentProfilePicture
+        .cropedImage
+        .signedUrl = cropedImageSignedUrl;
+      currentProfilePicture
+        .originalImage
+        .signedUrl = originalImageSignedUrl;
+      currentProfilePicture
+        .pendingImage
+        .signedUrl = pendingImageSignedUrl;
     }
   } catch (err) {
     return res.status(500).send(err);

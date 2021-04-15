@@ -107,9 +107,10 @@ export default async (req: Request, res: Response) => {
 
     });
 
+    // Get black listed user's current profile picture
+    // with their signed url.
     await Promise.all(
       users.map(async (user) => {
-        // get black listed user's current profile picture
         const currentProfilePicture = await ProfilePicture.findOne({
           attributes: {
             exclude: [
@@ -192,6 +193,7 @@ export default async (req: Request, res: Response) => {
         }
 
         // Get admin's current profile picture
+        // with it's signed url.
         let adminCurrentProfilePicture: ProfilePicture | null = null;
         if (user.blackList.admin) {
           adminCurrentProfilePicture = await ProfilePicture.findOne({
