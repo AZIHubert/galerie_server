@@ -166,7 +166,6 @@ describe('tickets', () => {
           expect(body.user.confirmed).toBe(undefined);
           expect(body.user.confirmTokenVersion).toBe(undefined);
           expect(body.user.currentProfilePictureId).toBe(undefined);
-          expect(body.user.emailTokenVersion).toBe(undefined);
           expect(body.user.facebookId).toBe(undefined);
           expect(body.user.googleId).toBe(undefined);
           expect(body.user.password).toBe(undefined);

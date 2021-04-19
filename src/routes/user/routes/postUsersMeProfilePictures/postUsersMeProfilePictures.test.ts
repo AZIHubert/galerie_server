@@ -1,124 +1,76 @@
-import { hash } from 'bcrypt';
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
-import { io, Socket } from 'socket.io-client';
-import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
-import { Image, ProfilePicture, User } from '@src/db/models';
+import {
+  Image,
+  ProfilePicture,
+  User,
+} from '@src/db/models';
+
 import accEnv from '@src/helpers/accEnv';
 import { FILE_IS_REQUIRED } from '@src/helpers/errorMessages';
-import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
-import saltRounds from '@src/helpers/saltRounds';
+import {
+  cleanGoogleBuckets,
+  createUser,
+  login,
+  postProfilePicture,
+} from '@src/helpers/test';
+
 import initApp from '@src/server';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
 const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
-const PORT = accEnv('PORT');
 
-const newUser = {
-  email: 'user@email.com',
-  password: 'password',
-  userName: 'userName',
-};
-
-const clearDatas = async (sequelize: Sequelize) => {
-  await User.sync({ force: true });
-  await Image.sync({ force: true });
-  await ProfilePicture.sync({ force: true });
-  const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
-  await sequelize.model('Sessions').sync({ force: true });
-  await Promise.all(originalImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
-  await Promise.all(cropedImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
-  await Promise.all(pendingImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-};
+const userPassword = 'Password0!';
 
 describe('users', () => {
-  let agent: request.SuperAgentTest;
   let app: Server;
-  let socket: Socket;
   let sequelize: Sequelize;
   let user: User;
   let token: string;
-  beforeAll((done) => {
-    app = initApp().listen(PORT);
-    socket = io(`http://127.0.0.1:${PORT}`);
+
+  beforeAll(() => {
+    app = initApp();
     sequelize = initSequelize();
-    done();
   });
+
   beforeEach(async (done) => {
-    agent = request.agent(app);
     try {
-      await clearDatas(sequelize);
-      const hashPassword = await hash(newUser.password, saltRounds);
-      user = await User.create({
-        ...newUser,
-        confirmed: true,
-        password: hashPassword,
-      });
-      const { body } = await agent
-        .post('/users/login')
-        .send({
-          password: newUser.password,
-          userNameOrEmail: user.userName,
-        });
+      await sequelize.sync({ force: true });
+      await cleanGoogleBuckets();
+      user = await createUser({});
+      const { body } = await login(app, user.email, userPassword);
       token = body.token;
     } catch (err) {
       done(err);
     }
-    socket.connect();
     done();
   });
-  afterEach((done) => {
-    jest.restoreAllMocks();
-    if (socket.connected) socket.disconnect();
-    done();
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
+
   afterAll(async (done) => {
     try {
-      await clearDatas(sequelize);
+      await sequelize.sync({ force: true });
+      await cleanGoogleBuckets();
       await sequelize.close();
     } catch (err) {
       done(err);
     }
     app.close();
-    socket.close();
     done();
   });
+
   describe('me', () => {
     describe('profilePicture', () => {
       describe('POST', () => {
         describe('should return status 200 and', () => {
-          let response: request.Response;
-          let profilePictures: ProfilePicture[];
-          beforeEach(async (done) => {
-            try {
-              response = await agent
-                .post('/users/me/ProfilePictures')
-                .set('authorization', token)
-                .attach('image', `${__dirname}/../../ressources/image.jpg`);
-              profilePictures = await ProfilePicture.findAll({
-                where: { userId: user.id },
-              });
-            } catch (err) {
-              done(err);
-            }
-            done();
-          });
           it('create a profile picture', async () => {
             const { status } = response;
             expect(status).toBe(200);

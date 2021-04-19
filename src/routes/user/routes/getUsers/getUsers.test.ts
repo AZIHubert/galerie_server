@@ -123,6 +123,7 @@ describe('users', () => {
           expect(returnedUser.confirmTokenVersion).toBeUndefined();
           expect(new Date(returnedUser.createdAt)).toEqual(createdAt);
           expect(returnedUser.defaultProfilePicture).toBeNull();
+          expect(returnedUser.emailTokenVersion).toBeUndefined();
           expect(returnedUser.email).toBeUndefined();
           expect(returnedUser.emailTokenVersion).toBeUndefined();
           expect(returnedUser.facebookId).toBeUndefined();
@@ -132,7 +133,6 @@ describe('users', () => {
           expect(returnedUser.pseudonym).toEqual(pseudonym);
           expect(returnedUser.resetPasswordTokenVersion).toBeUndefined();
           expect(returnedUser.role).toEqual(role);
-          expect(returnedUser.updatedEmailTokenVersion).toBeUndefined();
           expect(new Date(returnedUser.updatedAt)).toEqual(updatedAt);
           expect(returnedUser.userName).toEqual(userName);
         });
@@ -148,8 +148,10 @@ describe('users', () => {
           } = await login(app, email, userPassword);
           const {
             body: {
-              profilePicture: {
-                id,
+              data: {
+                profilePicture: {
+                  id,
+                },
               },
             },
           } = await postProfilePicture(app, tokenTwo);

@@ -21,6 +21,7 @@ interface BlackListI {
   tableName: 'blackList',
 })
 export default class BlackList extends Model implements BlackListI {
+  // Id of the admin who created the black list.
   @ForeignKey(() => User)
   @Column({
     type: DataType.BIGINT,
@@ -35,17 +36,21 @@ export default class BlackList extends Model implements BlackListI {
   })
   id!: string;
 
+  // Reason why the user has been baned.
   @Column({
     allowNull: false,
     type: DataType.STRING,
   })
   reason!: string;
 
+  // How many time the user is baned.
+  // If null, the ban is illimited.
   @Column({
     type: DataType.INTEGER,
   })
   time!: number;
 
+  // Id of the baned user.
   @ForeignKey(() => User)
   @Column({
     type: DataType.BIGINT,

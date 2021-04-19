@@ -1,5 +1,8 @@
 import { compare } from 'bcrypt';
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 import { sign } from 'jsonwebtoken';
 
 import { User } from '@src/db/models';
@@ -23,7 +26,11 @@ const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
 export default async (req: Request, res: Response) => {
   const user = req.user as User;
   if (user.facebookId || user.googleId) {
+    // use switch instead switch
+    // user may be logged in with other Social Media
+    // in the futur.
     const socialMedia = user.facebookId ? 'facebook' : 'google';
+
     return res.status(400).send({
       errors: `you can't modify your email if you are logged with ${socialMedia}.`,
     });

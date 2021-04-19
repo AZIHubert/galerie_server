@@ -10,13 +10,10 @@ import ProfilePicture from '../profilePicture';
 
 interface ImageI {
   bucketName: string;
-  cropedProfilePicture: ProfilePicture;
   fileName: string;
   format: string;
   height: number;
   id: string;
-  originalProfilePicture: ProfilePicture;
-  pendingProfilePicture: ProfilePicture;
   signedUrl?: string;
   size: number;
   width: number;
@@ -32,17 +29,13 @@ export default class Image extends Model implements ImageI {
   })
   bucketName!: string;
 
-  @HasOne(() => ProfilePicture, {
-    onDelete: 'CASCADE',
-  })
-  cropedProfilePicture!: ProfilePicture;
-
   @Column({
     allowNull: false,
     type: DataType.STRING,
   })
   fileName!: string;
 
+  // jpg/jpeg/gif/png
   @Column({
     allowNull: false,
     type: DataType.STRING,
@@ -63,6 +56,16 @@ export default class Image extends Model implements ImageI {
   })
   id!: string;
 
+  // The Google bucket's signed url.
+  // This is not saved in sequelize
+  // but it is required and added to the Image object
+  // every time an image is display on the apps.
+  @Column({
+    type: DataType.STRING,
+  })
+  signedUrl!: string;
+
+  // Size of the image (bit)
   @Column({
     allowNull: false,
     type: DataType.INTEGER,
@@ -79,10 +82,10 @@ export default class Image extends Model implements ImageI {
   })
   pendingProfilePicture!: ProfilePicture;
 
-  @Column({
-    type: DataType.STRING,
+  @HasOne(() => ProfilePicture, {
+    onDelete: 'CASCADE',
   })
-  signedUrl!: string;
+  cropedProfilePicture!: ProfilePicture;
 
   @Column({
     allowNull: false,

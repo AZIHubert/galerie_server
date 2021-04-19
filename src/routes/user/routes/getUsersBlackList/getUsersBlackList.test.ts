@@ -173,8 +173,10 @@ describe('users', () => {
           } = await login(app, email, userPassword);
           const {
             body: {
-              profilePicture: {
-                id: profilePictureId,
+              data: {
+                profilePicture: {
+                  id: profilePictureId,
+                },
               },
             },
           } = await postProfilePicture(app, tokenTwo);
@@ -209,8 +211,10 @@ describe('users', () => {
         it('should include admin current profile picture', async () => {
           const {
             body: {
-              profilePicture: {
-                id: profilePictureId,
+              data: {
+                profilePicture: {
+                  id: profilePictureId,
+                },
               },
             },
           } = await postProfilePicture(app, token);

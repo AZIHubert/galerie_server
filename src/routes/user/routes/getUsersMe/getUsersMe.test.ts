@@ -72,6 +72,7 @@ describe('users', () => {
           expect(new Date(returnedUser.createdAt)).toEqual(user.createdAt);
           expect(returnedUser.defaultProfilePicture).toBeNull();
           expect(returnedUser.email).toBeUndefined();
+          expect(returnedUser.emeilTokenVersion).toBeUndefined();
           expect(returnedUser.facebookId).toBeUndefined();
           expect(returnedUser.googleId).toBeUndefined();
           expect(returnedUser.id).toEqual(user.id);
@@ -86,8 +87,10 @@ describe('users', () => {
         it('return current profile picture', async () => {
           const {
             body: {
-              profilePicture: {
-                id: profilePictureId,
+              data: {
+                profilePicture: {
+                  id: profilePictureId,
+                },
               },
             },
           } = await postProfilePicture(app, token);

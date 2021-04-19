@@ -31,19 +31,19 @@ export default async (req: Request, res: Response) => {
   } = req.body;
   const user = req.user as User;
 
-  // Check if user is made with google or facebook
-  // if true, the user can't delete his account
-  // you need a password for it
-  // but accont created with Google or Facebook doesn't have one
+  // Check if user is created with Google or Facebook.
+  // If true, the user can't delete his account.
+  // (you need a password for it,
+  // but account created with Google or Facebook doesn't have one).
   if (user.facebookId || user.googleId) {
     return res.status(400).send({
       errors: 'you can\'t delete your account if you\'re logged in with Facebook or Google',
     });
   }
 
-  // return error if
+  // Return error if
   // deleteAccountSentence/userNameOrEmail/password
-  // are not send or not match
+  // are not send or not match.
   const errors: {
     deleteAccountSentence?: string;
     password?: string;
@@ -135,7 +135,7 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Destroy all tickets
+  // Destroy all tickets.
   try {
     await Ticket.destroy({
       where: {
@@ -147,7 +147,7 @@ export default async (req: Request, res: Response) => {
   }
 
   // Destroy all frames/galeriePictures/images/likes
-  // And images from Google buckets
+  // and images from Google buckets.
   try {
     const frames = await Frame.findAll({
       include: [{
@@ -211,9 +211,9 @@ export default async (req: Request, res: Response) => {
 
   // Destroy all galerieUser related to this user.
   // If user is the creator of the galerie
-  // and if is the only one left on this galerie
+  // and if it is the only one left on this galerie,
   // destroy this galerie.
-  // Else, set this galerie as archive.
+  // Else, set this galerie as archived.
   try {
     const galerieUsers = await GalerieUser.findAll({
       where: {
@@ -254,7 +254,7 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // destroy all invitations
+  // Destroy all invitations.
   try {
     await Invitation.destroy({
       where: {
@@ -265,14 +265,14 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // destroy user
+  // Destroy user.
   try {
     await user.destroy();
   } catch (err) {
     return res.status(500).send();
   }
 
-  // destroy session and log out
+  // Destroy session and log out.
   req.logOut();
   req.session.destroy((sessionError) => {
     if (sessionError) {

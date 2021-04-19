@@ -35,14 +35,16 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Find user with userName === userNameOrEmail
-  // or email === userNameOrEmail.
-  // This user cannot be register
-  // with Facebook or Google.
+  // Fields from value are trimed.
   const {
     password,
     userNameOrEmail,
   } = value;
+
+  // Find user with userName === userNameOrEmail
+  // or email === userNameOrEmail.
+  // This user cannot be register
+  // with Facebook or Google.
   try {
     user = await User.findOne({
       where: {

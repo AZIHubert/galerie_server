@@ -80,7 +80,6 @@ export default async (req: Request, res: Response) => {
             'confirmTokenVersion',
             'currentProfilePictureId',
             'email',
-            'emailTokenVersion',
             'facebookId',
             'googleId',
             'password',

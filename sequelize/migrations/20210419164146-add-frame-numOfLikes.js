@@ -1,14 +1,14 @@
 module.exports.up = (queryInterface, Sequelize) => queryInterface.addColumn(
-  'users',
-  'confirmed',
+  'frame',
+  'numOfLikes',
   {
     allowNull: false,
-    defaultValue: false,
-    type: Sequelize.BOOLEAN,
+    defaultValue: 0,
+    type: Sequelize.INTEGER,
   },
 );
 
 module.exports.down = (queryInterface) => queryInterface.removeColumn(
-  'users',
-  'confirmed',
+  'frame',
+  'numOfLikes',
 );

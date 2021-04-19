@@ -29,6 +29,8 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
   })
   cropedImageId!: string;
 
+  // If true, this profile picture
+  // is the display one of the user.
   @Column({
     allowNull: false,
     type: DataType.BOOLEAN,

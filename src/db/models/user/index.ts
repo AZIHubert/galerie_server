@@ -2,11 +2,11 @@ import {
   BelongsToMany,
   Column,
   DataType,
+  Default,
+  HasOne,
   HasMany,
   Model,
   Table,
-  Default,
-  HasOne,
 } from 'sequelize-typescript';
 
 import BlackList from '../blackList';
@@ -14,11 +14,11 @@ import Frame from '../frame';
 import Galerie from '../galerie';
 import GalerieUser from '../galerieUser';
 import Invitation from '../invitation';
+import Like from '../like';
 import Notification from '../notification';
 import NotificationUser from '../notificationUser';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
-import Like from '../like';
 
 interface UserI {
   authTokenVersion: number;
@@ -26,8 +26,8 @@ interface UserI {
   confirmTokenVersion: number;
   currentProfilePictureId?: string;
   defaultProfilePicture?: string;
-  email?: string;
   emailTokenVersion: number;
+  email?: string;
   facebookId?: string;
   galeries?: Galerie[];
   GalerieUser: GalerieUser;
@@ -48,6 +48,10 @@ interface UserI {
   tableName: 'users',
 })
 export default class User extends Model implements UserI {
+  // Use to check if the authToken use to
+  // access different routes is valid.
+  // If the user update his email/password,
+  // the authTokenVersion is incremented.
   @Default(0)
   @Column({
     allowNull: false,
@@ -55,6 +59,8 @@ export default class User extends Model implements UserI {
   })
   authTokenVersion!: number;
 
+  // Use to check if a user
+  // has confirmed his account.
   @Default(false)
   @Column({
     allowNull: false,
@@ -62,6 +68,12 @@ export default class User extends Model implements UserI {
   })
   confirmed!: boolean;
 
+  // When a user want to confirme his account
+  // A email his sent to his current adress email
+  // with a JWT containing the current confirmTokenVersion
+  // and confirmTokenVersion his incremented.
+  // If multiple email have been send,
+  // only the last one gonna be valid.
   @Default(0)
   @Column({
     allowNull: false,
@@ -69,6 +81,10 @@ export default class User extends Model implements UserI {
   })
   confirmTokenVersion!: number;
 
+  // When a user create an account
+  // with Facebook or Google,
+  // his profile picture from this social media
+  // is saved on his Galerie account.
   @Column({
     type: DataType.STRING,
   })
@@ -80,9 +96,14 @@ export default class User extends Model implements UserI {
   })
   email!: string;
 
+  // When a user want to update his email
+  // A email his sent to his current adress email
+  // with a JWT containing the current emailTokenVersion
+  // and emailTokenVersion his incremented.
+  // If multiple email have been send,
+  // only the last one gonna be valid.
   @Default(0)
   @Column({
-    allowNull: false,
     type: DataType.INTEGER,
   })
   emailTokenVersion!: number;
@@ -105,17 +126,29 @@ export default class User extends Model implements UserI {
   })
   id!: string;
 
+  // Hashed password.
   @Column({
     type: DataType.STRING,
   })
   password!: string;
 
+  // user.userName can't be changed
+  // but pseudonym can.
+  // when a user is created,
+  // user.pseudonym is equal to `@${userName}`.
   @Column({
     allowNull: false,
     type: DataType.STRING,
   })
   pseudonym!: string;
 
+  // When a user want to reset his password
+  // (because is forgot his current one)
+  // A email his sent to his current adress email
+  // with a JWT containing the current resetPasswordTokenVersion
+  // and resetPasswordTokenVersion his incremented.
+  // If multiple email have been send,
+  // only the last one gonna be valid.
   @Default(0)
   @Column({
     allowNull: false,
@@ -129,11 +162,23 @@ export default class User extends Model implements UserI {
   })
   role!: 'superAdmin' | 'admin' | 'user';
 
+  // If a user create an account with
+  // Facebook or Google, socialMediaUserName
+  // is used instead of userName.
+  // userName need to be unique but between
+  // multiple social media, the user name must
+  // be equal.
   @Column({
     type: DataType.STRING,
   })
   socialMediaUserName!: string;
 
+  // When a user want to change his email
+  // A email his sent to the new adress email he register
+  // with a JWT containing the current updatedEmailTokenVersion
+  // and updatedEmailTokenVersion his incremented.
+  // If multiple email have been send,
+  // only the last one gonna be valid.
   @Default(0)
   @Column({
     allowNull: false,
@@ -150,23 +195,14 @@ export default class User extends Model implements UserI {
   @BelongsToMany(() => Galerie, () => GalerieUser)
   galeries!: Galerie[];
 
-  @BelongsToMany(() => Notification, () => NotificationUser)
-  notificationsUser!: Notification[]
-
   @BelongsToMany(() => Frame, () => Like)
   likes!: Frame[];
 
+  @BelongsToMany(() => Notification, () => NotificationUser)
+  notificationsUser!: Notification[]
+
   @HasMany(() => BlackList, 'adminId')
   blackLists!: BlackList[];
-
-  @HasMany(() => ProfilePicture)
-  profilePictures!: ProfilePicture[];
-
-  @HasMany(() => Notification)
-  notifications!: Notification[]
-
-  @HasMany(() => Ticket)
-  tickets!: Ticket[];
 
   @HasMany(() => Frame)
   frames!: Frame[];
@@ -174,8 +210,19 @@ export default class User extends Model implements UserI {
   @HasMany(() => Invitation)
   invitations!: Invitation[];
 
+  @HasMany(() => Notification)
+  notifications!: Notification[];
+
+  @HasMany(() => ProfilePicture)
+  profilePictures!: ProfilePicture[];
+
+  @HasMany(() => Ticket)
+  tickets!: Ticket[];
+
   @HasOne(() => BlackList, 'userId')
   blackList!: BlackList;
 
+  // Need it to properly include
+  // GalerieUser model when fetching galerie.
   GalerieUser!: GalerieUser;
 }

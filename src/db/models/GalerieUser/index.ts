@@ -31,7 +31,10 @@ export default class GalerieUser extends Model implements GalerieUserI {
   })
   userId!: string;
 
+  // Allow different action based on
+  // the role of the user on this galerie.
   @Column({
+    allowNull: false,
     type: DataType.STRING,
   })
   role!: 'creator' | 'admin' | 'user';

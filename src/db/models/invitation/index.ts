@@ -1,5 +1,4 @@
 import {
-  AllowNull,
   BelongsTo,
   Column,
   DataType,
@@ -38,24 +37,32 @@ export default class Invitation extends Model implements InvitationI {
   })
   id!: string;
 
-  @AllowNull
+  // How many users can use this invitation
+  // to subscribe to this galerie (invitation.galerieId)
+  // If null, an inlimited amount of users
+  // can use this invitation.
   @Column({
     type: DataType.INTEGER,
   })
   numOfInvit!: number | null;
 
+  // A unique code to enter
+  // to register to this galerie.
   @Column({
     type: DataType.STRING,
   })
   code!: string;
 
+  // The user who created this invitation.
   @ForeignKey(() => User)
   @Column({
     type: DataType.BIGINT,
   })
   userId!: string;
 
-  @AllowNull
+  // How many time this invitation is avaible.
+  // If null, this invitation is avaible
+  // for ever.
   @Column({
     type: DataType.INTEGER,
   })

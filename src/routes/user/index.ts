@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import socketIo from 'socket.io';
 
 import {
   shouldBeAdmin,
@@ -42,7 +41,7 @@ import {
 
 const router = Router();
 
-const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
+const usersRoutes: () => Router = () => {
   router.get('/', passport.authenticate('jwt', { session: false }), getUsers);
   router.post('/signin/', postUsersSignin);
   router.post('/confirmation/', shouldNotBeAuth, postUsersConfirmation);
@@ -56,7 +55,7 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.post('/me/updateEmail/confirm/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, postUsersMeUpdateEmailConfirm);
   router.put('/me/updateEmail/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeUpdateEmail);
   router.put('/me/updatePassword/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeUpdatePassword);
-  router.post('/me/profilePictures/', passport.authenticate('jwt', { session: false }), uploadFile, postUsersMeProfilePictures(io));
+  router.post('/me/profilePictures/', passport.authenticate('jwt', { session: false }), uploadFile, postUsersMeProfilePictures);
   router.get('/me/profilePictures/', passport.authenticate('jwt', { session: false }), getUsersMeProfilePictures);
   router.get('/me/profilePictures/:id/', passport.authenticate('jwt', { session: false }), getUsersMeProfilePicturesId);
   router.put('/me/profilePictures/:id/', passport.authenticate('jwt', { session: false }), putUsersMeProfilePicturesId);

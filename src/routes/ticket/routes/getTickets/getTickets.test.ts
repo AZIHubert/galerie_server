@@ -205,7 +205,6 @@ describe('tickets', () => {
         expect(returnedTicket.user.confirmed).toBe(undefined);
         expect(returnedTicket.user.confirmTokenVersion).toBe(undefined);
         expect(returnedTicket.user.currentProfilePictureId).toBe(undefined);
-        expect(returnedTicket.user.emailTokenVersion).toBe(undefined);
         expect(returnedTicket.user.facebookId).toBe(undefined);
         expect(returnedTicket.user.googleId).toBe(undefined);
         expect(returnedTicket.user.password).toBe(undefined);

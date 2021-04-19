@@ -26,6 +26,7 @@ export default async (req: Request, res: Response) => {
           'confirmed',
           'confirmTokenVersion',
           'email',
+          'emailTokenVersion',
           'facebookId',
           'googleId',
           'password',

@@ -142,7 +142,6 @@ export default async (req: Request, res: Response) => {
             'confirmTokenVersion',
             'currentProfilePictureId',
             'email',
-            'emailTokenVersion',
             'googleId',
             'password',
             'resetPasswordTokenVersion',

@@ -87,6 +87,7 @@ describe('users', () => {
             expect(returnedUser.confirmTokenVersion).toBeUndefined();
             expect(new Date(returnedUser.createdAt)).toEqual(createdAt);
             expect(returnedUser.defaultProfilePicture).toBeNull();
+            expect(returnedUser.emailTokenVersion).toBeUndefined();
             expect(returnedUser.email).toBeUndefined();
             expect(returnedUser.facebookId).toBeUndefined();
             expect(returnedUser.googleId).toBeUndefined();
@@ -114,8 +115,10 @@ describe('users', () => {
             } = await login(app, email, userPassword);
             const {
               body: {
-                profilePicture: {
-                  id: profilePictureId,
+                data: {
+                  profilePicture: {
+                    id: profilePictureId,
+                  },
                 },
               },
             } = await postProfilePicture(app, tokenTwo);

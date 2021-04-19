@@ -13,7 +13,7 @@ export default async (req: Request, res: Response) => {
   const { id } = req.params;
   const { id: userId } = req.user as User;
 
-  // Check if profile picture exist
+  // Check if profile picture exist.
   let profilePicture: ProfilePicture | null;
   try {
     profilePicture = await ProfilePicture.findOne({

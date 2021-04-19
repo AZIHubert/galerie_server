@@ -17,10 +17,6 @@ interface TicketI {
 }
 
 @Table({
-  defaultScope: {
-    attributes: { exclude: ['deletedAt'] },
-  },
-  paranoid: true,
   tableName: 'ticket',
 })
 export default class Ticket extends Model implements TicketI {

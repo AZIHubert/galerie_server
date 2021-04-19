@@ -31,7 +31,6 @@ export default async (req: Request, res: Response) => {
               'confirmed',
               'confirmTokenVersion',
               'currentProfilePictureId',
-              'emailTokenVersion',
               'facebookId',
               'googleId',
               'password',
