@@ -30,8 +30,8 @@ const userPassword = 'Password0!';
 describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
-  let user: User;
   let token: string;
+  let user: User;
 
   beforeAll(() => {
     app = initApp();
@@ -39,6 +39,7 @@ describe('users', () => {
   });
 
   beforeEach(async (done) => {
+    jest.clearAllMocks();
     try {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
@@ -49,10 +50,6 @@ describe('users', () => {
       done(err);
     }
     done();
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   afterAll(async (done) => {
@@ -71,33 +68,12 @@ describe('users', () => {
     describe('profilePicture', () => {
       describe('POST', () => {
         describe('should return status 200 and', () => {
-          it('create a profile picture', async () => {
+          it('create a profile picture, images and store in Google buckets', async () => {
             const { status } = response;
             expect(status).toBe(200);
             expect(profilePictures.length).toBe(1);
           });
-          it('store the original image', async () => {
-            const { status } = response;
-            const originalImages = await Image.findAll({
-              where: {
-                bucketName: GALERIES_BUCKET_PP,
-              },
-            });
-            expect(status).toBe(200);
-            expect(originalImages.length).toBe(1);
-            expect(profilePictures[0].originalImageId).toBe(originalImages[0].id);
-          });
-          it('store the croped image', async () => {
-            const { status } = response;
-            const cropedImages = await Image.findAll({
-              where: {
-                bucketName: GALERIES_BUCKET_PP_CROP,
-              },
-            });
-            expect(status).toBe(200);
-            expect(cropedImages.length).toBe(1);
-            expect(profilePictures[0].cropedImageId).toBe(cropedImages[0].id);
-          });
+          it('should set all other profile picture\'s to null', async () => {});
           it('store the pending image', async () => {
             const { status } = response;
             const pendingImages = await Image.findAll({
@@ -113,80 +89,6 @@ describe('users', () => {
             const { body: { id } } = response;
             const { currentProfilePictureId } = await user.reload();
             expect(currentProfilePictureId).toBe(id);
-          });
-          describe('return this profile picture', () => {
-            it('with only relevent attributes', async () => {
-              const { body, status } = response;
-              const cropedImage = await Image.findByPk(body.cropedImage.id);
-              const originalImage = await Image.findByPk(body.originalImage.id);
-              const pendingImage = await Image.findByPk(body.pendingImage.id);
-              expect(status).toBe(200);
-              expect(body.id).toBe(user.id);
-              expect(body.createdAt).toBeUndefined();
-              expect(body.cropedImageId).toBeUndefined();
-              expect(body.deletedAt).toBeUndefined();
-              expect(body.originalImageId).toBeUndefined();
-              expect(body.pendingImageId).toBeUndefined();
-              expect(body.updatedAt).toBeUndefined();
-              expect(body.userId).toBeUndefined();
-              expect(cropedImage).not.toBeNull();
-              expect(body.cropedImage.bucketName).toBe(cropedImage!.bucketName);
-              expect(body.cropedImage.fileName).toBe(cropedImage!.fileName);
-              expect(body.cropedImage.format).toBe(cropedImage!.format);
-              expect(body.cropedImage.height).toBe(cropedImage!.height);
-              expect(body.cropedImage.size).toBe(cropedImage!.size);
-              expect(body.cropedImage.width).toBe(cropedImage!.width);
-              expect(body.cropedImage.createdAt).toBeUndefined();
-              expect(body.cropedImage.deletedAt).toBeUndefined();
-              expect(body.cropedImage.updatedAt).toBeUndefined();
-              expect(body.originalImage.id).toBe(originalImage!.id);
-              expect(body.originalImage.bucketName).toBe(originalImage!.bucketName);
-              expect(body.originalImage.fileName).toBe(originalImage!.fileName);
-              expect(body.originalImage.format).toBe(originalImage!.format);
-              expect(body.originalImage.height).toBe(originalImage!.height);
-              expect(body.originalImage.size).toBe(originalImage!.size);
-              expect(body.originalImage.width).toBe(originalImage!.width);
-              expect(body.originalImage.createdAt).toBeUndefined();
-              expect(body.originalImage.deletedAt).toBeUndefined();
-              expect(body.originalImage.updatedAt).toBeUndefined();
-              expect(body.pendingImage.id).toBe(pendingImage!.id);
-              expect(body.pendingImage.bucketName).toBe(pendingImage!.bucketName);
-              expect(body.pendingImage.fileName).toBe(pendingImage!.fileName);
-              expect(body.pendingImage.format).toBe(pendingImage!.format);
-              expect(body.pendingImage.height).toBe(pendingImage!.height);
-              expect(body.pendingImage.size).toBe(pendingImage!.size);
-              expect(body.pendingImage.width).toBe(pendingImage!.width);
-              expect(body.pendingImage.createdAt).toBeUndefined();
-              expect(body.pendingImage.deletedAt).toBeUndefined();
-              expect(body.pendingImage.updatedAt).toBeUndefined();
-            });
-            it('with signed urls', async () => {
-              const {
-                body: {
-                  cropedImage,
-                  originalImage,
-                  pendingImage,
-                }, status,
-              } = response;
-              expect(status).toBe(200);
-              expect(cropedImage.signedUrl).not.toBeNull();
-              expect(originalImage.signedUrl).not.toBeNull();
-              expect(pendingImage.signedUrl).not.toBeNull();
-            });
-          });
-          it('shouls emit the percentage progression', async (done) => {
-            let finalPercentage = 0;
-            socket.on('uploadImage', (percentage: number) => {
-              expect(percentage).toBeGreaterThan(finalPercentage);
-              expect(percentage).toBeLessThanOrEqual(1);
-              finalPercentage = percentage;
-            });
-            await agent
-              .post('/users/me/ProfilePictures')
-              .set('authorization', token)
-              .attach('image', `${__dirname}/../../ressources/image.jpg`);
-            expect(finalPercentage).toBe(1);
-            if (finalPercentage === 1) done();
           });
         });
         describe('should return error 400 if', () => {

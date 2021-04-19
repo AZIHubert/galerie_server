@@ -138,6 +138,7 @@ export default async (req: Request, res: Response) => {
   // Save a pending image (1x1px) on Google Bucket.
   const pendingImagePromise: Promise<Image> = new Promise((resolve, reject) => {
     const fileName = `${Date.now()}_${uuidv4()}.jpg`;
+
     // Need to twist saturation and brightness,
     // if not, the image is to grayish.
     const image = sharp(buffer)

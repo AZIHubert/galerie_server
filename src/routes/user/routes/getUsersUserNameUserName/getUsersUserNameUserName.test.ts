@@ -62,11 +62,17 @@ describe('users', () => {
         describe('should return status 200 and', () => {
           it('should not return current user', async () => {
             const {
-              body,
+              body: {
+                action,
+                data: {
+                  users,
+                },
+              },
               status,
             } = await getUsersUserName(app, token, user.userName);
+            expect(action).toBe('GET');
             expect(status).toBe(200);
-            expect(body.length).toBe(0);
+            expect(users.length).toBe(0);
           });
           it('should not return not confirmed users', async () => {
             const { userName } = await createUser({
@@ -74,8 +80,14 @@ describe('users', () => {
               email: 'user2@email.com',
               userName: 'user2',
             });
-            const { body } = await getUsersUserName(app, token, userName);
-            expect(body.length).toBe(0);
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getUsersUserName(app, token, userName);
+            expect(users.length).toBe(0);
           });
           it('should not return black listed users', async () => {
             const {
@@ -90,8 +102,14 @@ describe('users', () => {
               reason: 'black list user',
               userId: id,
             });
-            const { body } = await getUsersUserName(app, token, userName);
-            expect(body.length).toBe(0);
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getUsersUserName(app, token, userName);
+            expect(users.length).toBe(0);
           });
           it('should return users with relevent attributes', async () => {
             const {
@@ -106,7 +124,11 @@ describe('users', () => {
               userName: 'user2',
             });
             const {
-              body: [returnedUser],
+              body: {
+                data: {
+                  users: [returnedUser],
+                },
+              },
             } = await getUsersUserName(app, token, userName);
             expect(returnedUser.authTokenVersion).toBeUndefined();
             expect(returnedUser.blackList).toBeUndefined();
@@ -138,10 +160,22 @@ describe('users', () => {
                 });
               }),
             );
-            const { body: bodyPageOne } = await getUsersUserName(app, token, userName, 1);
-            const { body: bodyPageTwo } = await getUsersUserName(app, token, userName, 2);
-            expect(bodyPageOne.length).toBe(20);
-            expect(bodyPageTwo.length).toBe(5);
+            const {
+              body: {
+                data: {
+                  users: firstPack,
+                },
+              },
+            } = await getUsersUserName(app, token, userName, 1);
+            const {
+              body: {
+                data: {
+                  users: secondPack,
+                },
+              },
+            } = await getUsersUserName(app, token, userName, 2);
+            expect(firstPack.length).toBe(20);
+            expect(secondPack.length).toBe(5);
           });
           it('should be case insensitive', async () => {
             const {
@@ -150,8 +184,14 @@ describe('users', () => {
               email: 'user2@email.com',
               userName: 'user2',
             });
-            const { body } = await getUsersUserName(app, token, userName.toUpperCase());
-            expect(body.length).toBe(1);
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getUsersUserName(app, token, userName.toUpperCase());
+            expect(users.length).toBe(1);
           });
           it('should return current profile picture with relevent attributes', async () => {
             const {
@@ -176,9 +216,13 @@ describe('users', () => {
               },
             } = await postProfilePicture(app, tokenTwo);
             const {
-              body: [{
-                currentProfilePicture,
-              }],
+              body: {
+                data: {
+                  users: [{
+                    currentProfilePicture,
+                  }],
+                },
+              },
             } = await getUsersUserName(app, token, userName);
             expect(currentProfilePicture.createdAt).toBeUndefined();
             expect(currentProfilePicture.cropedImageId).toBeUndefined();

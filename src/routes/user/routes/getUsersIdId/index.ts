@@ -165,5 +165,10 @@ export default async (req: Request, res: Response) => {
       : undefined,
   };
   delete userWithProfilePicture.blackList;
-  return res.status(200).send(userWithProfilePicture);
+  return res.status(200).send({
+    action: 'GET',
+    data: {
+      user: userWithProfilePicture,
+    },
+  });
 };

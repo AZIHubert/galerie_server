@@ -25,7 +25,6 @@ interface FrameI {
   tableName: 'frame',
 })
 export default class Frame extends Model implements FrameI {
-  // Id of the belonging galerie.
   @ForeignKey(() => Galerie)
   @Column({
     type: DataType.BIGINT,
@@ -46,7 +45,6 @@ export default class Frame extends Model implements FrameI {
   })
   numOfLikes!: number;
 
-  // Id of the user who post the frame.
   @ForeignKey(() => User)
   @Column({
     type: DataType.BIGINT,

@@ -77,9 +77,15 @@ describe('users', () => {
               userName: 'user2',
             });
             const {
-              body: returnedUser,
+              body: {
+                action,
+                data: {
+                  user: returnedUser,
+                },
+              },
               status,
             } = await getUserId(app, token, id);
+            expect(action).toBe('GET');
             expect(status).toBe(200);
             expect(returnedUser.authTokenVersion).toBeUndefined();
             expect(returnedUser.blackList).toBeUndefined();
@@ -124,7 +130,11 @@ describe('users', () => {
             } = await postProfilePicture(app, tokenTwo);
             const {
               body: {
-                currentProfilePicture,
+                data: {
+                  user: {
+                    currentProfilePicture,
+                  },
+                },
               },
             } = await getUserId(app, token, id);
             expect(currentProfilePicture.createdAt).toBeUndefined();
@@ -148,9 +158,12 @@ describe('users', () => {
         });
         describe('should return status 400 if', () => {
           it('params.id is the same than the current one', async () => {
-            const { body, status } = await getUserId(app, token, user.id);
+            const {
+              body,
+              status,
+            } = await getUserId(app, token, user.id);
             expect(status).toBe(400);
-            expect(body).toStrictEqual({
+            expect(body).toEqual({
               errors: 'params.id cannot be the same as your current one',
             });
           });
@@ -162,7 +175,7 @@ describe('users', () => {
               status,
             } = await getUserId(app, token, '1000');
             expect(status).toBe(404);
-            expect(body).toStrictEqual({
+            expect(body).toEqual({
               errors: USER_NOT_FOUND,
             });
           });
@@ -179,7 +192,7 @@ describe('users', () => {
               status,
             } = await getUserId(app, token, id);
             expect(status).toBe(404);
-            expect(body).toStrictEqual({
+            expect(body).toEqual({
               errors: USER_NOT_FOUND,
             });
           });
@@ -200,7 +213,7 @@ describe('users', () => {
               status,
             } = await getUserId(app, token, id);
             expect(status).toBe(404);
-            expect(body).toStrictEqual({
+            expect(body).toEqual({
               errors: USER_NOT_FOUND,
             });
           });

@@ -48,11 +48,11 @@ export default class Notification extends Model implements NotificationI {
   id!: string;
 
   // If type === 'frame':
-  // it means that a/many user(s) likes
+  // it means that many users likes
   // a frame posted by the user.
   // ------------------------------
   // If type === 'invitation':
-  // it mean that a/many users(s) has(ve) subscribe
+  // it mean that many users have subscribe
   // to a galerie where the user is the creator/admin.
   @Column({
     type: DataType.STRING,

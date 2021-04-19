@@ -84,15 +84,21 @@ describe('users', () => {
     it('should destroy all likes', () => {});
 
     describe('DELETE', () => {
-      describe('should return status 204 and', () => {
+      describe('should return status 200 and', () => {
         it('delete user', async () => {
-          const { status } = await deleteUser(app, token, {
+          const {
+            body,
+            status,
+          } = await deleteUser(app, token, {
             deleteAccountSentence: 'delete my account',
             password: userPassword,
             userNameOrEmail: user.email,
           });
           const users = await User.findAll();
-          expect(status).toBe(204);
+          expect(body).toEqual({
+            action: 'DELETE',
+          });
+          expect(status).toBe(200);
           expect(users.length).toBe(0);
         });
 

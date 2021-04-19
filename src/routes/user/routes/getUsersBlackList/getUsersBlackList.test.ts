@@ -70,9 +70,16 @@ describe('users', () => {
             email: 'user2@email.com',
             userName: 'user2',
           });
-          const { body, status } = await getBlackListedUsers(app, token);
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+            status,
+          } = await getBlackListedUsers(app, token);
           expect(status).toBe(200);
-          expect(body.length).toBe(0);
+          expect(users.length).toBe(0);
         });
         it('get all black listed users with relevent attributes', async () => {
           const {
@@ -96,7 +103,11 @@ describe('users', () => {
             userId: id,
           });
           const {
-            body: [returnedUser],
+            body: {
+              data: {
+                users: [returnedUser],
+              },
+            },
           } = await getBlackListedUsers(app, token);
           expect(returnedUser.authTokenVersion).toBeUndefined();
           expect(returnedUser.confirmed).toBeUndefined();
@@ -153,10 +164,22 @@ describe('users', () => {
               });
             }),
           );
-          const { body: bodyFirst } = await getBlackListedUsers(app, token);
-          const { body: bodySecond } = await getBlackListedUsers(app, token, 2);
-          expect(bodyFirst.length).toEqual(20);
-          expect(bodySecond.length).toEqual(5);
+          const {
+            body: {
+              data: {
+                users: firstPack,
+              },
+            },
+          } = await getBlackListedUsers(app, token);
+          const {
+            body: {
+              data: {
+                users: secondPack,
+              },
+            },
+          } = await getBlackListedUsers(app, token, 2);
+          expect(firstPack.length).toEqual(20);
+          expect(secondPack.length).toEqual(5);
         });
         it('should include users current profile picture', async () => {
           const {
@@ -186,9 +209,13 @@ describe('users', () => {
             userId: id,
           });
           const {
-            body: [{
-              currentProfilePicture,
-            }],
+            body: {
+              data: {
+                users: [{
+                  currentProfilePicture,
+                }],
+              },
+            },
           } = await getBlackListedUsers(app, token);
           expect(currentProfilePicture.createdAt).toBeUndefined();
           expect(currentProfilePicture.cropedImageId).toBeUndefined();
@@ -228,13 +255,17 @@ describe('users', () => {
             userId: id,
           });
           const {
-            body: [{
-              blackList: {
-                admin: {
-                  currentProfilePicture,
-                },
+            body: {
+              data: {
+                users: [{
+                  blackList: {
+                    admin: {
+                      currentProfilePicture,
+                    },
+                  },
+                }],
               },
-            }],
+            },
           } = await getBlackListedUsers(app, token);
           expect(currentProfilePicture.createdAt).toBeUndefined();
           expect(currentProfilePicture.cropedImageId).toBeUndefined();

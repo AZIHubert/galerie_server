@@ -39,6 +39,8 @@ export default class Invitation extends Model implements InvitationI {
 
   // How many users can use this invitation
   // to subscribe to this galerie (invitation.galerieId)
+  // Every time a user subscribe to a galerie
+  // using this invitation, numOfInvit decrement by 1.
   // If null, an inlimited amount of users
   // can use this invitation.
   @Column({

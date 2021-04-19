@@ -24,8 +24,7 @@ interface GalerieI {
   tableName: 'galerie',
 })
 export default class Galerie extends Model implements GalerieI {
-  // If the creator of this galerie
-  // has delete his account,
+  // If the creator of this galerie has delete his account,
   // and there are still subscriber users remaining,
   // this galerie become archived.
   // No frames/invitations can be created,
@@ -47,8 +46,7 @@ export default class Galerie extends Model implements GalerieI {
   id!: string;
 
   // A CSS gradiant background
-  // randomly generated when the galerie
-  // is create.
+  // randomly generated when the galerie is create.
   @Column({
     allowNull: false,
     type: DataType.STRING,

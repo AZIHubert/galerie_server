@@ -62,16 +62,20 @@ describe('users', () => {
             it('return profile picture', async () => {
               const {
                 body: {
-                  profilePicture: {
-                    id,
-                    current,
+                  data: {
+                    profilePicture: {
+                      id,
+                      current,
+                    },
                   },
                 },
               } = await postProfilePicture(app, token);
               const {
                 body: {
                   action,
-                  profilePicture,
+                  data: {
+                    profilePicture,
+                  },
                 },
                 status,
               } = await getProfilePicture(app, token, id);
@@ -97,7 +101,10 @@ describe('users', () => {
             });
             describe('should return status 404 if', () => {
               it('profile picture id not found', async () => {
-                const { body, status } = await getProfilePicture(app, token, '1000');
+                const {
+                  body,
+                  status,
+                } = await getProfilePicture(app, token, '1000');
                 expect(status).toBe(404);
                 expect(body).toStrictEqual({
                   errors: 'profile picture not found',

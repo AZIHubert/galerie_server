@@ -72,6 +72,17 @@ export default class Image extends Model implements ImageI {
   })
   size!: number;
 
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  width!: number;
+
+  @HasOne(() => ProfilePicture, {
+    onDelete: 'CASCADE',
+  })
+  cropedProfilePicture!: ProfilePicture;
+
   @HasOne(() => ProfilePicture, {
     onDelete: 'CASCADE',
   })
@@ -81,15 +92,4 @@ export default class Image extends Model implements ImageI {
     onDelete: 'CASCADE',
   })
   pendingProfilePicture!: ProfilePicture;
-
-  @HasOne(() => ProfilePicture, {
-    onDelete: 'CASCADE',
-  })
-  cropedProfilePicture!: ProfilePicture;
-
-  @Column({
-    allowNull: false,
-    type: DataType.INTEGER,
-  })
-  width!: number;
 }

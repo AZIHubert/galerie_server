@@ -61,23 +61,37 @@ describe('users', () => {
         describe('should return status 200 and', () => {
           it('return an empty array', async () => {
             const {
-              body,
+              body: {
+                action,
+                data: {
+                  profilePictures,
+                },
+              },
               status,
             } = await getProfilePictures(app, token);
+            expect(action).toBe('GET');
+            expect(profilePictures.length).toBe(0);
             expect(status).toBe(200);
-            expect(body.length).toBe(0);
           });
           it('return profiles pictures with relevant attributes', async () => {
             const {
               body: {
-                profilePicture: {
-                  id: profilePictureId,
-                  current,
+                data: {
+                  profilePicture: {
+                    id: profilePictureId,
+                    current,
+                  },
                 },
               },
             } = await postProfilePicture(app, token);
             const {
-              body: [returnProfilePicture],
+              body: {
+                data: {
+                  profilePictures: [
+                    returnProfilePicture,
+                  ],
+                },
+              },
             } = await getProfilePictures(app, token);
             expect(returnProfilePicture.createdAt).toBeUndefined();
             expect(returnProfilePicture.cropedImageId).toBeUndefined();
@@ -104,8 +118,14 @@ describe('users', () => {
                 await postProfilePicture(app, token);
               }),
             );
-            const { body: bodyFirst } = await getProfilePictures(app, token);
-            expect(bodyFirst.length).toEqual(10);
+            const {
+              body: {
+                data: {
+                  profilePictures: firstPack,
+                },
+              },
+            } = await getProfilePictures(app, token);
+            expect(firstPack.length).toEqual(10);
           });
         });
       });

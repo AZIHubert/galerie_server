@@ -61,8 +61,17 @@ describe('users', () => {
     describe('should return status 200 and', () => {
       describe('get all users', () => {
         it('exept current', async () => {
-          const { body, status } = await getUsers(app, token);
-          expect(body.length).toBe(0);
+          const {
+            body: {
+              action,
+              data: {
+                users,
+              },
+            },
+            status,
+          } = await getUsers(app, token);
+          expect(action).toBe('GET');
+          expect(users.length).toBe(0);
           expect(status).toBe(200);
         });
         it('exept not confirmed', async () => {
@@ -71,8 +80,14 @@ describe('users', () => {
             email: 'user2@email.com',
             userName: 'user2',
           });
-          const { body } = await getUsers(app, token);
-          expect(body.length).toBe(0);
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getUsers(app, token);
+          expect(users.length).toBe(0);
         });
         it('exept black listed users', async () => {
           const { id } = await createUser({
@@ -84,10 +99,16 @@ describe('users', () => {
             reason: 'black list user',
             userId: id,
           });
-          const { body } = await getUsers(app, token);
-          expect(body.length).toBe(0);
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getUsers(app, token);
+          expect(users.length).toBe(0);
         });
-        it('should return only the first 20th users order by userName', async () => {
+        it('should return a pack of 20 users', async () => {
           const numOfUsers = new Array(25).fill(0);
           await Promise.all(
             numOfUsers.map(async (_, index) => {
@@ -97,10 +118,22 @@ describe('users', () => {
               });
             }),
           );
-          const { body: bodyFirst } = await getUsers(app, token);
-          const { body: bodySecond } = await getUsers(app, token, 2);
-          expect(bodyFirst.length).toBe(20);
-          expect(bodySecond.length).toBe(5);
+          const {
+            body: {
+              data: {
+                users: firstPack,
+              },
+            },
+          } = await getUsers(app, token);
+          const {
+            body: {
+              data: {
+                users: secondPack,
+              },
+            },
+          } = await getUsers(app, token, 2);
+          expect(firstPack.length).toBe(20);
+          expect(secondPack.length).toBe(5);
         });
         it('return only relevent attributes', async () => {
           const {
@@ -115,7 +148,11 @@ describe('users', () => {
             userName: 'user2',
           });
           const {
-            body: [returnedUser],
+            body: {
+              data: {
+                users: [returnedUser],
+              },
+            },
           } = await getUsers(app, token);
           expect(returnedUser.authTokenVersion).toBeUndefined();
           expect(returnedUser.blackList).toBeUndefined();
@@ -156,9 +193,13 @@ describe('users', () => {
             },
           } = await postProfilePicture(app, tokenTwo);
           const {
-            body: [{
-              currentProfilePicture,
-            }],
+            body: {
+              data: {
+                users: [{
+                  currentProfilePicture,
+                }],
+              },
+            },
           } = await getUsers(app, token);
           expect(currentProfilePicture.createdAt).toBeUndefined();
           expect(currentProfilePicture.cropedImageId).toBeUndefined();

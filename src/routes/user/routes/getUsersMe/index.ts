@@ -143,5 +143,10 @@ export default async (req: Request, res: Response) => {
       ? currentProfilePicture.toJSON()
       : undefined,
   };
-  return res.status(200).send(userWithProfilePicture);
+  return res.status(200).send({
+    action: 'GET',
+    data: {
+      user: userWithProfilePicture,
+    },
+  });
 };

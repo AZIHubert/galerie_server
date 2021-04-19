@@ -61,9 +61,15 @@ describe('users', () => {
       describe('should return status 200 and', () => {
         it('return your own account with relevent properties', async () => {
           const {
-            body: returnedUser,
+            body: {
+              action,
+              data: {
+                user: returnedUser,
+              },
+            },
             status,
           } = await getMe(app, token);
+          expect(action).toBe('GET');
           expect(status).toBe(200);
           expect(returnedUser.authTokenVersion).toBeUndefined();
           expect(returnedUser.blackList).toBeUndefined();
@@ -96,7 +102,11 @@ describe('users', () => {
           } = await postProfilePicture(app, token);
           const {
             body: {
-              currentProfilePicture,
+              data: {
+                user: {
+                  currentProfilePicture,
+                },
+              },
             },
           } = await getMe(app, token);
           expect(currentProfilePicture.createdAt).toBeUndefined();

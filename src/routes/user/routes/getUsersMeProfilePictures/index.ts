@@ -116,5 +116,10 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(200).send(profilePictures);
+  return res.status(200).send({
+    action: 'GET',
+    data: {
+      profilePictures,
+    },
+  });
 };

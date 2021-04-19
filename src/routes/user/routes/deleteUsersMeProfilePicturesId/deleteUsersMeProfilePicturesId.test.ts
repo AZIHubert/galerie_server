@@ -72,8 +72,10 @@ describe('users', () => {
             it('return action type/profile picture\'id and delete profile picture/image and all images from Google buckets', async () => {
               const {
                 body: {
-                  profilePicture: {
-                    id,
+                  data: {
+                    profilePicture: {
+                      id,
+                    },
                   },
                 },
               } = await postProfilePicture(app, token);
@@ -94,7 +96,7 @@ describe('users', () => {
               const profilePictures = await ProfilePicture.findAll();
               expect(status).toBe(200);
               expect(body.action).toEqual('DELETE');
-              expect(id).toEqual(body.id);
+              expect(body.data.id).toEqual(id);
               expect(bucketCropedImages.length).toBe(0);
               expect(bucketOriginalImages.length).toBe(0);
               expect(bucketPendingImages.length).toBe(0);
