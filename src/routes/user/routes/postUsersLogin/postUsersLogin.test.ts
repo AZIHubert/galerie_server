@@ -1,7 +1,5 @@
-import { hash } from 'bcrypt';
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
-import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
@@ -14,47 +12,38 @@ import {
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
-import saltRounds from '@src/helpers/saltRounds';
+import {
+  createUser,
+  login,
+} from '@src/helpers/test';
+
 import initApp from '@src/server';
 
-const clearDatas = async (sequelize: Sequelize) => {
-  await User.sync({ force: true });
-  await sequelize.model('Sessions').sync({ force: true });
-};
-
-const newUser = {
-  email: 'user@email.com',
-  password: 'password',
-  userName: 'userName',
-};
+const userPassword = 'Password0!';
 
 describe('users', () => {
-  let agent: request.SuperAgentTest;
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
   });
+
   beforeEach(async (done) => {
-    agent = request.agent(app);
     try {
-      await clearDatas(sequelize);
-      const hashPassword = await hash(newUser.password, saltRounds);
-      user = await User.create({
-        ...newUser,
-        confirmed: true,
-        password: hashPassword,
-      });
+      await sequelize.sync({ force: true });
+      user = await createUser({});
     } catch (err) {
       done(err);
     }
     done();
   });
+
   afterAll(async (done) => {
     try {
-      await clearDatas(sequelize);
+      await sequelize.sync({ force: true });
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -62,138 +51,133 @@ describe('users', () => {
     app.close();
     done();
   });
+
   describe('login', () => {
     describe('POST', () => {
-      describe('should return status 200', () => {
-        it('set cookie', async () => {
-          const { headers, status } = await request(app)
-            .post('/users/login')
-            .send({
-              userNameOrEmail: user.userName,
-              password: newUser.password,
-            });
-          expect(status).toBe(200);
-          expect(headers['set-cookie'][0]).toMatch(/sid=/);
-        });
+      describe('should return status 200 and', () => {
         it('return token', async () => {
-          const { body, status } = await request(app)
-            .post('/users/login')
-            .send({
-              userNameOrEmail: user.userName,
-              password: newUser.password,
-            });
-          expect(status).toBe(200);
-          expect(typeof body.token).toBe('string');
+          const {
+            body,
+            status,
+          } = await login(
+            app,
+            user.email,
+            userPassword,
+          );
           expect(body.expiresIn).toBe(1800);
+          expect(body.token).toBeTruthy();
+          expect(status).toBe(200);
         });
-        it('trim req body', async () => {
-          const { status } = await request(app)
-            .post('/users/login')
-            .send({
-              userNameOrEmail: ` ${user.userName} `,
-              password: newUser.password,
-            });
+        it('trim request body.userNameOrEmail', async () => {
+          const { status } = await login(
+            app,
+            ` ${user.email} `,
+            userPassword,
+          );
           expect(status).toBe(200);
         });
       });
-      describe('if username or email', () => {
-        it('is empty', async () => {
-          const { body, status } = await agent
-            .post('/users/login')
-            .send({
-              userNameOrEmail: '',
-              password: newUser.password,
-            });
-          expect(status).toBe(400);
-          expect(body).toStrictEqual({
-            errors: {
+      describe('should return status 400', () => {
+        describe('if usernameOrEmail is', async () => {
+          it('empty', async () => {
+            const {
+              body,
+              status,
+            } = await login(
+              app,
+              '',
+              userPassword,
+            );
+            expect(body.errors).toEqual({
               userNameOrEmail: FIELD_IS_EMPTY,
-            },
-          });
-        });
-        it('is not a string', async () => {
-          const { body, status } = await agent
-            .post('/users/login')
-            .send({
-              userNameOrEmail: 123456789,
-              password: newUser.password,
             });
-          expect(status).toBe(400);
-          expect(body).toStrictEqual({
-            errors: {
+            expect(status).toBe(400);
+          });
+          it('not a string', async () => {
+            const {
+              body,
+              status,
+            } = await login(
+              app,
+              123,
+              userPassword,
+            );
+            expect(body.errors).toEqual({
               userNameOrEmail: FIELD_NOT_A_STRING,
-            },
+            });
+            expect(status).toBe(400);
           });
         });
-        it('is not send', async () => {
-          const { body, status } = await agent
-            .post('/users/login')
-            .send({
-              password: newUser.password,
-            });
-          expect(status).toBe(400);
-          expect(body).toStrictEqual({
-            errors: {
-              userNameOrEmail: FIELD_IS_REQUIRED,
-            },
+        it('not send', async () => {
+          const {
+            body,
+            status,
+          } = await login(
+            app,
+            undefined,
+            userPassword,
+          );
+          expect(body.errors).toEqual({
+            userNameOrEmail: FIELD_IS_REQUIRED,
           });
+          expect(status).toBe(400);
         });
       });
       describe('if password', () => {
-        it('is empty', async () => {
-          const { body, status } = await agent
-            .post('/users/login')
-            .send({
-              userNameOrEmail: user.email,
-              password: '',
-            });
-          expect(status).toBe(400);
-          expect(body).toStrictEqual({
-            errors: {
-              password: FIELD_IS_EMPTY,
-            },
+        it('empty', async () => {
+          const {
+            body,
+            status,
+          } = await login(
+            app,
+            user.email,
+            '',
+          );
+          expect(body.errors).toEqual({
+            password: FIELD_IS_EMPTY,
           });
+          expect(status).toBe(400);
         });
         it('is not a string', async () => {
-          const { body, status } = await agent
-            .post('/users/login')
-            .send({
-              userNameOrEmail: user.userName,
-              password: 123456789,
-            });
-          expect(status).toBe(400);
-          expect(body).toStrictEqual({
-            errors: {
-              password: FIELD_NOT_A_STRING,
-            },
+          const {
+            body,
+            status,
+          } = await login(
+            app,
+            user.email,
+            123,
+          );
+          expect(body.errors).toEqual({
+            password: FIELD_NOT_A_STRING,
           });
+          expect(status).toBe(400);
         });
         it('is not send', async () => {
-          const { body, status } = await agent
-            .post('/users/login')
-            .send({
-              userNameOrEmail: user.email,
-            });
-          expect(status).toBe(400);
-          expect(body).toStrictEqual({
-            errors: {
-              password: FIELD_IS_REQUIRED,
-            },
+          const {
+            body,
+            status,
+          } = await login(
+            app,
+            user.email,
+          );
+          expect(body.errors).toStrictEqual({
+            password: FIELD_IS_REQUIRED,
           });
+          expect(status).toBe(400);
         });
         it('not match', async () => {
-          const { body, status } = await agent
-            .post('/users/login')
-            .send({
-              userNameOrEmail: user.email,
-              password: 'wrongPassword',
-            });
-          expect(status).toBe(400);
-          expect(body).toStrictEqual({
-            errors: {
-              password: WRONG_PASSWORD,
-            },
+          const {
+            body,
+            status,
+          } = await login(
+            app,
+            user.email,
+            'wrong password',
+          );
+          expect(body.errors).toEqual({
+            password: WRONG_PASSWORD,
           });
+          expect(status).toBe(400);
         });
       });
     });
