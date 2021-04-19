@@ -14,4 +14,5 @@ export { default as login } from './login';
 export { default as postFrame } from './postFrame';
 export { default as postGalerie } from './postGalerie';
 export { default as postInvitation } from './postInvitation';
+export { default as postLoginSocialMedia } from './postLoginSocialMedia';
 export { default as postProfilePicture } from './postProfilePicture';

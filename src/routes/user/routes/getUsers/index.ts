@@ -56,6 +56,7 @@ export default async (req: Request, res: Response) => {
           'authTokenVersion',
           'confirmed',
           'confirmTokenVersion',
+          'emailTokenVersion',
           'email',
           'facebookId',
           'googleId',

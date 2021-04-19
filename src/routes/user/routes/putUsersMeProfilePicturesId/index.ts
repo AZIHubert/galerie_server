@@ -69,16 +69,16 @@ export default async (req: Request, res: Response) => {
       errors: 'profile picture not found',
     });
   }
-  if (user.currentProfilePictureId === id) {
-    try {
-      await user.update({ currentProfilePictureId: null });
-      return res.status(200).send({
-        type: 'PUT',
-      });
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-  }
+  // if (user.currentProfilePictureId === id) {
+  //   try {
+  //     await user.update({ currentProfilePictureId: null });
+  //     return res.status(200).send({
+  //       type: 'PUT',
+  //     });
+  //   } catch (err) {
+  //     return res.status(500).send(err);
+  //   }
+  // }
   try {
     await user.update({ currentProfilePictureId: id });
     const cropedImageSignedUrl = await signedUrl(

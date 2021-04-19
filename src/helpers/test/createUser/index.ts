@@ -9,12 +9,16 @@ import saltRounds from '@src/helpers/saltRounds';
 export default async ({
   confirmed = true,
   email,
+  facebookId,
+  googleId,
   password,
   role = 'user',
   userName,
 }: {
   confirmed?: boolean;
   email?: string;
+  facebookId?: string;
+  googleId?: string;
   password?: string;
   role?: 'admin' | 'user'
   userName?: string;
@@ -22,6 +26,8 @@ export default async ({
   const newUser = {
     confirmed,
     email: email === undefined ? 'user@email.com' : email,
+    facebookId,
+    googleId,
     pseudonym: userName || 'pseudonym',
     role,
     userName: userName === undefined ? '@userName' : `@${userName}`,

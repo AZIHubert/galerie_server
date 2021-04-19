@@ -1,5 +1,7 @@
-import BlackList from '@src/db/models/blackList';
-import User from '@src/db/models/user';
+import {
+  BlackList,
+  User,
+} from '@src/db/models';
 
 const blackListExpire = (blackList: BlackList) => {
   if (blackList.time) {
@@ -14,11 +16,14 @@ const blackListExpire = (blackList: BlackList) => {
 };
 
 export default async (user: User) => {
-  if (user.blackListId) {
-    const blackList = await BlackList.findByPk(user.blackListId);
-    if (blackList && blackListExpire(blackList)) {
+  const blackList = await BlackList.findOne({
+    where: {
+      userId: user.id,
+    },
+  });
+  if (blackList) {
+    if (blackListExpire(blackList)) {
       await blackList.destroy();
-      await user.update({ blackListId: null });
       return false;
     }
     return true;

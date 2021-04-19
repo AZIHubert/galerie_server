@@ -41,19 +41,19 @@ export default async (req: Request, res: Response) => {
       errors: 'you can\'t black listed an admin',
     });
   }
-  if (user.blackListId) {
-    try {
-      await BlackList.destroy({
-        where: {
-          id: user.blackListId,
-        },
-      });
-      await user.update({ blackListId: null });
-      return res.status(204).end();
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-  }
+  // if (user.blackListId) {
+  //   try {
+  //     await BlackList.destroy({
+  //       where: {
+  //         id: user.blackListId,
+  //       },
+  //     });
+  //     await user.update({ blackListId: null });
+  //     return res.status(204).end();
+  //   } catch (err) {
+  //     return res.status(500).send(err);
+  //   }
+  // }
   const { error, value } = validateBlackListUser(req.body);
   if (error) {
     return res.status(400).send({

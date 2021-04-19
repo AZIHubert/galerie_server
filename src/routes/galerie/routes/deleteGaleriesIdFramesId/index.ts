@@ -64,14 +64,14 @@ export default async (req: Request, res: Response) => {
     });
   }
   try {
-    if (
-      frame
-        .galeriePictures
-        .map((galeriePicture) => galeriePicture.id)
-        .includes(galerie.coverPictureId)
-    ) {
-      await galerie.update({ coverPictureId: null });
-    }
+    // if (
+    //   frame
+    //     .galeriePictures
+    //     .map((galeriePicture) => galeriePicture.id)
+    //     .includes(galerie.coverPictureId)
+    // ) {
+    //   await galerie.update({ coverPictureId: null });
+    // }
     const galeriePictures = await GaleriePicture.findAll({
       where: { frameId },
       include: [

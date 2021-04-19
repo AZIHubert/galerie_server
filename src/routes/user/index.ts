@@ -27,8 +27,7 @@ import {
   putUsersBlacklistId,
   putUsersConfirmation,
   postUsersLogin,
-  postUsersAuthMobileFacebook,
-  postUsersAuthMobileGoogle,
+  postUsersLoginSocialMedia,
   putUsersMePseudonym,
   putUsersMeProfilePicturesId,
   postUsersMeProfilePictures,
@@ -49,8 +48,7 @@ const usersRoutes: (io: socketIo.Server) => Router = (io: socketIo.Server) => {
   router.post('/confirmation/', shouldNotBeAuth, postUsersConfirmation);
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.post('/login/', shouldNotBeAuth, postUsersLogin);
-  router.post('/login/facebook', shouldNotBeAuth, postUsersAuthMobileFacebook);
-  router.post('/login/google', shouldNotBeAuth, postUsersAuthMobileGoogle);
+  router.post('/login/socialMedia', shouldNotBeAuth, postUsersLoginSocialMedia);
   router.post('/resetPassword/', shouldNotBeAuth, postUsersResetPassword);
   router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
   router.get('/me', passport.authenticate('jwt', { session: false }), getUsersMe);

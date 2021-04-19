@@ -7,7 +7,7 @@ import {
   User,
 } from '@src/db/models';
 
-import signedUrl from '@src/helpers/signedUrl';
+// import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -105,42 +105,42 @@ export default async (req: Request, res: Response) => {
       errors: 'ticket not found',
     });
   }
-  try {
-    if (ticket.user && ticket.user.currentProfilePicture) {
-      const {
-        currentProfilePicture: {
-          cropedImage: {
-            bucketName: cropedImageBucketName,
-            fileName: cropedImageFileName,
-          },
-          originalImage: {
-            bucketName: originalImageBucketName,
-            fileName: originalImageFileName,
-          },
-          pendingImage: {
-            bucketName: pendingImageBucketName,
-            fileName: pendingImageFileName,
-          },
-        },
-      } = ticket.user;
-      const cropedImageSignedUrl = await signedUrl(
-        cropedImageBucketName,
-        cropedImageFileName,
-      );
-      ticket.user.currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
-      const originalImageSignedUrl = await signedUrl(
-        originalImageBucketName,
-        originalImageFileName,
-      );
-      ticket.user.currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
-      const pendingImageSignedUrl = await signedUrl(
-        pendingImageBucketName,
-        pendingImageFileName,
-      );
-      ticket.user.currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
-    }
-  } catch (err) {
-    return res.status(500).send(err);
-  }
+  // try {
+  //   if (ticket.user && ticket.user.currentProfilePicture) {
+  //     const {
+  //       currentProfilePicture: {
+  //         cropedImage: {
+  //           bucketName: cropedImageBucketName,
+  //           fileName: cropedImageFileName,
+  //         },
+  //         originalImage: {
+  //           bucketName: originalImageBucketName,
+  //           fileName: originalImageFileName,
+  //         },
+  //         pendingImage: {
+  //           bucketName: pendingImageBucketName,
+  //           fileName: pendingImageFileName,
+  //         },
+  //       },
+  //     } = ticket.user;
+  //     const cropedImageSignedUrl = await signedUrl(
+  //       cropedImageBucketName,
+  //       cropedImageFileName,
+  //     );
+  //     ticket.user.currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
+  //     const originalImageSignedUrl = await signedUrl(
+  //       originalImageBucketName,
+  //       originalImageFileName,
+  //     );
+  //     ticket.user.currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
+  //     const pendingImageSignedUrl = await signedUrl(
+  //       pendingImageBucketName,
+  //       pendingImageFileName,
+  //     );
+  //     ticket.user.currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+  //   }
+  // } catch (err) {
+  //   return res.status(500).send(err);
+  // }
   return res.status(200).send(ticket);
 };

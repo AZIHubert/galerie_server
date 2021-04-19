@@ -38,6 +38,7 @@ interface UserI {
   pseudonym?: string;
   resetPasswordTokenVersion: number;
   role: 'superAdmin' | 'admin' | 'user';
+  socialMediaUserName: string;
   tickets: Ticket[];
   updatedEmailTokenVersion: number;
   userName: string;
@@ -128,6 +129,11 @@ export default class User extends Model implements UserI {
   })
   role!: 'superAdmin' | 'admin' | 'user';
 
+  @Column({
+    type: DataType.STRING,
+  })
+  socialMediaUserName!: string;
+
   @Default(0)
   @Column({
     allowNull: false,
@@ -136,7 +142,6 @@ export default class User extends Model implements UserI {
   updatedEmailTokenVersion!: number;
 
   @Column({
-    allowNull: false,
     type: DataType.STRING,
     unique: true,
   })

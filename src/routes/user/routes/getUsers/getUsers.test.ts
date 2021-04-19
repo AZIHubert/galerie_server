@@ -124,6 +124,7 @@ describe('users', () => {
           expect(new Date(returnedUser.createdAt)).toEqual(createdAt);
           expect(returnedUser.defaultProfilePicture).toBeNull();
           expect(returnedUser.email).toBeUndefined();
+          expect(returnedUser.emailTokenVersion).toBeUndefined();
           expect(returnedUser.facebookId).toBeUndefined();
           expect(returnedUser.googleId).toBeUndefined();
           expect(returnedUser.id).toEqual(id);

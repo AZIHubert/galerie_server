@@ -7,7 +7,7 @@ import {
   User,
 } from '@src/db/models';
 
-import signedUrl from '@src/helpers/signedUrl';
+// import signedUrl from '@src/helpers/signedUrl';
 
 export default async (_req: Request, res: Response) => {
   let tickets: Ticket[];
@@ -96,55 +96,55 @@ export default async (_req: Request, res: Response) => {
         },
       ],
     });
-    await Promise.all(
-      tickets.map(async (ticket, index) => {
-        if (ticket.user && ticket.user.currentProfilePicture) {
-          const {
-            currentProfilePicture: {
-              cropedImage: {
-                bucketName: cropedImageBucketName,
-                fileName: cropedImageFileName,
-              },
-              originalImage: {
-                bucketName: originalImageBucketName,
-                fileName: originalImageFileName,
-              },
-              pendingImage: {
-                bucketName: pendingImageBucketName,
-                fileName: pendingImageFileName,
-              },
-            },
-          } = ticket.user;
-          const cropedImageSignedUrl = await signedUrl(
-            cropedImageBucketName,
-            cropedImageFileName,
-          );
-          tickets[index]
-            .user
-            .currentProfilePicture
-            .cropedImage
-            .signedUrl = cropedImageSignedUrl;
-          const originalImageSignedUrl = await signedUrl(
-            originalImageBucketName,
-            originalImageFileName,
-          );
-          tickets[index]
-            .user
-            .currentProfilePicture
-            .originalImage
-            .signedUrl = originalImageSignedUrl;
-          const pendingImageSignedUrl = await signedUrl(
-            pendingImageBucketName,
-            pendingImageFileName,
-          );
-          tickets[index]
-            .user
-            .currentProfilePicture
-            .pendingImage
-            .signedUrl = pendingImageSignedUrl;
-        }
-      }),
-    );
+    // await Promise.all(
+    //   tickets.map(async (ticket, index) => {
+    //     if (ticket.user && ticket.user.currentProfilePicture) {
+    //       const {
+    //         currentProfilePicture: {
+    //           cropedImage: {
+    //             bucketName: cropedImageBucketName,
+    //             fileName: cropedImageFileName,
+    //           },
+    //           originalImage: {
+    //             bucketName: originalImageBucketName,
+    //             fileName: originalImageFileName,
+    //           },
+    //           pendingImage: {
+    //             bucketName: pendingImageBucketName,
+    //             fileName: pendingImageFileName,
+    //           },
+    //         },
+    //       } = ticket.user;
+    //       const cropedImageSignedUrl = await signedUrl(
+    //         cropedImageBucketName,
+    //         cropedImageFileName,
+    //       );
+    //       tickets[index]
+    //         .user
+    //         .currentProfilePicture
+    //         .cropedImage
+    //         .signedUrl = cropedImageSignedUrl;
+    //       const originalImageSignedUrl = await signedUrl(
+    //         originalImageBucketName,
+    //         originalImageFileName,
+    //       );
+    //       tickets[index]
+    //         .user
+    //         .currentProfilePicture
+    //         .originalImage
+    //         .signedUrl = originalImageSignedUrl;
+    //       const pendingImageSignedUrl = await signedUrl(
+    //         pendingImageBucketName,
+    //         pendingImageFileName,
+    //       );
+    //       tickets[index]
+    //         .user
+    //         .currentProfilePicture
+    //         .pendingImage
+    //         .signedUrl = pendingImageSignedUrl;
+    //     }
+    //   }),
+    // );
   } catch (err) {
     return res.status(500).send(err);
   }
