@@ -9,8 +9,8 @@ import {
   User,
 } from '@src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
-import { FILE_IS_REQUIRED } from '@src/helpers/errorMessages';
+// import accEnv from '@src/helpers/accEnv';
+// import { FILE_IS_REQUIRED } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -21,9 +21,9 @@ import {
 
 import initApp from '@src/server';
 
-const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
-const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
+// const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
+// const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
+// const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
 const userPassword = 'Password0!';
 
@@ -69,72 +69,72 @@ describe('users', () => {
       describe('POST', () => {
         describe('should return status 200 and', () => {
           it('create a profile picture, images and store in Google buckets', async () => {
-            const { status } = response;
+            const {
+              body: {
+                action,
+                data: {
+                  profilePicture,
+                },
+              },
+              status,
+            } = await postProfilePicture(app, token);
+            const images = await Image.findAll();
+            expect(action).toBe('POST');
             expect(status).toBe(200);
-            expect(profilePictures.length).toBe(1);
+            expect(images.length).toBe(3);
+            expect(profilePicture.createdAt).toBeTruthy();
+            expect(profilePicture.cropedImage.bucketName).toBeUndefined();
+            expect(profilePicture.cropedImage.createdAt).toBeUndefined();
+            expect(profilePicture.cropedImage.fileName).toBeUndefined();
+            expect(profilePicture.cropedImage.format).toBeTruthy();
+            expect(profilePicture.cropedImage.height).toBeTruthy();
+            expect(profilePicture.cropedImage.id).toBeUndefined();
+            expect(profilePicture.cropedImage.signedUrl).toBeTruthy();
+            expect(profilePicture.cropedImage.size).toBeTruthy();
+            expect(profilePicture.cropedImage.updatedAt).toBeUndefined();
+            expect(profilePicture.cropedImage.width).toBeTruthy();
+            expect(profilePicture.cropedImageId).toBeUndefined();
+            expect(profilePicture.current).toBeTruthy();
+            expect(profilePicture.originalImage.bucketName).toBeUndefined();
+            expect(profilePicture.originalImage.createdAt).toBeUndefined();
+            expect(profilePicture.originalImage.fileName).toBeUndefined();
+            expect(profilePicture.originalImage.format).toBeTruthy();
+            expect(profilePicture.originalImage.height).toBeTruthy();
+            expect(profilePicture.originalImage.id).toBeUndefined();
+            expect(profilePicture.originalImage.signedUrl).toBeTruthy();
+            expect(profilePicture.originalImage.size).toBeTruthy();
+            expect(profilePicture.originalImage.updatedAt).toBeUndefined();
+            expect(profilePicture.originalImage.width).toBeTruthy();
+            expect(profilePicture.originalImageId).toBeUndefined();
+            expect(profilePicture.pendingImage.bucketName).toBeUndefined();
+            expect(profilePicture.pendingImage.createdAt).toBeUndefined();
+            expect(profilePicture.pendingImage.fileName).toBeUndefined();
+            expect(profilePicture.pendingImage.format).toBeTruthy();
+            expect(profilePicture.pendingImage.height).toBeTruthy();
+            expect(profilePicture.pendingImage.id).toBeUndefined();
+            expect(profilePicture.pendingImage.signedUrl).toBeTruthy();
+            expect(profilePicture.pendingImage.size).toBeTruthy();
+            expect(profilePicture.pendingImage.updatedAt).toBeUndefined();
+            expect(profilePicture.pendingImage.width).toBeTruthy();
+            expect(profilePicture.pendingImageId).toBeUndefined();
+            expect(profilePicture.updatedAt).toBeUndefined();
+            expect(profilePicture.userId).toBeUndefined();
+            expect(profilePicture.id).toBeTruthy();
           });
-          it('should set all other profile picture\'s to null', async () => {});
-          it('store the pending image', async () => {
-            const { status } = response;
-            const pendingImages = await Image.findAll({
-              where: {
-                bucketName: GALERIES_BUCKET_PP_PENDING,
+          it('should set all other profile picture\'s to null', async () => {
+            const {
+              body: {
+                data: {
+                  profilePicture: {
+                    id,
+                  },
+                },
               },
-            });
-            expect(status).toBe(200);
-            expect(pendingImages.length).toBe(1);
-            expect(profilePictures[0].pendingImageId).toBe(pendingImages[0].id);
-          });
-          it('set the user\'s current profile picture', async () => {
-            const { body: { id } } = response;
-            const { currentProfilePictureId } = await user.reload();
-            expect(currentProfilePictureId).toBe(id);
-          });
-        });
-        describe('should return error 400 if', () => {
-          it('image is not attached', async () => {
-            const { body, status } = await agent
-              .post('/users/me/ProfilePictures')
-              .set('authorization', token);
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                image: FILE_IS_REQUIRED,
-              },
-            });
-          });
-          it('attached file\'s name is not \'image\'', async () => {
-            const { body, status } = await agent
-              .post('/users/me/ProfilePictures')
-              .set('authorization', token)
-              .attach('file', `${__dirname}/../../ressources/image.jpg`);
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: 'something went wrong with attached file',
-            });
-          });
-          it('multiple files are attached', async () => {
-            const { body, status } = await agent
-              .post('/users/me/ProfilePictures')
-              .set('authorization', token)
-              .attach('image', `${__dirname}/../../ressources/image.jpg`)
-              .attach('image', `${__dirname}/../../ressources/image.jpg`);
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: 'something went wrong with attached file',
-            });
-          });
-          it('attached file is not jpg/jpeg/png', async () => {
-            const { body, status } = await agent
-              .post('/users/me/ProfilePictures')
-              .set('authorization', token)
-              .attach('image', `${__dirname}/../../ressources/text.txt`);
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                image: 'uploaded file must be an image',
-              },
-            });
+            } = await postProfilePicture(app, token);
+            await postProfilePicture(app, token);
+            const profilePicture = await ProfilePicture
+              .findByPk(id) as ProfilePicture;
+            expect(profilePicture.current).toBe(false);
           });
         });
       });
