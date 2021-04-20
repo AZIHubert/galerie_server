@@ -14,6 +14,7 @@ import {
 import {
   WRONG_PASSWORD,
   WRONG_TOKEN_USER_ID,
+  WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import {
   validatesendUpdateNewEmailSchema,
@@ -25,6 +26,8 @@ const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
 
 export default async (req: Request, res: Response) => {
   const user = req.user as User;
+  const { password } = req.body;
+
   if (user.facebookId || user.googleId) {
     // use switch instead switch
     // user may be logged in with other Social Media
@@ -35,6 +38,7 @@ export default async (req: Request, res: Response) => {
       errors: `you can't modify your email if you are logged with ${socialMedia}.`,
     });
   }
+
   const verify = sendEmailToken(req);
   if (!verify.OK) {
     return res.status(verify.status).send({
@@ -46,13 +50,22 @@ export default async (req: Request, res: Response) => {
       errors: WRONG_TOKEN_USER_ID,
     });
   }
-  const { error, value } = validatesendUpdateNewEmailSchema(req.body);
+  if (verify.emailTokenVersion !== user.emailTokenVersion) {
+    return res.status(401).send({
+      errors: WRONG_TOKEN_VERSION,
+    });
+  }
+
+  const {
+    error,
+    value,
+  } = validatesendUpdateNewEmailSchema(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
     });
   }
-  const { password } = req.body;
+
   let passwordsMatch: boolean;
   try {
     passwordsMatch = await compare(password, user.password);
@@ -66,6 +79,7 @@ export default async (req: Request, res: Response) => {
       },
     });
   }
+
   if (user.email === value.email) {
     return res.status(400).send({
       errors: {
@@ -73,10 +87,9 @@ export default async (req: Request, res: Response) => {
       },
     });
   }
+
   try {
-    if (req.body.resend) {
-      await user.increment({ updatedEmailTokenVersion: 1 });
-    }
+    await user.increment({ updatedEmailTokenVersion: 1 });
     sign(
       {
         id: user.id,

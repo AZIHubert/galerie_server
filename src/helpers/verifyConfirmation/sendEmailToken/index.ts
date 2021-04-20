@@ -11,49 +11,58 @@ const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 
 interface Error {
   OK: false;
-  status: number;
   errors: any;
+  status: number;
 }
 interface Success {
   OK: true;
+  emailTokenVersion: number;
   id: string;
 }
 
 export default (req: Request) => {
   const { confirmation } = req.headers;
+  let emailTokenVersion: number;
+  let id: string;
+
   if (!confirmation) {
     return {
       OK: false,
-      status: 401,
       errors: TOKEN_NOT_FOUND,
+      status: 401,
     } as Error;
   }
+
   const token = (<string>confirmation).split(' ')[1];
+
   if (!token) {
     return {
       OK: false,
-      status: 401,
       errors: WRONG_TOKEN,
+      status: 401,
     } as Error;
   }
-  let id: string;
+
   try {
     const verifiedToken = verify(
       token,
       SEND_EMAIL_SECRET,
     ) as {
       id: string;
+      emailTokenVersion: number;
     };
     id = verifiedToken.id;
+    emailTokenVersion = verifiedToken.emailTokenVersion;
   } catch (err) {
     return {
       OK: false,
-      status: 500,
       errors: err,
+      status: 500,
     } as Error;
   }
   return {
     OK: true,
+    emailTokenVersion,
     id,
   } as Success;
 };

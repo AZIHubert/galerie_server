@@ -9,8 +9,6 @@ import {
   User,
 } from '@src/db/models';
 
-// import accEnv from '@src/helpers/accEnv';
-// import { FILE_IS_REQUIRED } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -20,10 +18,6 @@ import {
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
-
-// const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
-// const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-// const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
 const userPassword = 'Password0!';
 

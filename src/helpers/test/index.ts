@@ -17,3 +17,4 @@ export { default as postGalerie } from './postGalerie';
 export { default as postInvitation } from './postInvitation';
 export { default as postLoginSocialMedia } from './postLoginSocialMedia';
 export { default as postProfilePicture } from './postProfilePicture';
+export { default as postUpdateEmail } from './postUpdateEmail';

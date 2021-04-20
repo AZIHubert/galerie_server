@@ -1,5 +1,8 @@
 import { compare } from 'bcrypt';
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 import { sign } from 'jsonwebtoken';
 
 import { User } from '@src/db/models';
@@ -12,21 +15,26 @@ import {
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import {
-  validateSendUpdateEmailSchema,
   normalizeJoiErrors,
+  validateSendUpdateEmailSchema,
 } from '@src/helpers/schemas';
 
 const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 
 export default async (req: Request, res: Response) => {
-  const { error, value } = validateSendUpdateEmailSchema(req.body);
+  let passwordsMatch: boolean;
+  const user = req.user as User;
+
+  const {
+    error,
+    value,
+  } = validateSendUpdateEmailSchema(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
     });
   }
-  const user = req.user as User;
-  let passwordsMatch: boolean;
+
   try {
     passwordsMatch = await compare(value.password, user.password);
   } catch (err) {
@@ -39,9 +47,12 @@ export default async (req: Request, res: Response) => {
       },
     });
   }
+
   try {
+    await user.increment({ emailTokenVersion: 1 });
     sign(
       {
+        emailTokenVersion: user.emailTokenVersion,
         id: user.id,
       },
       SEND_EMAIL_SECRET,
