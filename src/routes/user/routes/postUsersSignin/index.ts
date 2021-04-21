@@ -1,16 +1,22 @@
 import bcrypt from 'bcrypt';
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 
-import User from '@src/db/models/user';
+import { User } from '@src/db/models';
+
 import {
   ALREADY_TAKEN,
 } from '@src/helpers/errorMessages';
 import saltRounds from '@src/helpers/saltRounds';
 import {
-  validateSignIn,
   normalizeJoiErrors,
+  validateSignIn,
 } from '@src/helpers/schemas';
 
+// Normalize Sequelize errors for response
+// if email or `@{userName}` are already registered.
 const normalizeSequelizeErrors = async (email: string, userName: string) => {
   const normalizeErrors: any = {};
   const emailAlreadyUse = await User.findOne({ where: { email } });
@@ -25,15 +31,24 @@ const normalizeSequelizeErrors = async (email: string, userName: string) => {
 };
 
 export default async (req: Request, res: Response) => {
-  const { error, value } = validateSignIn(req.body);
+  let errors: any;
+  let newUser: User;
+
+  const {
+    error,
+    value,
+  } = validateSignIn(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
     });
   }
-  let errors: any;
+
   try {
-    errors = await normalizeSequelizeErrors(value.email, `@${value.userName}`);
+    errors = await normalizeSequelizeErrors(
+      value.email,
+      `@${value.userName}`,
+    );
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -42,19 +57,38 @@ export default async (req: Request, res: Response) => {
       errors,
     });
   }
-  let newUser: User;
+
   try {
     const hashPassword = await bcrypt.hash(value.password, saltRounds);
     newUser = await User.create({
-      userName: `@${value.userName}`,
       email: value.email,
       password: hashPassword,
       pseudonym: value.userName,
+      userName: `@${value.userName}`,
     });
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(201).send({
-    email: newUser.email,
+
+  // Return user with only
+  // relevent fields.
+  const normalizeUser = {
+    ...newUser.toJSON(),
+    authTokenVersion: undefined,
+    confirmed: undefined,
+    confirmTokenVersion: undefined,
+    createdAt: undefined,
+    emailTokenVersion: undefined,
+    facebookId: undefined,
+    googleId: undefined,
+    resetPasswordTokenVersion: undefined,
+    password: undefined,
+    updatedAt: undefined,
+  };
+  return res.status(200).send({
+    action: 'POST',
+    data: {
+      user: normalizeUser,
+    },
   });
 };

@@ -1,32 +1,27 @@
 import Joi from 'joi';
 
 import {
-  FIELD_NOT_A_STRING,
   FIELD_IS_CONFIRM_PASSWORD,
   FIELD_IS_EMAIL,
   FIELD_IS_EMPTY,
   FIELD_IS_REQUIRED,
   FIELD_MAX_LENGTH_THRITY,
-  FIELD_MIN_LENGTH_OF_THREE,
   FIELD_MIN_LENGTH_OF_HEIGH,
+  FIELD_MIN_LENGTH_OF_THREE,
+  FIELD_NOT_A_STRING,
 } from '@src/helpers/errorMessages';
 
 import options from '../options';
 
 const userSignInSchema = Joi.object({
-  userName: Joi.string()
-    .trim()
-    .pattern(new RegExp(/^\S*$/), { name: 'spacesError' })
-    .empty()
-    .min(3)
-    .max(30)
+  confirmPassword: Joi.string()
     .required()
+    .valid(Joi.ref('password'))
     .messages({
+      'any.only': FIELD_IS_CONFIRM_PASSWORD,
+      'any.required': FIELD_IS_REQUIRED,
       'string.base': FIELD_NOT_A_STRING,
-      'string.min': FIELD_MIN_LENGTH_OF_THREE,
-      'string.max': FIELD_MAX_LENGTH_THRITY,
       'string.empty': FIELD_IS_EMPTY,
-      'string.required': FIELD_IS_REQUIRED,
     }),
   email: Joi.string()
     .trim()
@@ -35,9 +30,10 @@ const userSignInSchema = Joi.object({
     .empty()
     .lowercase()
     .messages({
+      'any.required': FIELD_IS_REQUIRED,
+      'string.base': FIELD_NOT_A_STRING,
       'string.email': FIELD_IS_EMAIL,
       'string.empty': FIELD_IS_EMPTY,
-      'any.required': FIELD_IS_REQUIRED,
     }),
   password: Joi.string()
     .required()
@@ -54,17 +50,25 @@ const userSignInSchema = Joi.object({
     // At least one special char.
     .messages({
       'any.required': FIELD_IS_REQUIRED,
-      'string.empty': FIELD_IS_EMPTY,
-      'string.min': FIELD_MIN_LENGTH_OF_HEIGH,
-      'string.max': FIELD_MAX_LENGTH_THRITY,
-    }),
-  confirmPassword: Joi.string()
-    .trim()
-    .valid(Joi.ref('password'))
-    .messages({
       'string.base': FIELD_NOT_A_STRING,
-      'any.only': FIELD_IS_CONFIRM_PASSWORD,
       'string.empty': FIELD_IS_EMPTY,
+      'string.max': FIELD_MAX_LENGTH_THRITY,
+      'string.min': FIELD_MIN_LENGTH_OF_HEIGH,
+    }),
+  userName: Joi.string()
+    .trim()
+    .pattern(new RegExp(/^\S*$/), { name: 'spacesError' })
+    .empty()
+    .min(3)
+    .max(30)
+    .required()
+    .messages({
+      'any.required': FIELD_IS_REQUIRED,
+      'string.base': FIELD_NOT_A_STRING,
+      'string.empty': FIELD_IS_EMPTY,
+      'string.max': FIELD_MAX_LENGTH_THRITY,
+      'string.min': FIELD_MIN_LENGTH_OF_THREE,
+      'string.required': FIELD_IS_REQUIRED,
     }),
 });
 
