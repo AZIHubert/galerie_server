@@ -1,7 +1,11 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 import { sign } from 'jsonwebtoken';
 
-import User from '@src/db/models/user';
+import { User } from '@src/db/models';
+
 import accEnv from '@src/helpers/accEnv';
 import { sendResetPassword } from '@src/helpers/email';
 import checkBlackList from '@src/helpers/checkBlackList';
@@ -18,20 +22,28 @@ import {
 const RESET_PASSWORD_SECRET = accEnv('RESET_PASSWORD_SECRET');
 
 export default async (req: Request, res: Response) => {
-  const { error, value } = validateResetPasswordSchema(req.body);
+  let user: User | null;
+
+  const {
+    error,
+    value,
+  } = validateResetPasswordSchema(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
     });
   }
-  const { email } = value;
-  let user: User | null;
+
+  // Find user with request.email.
+  // Facebook/Google registered users
+  // doesn't have a password,
+  // they're not included in the request.
   try {
     user = await User.findOne({
       where: {
         email: value.email,
-        googleId: null,
         facebookId: null,
+        googleId: null,
       },
     });
   } catch (err) {
@@ -44,21 +56,30 @@ export default async (req: Request, res: Response) => {
       },
     });
   }
+
+  // Not confirmed users cannot reset
+  // their password.
+  if (!user.confirmed) {
+    return res.status(401).send({
+      errors: NOT_CONFIRMED,
+    });
+  }
+
+  // Black listed users cannot reset
+  // their password
   const isBlackListed = await checkBlackList(user);
   if (isBlackListed) {
     return res.status(401).send({
       errors: USER_IS_BLACK_LISTED,
     });
   }
-  if (!user.confirmed) {
-    return res.status(401).send({
-      errors: NOT_CONFIRMED,
-    });
-  }
+
+  // Send an email to the user's email
+  // with a signed JWT token.
   try {
-    if (req.body.resend) {
-      await user.increment({ resetPasswordTokenVersion: 1 });
-    }
+    await user.increment({
+      resetPasswordTokenVersion: 1,
+    });
     sign(
       {
         id: user.id,
@@ -70,7 +91,7 @@ export default async (req: Request, res: Response) => {
       },
       (err, emailToken) => {
         if (err) throw new Error(`something went wrong: ${err}`);
-        if (emailToken) sendResetPassword(email, emailToken);
+        if (emailToken) sendResetPassword(value.email, emailToken);
       },
     );
   } catch (err) {

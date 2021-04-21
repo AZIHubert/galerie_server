@@ -72,7 +72,8 @@ describe('users', () => {
       describe('confirm', () => {
         describe('POST', () => {
           describe('should return status 204 and', () => {
-            it('should increment emailTokenVersion and updateEmailTokenVersion', async () => {
+            it('send an email and sign a token', async () => {
+              const newEmail = 'user2@email.com';
               jest.spyOn(verifyConfirmation, 'sendEmailToken')
                 .mockImplementationOnce(() => ({
                   OK: true,
@@ -80,6 +81,30 @@ describe('users', () => {
                   id: user.id,
                 }));
               const { status } = await postUpdateEmailConfirm(
+                app,
+                token,
+                'Bearer token',
+                {
+                  email: newEmail,
+                  password: userPassword,
+                },
+              );
+              expect(status).toBe(204);
+              expect(signMocked)
+                .toHaveBeenCalledTimes(1);
+              expect(emailMocked)
+                .toBeCalledWith(newEmail, expect.any(String));
+              expect(emailMocked)
+                .toHaveBeenCalledTimes(1);
+            });
+            it('should increment emailTokenVersion and updateEmailTokenVersion', async () => {
+              jest.spyOn(verifyConfirmation, 'sendEmailToken')
+                .mockImplementationOnce(() => ({
+                  OK: true,
+                  emailTokenVersion: user.emailTokenVersion,
+                  id: user.id,
+                }));
+              await postUpdateEmailConfirm(
                 app,
                 token,
                 'Bearer token',
@@ -93,35 +118,10 @@ describe('users', () => {
                 updatedEmailTokenVersion,
               } = user;
               await user.reload();
-              expect(status).toBe(204);
               expect(user.emailTokenVersion)
                 .toBe(emailTokenVersion + 1);
               expect(user.updatedEmailTokenVersion)
                 .toBe(updatedEmailTokenVersion + 1);
-            });
-            it('send an email and sign a token', async () => {
-              const newEmail = 'user2@email.com';
-              jest.spyOn(verifyConfirmation, 'sendEmailToken')
-                .mockImplementationOnce(() => ({
-                  OK: true,
-                  emailTokenVersion: user.emailTokenVersion,
-                  id: user.id,
-                }));
-              await postUpdateEmailConfirm(
-                app,
-                token,
-                'Bearer token',
-                {
-                  email: newEmail,
-                  password: userPassword,
-                },
-              );
-              expect(signMocked)
-                .toHaveBeenCalledTimes(1);
-              expect(emailMocked)
-                .toBeCalledWith(newEmail, expect.any(String));
-              expect(emailMocked)
-                .toHaveBeenCalledTimes(1);
             });
             it('should trim req email and password', async () => {
               const newEmail = 'user2@email.com';

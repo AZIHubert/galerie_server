@@ -85,10 +85,11 @@ export default async (req: Request, res: Response) => {
   // with a signed JWT token.
   try {
     await user.increment({
-      // Increment emailTokenVersion,
+      // Increment emailTokenVersion user's field.
       // This route is accessible when clicking
-      // in a link send by email.
-      // When success, this link should not be
+      // on a link send by email.
+      // emailTokenVersion allow us to verify
+      // that this link should not be
       // accessible once again.
       emailTokenVersion: 1,
       updatedEmailTokenVersion: 1,
