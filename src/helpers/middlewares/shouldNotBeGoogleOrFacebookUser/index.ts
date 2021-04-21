@@ -6,6 +6,8 @@ export default async (req: Request, res: Response, next: NextFunction) => {
   const { googleId, facebookId } = req.user as User;
   if (googleId || facebookId) {
     return res.status(401).send({
+      // TODO:
+      // Better error message.
       errors: 'you can\'t modify your account',
     });
   }

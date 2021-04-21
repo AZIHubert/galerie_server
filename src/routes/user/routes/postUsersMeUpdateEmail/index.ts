@@ -25,6 +25,7 @@ export default async (req: Request, res: Response) => {
   let passwordsMatch: boolean;
   const user = req.user as User;
 
+  // Validate req.body fields.
   const {
     error,
     value,
@@ -35,6 +36,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Check if password match.
   try {
     passwordsMatch = await compare(value.password, user.password);
   } catch (err) {
@@ -48,6 +50,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Send an email with a JWT signed token.
   try {
     await user.increment({ emailTokenVersion: 1 });
     sign(

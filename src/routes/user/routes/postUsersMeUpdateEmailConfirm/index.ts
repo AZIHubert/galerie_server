@@ -28,17 +28,7 @@ export default async (req: Request, res: Response) => {
   const user = req.user as User;
   const { password } = req.body;
 
-  if (user.facebookId || user.googleId) {
-    // use switch instead switch
-    // user may be logged in with other Social Media
-    // in the futur.
-    const socialMedia = user.facebookId ? 'facebook' : 'google';
-
-    return res.status(400).send({
-      errors: `you can't modify your email if you are logged with ${socialMedia}.`,
-    });
-  }
-
+  // Check if JWT token is valid.
   const verify = sendEmailToken(req);
   if (!verify.OK) {
     return res.status(verify.status).send({
@@ -56,6 +46,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Check if request.body fields are valids.
   const {
     error,
     value,
@@ -66,6 +57,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Check if password match.
   let passwordsMatch: boolean;
   try {
     passwordsMatch = await compare(password, user.password);
@@ -80,6 +72,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // New email can't be the same as the old one.
   if (user.email === value.email) {
     return res.status(400).send({
       errors: {
@@ -88,8 +81,18 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Send an email to the new registered email
+  // with a signed JWT token.
   try {
-    await user.increment({ updatedEmailTokenVersion: 1 });
+    await user.increment({
+      // Increment emailTokenVersion,
+      // This route is accessible when clicking
+      // in a link send by email.
+      // When success, this link should not be
+      // accessible once again.
+      emailTokenVersion: 1,
+      updatedEmailTokenVersion: 1,
+    });
     sign(
       {
         id: user.id,
@@ -102,7 +105,7 @@ export default async (req: Request, res: Response) => {
       },
       (err, emailToken) => {
         if (err) throw new Error(`something went wrong: ${err}`);
-        if (emailToken) sendValidateEmailMessage(req.body.email, emailToken);
+        if (emailToken) sendValidateEmailMessage(value.email, emailToken);
       },
     );
   } catch (err) {
