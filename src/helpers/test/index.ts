@@ -11,6 +11,7 @@ export { default as getUsers } from './getUsers';
 export { default as getUserId } from './getUserId';
 export { default as getUsersUserName } from './getUsersUserName';
 export { default as login } from './login';
+export { default as postBlackListUser } from './postBlackListUser';
 export { default as postConfirmation } from './postConfirmation';
 export { default as postFrame } from './postFrame';
 export { default as postGalerie } from './postGalerie';

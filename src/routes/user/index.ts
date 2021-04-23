@@ -27,7 +27,7 @@ import {
   postUsersLoginSocialMedia,
   postUsersResetPassword,
 
-  putUsersBlacklistId,
+  postUsersIdBlacklist,
   putUsersConfirmation,
   putUsersMePseudonym,
   putUsersMeUpdateEmail,
@@ -49,6 +49,7 @@ const usersRoutes: () => Router = () => {
   router.get('/refreshToken/', getUsersRefreshToken);
   router.get('/userName/:userName/', passport.authenticate('jwt', { session: false }), getUsersUserNameUserName);
 
+  router.post('/:id/blacklist/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, postUsersIdBlacklist);
   router.post('/confirmation/', shouldNotBeAuth, postUsersConfirmation);
   router.post('/login/', shouldNotBeAuth, postUsersLogin);
   router.post('/login/socialMedia/', shouldNotBeAuth, postUsersLoginSocialMedia);
@@ -57,7 +58,6 @@ const usersRoutes: () => Router = () => {
   router.post('/resetPassword/', shouldNotBeAuth, postUsersResetPassword);
   router.post('/signin/', postUsersSignin);
 
-  router.put('/blacklist/:id/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, putUsersBlacklistId);
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.put('/me/pseudonym/', passport.authenticate('jwt', { session: false }), putUsersMePseudonym);
   router.put('/me/updateEmail/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeUpdateEmail);

@@ -13,17 +13,15 @@ import {
   validateBlackListUser,
 } from '@src/helpers/schemas';
 
-// TODO:
-// POST instead of PUT.
-
 export default async (req: Request, res: Response) => {
   const { id } = req.params;
   const {
     id: userId,
     role,
   } = req.user as User;
+  let existingBlackList: BlackList | null;
+  let blackList = {};
   let user: User | null;
-  let blackList: BlackList;
 
   // You cannot black list yourself.
   if (id === userId) {
@@ -62,20 +60,25 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // If blacklist exist, deleted it.
-
-  // if (user.blackListId) {
-  //   try {
-  //     await BlackList.destroy({
-  //       where: {
-  //         id: user.blackListId,
-  //       },
-  //     });
-  //     return res.status(204).end();
-  //   } catch (err) {
-  //     return res.status(500).send(err);
-  //   }
-  // }
+  // Check if user is already blackListed.
+  try {
+    existingBlackList = await BlackList.findOne({
+      where: {
+        userId: id,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  if (existingBlackList) {
+    try {
+      return res.status(400).send({
+        errors: 'user is already black listed',
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+  }
 
   const {
     error,
@@ -88,12 +91,17 @@ export default async (req: Request, res: Response) => {
   }
 
   try {
-    blackList = await BlackList.create({
+    await user.update({ role: 'user' });
+    const newBlackList = await BlackList.create({
       adminId: userId,
       reason: value.reason,
       time: value.time ? value.time : null,
       userId: id,
     });
+    blackList = {
+      ...newBlackList.toJSON(),
+      updatedAt: undefined,
+    };
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -101,7 +109,7 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'POST',
     data: {
-      blackList: blackList.toJSON(),
+      blackList,
     },
   });
 };

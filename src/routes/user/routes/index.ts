@@ -8,6 +8,7 @@ export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 
+export { default as postUsersIdBlacklist } from './postUsersIdBlacklist';
 export { default as postUsersConfirmation } from './postUsersConfirmation';
 export { default as postUsersResetPassword } from './postUsersResetPassword';
 export { default as postUsersLogin } from './postUsersLogin';
@@ -16,7 +17,6 @@ export { default as postUsersMeUpdateEmail } from './postUsersMeUpdateEmail';
 export { default as postUsersMeUpdateEmailConfirm } from './postUsersMeUpdateEmailConfirm';
 export { default as postUsersSignin } from './postUsersSignin';
 
-export { default as putUsersBlacklistId } from './putUsersBlacklistId';
 export { default as putUsersConfirmation } from './putUsersConfirmation';
 export { default as putUsersMePseudonym } from './putUsersMePseudonym';
 export { default as putUsersMeUpdateEmail } from './putUsersMeUpdateEmail';

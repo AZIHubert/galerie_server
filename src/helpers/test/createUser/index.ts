@@ -20,7 +20,7 @@ export default async ({
   facebookId?: string;
   googleId?: string;
   password?: string;
-  role?: 'admin' | 'user'
+  role?: 'admin' | 'superAdmin' | 'user'
   userName?: string;
 }) => {
   const newUser = {
