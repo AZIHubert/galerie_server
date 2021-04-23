@@ -9,13 +9,20 @@ const PRIV_KEY = fs.readFileSync(path.join('./id_rsa_priv.authToken.pem'));
 export default ({ id, authTokenVersion }: User) => {
   const expiresIn = 1800;
   const payload = {
-    sub: id,
     authTokenVersion,
     iat: Math.floor(Date.now() / 1000),
+    sub: id,
   };
-  const signedToken = sign(payload, PRIV_KEY, { expiresIn, algorithm: 'RS256' });
+  const signedToken = sign(
+    payload,
+    PRIV_KEY,
+    {
+      algorithm: 'RS256',
+      expiresIn,
+    },
+  );
   return {
-    token: `Bearer ${signedToken}`,
     expires: expiresIn,
+    token: `Bearer ${signedToken}`,
   };
 };

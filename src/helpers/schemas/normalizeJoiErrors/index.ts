@@ -1,19 +1,23 @@
 import { ValidationError } from 'joi';
-import { FIELD_HAS_SPACES, FIELD_IS_PASSWORD } from '@src/helpers/errorMessages';
+import {
+  FIELD_HAS_SPACES,
+  FIELD_IS_PASSWORD,
+} from '@src/helpers/errorMessages';
 
 export default (errors: ValidationError) => {
   const normalizeErrors: {[key:string]: string} = {};
-  errors.details.forEach((e) => {
-    if (e.message.includes('pattern')) {
-      if (e.message.includes('passwordError')) {
-        normalizeErrors[e.path[0]] = FIELD_IS_PASSWORD;
-      } else if (e.message.includes('spacesError')) {
-        normalizeErrors[e.path[0]] = FIELD_HAS_SPACES;
+
+  errors.details.forEach((error) => {
+    if (error.message.includes('pattern')) {
+      if (error.message.includes('passwordError')) {
+        normalizeErrors[error.path[0]] = FIELD_IS_PASSWORD;
+      } else if (error.message.includes('spacesError')) {
+        normalizeErrors[error.path[0]] = FIELD_HAS_SPACES;
       } else {
-        normalizeErrors[e.path[0]] = e.message;
+        normalizeErrors[error.path[0]] = error.message;
       }
     } else {
-      normalizeErrors[e.path[0]] = e.message;
+      normalizeErrors[error.path[0]] = error.message;
     }
   });
   return normalizeErrors;

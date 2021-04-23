@@ -4,10 +4,10 @@ import request from 'supertest';
 export default async (
   app: Server,
   token: string,
-  page = 1,
+  profilePictureId: string,
 ) => {
   const response = await request(app)
-    .get(`/profilePictures?page=${page}`)
+    .put(`/profilePictures/${profilePictureId}`)
     .set('authorization', token);
   return response;
 };

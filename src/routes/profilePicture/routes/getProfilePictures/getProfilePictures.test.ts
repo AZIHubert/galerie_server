@@ -112,7 +112,8 @@ describe('users', () => {
             expect(returnProfilePicture.pendingImage.updatedAt).toBeUndefined();
           });
           it('should return a pack of 20 profile pictures', async () => {
-            const numOfProfilePictures = new Array(10).fill(0);
+            const NUMBER = 5;
+            const numOfProfilePictures = new Array(NUMBER).fill(0);
             await Promise.all(
               numOfProfilePictures.map(async () => {
                 await postProfilePicture(app, token);
@@ -125,7 +126,7 @@ describe('users', () => {
                 },
               },
             } = await getProfilePictures(app, token);
-            expect(firstPack.length).toEqual(10);
+            expect(firstPack.length).toEqual(NUMBER);
           });
         });
       });

@@ -7,7 +7,7 @@ export default async (
   id: string,
 ) => {
   const response = await request(app)
-    .get(`/users/me/profilePictures/${id}`)
+    .get(`/profilePictures/${id}`)
     .set('authorization', token);
   return response;
 };

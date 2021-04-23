@@ -1,11 +1,11 @@
 import Joi from 'joi';
 
 import {
-  FIELD_NOT_A_STRING,
   FIELD_IS_EMPTY,
   FIELD_IS_REQUIRED,
   FIELD_MAX_LENGTH_THRITY,
   FIELD_MIN_LENGTH_OF_THREE,
+  FIELD_NOT_A_STRING,
 } from '@src/helpers/errorMessages';
 
 import options from '../options';
@@ -18,11 +18,11 @@ const galerieSchema = Joi.object({
     .max(30)
     .required()
     .messages({
-      'string.base': FIELD_NOT_A_STRING,
-      'string.min': FIELD_MIN_LENGTH_OF_THREE,
-      'string.max': FIELD_MAX_LENGTH_THRITY,
-      'string.empty': FIELD_IS_EMPTY,
       'any.required': FIELD_IS_REQUIRED,
+      'string.base': FIELD_NOT_A_STRING,
+      'string.empty': FIELD_IS_EMPTY,
+      'string.max': FIELD_MAX_LENGTH_THRITY,
+      'string.min': FIELD_MIN_LENGTH_OF_THREE,
     }),
 });
 

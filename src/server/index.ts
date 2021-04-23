@@ -12,9 +12,10 @@ import passport from '@src/helpers/passport';
 import initSequelize from '@src/helpers/initSequelize.js';
 
 import userRouter from '@src/routes/user';
+import notificationRouter from '@src/routes/notification';
+import profilePictureRouter from '@src/routes/profilePicture';
 import ticketRouter from '@src/routes/ticket';
 // import galerieRouter from '@src/routes/galerie';
-import notificationRouter from '@src/routes/notification';
 
 const SESSION_SECRET = accEnv('SESSION_SECRET');
 
@@ -69,9 +70,10 @@ const initApp: () => http.Server = () => {
     }),
   );
   app.use('/users', userRouter());
+  app.use('/notifications', notificationRouter());
+  app.use('/profilePictures', profilePictureRouter());
   app.use('/tickets', ticketRouter());
   // app.use('/galeries', galerieRouter());
-  app.use('/notifications', notificationRouter());
   return server;
 };
 

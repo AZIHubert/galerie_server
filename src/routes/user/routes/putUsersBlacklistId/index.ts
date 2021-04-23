@@ -1,21 +1,38 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 
-import { BlackList, User } from '@src/db/models';
+import {
+  BlackList,
+  User,
+} from '@src/db/models';
 import { USER_NOT_FOUND } from '@src/helpers/errorMessages';
 import {
-  validateBlackListUser,
   normalizeJoiErrors,
+  validateBlackListUser,
 } from '@src/helpers/schemas';
 
+// TODO:
+// POST instead of PUT.
+
 export default async (req: Request, res: Response) => {
-  const { id: userId, role } = req.user as User;
   const { id } = req.params;
+  const {
+    id: userId,
+    role,
+  } = req.user as User;
+  let user: User | null;
+  let blackList: BlackList;
+
+  // You cannot black list yourself.
   if (id === userId) {
     return res.status(401).send({
       errors: 'you can\'t put your account on the black list',
     });
   }
-  let user: User | null;
+
+  // Check if user exist and confirmed.
   try {
     user = await User.findOne({
       where: {
@@ -31,6 +48,9 @@ export default async (req: Request, res: Response) => {
       errors: USER_NOT_FOUND,
     });
   }
+
+  // Check if the role of the user
+  // you want to black list is valid.
   if (user.role === 'superAdmin') {
     return res.status(401).send({
       errors: 'you can\'t black listed a super admin',
@@ -41,6 +61,9 @@ export default async (req: Request, res: Response) => {
       errors: 'you can\'t black listed an admin',
     });
   }
+
+  // If blacklist exist, deleted it.
+
   // if (user.blackListId) {
   //   try {
   //     await BlackList.destroy({
@@ -48,27 +71,37 @@ export default async (req: Request, res: Response) => {
   //         id: user.blackListId,
   //       },
   //     });
-  //     await user.update({ blackListId: null });
   //     return res.status(204).end();
   //   } catch (err) {
   //     return res.status(500).send(err);
   //   }
   // }
-  const { error, value } = validateBlackListUser(req.body);
+
+  const {
+    error,
+    value,
+  } = validateBlackListUser(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
     });
   }
+
   try {
-    const { id: blackListId } = await BlackList.create({
+    blackList = await BlackList.create({
       adminId: userId,
       reason: value.reason,
       time: value.time ? value.time : null,
+      userId: id,
     });
-    await user.update({ blackListId, role: 'user' });
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(204).end();
+
+  return res.status(200).send({
+    action: 'POST',
+    data: {
+      blackList: blackList.toJSON(),
+    },
+  });
 };

@@ -7,7 +7,7 @@ export default async (
   profilePictureId: string,
 ) => {
   const response = await request(app)
-    .delete(`/users/me/profilePictures/${profilePictureId}`)
+    .delete(`/profilePictures/${profilePictureId}`)
     .set('authorization', token);
   return response;
 };

@@ -1,9 +1,20 @@
-import { Request, Response, NextFunction } from 'express';
+import {
+  NextFunction,
+  Request,
+  Response,
+} from 'express';
 
 import User from '@src/db/models/user';
 
-export default async (req: Request, res: Response, next: NextFunction) => {
-  const { googleId, facebookId } = req.user as User;
+export default async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const {
+    facebookId,
+    googleId,
+  } = req.user as User;
   if (googleId || facebookId) {
     return res.status(401).send({
       // TODO:

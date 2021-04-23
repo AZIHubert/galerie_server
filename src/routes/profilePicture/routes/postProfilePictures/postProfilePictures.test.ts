@@ -89,6 +89,7 @@ describe('users', () => {
             expect(profilePicture.cropedImage.width).toBeTruthy();
             expect(profilePicture.cropedImageId).toBeUndefined();
             expect(profilePicture.current).toBeTruthy();
+            expect(profilePicture.id).toBeTruthy();
             expect(profilePicture.originalImage.bucketName).toBeUndefined();
             expect(profilePicture.originalImage.createdAt).toBeUndefined();
             expect(profilePicture.originalImage.fileName).toBeUndefined();
@@ -113,7 +114,6 @@ describe('users', () => {
             expect(profilePicture.pendingImageId).toBeUndefined();
             expect(profilePicture.updatedAt).toBeUndefined();
             expect(profilePicture.userId).toBeUndefined();
-            expect(profilePicture.id).toBeTruthy();
           });
           it('should set all other profile picture\'s to null', async () => {
             const {

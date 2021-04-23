@@ -4,62 +4,58 @@ import { Image, ProfilePicture, User } from '@src/db/models';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
+  const { id } = req.params;
   const user = req.user as User;
   const { id: userId } = user;
-  const { id } = req.params;
   let profilePicture: ProfilePicture | null;
+  let returnProfilePicture: {};
+
   try {
     profilePicture = await ProfilePicture.findOne({
-      where: {
-        id,
-        userId,
-      },
       attributes: {
         exclude: [
-          'createdAt',
           'cropedImageId',
-          'deletedAt',
           'originalImageId',
           'pendingImageId',
-          'updatedAt',
           'userId',
         ],
       },
       include: [
         {
-          model: Image,
           as: 'cropedImage',
           attributes: {
             exclude: [
               'createdAt',
-              'deletedAt',
               'updatedAt',
             ],
           },
+          model: Image,
         },
         {
-          model: Image,
           as: 'originalImage',
           attributes: {
             exclude: [
               'createdAt',
-              'deletedAt',
               'updatedAt',
             ],
           },
+          model: Image,
         },
         {
-          model: Image,
           as: 'pendingImage',
           attributes: {
             exclude: [
               'createdAt',
-              'deletedAt',
               'updatedAt',
             ],
           },
+          model: Image,
         },
       ],
+      where: {
+        id,
+        userId,
+      },
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -69,38 +65,79 @@ export default async (req: Request, res: Response) => {
       errors: 'profile picture not found',
     });
   }
-  // if (user.currentProfilePictureId === id) {
-  //   try {
-  //     await user.update({ currentProfilePictureId: null });
-  //     return res.status(200).send({
-  //       type: 'PUT',
-  //     });
-  //   } catch (err) {
-  //     return res.status(500).send(err);
-  //   }
-  // }
+
+  // If profile picture with id is not the current one,
+  // set current profile picture to false if exist.
+  if (!profilePicture.current) {
+    try {
+      await ProfilePicture.update({
+        current: false,
+      }, {
+        where: {
+          current: true,
+          userId,
+        },
+      });
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  }
+
+  // Reverse profilePicture.current boolean value.
   try {
-    await user.update({ currentProfilePictureId: id });
-    const cropedImageSignedUrl = await signedUrl(
-      profilePicture.cropedImage.bucketName,
-      profilePicture.cropedImage.fileName,
-    );
-    profilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
-    const originalImageSignedUrl = await signedUrl(
-      profilePicture.originalImage.bucketName,
-      profilePicture.originalImage.fileName,
-    );
-    profilePicture.originalImage.signedUrl = originalImageSignedUrl;
-    const pendingImageSignedUrl = await signedUrl(
-      profilePicture.pendingImage.bucketName,
-      profilePicture.pendingImage.fileName,
-    );
-    profilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
-    return res.status(200).send({
-      type: 'PUT',
-      profilePicture,
+    await profilePicture.update({
+      current: !profilePicture.current,
     });
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  try {
+    const cropedImageSignedUrl = await signedUrl(
+      profilePicture.cropedImage.bucketName,
+      profilePicture.cropedImage.fileName,
+    );
+    const originalImageSignedUrl = await signedUrl(
+      profilePicture.originalImage.bucketName,
+      profilePicture.originalImage.fileName,
+    );
+    const pendingImageSignedUrl = await signedUrl(
+      profilePicture.pendingImage.bucketName,
+      profilePicture.pendingImage.fileName,
+    );
+    returnProfilePicture = {
+      ...profilePicture.toJSON(),
+      cropedImage: {
+        ...profilePicture.cropedImage.toJSON(),
+        bucketName: undefined,
+        fileName: undefined,
+        id: undefined,
+        signedUrl: cropedImageSignedUrl,
+      },
+      originalImage: {
+        ...profilePicture.originalImage.toJSON(),
+        bucketName: undefined,
+        fileName: undefined,
+        id: undefined,
+        signedUrl: originalImageSignedUrl,
+      },
+      pendingImage: {
+        ...profilePicture.pendingImage.toJSON(),
+        bucketName: undefined,
+        fileName: undefined,
+        id: undefined,
+        signedUrl: pendingImageSignedUrl,
+      },
+      updatedAt: undefined,
+    };
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  return res.status(200).send({
+    action: 'PUT',
+    data: {
+      profilePicture: returnProfilePicture,
+    },
+  });
 };

@@ -27,6 +27,7 @@ const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
   const { file } = req;
+  let profilePicture: {};
 
   // Check if file is send.
   if (!file) {
@@ -188,7 +189,6 @@ export default async (req: Request, res: Response) => {
           });
       });
   });
-  let profilePicture: {};
   try {
     const [
       cropedImage,

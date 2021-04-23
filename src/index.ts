@@ -1,8 +1,10 @@
 import 'module-alias/register';
 
 import './helpers/initEnv';
-import initSequelize from './helpers/initSequelize.js';
+
 import accessEnv from './helpers/accEnv';
+import initSequelize from './helpers/initSequelize.js';
+
 import initApp from './server';
 
 const PORT = accessEnv('PORT');

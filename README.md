@@ -43,3 +43,5 @@ Add frame numOfLikes (number)
 // sequelize migration blacklist userId
 user profile picture => current
 galerie cover picture => current
+
+Create a route for profile picture

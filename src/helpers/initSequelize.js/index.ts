@@ -1,5 +1,6 @@
-import sequelize from '@src/db';
 import { Sequelize } from 'sequelize-typescript';
+
+import sequelize from '@src/db';
 
 const autenticate = (callback?: () => void): Sequelize => {
   sequelize.authenticate();
