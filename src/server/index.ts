@@ -11,7 +11,7 @@ import accEnv from '@src/helpers/accEnv';
 import passport from '@src/helpers/passport';
 import initSequelize from '@src/helpers/initSequelize.js';
 
-import userRouter from '@src/routes/user';
+import usersRouter from '@src/routes/users';
 import notificationRouter from '@src/routes/notification';
 import profilePictureRouter from '@src/routes/profilePicture';
 import ticketRouter from '@src/routes/ticket';
@@ -69,7 +69,7 @@ const initApp: () => http.Server = () => {
       ],
     }),
   );
-  app.use('/users', userRouter());
+  app.use('/users', usersRouter());
   app.use('/notifications', notificationRouter());
   app.use('/profilePictures', profilePictureRouter());
   app.use('/tickets', ticketRouter());

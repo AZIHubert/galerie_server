@@ -34,7 +34,7 @@ import {
   putUsersMeUpdatePassword,
   putUsersResetPassword,
   putUsersRoleIdRole,
-} from './routes';
+} from './subRoutes';
 
 const router = Router();
 
