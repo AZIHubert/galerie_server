@@ -21,5 +21,6 @@ export { default as postProfilePicture } from './postProfilePicture';
 export { default as postResetPassword } from './postResetPassword';
 export { default as postUpdateEmail } from './postUpdateEmail';
 export { default as postUpdateEmailConfirm } from './postUpdateEmailConfirm';
+export { default as putConfirmation } from './putConfirmation';
 export { default as putProfilePicture } from './putProfilePicture';
 export { default as signin } from './signin';

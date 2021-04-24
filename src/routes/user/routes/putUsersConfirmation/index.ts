@@ -1,51 +1,32 @@
 import { Request, Response } from 'express';
-import { verify } from 'jsonwebtoken';
 
 import { User } from '@src/db/models';
 
-import setRefreshToken from '@src/helpers/setRefreshToken';
-import accEnv from '@src/helpers/accEnv';
 import {
   ALREADY_CONFIRMED,
-  TOKEN_NOT_FOUND,
   USER_NOT_FOUND,
-  WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import { signAuthToken } from '@src/helpers/issueJWT';
-
-const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
+import setRefreshToken from '@src/helpers/setRefreshToken';
+import { confirmUser } from '@src/helpers/verifyConfirmation';
 
 export default async (req: Request, res: Response) => {
-  const { confirmation } = req.headers;
-  if (!confirmation) {
-    return res.status(401).send({
-      errors: TOKEN_NOT_FOUND,
-    });
-  }
-  const token = (<string>confirmation).split(' ')[1];
-  if (!token) {
-    return res.status(401).send({
-      errors: WRONG_TOKEN,
-    });
-  }
   let user: User | null;
-  let id: string;
-  let confirmTokenVersion: number;
+
+  // Check if confirm token is valid.
+  const verify = confirmUser(req);
+  if (!verify.OK) {
+    return res.status(verify.status).send({
+      errors: verify.errors,
+    });
+  }
   try {
-    const tokenVerified = verify(
-      token,
-      CONFIRM_SECRET,
-    ) as {
-      id: string;
-      confirmTokenVersion: number
-    };
-    id = tokenVerified.id;
-    confirmTokenVersion = tokenVerified.confirmTokenVersion;
     user = await User.findOne({
       where: {
-        id,
+        facebookId: null,
         googleId: null,
+        id: verify.id,
       },
     });
   } catch (err) {
@@ -56,23 +37,39 @@ export default async (req: Request, res: Response) => {
       errors: USER_NOT_FOUND,
     });
   }
+  if (user.confirmTokenVersion !== verify.confirmTokenVersion) {
+    return res.status(401).send({
+      errors: WRONG_TOKEN_VERSION,
+    });
+  }
+
+  // Check if user is not already confirmed.
   if (user.confirmed) {
     return res.status(401).send({
       errors: ALREADY_CONFIRMED,
     });
   }
-  if (user.confirmTokenVersion !== confirmTokenVersion) {
-    return res.status(401).send({
-      errors: WRONG_TOKEN_VERSION,
-    });
-  }
+
   try {
+    // Increment confirmTokenVersion user's field.
+    // This route is accessible when clicking
+    // on a link send by email.
+    // confirmTokenVersion allow us to verify
+    // that this link should not be
+    // accessible once again.
     await user.increment({ confirmTokenVersion: 1 });
-    await user.update({ confirmed: true }, { where: { id } });
+    await user.update({ confirmed: true });
   } catch (err) {
     res.status(500).send(err);
   }
+
+  // After a user confirm his account,
+  // he should access the app immediately
+  // without having to log in.
   const jwt = signAuthToken(user);
   setRefreshToken(req, user);
-  return res.status(200).send({ token: jwt.token, expiresIn: jwt.expires });
+  return res.status(200).send({
+    expiresIn: jwt.expires,
+    token: jwt.token,
+  });
 };
