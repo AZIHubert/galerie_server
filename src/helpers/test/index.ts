@@ -23,4 +23,5 @@ export { default as postUpdateEmail } from './postUpdateEmail';
 export { default as postUpdateEmailConfirm } from './postUpdateEmailConfirm';
 export { default as putConfirmation } from './putConfirmation';
 export { default as putProfilePicture } from './putProfilePicture';
+export { default as putPseudonym } from './putPseudonym';
 export { default as signin } from './signin';

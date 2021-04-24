@@ -12,6 +12,9 @@ import {
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
 
+// TODO:
+// change route by /users/me/password
+
 export default async (req: Request, res: Response) => {
   try {
     const { error } = validateSendUpdatePassword(req.body);

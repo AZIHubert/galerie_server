@@ -24,6 +24,9 @@ import { sendEmailToken } from '@src/helpers/verifyConfirmation';
 
 const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
 
+// TODO:
+// Change route by /users/me/email/confirm
+
 export default async (req: Request, res: Response) => {
   const user = req.user as User;
   const { password } = req.body;

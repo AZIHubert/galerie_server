@@ -21,6 +21,9 @@ import {
 
 const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 
+// TODO:
+// Change route by /users/me/email
+
 export default async (req: Request, res: Response) => {
   let passwordsMatch: boolean;
   const user = req.user as User;

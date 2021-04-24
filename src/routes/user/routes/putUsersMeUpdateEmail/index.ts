@@ -12,6 +12,9 @@ import { signAuthToken } from '@src/helpers/issueJWT';
 import setRefreshToken from '@src/helpers/setRefreshToken';
 import { updateEmailToken } from '@src/helpers/verifyConfirmation';
 
+// TODO:
+// change route by /users/me/email
+
 export default async (req: Request, res: Response) => {
   const verify = updateEmailToken(req);
   if (!verify.OK) {

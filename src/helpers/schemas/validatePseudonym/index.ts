@@ -18,11 +18,11 @@ const userSignInSchema = Joi.object({
     .max(30)
     .required()
     .messages({
+      'any.required': FIELD_IS_REQUIRED,
       'string.base': FIELD_NOT_A_STRING,
       'string.empty': FIELD_IS_EMPTY,
       'string.max': FIELD_MAX_LENGTH_THRITY,
       'string.min': FIELD_MIN_LENGTH_OF_THREE,
-      'string.required': FIELD_IS_REQUIRED,
     }),
 });
 
