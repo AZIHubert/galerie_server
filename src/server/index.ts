@@ -14,7 +14,7 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import usersRouter from '@src/routes/users';
 import notificationRouter from '@src/routes/notification';
 import profilePicturesRouter from '@src/routes/profilePictures';
-import ticketRouter from '@src/routes/ticket';
+import ticketsRouter from '@src/routes/tickets';
 // import galeriesRouter from '@src/routes/galeries';
 
 const SESSION_SECRET = accEnv('SESSION_SECRET');
@@ -72,7 +72,7 @@ const initApp: () => http.Server = () => {
   app.use('/users', usersRouter());
   app.use('/notifications', notificationRouter());
   app.use('/profilePictures', profilePicturesRouter());
-  app.use('/tickets', ticketRouter());
+  app.use('/tickets', ticketsRouter());
   // app.use('/galeries', galeriesRouter());
   return server;
 };

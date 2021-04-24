@@ -8,7 +8,7 @@ import {
   getTickets,
   getTicketsId,
   postTickets,
-} from './routes';
+} from './subRoutes';
 
 const router = Router();
 
