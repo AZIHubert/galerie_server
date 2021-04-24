@@ -25,7 +25,7 @@ import {
   putGaleriesId,
   putGaleriesIdFramesId,
   putGaleriesIdUsersUserId,
-} from './routes';
+} from './subRoutes';
 
 const router = Router();
 
