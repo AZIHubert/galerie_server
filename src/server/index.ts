@@ -12,7 +12,7 @@ import passport from '@src/helpers/passport';
 import initSequelize from '@src/helpers/initSequelize.js';
 
 import usersRouter from '@src/routes/users';
-import notificationRouter from '@src/routes/notification';
+import notificationsRouter from '@src/routes/notifications';
 import profilePicturesRouter from '@src/routes/profilePictures';
 import ticketsRouter from '@src/routes/tickets';
 // import galeriesRouter from '@src/routes/galeries';
@@ -70,7 +70,7 @@ const initApp: () => http.Server = () => {
     }),
   );
   app.use('/users', usersRouter());
-  app.use('/notifications', notificationRouter());
+  app.use('/notifications', notificationsRouter());
   app.use('/profilePictures', profilePicturesRouter());
   app.use('/tickets', ticketsRouter());
   // app.use('/galeries', galeriesRouter());
