@@ -13,7 +13,7 @@ import initSequelize from '@src/helpers/initSequelize.js';
 
 import usersRouter from '@src/routes/users';
 import notificationRouter from '@src/routes/notification';
-import profilePictureRouter from '@src/routes/profilePicture';
+import profilePicturesRouter from '@src/routes/profilePictures';
 import ticketRouter from '@src/routes/ticket';
 // import galeriesRouter from '@src/routes/galeries';
 
@@ -71,7 +71,7 @@ const initApp: () => http.Server = () => {
   );
   app.use('/users', usersRouter());
   app.use('/notifications', notificationRouter());
-  app.use('/profilePictures', profilePictureRouter());
+  app.use('/profilePictures', profilePicturesRouter());
   app.use('/tickets', ticketRouter());
   // app.use('/galeries', galeriesRouter());
   return server;

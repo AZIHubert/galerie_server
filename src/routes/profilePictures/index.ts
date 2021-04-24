@@ -9,7 +9,7 @@ import {
   getProfilePicturesId,
   postProfilePictures,
   putProfilePicturesId,
-} from './routes';
+} from './subRoutes';
 
 const router = Router();
 
