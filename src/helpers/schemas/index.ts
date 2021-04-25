@@ -12,4 +12,6 @@ export { default as validatesendUpdateNewEmailSchema } from './validatesendUpdat
 export { default as validateSendUpdatePassword } from './validateSendUpdatePassword';
 export { default as validateSignIn } from './validateSignIn';
 export { default as validateTicket } from './validateTicket';
+export { default as validateTokenEmail } from './validateTokenEmail';
+export { default as validateUpdateEmail } from './validateUpdateEmail';
 export { default as validateUpdateGalerie } from './validateUpdateGalerie';

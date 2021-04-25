@@ -29,8 +29,8 @@ import {
 
   postUsersIdBlacklist,
   putUsersConfirmation,
+  putUsersMeEmail,
   putUsersMePseudonym,
-  putUsersMeUpdateEmail,
   putUsersMeUpdatePassword,
   putUsersResetPassword,
   putUsersRoleIdRole,
@@ -39,6 +39,7 @@ import {
 const router = Router();
 
 const usersRoutes: () => Router = () => {
+  router.delete('/:id/blacklist/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, () => {});
   router.delete('/me/', passport.authenticate('jwt', { session: false }), deleteUsersMe);
 
   router.get('/', passport.authenticate('jwt', { session: false }), getUsers);
@@ -58,9 +59,11 @@ const usersRoutes: () => Router = () => {
   router.post('/resetPassword/', shouldNotBeAuth, postUsersResetPassword);
   router.post('/signin/', postUsersSignin);
 
+  // TODO:
+  router.put('/:id/blacklist/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, () => {});
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
+  router.put('/me/email/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeEmail);
   router.put('/me/pseudonym/', passport.authenticate('jwt', { session: false }), putUsersMePseudonym);
-  router.put('/me/email/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeUpdateEmail);
   router.put('/me/password/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeUpdatePassword);
   router.put('/resetPassword/', shouldNotBeAuth, putUsersResetPassword);
   router.put('/role/:id/', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, putUsersRoleIdRole);

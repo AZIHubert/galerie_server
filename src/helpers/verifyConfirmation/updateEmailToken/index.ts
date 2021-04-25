@@ -17,14 +17,14 @@ interface Error {
 interface Success {
   OK: true;
   id: string;
+  updatedEmail?: any;
   updatedEmailTokenVersion: number;
-  updatedEmail: string;
 }
 
 export default (req: Request) => {
   const { confirmation } = req.headers;
   let id: string;
-  let updatedEmail: string;
+  let updatedEmail: any;
   let updatedEmailTokenVersion: number;
 
   if (!confirmation) {

@@ -112,7 +112,7 @@ describe('users', () => {
           expect(status).toBe(401);
         });
         describe('confirmation token', () => {
-          it('not set', async () => {
+          it('is not set', async () => {
             const {
               body,
               status,
@@ -120,7 +120,7 @@ describe('users', () => {
             expect(body.errors).toBe(TOKEN_NOT_FOUND);
             expect(status).toBe(401);
           });
-          it('is not "Bearer ..."', async () => {
+          it('is not \'Bearer ...\'', async () => {
             const {
               body,
               status,
