@@ -82,6 +82,9 @@ describe('users', () => {
     it('delete galerieUsers and frames/invitations post by this deleted user on other galeries', () => {});
     it('doesn\'t delete frames posted by other users', () => {});
     it('should destroy all likes', () => {});
+    it('destroy all blacklist', () => {});
+    it('set to null blacklist\'s field where adminId === user.id', () => {});
+    it('set ticket.userId to null if user is the author', () => {});
 
     describe('DELETE', () => {
       describe('should return status 200 and', () => {
@@ -102,14 +105,38 @@ describe('users', () => {
           expect(users.length).toBe(0);
         });
 
-        it('delete all frames/galeries/images/invitations/profile/tickets pictures and all images from Google buckets', async () => {
-          // TODO:
-          // post ticket
+        it('destroy all profile pictures profile picture\'s image and images from Google buckets', async () => {
           await postProfilePicture(app, token);
+          await deleteUser(app, token, {
+            deleteAccountSentence: 'delete my account',
+            password: userPassword,
+            userNameOrEmail: user.email,
+          });
+          const [bucketCropedImages] = await gc
+            .bucket(GALERIES_BUCKET_PP_CROP)
+            .getFiles();
+          const [bucketOriginalImages] = await gc
+            .bucket(GALERIES_BUCKET_PP)
+            .getFiles();
+          const [bucketPendingImages] = await gc
+            .bucket(GALERIES_BUCKET_PP_PENDING)
+            .getFiles();
+          const images = await Image.findAll();
+          const profilePictures = await ProfilePicture.findAll();
+          expect(bucketCropedImages.length).toBe(0);
+          expect(bucketOriginalImages.length).toBe(0);
+          expect(bucketPendingImages.length).toBe(0);
+          expect(images.length).toBe(0);
+          expect(profilePictures.length).toBe(0);
+        });
+
+        xit('delete all frames/galeries/images/invitations and all images from Google buckets', async () => {
           const {
             body: {
-              galerie: {
-                id: galerieId,
+              data: {
+                galerie: {
+                  id: galerieId,
+                },
               },
             },
           } = await postGalerie(app, token, {});
@@ -135,7 +162,6 @@ describe('users', () => {
           const galerieUsers = await GalerieUser.findAll();
           const images = await Image.findAll();
           const invitations = await Invitation.findAll();
-          const profilePictures = await ProfilePicture.findAll();
           expect(bucketCropedImages.length).toBe(0);
           expect(bucketOriginalImages.length).toBe(0);
           expect(bucketPendingImages.length).toBe(0);
@@ -145,7 +171,6 @@ describe('users', () => {
           expect(galerieUsers.length).toEqual(0);
           expect(images.length).toBe(0);
           expect(invitations.length).toEqual(0);
-          expect(profilePictures.length).toBe(0);
         });
 
         it('don\'t delete other profile pictures', async () => {
@@ -182,11 +207,13 @@ describe('users', () => {
           expect(profilePictures.length).toBe(1);
         });
 
-        it('should archive galeries if one other user is still subscribe to it', async () => {
+        xit('should archive galeries if one other user is still subscribe to it', async () => {
           const {
             body: {
-              galerie: {
-                id: galerieId,
+              data: {
+                galerie: {
+                  id: galerieId,
+                },
               },
             },
           } = await postGalerie(app, token, {});
@@ -210,11 +237,13 @@ describe('users', () => {
           expect(galerieUsers.length).toEqual(1);
         });
 
-        it('should destroy all invitations if a galerie is archived', async () => {
+        xit('should destroy all invitations if a galerie is archived', async () => {
           const {
             body: {
-              galerie: {
-                id: galerieId,
+              data: {
+                galerie: {
+                  id: galerieId,
+                },
               },
             },
           } = await postGalerie(app, token, {});

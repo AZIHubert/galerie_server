@@ -8,6 +8,7 @@ import {
   User,
 } from '@src/db/models';
 
+import checkBlackList from '@src/helpers/checkBlackList';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
@@ -111,92 +112,9 @@ export default async (req: Request, res: Response) => {
     // with their signed url.
     await Promise.all(
       users.map(async (user) => {
-        const currentProfilePicture = await ProfilePicture.findOne({
-          attributes: {
-            exclude: [
-              'createdAt',
-              'cropedImageId',
-              'current',
-              'originalImageId',
-              'pendingImageId',
-              'updatedAt',
-              'userId',
-            ],
-          },
-          include: [
-            {
-              as: 'cropedImage',
-              attributes: {
-                exclude: [
-                  'createdAt',
-                  'updatedAt',
-                ],
-              },
-              model: Image,
-            },
-            {
-              as: 'originalImage',
-              attributes: {
-                exclude: [
-                  'createdAt',
-                  'updatedAt',
-                ],
-              },
-              model: Image,
-            },
-            {
-              as: 'pendingImage',
-              attributes: {
-                exclude: [
-                  'createdAt',
-                  'updatedAt',
-                ],
-              },
-              model: Image,
-            },
-          ],
-          where: {
-            current: true,
-            userId: user.id,
-          },
-        });
-        if (currentProfilePicture) {
-          const {
-            cropedImage: {
-              bucketName: cropedImageBucketName,
-              fileName: cropedImageFileName,
-            },
-            originalImage: {
-              bucketName: originalImageBucketName,
-              fileName: originalImageFileName,
-            },
-            pendingImage: {
-              bucketName: pendingImageBucketName,
-              fileName: pendingImageFileName,
-            },
-          } = currentProfilePicture;
-          const cropedImageSignedUrl = await signedUrl(
-            cropedImageBucketName,
-            cropedImageFileName,
-          );
-          const originalImageSignedUrl = await signedUrl(
-            originalImageBucketName,
-            originalImageFileName,
-          );
-          const pendingImageSignedUrl = await signedUrl(
-            pendingImageBucketName,
-            pendingImageFileName,
-          );
-          currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
-          currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
-          currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
-        }
-
-        // Get admin's current profile picture
-        // with it's signed url.
-        let adminCurrentProfilePicture: ProfilePicture | null = null;
-        if (user.blackList.admin) {
-          adminCurrentProfilePicture = await ProfilePicture.findOne({
+        const userIsBlackListed = await checkBlackList(user);
+        if (userIsBlackListed) {
+          const currentProfilePicture = await ProfilePicture.findOne({
             attributes: {
               exclude: [
                 'createdAt',
@@ -242,10 +160,10 @@ export default async (req: Request, res: Response) => {
             ],
             where: {
               current: true,
-              userId: user.blackList.admin.id,
+              userId: user.id,
             },
           });
-          if (adminCurrentProfilePicture) {
+          if (currentProfilePicture) {
             const {
               cropedImage: {
                 bucketName: cropedImageBucketName,
@@ -259,7 +177,7 @@ export default async (req: Request, res: Response) => {
                 bucketName: pendingImageBucketName,
                 fileName: pendingImageFileName,
               },
-            } = adminCurrentProfilePicture;
+            } = currentProfilePicture;
             const cropedImageSignedUrl = await signedUrl(
               cropedImageBucketName,
               cropedImageFileName,
@@ -272,27 +190,113 @@ export default async (req: Request, res: Response) => {
               pendingImageBucketName,
               pendingImageFileName,
             );
-            adminCurrentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
-            adminCurrentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
-            adminCurrentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+            currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
+            currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
+            currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
           }
-        }
-        const userWithProfilePicture: any = {
-          ...user.toJSON(),
-          currentProfilePicture: currentProfilePicture
-            ? currentProfilePicture.toJSON()
-            : undefined,
-          blackList: {
-            ...user.blackList.toJSON(),
-            admin: {
-              ...user.blackList.admin.toJSON(),
-              currentProfilePicture: adminCurrentProfilePicture
-                ? adminCurrentProfilePicture.toJSON()
-                : undefined,
+
+          // Get admin's current profile picture
+          // with it's signed url.
+          let adminCurrentProfilePicture: ProfilePicture | null = null;
+          if (user.blackList.admin) {
+            adminCurrentProfilePicture = await ProfilePicture.findOne({
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'cropedImageId',
+                  'current',
+                  'originalImageId',
+                  'pendingImageId',
+                  'updatedAt',
+                  'userId',
+                ],
+              },
+              include: [
+                {
+                  as: 'cropedImage',
+                  attributes: {
+                    exclude: [
+                      'createdAt',
+                      'updatedAt',
+                    ],
+                  },
+                  model: Image,
+                },
+                {
+                  as: 'originalImage',
+                  attributes: {
+                    exclude: [
+                      'createdAt',
+                      'updatedAt',
+                    ],
+                  },
+                  model: Image,
+                },
+                {
+                  as: 'pendingImage',
+                  attributes: {
+                    exclude: [
+                      'createdAt',
+                      'updatedAt',
+                    ],
+                  },
+                  model: Image,
+                },
+              ],
+              where: {
+                current: true,
+                userId: user.blackList.admin.id,
+              },
+            });
+            if (adminCurrentProfilePicture) {
+              const {
+                cropedImage: {
+                  bucketName: cropedImageBucketName,
+                  fileName: cropedImageFileName,
+                },
+                originalImage: {
+                  bucketName: originalImageBucketName,
+                  fileName: originalImageFileName,
+                },
+                pendingImage: {
+                  bucketName: pendingImageBucketName,
+                  fileName: pendingImageFileName,
+                },
+              } = adminCurrentProfilePicture;
+              const cropedImageSignedUrl = await signedUrl(
+                cropedImageBucketName,
+                cropedImageFileName,
+              );
+              const originalImageSignedUrl = await signedUrl(
+                originalImageBucketName,
+                originalImageFileName,
+              );
+              const pendingImageSignedUrl = await signedUrl(
+                pendingImageBucketName,
+                pendingImageFileName,
+              );
+              adminCurrentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
+              adminCurrentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
+              adminCurrentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+            }
+          }
+          const userWithProfilePicture: any = {
+            ...user.toJSON(),
+            currentProfilePicture: currentProfilePicture
+              ? currentProfilePicture.toJSON()
+              : undefined,
+            blackList: {
+              ...user.blackList.toJSON(),
+              admin: {
+                ...user.blackList.admin.toJSON(),
+                currentProfilePicture: adminCurrentProfilePicture
+                  ? adminCurrentProfilePicture.toJSON()
+                  : undefined,
+              },
             },
-          },
-        };
-        usersWithProfilePicture.push(userWithProfilePicture);
+          };
+          usersWithProfilePicture.push(userWithProfilePicture);
+        }
       }),
     );
   } catch (err) {

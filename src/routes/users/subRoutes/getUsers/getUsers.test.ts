@@ -24,8 +24,8 @@ const userPassword = 'Password0!';
 describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
-  let user: User;
   let token: string;
+  let user: User;
 
   beforeAll(() => {
     sequelize = initSequelize();

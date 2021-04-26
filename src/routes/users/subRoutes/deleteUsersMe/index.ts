@@ -41,6 +41,9 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // TODO:
+  // use schema to validate request.body.
+
   // Return error if
   // deleteAccountSentence/userNameOrEmail/password
   // are not send or not match.
@@ -135,9 +138,14 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Destroy all tickets.
+  // TODO: test
+  // set Ticket.userId to null
+  // if current user is the author
+  // of the ticket.
   try {
-    await Ticket.destroy({
+    await Ticket.update({
+      userId: null,
+    }, {
       where: {
         userId: user.id,
       },
@@ -145,6 +153,11 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // TODO:
+  // destroy all black list where userId === user.id
+  // set to null all black list field where adminId === user.id
+  // test
 
   // Destroy all frames/galeriePictures/images/likes
   // and images from Google buckets.
@@ -220,21 +233,23 @@ export default async (req: Request, res: Response) => {
         userId: user.id,
       },
     });
-    await Promise.all(galerieUsers.map(async (galerieUser) => {
-      await galerieUser.destroy();
-      const allUsers = await GalerieUser.findAll({
-        where: {
-          galerieId: galerieUser.galerieId,
-        },
-      });
-      if (galerieUser.role === 'creator') {
-        if (!allUsers.length) {
+    await Promise.all(
+      galerieUsers.map(async (galerieUser) => {
+        await galerieUser.destroy();
+        const allUsers = await GalerieUser.findAll({
+          where: {
+            galerieId: galerieUser.galerieId,
+          },
+        });
+        // TODO:
+        // something wrong with invitation.destroy.
+        if (allUsers.length === 0) {
           await Galerie.destroy({
             where: {
               id: galerieUser.galerieId,
             },
           });
-        } else {
+        } else if (galerieUser.role === 'creator') {
           await Galerie.update({
             archived: true,
           }, {
@@ -248,8 +263,8 @@ export default async (req: Request, res: Response) => {
             },
           });
         }
-      }
-    }));
+      }),
+    );
   } catch (err) {
     return res.status(500).send(err);
   }

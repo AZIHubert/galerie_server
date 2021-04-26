@@ -1,3 +1,4 @@
+export { default as deleteUsersIdBlackList } from './deleteUsersIdBlackList';
 export { default as deleteUsersMe } from './deleteUsersMe';
 
 export { default as getUsers } from './getUsers';
@@ -8,7 +9,7 @@ export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 
-export { default as postUsersIdBlacklist } from './postUsersIdBlacklist';
+export { default as postUsersBlacklistId } from './postUsersBlacklistId';
 export { default as postUsersConfirmation } from './postUsersConfirmation';
 export { default as postUsersResetPassword } from './postUsersResetPassword';
 export { default as postUsersLogin } from './postUsersLogin';
