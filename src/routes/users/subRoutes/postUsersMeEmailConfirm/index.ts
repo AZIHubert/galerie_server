@@ -17,15 +17,12 @@ import {
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import {
-  validatesendUpdateNewEmailSchema,
+  validatePostUsersMeUpdateEmailConfirmBody,
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
 import { sendEmailToken } from '@src/helpers/verifyConfirmation';
 
 const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
-
-// TODO:
-// Change route by /users/me/email/confirm
 
 export default async (req: Request, res: Response) => {
   const user = req.user as User;
@@ -53,7 +50,7 @@ export default async (req: Request, res: Response) => {
   const {
     error,
     value,
-  } = validatesendUpdateNewEmailSchema(req.body);
+  } = validatePostUsersMeUpdateEmailConfirmBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

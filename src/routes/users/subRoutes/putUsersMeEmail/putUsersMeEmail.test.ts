@@ -28,7 +28,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
@@ -62,8 +62,8 @@ describe('users', () => {
     done();
   });
 
-  describe('me', () => {
-    describe('email', () => {
+  describe('/me', () => {
+    describe('/email', () => {
       describe('put', () => {
         describe('should return status 200 and', () => {
           const updatedEmail = 'newemail@email.com';

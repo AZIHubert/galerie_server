@@ -12,12 +12,12 @@ export default async (
   let response: request.Response;
   if (confirmToken) {
     response = await request(app)
-      .put('/users/resetPassword/')
+      .put('/users/password/')
       .set('confirmation', confirmToken)
       .send(body);
   } else {
     response = await request(app)
-      .put('/users/resetPassword/')
+      .put('/users/password/')
       .send(body);
   }
   return response;

@@ -8,7 +8,7 @@ import {
 } from '@src/db/models';
 
 import {
-  validateUpdateGalerie,
+  validatePutGaleriesIdBody,
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
 
@@ -86,7 +86,10 @@ export default async (req: Request, res: Response) => {
     }
   }
   if (name !== undefined) {
-    const { error, value } = validateUpdateGalerie(req.body);
+    const {
+      error,
+      value,
+    } = validatePutGaleriesIdBody(req.body);
     if (error) {
       return res.status(400).send({
         errors: normalizeJoiErrors(error),

@@ -28,7 +28,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -64,8 +64,8 @@ describe('users', () => {
     done();
   });
 
-  describe('blackList', () => {
-    describe(':id', () => {
+  describe('/blackList', () => {
+    describe('/:id', () => {
       describe('POST', () => {
         describe('should return status 200 and', () => {
           it('black list an user and set is role to user', async () => {

@@ -11,7 +11,7 @@ export default async (
   },
 ) => {
   const response = await request(app)
-    .post('/users/resetPassword/')
+    .post('/users/password/')
     .send({
       email,
     });

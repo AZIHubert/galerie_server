@@ -7,7 +7,7 @@ import { User } from '@src/db/models';
 
 import {
   normalizeJoiErrors,
-  validatePseudonym,
+  validatePutUsersMePseudonymBody,
 } from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
@@ -16,7 +16,7 @@ export default async (req: Request, res: Response) => {
   const {
     error,
     value,
-  } = validatePseudonym(req.body);
+  } = validatePutUsersMePseudonymBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

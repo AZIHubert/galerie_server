@@ -16,7 +16,7 @@ import {
 } from '@src/helpers/errorMessages';
 import {
   normalizeJoiErrors,
-  validateResetPasswordSchema,
+  validatePostUsersResetPasswordBody,
 } from '@src/helpers/schemas';
 
 const RESET_PASSWORD_SECRET = accEnv('RESET_PASSWORD_SECRET');
@@ -27,7 +27,7 @@ export default async (req: Request, res: Response) => {
   const {
     error,
     value,
-  } = validateResetPasswordSchema(req.body);
+  } = validatePostUsersResetPasswordBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

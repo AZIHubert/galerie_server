@@ -25,7 +25,6 @@ import {
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
-
 import initSequelize from '@src/helpers/initSequelize.js';
 import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 import {
@@ -37,7 +36,7 @@ import initApp from '@src/server';
 
 const hashMocked = jest.spyOn(bcrypt, 'hash');
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
@@ -69,7 +68,7 @@ describe('users', () => {
     done();
   });
 
-  describe('resetPassword', () => {
+  describe('/resetPassword', () => {
     describe('PUT', () => {
       describe('should return status 204 and', () => {
         beforeEach(() => {

@@ -19,7 +19,7 @@ export default async (
     return res.status(401).send({
       // TODO:
       // Better error message.
-      errors: 'you can\'t modify your account',
+      errors: 'you can\'t modify your account if you are register with Facebook or Google',
     });
   }
   return next();

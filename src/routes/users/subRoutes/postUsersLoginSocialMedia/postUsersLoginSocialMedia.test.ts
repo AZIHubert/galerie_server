@@ -20,7 +20,7 @@ import {
 
 import initApp from '@src/server';
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
 
@@ -51,8 +51,8 @@ describe('users', () => {
     done();
   });
 
-  describe('login', () => {
-    describe('socialMedia', () => {
+  describe('/login', () => {
+    describe('/socialMedia', () => {
       describe('POST', () => {
         describe('should return status 200 and', () => {
           it('create a user if type is Facebook and no other user with same FacebookId exist', async () => {

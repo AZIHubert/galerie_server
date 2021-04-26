@@ -21,7 +21,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -59,8 +59,8 @@ describe('users', () => {
     done();
   });
 
-  describe(':id', () => {
-    describe('blacklist', () => {
+  describe('/blacklist', () => {
+    describe('/:id', () => {
       describe('DELETE', () => {
         describe('it should return status 200 and', () => {
           let userId: string;

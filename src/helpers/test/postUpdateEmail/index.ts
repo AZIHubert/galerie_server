@@ -12,7 +12,7 @@ export default async (
   },
 ) => {
   const response = await request(app)
-    .post('/users/me/updateEmail/')
+    .post('/users/me/email/')
     .set('authorization', token)
     .send({
       password,

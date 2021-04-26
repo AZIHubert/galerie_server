@@ -17,8 +17,8 @@ import {
 import { signAuthToken } from '@src/helpers/issueJWT';
 import setRefreshToken from '@src/helpers/setRefreshToken';
 import {
-  validateLogIn,
   normalizeJoiErrors,
+  validatePostUsersLoginBody,
 } from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
@@ -28,7 +28,7 @@ export default async (req: Request, res: Response) => {
   const {
     error,
     value,
-  } = validateLogIn(req.body);
+  } = validatePostUsersLoginBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

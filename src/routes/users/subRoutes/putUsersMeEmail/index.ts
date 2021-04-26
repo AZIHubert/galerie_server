@@ -14,8 +14,8 @@ import {
 } from '@src/helpers/errorMessages';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import {
-  validateUpdateEmail,
-  validateTokenEmail,
+  validatePutUsersMeEmailBody,
+  validatePutUsersMeEmailConfirmToken,
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
 import setRefreshToken from '@src/helpers/setRefreshToken';
@@ -45,7 +45,7 @@ export default async (req: Request, res: Response) => {
   const {
     error: tokenError,
     value: tokenValue,
-  } = validateTokenEmail({
+  } = validatePutUsersMeEmailConfirmToken({
     email: verify.updatedEmail,
   });
   if (tokenError) {
@@ -63,9 +63,7 @@ export default async (req: Request, res: Response) => {
   const {
     error,
     value,
-  } = validateUpdateEmail({
-    ...req.body,
-  });
+  } = validatePutUsersMeEmailBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

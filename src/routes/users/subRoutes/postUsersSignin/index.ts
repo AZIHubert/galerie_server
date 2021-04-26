@@ -12,7 +12,7 @@ import {
 import saltRounds from '@src/helpers/saltRounds';
 import {
   normalizeJoiErrors,
-  validateSignIn,
+  validatePostUsersSigninBody,
 } from '@src/helpers/schemas';
 
 // Normalize Sequelize errors for response
@@ -37,7 +37,7 @@ export default async (req: Request, res: Response) => {
   const {
     error,
     value,
-  } = validateSignIn(req.body);
+  } = validatePostUsersSigninBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

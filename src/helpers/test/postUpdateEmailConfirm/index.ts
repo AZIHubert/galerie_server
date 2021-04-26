@@ -17,7 +17,7 @@ export default async (
   let response: request.Response;
   if (confirmToken) {
     response = await request(app)
-      .post('/users/me/updateEmail/confirm')
+      .post('/users/me/email/confirm')
       .set('authorization', token)
       .set('confirmation', confirmToken)
       .send({
@@ -26,7 +26,7 @@ export default async (
       });
   } else {
     response = await request(app)
-      .post('/users/me/updateEmail/confirm')
+      .post('/users/me/email/confirm')
       .set('authorization', token)
       .send({
         email,

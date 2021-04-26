@@ -6,8 +6,8 @@ import {
   User,
 } from '@src/db/models';
 import {
-  validateGalerie,
   normalizeJoiErrors,
+  validatePostGaleriesBody,
 } from '@src/helpers/schemas';
 
 const colors = [
@@ -57,7 +57,7 @@ const map = (
 ) => ((value - x1) * (y2 - x2)) / ((y1 - x1) + x2);
 
 export default async (req: Request, res: Response) => {
-  const { error, value } = validateGalerie(req.body);
+  const { error, value } = validatePostGaleriesBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

@@ -32,7 +32,7 @@ const emailMocked = jest.spyOn(email, 'sendValidateEmailMessage');
 const signMocked = jest.spyOn(jwt, 'sign');
 const userPassword = 'Password0!';
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -67,9 +67,9 @@ describe('users', () => {
     done();
   });
 
-  describe('me', () => {
-    describe('updateEmail', () => {
-      describe('confirm', () => {
+  describe('/me', () => {
+    describe('/updateEmail', () => {
+      describe('/confirm', () => {
         describe('POST', () => {
           describe('should return status 204 and', () => {
             it('send an email and sign a token', async () => {

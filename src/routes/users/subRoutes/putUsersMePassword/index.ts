@@ -14,12 +14,9 @@ import { signAuthToken } from '@src/helpers/issueJWT';
 import saltRounds from '@src/helpers/saltRounds';
 import {
   normalizeJoiErrors,
-  validateSendUpdatePassword,
+  validatePutUsersMePasswordBody,
 } from '@src/helpers/schemas';
 import setRefreshToken from '@src/helpers/setRefreshToken';
-
-// TODO:
-// change route by /users/me/password
 
 export default async (req: Request, res: Response) => {
   const { currentPassword, newPassword } = req.body;
@@ -29,7 +26,7 @@ export default async (req: Request, res: Response) => {
   try {
     const {
       error,
-    } = validateSendUpdatePassword(req.body);
+    } = validatePutUsersMePasswordBody(req.body);
     if (error) {
       return res.status(400).send({
         errors: normalizeJoiErrors(error),

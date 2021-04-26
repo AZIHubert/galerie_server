@@ -16,7 +16,7 @@ import {
 import saltRounds from '@src/helpers/saltRounds';
 import {
   normalizeJoiErrors,
-  validateModifyPasswordSchema,
+  validatePutUsersResetPasswordBody,
 } from '@src/helpers/schemas';
 import { resetPassword } from '@src/helpers/verifyConfirmation';
 
@@ -77,7 +77,7 @@ export default async (req: Request, res: Response) => {
       errors: WRONG_TOKEN_VERSION,
     });
   }
-  const { error } = validateModifyPasswordSchema(req.body);
+  const { error } = validatePutUsersResetPasswordBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

@@ -31,7 +31,7 @@ import initApp from '@src/server';
 const emailMocked = jest.spyOn(email, 'sendResetPassword');
 const jwtMocked = jest.spyOn(jwt, 'sign');
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
@@ -63,7 +63,7 @@ describe('users', () => {
     done();
   });
 
-  describe('resetPassword', () => {
+  describe('/resetPassword', () => {
     describe('POST', () => {
       describe('should return status 204 and', () => {
         it('send an email with and sign a token', async () => {

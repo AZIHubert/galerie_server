@@ -29,7 +29,7 @@ import initApp from '@src/server';
 
 const bcryptMock = jest.spyOn(bcrypt, 'hash');
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
 
@@ -59,7 +59,7 @@ describe('users', () => {
     }
   });
 
-  describe('signin', () => {
+  describe('/signin', () => {
     describe('POST', () => {
       describe('should return status 200 and', () => {
         it('return a user with relevent attributes and create a user with an encrypted password', async () => {

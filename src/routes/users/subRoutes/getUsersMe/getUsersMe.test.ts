@@ -20,7 +20,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -56,7 +56,7 @@ describe('users', () => {
     done();
   });
 
-  describe('me', () => {
+  describe('/me', () => {
     describe('GET', () => {
       describe('should return status 200 and', () => {
         it('return your own account with relevent properties', async () => {

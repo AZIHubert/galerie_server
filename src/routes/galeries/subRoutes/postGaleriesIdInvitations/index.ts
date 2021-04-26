@@ -10,8 +10,8 @@ import {
 } from '@src/db/models';
 
 import {
-  validateInvitation,
   normalizeJoiErrors,
+  validatePostGaleriesIdInvationsBody,
 } from '@src/helpers/schemas';
 import signedUrl from '@src/helpers/signedUrl';
 
@@ -50,7 +50,7 @@ export default async (req: Request, res: Response) => {
       errors: 'not allow to create an invit',
     });
   }
-  const { error, value } = validateInvitation(req.body);
+  const { error, value } = validatePostGaleriesIdInvationsBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

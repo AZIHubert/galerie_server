@@ -40,7 +40,7 @@ const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
 const userPassword = 'Password0!';
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -76,7 +76,7 @@ describe('users', () => {
     done();
   });
 
-  describe('me', () => {
+  describe('/me', () => {
     // TODO:
     it('don\'t delete other galeries', () => {});
     it('delete galerieUsers and frames/invitations post by this deleted user on other galeries', () => {});

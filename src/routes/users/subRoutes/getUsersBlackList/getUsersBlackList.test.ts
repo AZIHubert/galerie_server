@@ -21,7 +21,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -59,9 +59,9 @@ describe('users', () => {
     done();
   });
 
-  describe('blackList', () => {
+  describe('/blackList', () => {
     // TODO:
-    it('should return black listed user even if admin is deleted', () => {});
+    it('should return black listed users even if BlackList.adminId is null', async () => {});
     describe('GET', () => {
       describe('should return status 200 and', () => {
         it('don\'t return non black listed user', async () => {

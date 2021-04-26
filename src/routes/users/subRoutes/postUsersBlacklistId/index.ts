@@ -10,7 +10,7 @@ import {
 import { USER_NOT_FOUND } from '@src/helpers/errorMessages';
 import {
   normalizeJoiErrors,
-  validateBlackListUser,
+  validatePostUsersBlacklistIdBody,
 } from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
@@ -83,7 +83,7 @@ export default async (req: Request, res: Response) => {
   const {
     error,
     value,
-  } = validateBlackListUser(req.body);
+  } = validatePostUsersBlacklistIdBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

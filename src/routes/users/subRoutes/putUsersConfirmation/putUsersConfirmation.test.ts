@@ -21,7 +21,7 @@ import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 
 import initApp from '@src/server';
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
@@ -54,7 +54,7 @@ describe('users', () => {
     done();
   });
 
-  describe('confirmation', () => {
+  describe('/confirmation', () => {
     describe('PUT', () => {
       describe('should return status 200 and', () => {
         it('return a token', async () => {

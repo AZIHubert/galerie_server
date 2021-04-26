@@ -1,3 +1,6 @@
+// TODO:
+// Better errors var name...
+
 export const ALREADY_CONFIRMED = 'your account is already confirmed';
 export const ALREADY_TAKEN = 'already taken';
 export const FIELD_HAS_SPACES = 'can not contain spaces';

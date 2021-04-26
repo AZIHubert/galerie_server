@@ -24,7 +24,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -60,8 +60,8 @@ describe('users', () => {
     done();
   });
 
-  describe('id', () => {
-    describe(':id', () => {
+  describe('/id', () => {
+    describe('/:id', () => {
       describe('GET', () => {
         describe('shouls return status 200 and', () => {
           it('get user :id with only relevent attributes', async () => {

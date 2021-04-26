@@ -22,7 +22,7 @@ import initApp from '@src/server';
 const signMocked = jest.spyOn(jwt, 'sign');
 const emailMocked = jest.spyOn(email, 'sendConfirmAccount');
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
@@ -57,7 +57,7 @@ describe('users', () => {
     done();
   });
 
-  describe('confirmation', () => {
+  describe('/confirmation', () => {
     describe('POST', () => {
       describe('should return status 204 and', () => {
         it('increment confirmTokenVersion', async () => {

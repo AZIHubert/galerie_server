@@ -138,7 +138,7 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // TODO: test
+  // TODO: test this features
   // set Ticket.userId to null
   // if current user is the author
   // of the ticket.

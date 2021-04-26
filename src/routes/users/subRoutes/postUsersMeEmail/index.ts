@@ -16,13 +16,10 @@ import {
 } from '@src/helpers/errorMessages';
 import {
   normalizeJoiErrors,
-  validateSendUpdateEmailSchema,
+  validatePostUsersMeUpdateEmailBody,
 } from '@src/helpers/schemas';
 
 const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
-
-// TODO:
-// Change route by /users/me/email
 
 export default async (req: Request, res: Response) => {
   let passwordsMatch: boolean;
@@ -32,7 +29,7 @@ export default async (req: Request, res: Response) => {
   const {
     error,
     value,
-  } = validateSendUpdateEmailSchema(req.body);
+  } = validatePostUsersMeUpdateEmailBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

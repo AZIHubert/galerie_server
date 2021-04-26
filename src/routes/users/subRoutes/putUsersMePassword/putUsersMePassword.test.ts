@@ -29,7 +29,7 @@ import initApp from '@src/server';
 const hashMocked = jest.spyOn(bcrypt, 'hash');
 const userPassword = 'Password0!';
 
-describe('users', () => {
+describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -64,8 +64,8 @@ describe('users', () => {
     done();
   });
 
-  describe('me', () => {
-    describe('password', () => {
+  describe('/me', () => {
+    describe('/password', () => {
       describe('should return status 200 and', () => {
         it('should return authToken', async () => {
           const newPassword = 'NewPassword0!';

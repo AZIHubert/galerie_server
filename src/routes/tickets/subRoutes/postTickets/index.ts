@@ -4,17 +4,22 @@ import { User, Ticket } from '@src/db/models';
 
 import {
   normalizeJoiErrors,
-  validateTicket,
+  validatePostTicketBody,
 } from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
-  const { error, value } = validateTicket(req.body);
+  const { id: userId } = req.user as User;
+
+  const {
+    error,
+    value,
+  } = validatePostTicketBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
     });
   }
-  const { id: userId } = req.user as User;
+
   try {
     await Ticket.create({
       ...value,
