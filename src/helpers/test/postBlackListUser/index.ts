@@ -5,10 +5,7 @@ export default async (
   app: Server,
   token: string,
   userId: string,
-  {
-    reason,
-    time,
-  }: {
+  body: {
     reason?: any,
     time?: any
   },
@@ -16,9 +13,6 @@ export default async (
   const response = await request(app)
     .post(`/users/blacklist/${userId}/`)
     .set('authorization', token)
-    .send({
-      reason,
-      time,
-    });
+    .send(body);
   return response;
 };

@@ -4,7 +4,7 @@ import request from 'supertest';
 export default async (
   app: Server,
   confirmToken: string | undefined,
-  body : {
+  body: {
     confirmPassword?: any;
     password?: any;
   },

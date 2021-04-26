@@ -5,9 +5,7 @@ export default async (
   app: Server,
   token: string,
   confirmToken: string | undefined,
-  {
-    password,
-  } : {
+  body: {
     password?: any
   },
 ) => {
@@ -17,16 +15,12 @@ export default async (
       .put('/users/me/email/')
       .set('authorization', token)
       .set('confirmation', confirmToken)
-      .send({
-        password,
-      });
+      .send(body);
   } else {
     response = await request(app)
       .put('/users/me/email/')
       .set('authorization', token)
-      .send({
-        password,
-      });
+      .send(body);
   }
   return response;
 };

@@ -4,9 +4,7 @@ import request from 'supertest';
 export default async (
   app: Server,
   token: string,
-  {
-    password,
-  } : {
+  body: {
     password?: any;
 
   },
@@ -14,8 +12,6 @@ export default async (
   const response = await request(app)
     .post('/users/me/email/')
     .set('authorization', token)
-    .send({
-      password,
-    });
+    .send(body);
   return response;
 };

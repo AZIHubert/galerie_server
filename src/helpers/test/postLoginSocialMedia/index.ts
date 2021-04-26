@@ -3,13 +3,7 @@ import request from 'supertest';
 
 export default async (
   app: Server,
-  {
-    email,
-    id,
-    profilePicture,
-    type = 'Facebook',
-    userName,
-  } : {
+  body: {
     email?: string;
     id?: string;
     profilePicture?: string;
@@ -19,12 +13,6 @@ export default async (
 ) => {
   const response = await request(app)
     .post('/users/login/socialMedia')
-    .send({
-      email,
-      id,
-      profilePicture,
-      type,
-      userName,
-    });
+    .send(body);
   return response;
 };

@@ -4,15 +4,13 @@ import request from 'supertest';
 export default async (
   app: Server,
   token: string,
-  {
-    name,
-  } : {
+  body: {
     name?: string;
   },
 ) => {
   const response = await request(app)
     .post('/galeries/')
     .set('authorization', token)
-    .send({ name: name || 'galerie name' });
+    .send(body);
   return response;
 };

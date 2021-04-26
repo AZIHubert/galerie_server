@@ -3,12 +3,7 @@ import request from 'supertest';
 
 export default async (
   app: Server,
-  {
-    confirmPassword,
-    email,
-    password,
-    userName,
-  } : {
+  body: {
     confirmPassword?: any;
     email?: any;
     password?: any;
@@ -17,11 +12,6 @@ export default async (
 ) => {
   const response = await request(app)
     .post('/users/signin/')
-    .send({
-      confirmPassword,
-      email,
-      password,
-      userName,
-    });
+    .send(body);
   return response;
 };

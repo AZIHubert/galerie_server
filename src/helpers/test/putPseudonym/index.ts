@@ -4,17 +4,13 @@ import request from 'supertest';
 export default async (
   app: Server,
   token: string,
-  {
-    pseudonym,
-  } : {
+  body: {
     pseudonym?: any
   },
 ) => {
   const response = await request(app)
     .put('/users/me/pseudonym/')
     .set('authorization', token)
-    .send({
-      pseudonym,
-    });
+    .send(body);
   return response;
 };
