@@ -112,6 +112,7 @@ export default async (req: Request, res: Response) => {
     // with their signed url.
     await Promise.all(
       users.map(async (user) => {
+        // Check if blacklist is still available.
         const userIsBlackListed = await checkBlackList(user);
         if (userIsBlackListed) {
           const currentProfilePicture = await ProfilePicture.findOne({

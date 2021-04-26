@@ -15,20 +15,25 @@ import options from '../options';
 const sendUpdatePassword = Joi.object({
   confirmNewPassword: Joi.string()
     .required()
+    .empty()
     .valid(Joi.ref('newPassword'))
     .messages({
       'any.required': FIELD_IS_REQUIRED,
       'any.only': FIELD_IS_CONFIRM_PASSWORD,
+      'string.base': FIELD_NOT_A_STRING,
+      'string.empty': FIELD_IS_EMPTY,
     }),
   currentPassword: Joi.string()
     .required()
     .empty()
     .messages({
       'any.required': FIELD_IS_REQUIRED,
+      'string.base': FIELD_NOT_A_STRING,
       'string.empty': FIELD_IS_EMPTY,
     }),
   newPassword: Joi.string()
     .required()
+    .empty()
     .pattern(
       new RegExp(/^\S*$/),
       { name: 'spacesError' },

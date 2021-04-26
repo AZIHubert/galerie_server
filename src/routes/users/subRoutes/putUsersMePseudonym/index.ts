@@ -22,6 +22,7 @@ export default async (req: Request, res: Response) => {
       errors: normalizeJoiErrors(error),
     });
   }
+
   try {
     await user.update({ pseudonym: value.pseudonym });
   } catch (err) {
