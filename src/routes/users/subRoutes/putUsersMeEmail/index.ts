@@ -96,9 +96,9 @@ export default async (req: Request, res: Response) => {
       authTokenVersion: 1,
       // This route is accessible when clicking
       // on a link send by email.
-      // updatedEmailTokenVersion allow us to verify
-      // that this link should not be
-      // accessible once again.
+      // Incrementing updatedEmailTokenVersion
+      // allow us to verify  that this link
+      // should not be accessible once again.
       updatedEmailTokenVersion: 1,
     });
   } catch (err) {

@@ -13,9 +13,12 @@ import options from '../options';
 
 const modifyPasswordSchema = Joi.object({
   confirmPassword: Joi.string()
+    .required()
+    .empty()
     .valid(Joi.ref('password'))
     .messages({
       'any.only': FIELD_IS_CONFIRM_PASSWORD,
+      'any.required': FIELD_IS_REQUIRED,
       'string.base': FIELD_NOT_A_STRING,
       'string.empty': FIELD_IS_EMPTY,
     }),

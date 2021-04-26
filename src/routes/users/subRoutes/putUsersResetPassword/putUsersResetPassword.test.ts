@@ -1,70 +1,66 @@
-import { Server } from 'http';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import { Server } from 'http';
 import { Sequelize } from 'sequelize';
-import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import {
+  BlackList,
+  User,
+} from '@src/db/models';
 
 import {
+  FIELD_HAS_SPACES,
   FIELD_IS_CONFIRM_PASSWORD,
-  FIELD_IS_REQUIRED,
   FIELD_IS_EMPTY,
+  FIELD_IS_PASSWORD,
+  FIELD_IS_REQUIRED,
   FIELD_MAX_LENGTH_THRITY,
   FIELD_MIN_LENGTH_OF_HEIGH,
   FIELD_NOT_A_STRING,
+  NOT_CONFIRMED,
   TOKEN_NOT_FOUND,
+  USER_IS_BLACK_LISTED,
   USER_NOT_FOUND,
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
-  FIELD_IS_PASSWORD,
 } from '@src/helpers/errorMessages';
+
 import initSequelize from '@src/helpers/initSequelize.js';
-import saltRounds from '@src/helpers/saltRounds';
 import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
+import {
+  createUser,
+  putResetPassword,
+} from '@src/helpers/test';
+
 import initApp from '@src/server';
 
-const clearDatas = async (sequelize: Sequelize) => {
-  await User.sync({ force: true });
-  await sequelize.model('Sessions').sync({ force: true });
-};
-
-const newUser = {
-  userName: 'user',
-  email: 'user@email',
-  password: 'password',
-};
+const hashMocked = jest.spyOn(bcrypt, 'hash');
 
 describe('users', () => {
   let app: Server;
   let sequelize: Sequelize;
   let user: User;
+
   beforeAll(() => {
     app = initApp();
     sequelize = initSequelize();
   });
+
   beforeEach(async (done) => {
     try {
-      await clearDatas(sequelize);
-      const hashPassword = await bcrypt.hash(newUser.password, saltRounds);
-      user = await User.create({
-        ...newUser,
-        confirmed: true,
-        password: hashPassword,
-      });
+      await sequelize.sync({ force: true });
+      user = await createUser({});
     } catch (err) {
       done(err);
     }
+    jest.clearAllMocks();
     done();
   });
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+
   afterAll(async (done) => {
     try {
-      await clearDatas(sequelize);
+      await sequelize.sync({ force: true });
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -72,331 +68,432 @@ describe('users', () => {
     app.close();
     done();
   });
+
   describe('resetPassword', () => {
     describe('PUT', () => {
-      describe('should return status 204', () => {
-        const resetPassword = 'Aaoudjiuvhds9!';
-        let response: request.Response;
-        let bcryptMock: jest.SpyInstance;
-        beforeEach(async (done) => {
-          try {
-            bcryptMock = jest.spyOn(bcrypt, 'hash');
-            const { id, resetPasswordTokenVersion } = user;
-            jest.spyOn(verifyConfirmation, 'resetPassword')
-              .mockImplementationOnce(() => ({
-                OK: true,
-                id,
-                resetPasswordTokenVersion,
-              }));
-            response = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password: resetPassword,
-                confirmPassword: resetPassword,
-              })
-              .set('confirmation', 'Bearer token');
-            done();
-          } catch (err) {
-            done(err);
-          }
-        });
-        it('should hash password', async () => {
-          const { status } = response;
-          const { password } = await user.reload();
-          const passwordMatch = await bcrypt.compare(resetPassword, password);
-          expect(status).toBe(204);
-          expect(bcryptMock).toHaveBeenCalledTimes(1);
-          expect(passwordMatch).toBe(true);
-        });
-        it('should increment auth token version', async () => {
-          const { status } = response;
-          const { authTokenVersion } = user;
-          await user.reload();
-          expect(status).toBe(204);
-          expect(user.authTokenVersion).toBe(authTokenVersion + 1);
-        });
-        it('should increment resetPasswordTokenVersion', async () => {
-          const { status } = response;
-          const { resetPasswordTokenVersion } = user;
-          await user.reload();
-          expect(status).toBe(204);
-          expect(user.resetPasswordTokenVersion).toBe(resetPasswordTokenVersion + 1);
-        });
-      });
-      describe('should return error 400', () => {
-        describe('if password', () => {
-          beforeEach(async (done) => {
-            try {
-              const { id, resetPasswordTokenVersion } = user;
-              jest.spyOn(verifyConfirmation, 'resetPassword')
-                .mockImplementationOnce(() => ({
-                  OK: true,
-                  id,
-                  resetPasswordTokenVersion,
-                }));
-            } catch (err) {
-              done(err);
-            }
-            done();
-          });
-          it('is not set', async () => {
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .set('confirmation', 'Bearer token')
-              .send({});
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                password: FIELD_IS_REQUIRED,
-              },
-            });
-          });
-          it('is empty', async () => {
-            const password = '';
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password,
-                confirmPassword: password,
-              })
-              .set('confirmation', 'Bearer token');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                password: FIELD_IS_EMPTY,
-              },
-            });
-          });
-          it('is not a string', async () => {
-            const password = 1234567890;
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password,
-                confirmPassword: password,
-              })
-              .set('confirmation', 'Bearer token');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                password: FIELD_NOT_A_STRING,
-              },
-            });
-          });
-          it('contain less than 8 chars', async () => {
-            const password = 'Aa9!';
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password,
-                confirmPassword: password,
-              })
-              .set('confirmation', 'Bearer token');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                password: FIELD_MIN_LENGTH_OF_HEIGH,
-              },
-            });
-          });
-          it('contain more than 30 chars', async () => {
-            const password = `Ac9!${'a'.repeat(31)}`;
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password,
-                confirmPassword: password,
-              })
-              .set('confirmation', 'Bearer token');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                password: FIELD_MAX_LENGTH_THRITY,
-              },
-            });
-          });
-          it('doesn\'t contain any uppercase', async () => {
-            const password = 'aaoudjivhds9!';
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password,
-                confirmPassword: password,
-              })
-              .set('confirmation', 'Bearer token');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                password: FIELD_IS_PASSWORD,
-              },
-            });
-          });
-          it('doesn\'t contain any lowercase', async () => {
-            const password = 'AAOUDJIUVHDS9!';
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password,
-                confirmPassword: password,
-              })
-              .set('confirmation', 'Bearer token');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                password: FIELD_IS_PASSWORD,
-              },
-            });
-          });
-          it('doesn\'t contain any number', async () => {
-            const password = 'Aaoudjiuvhds!';
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password,
-                confirmPassword: password,
-              })
-              .set('confirmation', 'Bearer token');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                password: FIELD_IS_PASSWORD,
-              },
-            });
-          });
-          it('doesn\'t contain any special char', async () => {
-            const password = 'Aaoudjiuvhds9';
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password,
-                confirmPassword: password,
-              })
-              .set('confirmation', 'Bearer token');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                password: FIELD_IS_PASSWORD,
-              },
-            });
-          });
-        });
-        describe('if confirm password', () => {
-          beforeEach(async (done) => {
-            try {
-              const { id, resetPasswordTokenVersion } = user;
-              jest.spyOn(verifyConfirmation, 'resetPassword')
-                .mockImplementationOnce(() => ({
-                  OK: true,
-                  id,
-                  resetPasswordTokenVersion,
-                }));
-              done();
-            } catch (err) {
-              done(err);
-            }
-          });
-          it('is empty', async () => {
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password: 'Aaoudjiuvhds9!',
-                confirmPassword: '',
-              })
-              .set('confirmation', 'Bearer token');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                confirmPassword: FIELD_IS_EMPTY,
-              },
-            });
-          });
-          it('and password not match', async () => {
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password: 'Aaoudjiuvhds9!',
-                confirmPassword: 'Aaoudjiuvhds9',
-              })
-              .set('confirmation', 'Bearer token');
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                confirmPassword: FIELD_IS_CONFIRM_PASSWORD,
-              },
-            });
-          });
-        });
-      });
-      describe('should return error 401 if', () => {
-        describe('if token', () => {
-          const passwords = 'Aaoudjiuvhds9!';
-          it('not found', async () => {
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password: passwords,
-                confirmPassword: passwords,
-              });
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: TOKEN_NOT_FOUND,
-            });
-          });
-          it('is not "Bearer ...', async () => {
-            const { body, status } = await request(app)
-              .put('/users/resetPassword')
-              .send({
-                password: passwords,
-                confirmPassword: passwords,
-              })
-              .set('confirmation', 'token');
-            expect(status).toBe(401);
-            expect(body).toStrictEqual({
-              errors: WRONG_TOKEN,
-            });
-          });
-        });
-        it('resetPasswordToken version doesn\'t match', async () => {
-          const password = 'Aaoudjiuvhds9!';
-          const { id, resetPasswordTokenVersion } = user;
-          jest.spyOn(jwt, 'verify')
-            .mockImplementationOnce(() => ({
-              id,
-              resetPasswordTokenVersion: resetPasswordTokenVersion + 1,
-            }));
-          const { body, status } = await request(app)
-            .put('/users/resetPassword')
-            .send({
-              password,
-              confirmPassword: password,
-            })
-            .set('confirmation', 'Bearer token');
-          expect(status).toBe(401);
-          expect(body).toStrictEqual({
-            errors: WRONG_TOKEN_VERSION,
-          });
-        });
-      });
-      describe('should return error 404 if', () => {
-        it('user not found', async () => {
-          const { resetPasswordTokenVersion } = user;
+      describe('should return status 204 and', () => {
+        beforeEach(() => {
           jest.spyOn(verifyConfirmation, 'resetPassword')
             .mockImplementationOnce(() => ({
               OK: true,
-              id: '1000',
+              id: user.id,
+              resetPasswordTokenVersion: user.resetPasswordTokenVersion,
+            }));
+        });
+        it('hash password and update user\'s password', async () => {
+          const newPassword = 'NewPassword0!';
+          const {
+            status,
+          } = await putResetPassword(app, 'Bearer token', {
+            confirmPassword: newPassword,
+            password: newPassword,
+          });
+          await user.reload();
+          const passwordMatch = await bcrypt
+            .compare(newPassword, user.password);
+          expect(hashMocked).toHaveBeenCalledTimes(1);
+          expect(passwordMatch).toBeTruthy();
+          expect(status).toBe(204);
+        });
+        it('increment authToken and resetPasswordTokenVersion version', async () => {
+          const newPassword = 'NewPassword0!';
+          await putResetPassword(app, 'Bearer token', {
+            confirmPassword: newPassword,
+            password: newPassword,
+          });
+          const {
+            authTokenVersion,
+            resetPasswordTokenVersion,
+          } = user;
+          await user.reload();
+          expect(user.authTokenVersion).toBe(authTokenVersion + 1);
+          expect(user.resetPasswordTokenVersion).toBe(resetPasswordTokenVersion + 1);
+        });
+      });
+      describe('should return status 400 if', () => {
+        it('user is not confirmed', async () => {
+          const newPassword = 'NewPassword0!';
+          const {
+            id,
+            resetPasswordTokenVersion,
+          } = await createUser({
+            confirmed: false,
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          jest.spyOn(verifyConfirmation, 'resetPassword')
+            .mockImplementationOnce(() => ({
+              OK: true,
+              id,
               resetPasswordTokenVersion,
             }));
-          const { body, status } = await request(app)
-            .put('/users/resetPassword')
-            .send({
-              password: 'Aaoudjiuvhds9!',
-              confirmPassword: 'Aaoudjiuvhds9!',
-            })
-            .set('confirmation', 'Bearer token');
-          expect(status).toBe(404);
-          expect(body).toStrictEqual({
-            errors: USER_NOT_FOUND,
+          const {
+            body,
+            status,
+          } = await putResetPassword(app, 'Bearer token', {
+            password: newPassword,
+            confirmPassword: newPassword,
           });
+          expect(body.errors).toBe(NOT_CONFIRMED);
+          expect(status).toBe(400);
+        });
+        it('user is black listed', async () => {
+          const newPassword = 'NewPassword0!';
+          const {
+            id,
+            resetPasswordTokenVersion,
+          } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await BlackList.create({
+            userId: id,
+            reason: 'black list reason',
+            adminId: user.id,
+          });
+          jest.spyOn(verifyConfirmation, 'resetPassword')
+            .mockImplementationOnce(() => ({
+              OK: true,
+              id,
+              resetPasswordTokenVersion,
+            }));
+          const {
+            body,
+            status,
+          } = await putResetPassword(app, 'Bearer token', {
+            password: newPassword,
+            confirmPassword: newPassword,
+          });
+          expect(body.errors).toBe(USER_IS_BLACK_LISTED);
+          expect(status).toBe(400);
+        });
+        describe('confirmPassword', () => {
+          beforeEach(() => {
+            jest.spyOn(verifyConfirmation, 'resetPassword')
+              .mockImplementationOnce(() => ({
+                OK: true,
+                id: user.id,
+                resetPasswordTokenVersion: user.resetPasswordTokenVersion,
+              }));
+          });
+          it('is not send', async () => {
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              password: 'NewPassword0!',
+            });
+            expect(body.errors).toEqual({
+              confirmPassword: FIELD_IS_REQUIRED,
+            });
+            expect(status).toBe(400);
+          });
+          it('is an empty string', async () => {
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              confirmPassword: '',
+              password: 'NewPassword0!',
+            });
+            expect(body.errors).toEqual({
+              confirmPassword: FIELD_IS_EMPTY,
+            });
+            expect(status).toBe(400);
+          });
+          it('is not a string', async () => {
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              confirmPassword: 1234,
+              password: 'NewPassword0!',
+            });
+            expect(body.errors).toEqual({
+              confirmPassword: FIELD_NOT_A_STRING,
+            });
+            expect(status).toBe(400);
+          });
+          it('and password not match', async () => {
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              confirmPassword: 'wrongPassword',
+              password: 'NewPassword0!',
+            });
+            expect(body.errors).toEqual({
+              confirmPassword: FIELD_IS_CONFIRM_PASSWORD,
+            });
+            expect(status).toBe(400);
+          });
+        });
+        describe('password', () => {
+          beforeEach(() => {
+            jest.spyOn(verifyConfirmation, 'resetPassword')
+              .mockImplementationOnce(() => ({
+                OK: true,
+                id: user.id,
+                resetPasswordTokenVersion: user.resetPasswordTokenVersion,
+              }));
+          });
+          it('is not send', async () => {
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              confirmPassword: 'NewPassword0!',
+            });
+            expect(body.errors).toEqual({
+              confirmPassword: FIELD_IS_CONFIRM_PASSWORD,
+              password: FIELD_IS_REQUIRED,
+            });
+            expect(status).toBe(400);
+          });
+          it('is an empty string', async () => {
+            const newPassword = '';
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              password: newPassword,
+              confirmPassword: newPassword,
+            });
+            expect(body.errors).toEqual({
+              password: FIELD_IS_EMPTY,
+            });
+            expect(status).toBe(400);
+          });
+          it('is not a string', async () => {
+            const newPassword = 1234;
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              password: newPassword,
+              confirmPassword: newPassword,
+            });
+            expect(body.errors).toEqual({
+              password: FIELD_NOT_A_STRING,
+            });
+            expect(status).toBe(400);
+          });
+          it('contain spaces', async () => {
+            const newPassword = 'New Password0!';
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              password: newPassword,
+              confirmPassword: newPassword,
+            });
+            expect(body.errors).toEqual({
+              password: FIELD_HAS_SPACES,
+            });
+            expect(status).toBe(400);
+          });
+          it('contain less than 8 characters', async () => {
+            const newPassword = 'Aa0!';
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              password: newPassword,
+              confirmPassword: newPassword,
+            });
+            expect(body.errors).toEqual({
+              password: FIELD_MIN_LENGTH_OF_HEIGH,
+            });
+            expect(status).toBe(400);
+          });
+          it('contain more than 30 characters', async () => {
+            const newPassword = `A${'a'.repeat(30)}0!`;
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              password: newPassword,
+              confirmPassword: newPassword,
+            });
+            expect(body.errors).toEqual({
+              password: FIELD_MAX_LENGTH_THRITY,
+            });
+            expect(status).toBe(400);
+          });
+          it('doesn\'t contain any uppercase', async () => {
+            const newPassword = 'newpassword0!';
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              password: newPassword,
+              confirmPassword: newPassword,
+            });
+            expect(body.errors).toEqual({
+              password: FIELD_IS_PASSWORD,
+            });
+            expect(status).toBe(400);
+          });
+          it('doesn\'t contain any lowercase', async () => {
+            const newPassword = 'NEWPASSWORD0!';
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              password: newPassword,
+              confirmPassword: newPassword,
+            });
+            expect(body.errors).toEqual({
+              password: FIELD_IS_PASSWORD,
+            });
+            expect(status).toBe(400);
+          });
+          it('doesn\'t contain any number', async () => {
+            const newPassword = 'NewPassword!';
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              password: newPassword,
+              confirmPassword: newPassword,
+            });
+            expect(body.errors).toEqual({
+              password: FIELD_IS_PASSWORD,
+            });
+            expect(status).toBe(400);
+          });
+          it('doesn\'t contain any special character', async () => {
+            const newPassword = 'NewPassword0';
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'Bearer token', {
+              password: newPassword,
+              confirmPassword: newPassword,
+            });
+            expect(body.errors).toEqual({
+              password: FIELD_IS_PASSWORD,
+            });
+            expect(status).toBe(400);
+          });
+        });
+      });
+      describe('should return status 401 if', () => {
+        describe('confirmToken', () => {
+          it('is not set', async () => {
+            const newPassword = 'NewPassword0!';
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, undefined, {
+              password: newPassword,
+              confirmPassword: newPassword,
+            });
+            expect(body.errors).toBe(TOKEN_NOT_FOUND);
+            expect(status).toBe(401);
+          });
+          it('is not \'Bearer ...\'', async () => {
+            const newPassword = 'NewPassword0!';
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'token', {
+              password: newPassword,
+              confirmPassword: newPassword,
+            });
+            expect(body.errors).toBe(WRONG_TOKEN);
+            expect(status).toBe(401);
+          });
+          it('is not correct version', async () => {
+            jest.spyOn(verifyConfirmation, 'resetPassword')
+              .mockImplementationOnce(() => ({
+                OK: true,
+                id: user.id,
+                resetPasswordTokenVersion: user.resetPasswordTokenVersion + 1,
+              }));
+            const newPassword = 'NewPassword0!';
+            const {
+              body,
+              status,
+            } = await putResetPassword(app, 'token', {
+              password: newPassword,
+              confirmPassword: newPassword,
+            });
+            expect(body.errors).toBe(WRONG_TOKEN_VERSION);
+            expect(status).toBe(401);
+          });
+        });
+      });
+      describe('should return status 404 if', () => {
+        it('user not found', async () => {
+          const newPassword = 'NewPassword0!';
+          jest.spyOn(verifyConfirmation, 'resetPassword')
+            .mockImplementationOnce(() => ({
+              OK: true,
+              id: `${user.id}${user.id}`,
+              resetPasswordTokenVersion: user.resetPasswordTokenVersion,
+            }));
+          const {
+            body,
+            status,
+          } = await putResetPassword(app, 'Bearer token', {
+            password: newPassword,
+            confirmPassword: newPassword,
+          });
+          expect(body.errors).toBe(USER_NOT_FOUND);
+          expect(status).toBe(404);
+        });
+        it('user is register with Facebook', async () => {
+          const newPassword = 'NewPassword0!';
+          const {
+            id,
+            resetPasswordTokenVersion,
+          } = await createUser({
+            email: 'user2@email.com',
+            facebookId: '1',
+            userName: 'user2',
+          });
+          jest.spyOn(verifyConfirmation, 'resetPassword')
+            .mockImplementationOnce(() => ({
+              OK: true,
+              id,
+              resetPasswordTokenVersion,
+            }));
+          const {
+            body,
+            status,
+          } = await putResetPassword(app, 'Bearer token', {
+            password: newPassword,
+            confirmPassword: newPassword,
+          });
+          expect(body.errors).toBe(USER_NOT_FOUND);
+          expect(status).toBe(404);
+        });
+        it('user is register with Google', async () => {
+          const newPassword = 'NewPassword0!';
+          const {
+            id,
+            resetPasswordTokenVersion,
+          } = await createUser({
+            email: 'user2@email.com',
+            googleId: '1',
+            userName: 'user2',
+          });
+          jest.spyOn(verifyConfirmation, 'resetPassword')
+            .mockImplementationOnce(() => ({
+              OK: true,
+              id,
+              resetPasswordTokenVersion,
+            }));
+          const {
+            body,
+            status,
+          } = await putResetPassword(app, 'Bearer token', {
+            password: newPassword,
+            confirmPassword: newPassword,
+          });
+          expect(body.errors).toBe(USER_NOT_FOUND);
+          expect(status).toBe(404);
         });
       });
     });
