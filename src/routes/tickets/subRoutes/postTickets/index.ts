@@ -1,6 +1,12 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 
-import { User, Ticket } from '@src/db/models';
+import {
+  User,
+  Ticket,
+} from '@src/db/models';
 
 import {
   normalizeJoiErrors,
@@ -9,6 +15,7 @@ import {
 
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
+  let ticket: Ticket;
 
   const {
     error,
@@ -21,12 +28,21 @@ export default async (req: Request, res: Response) => {
   }
 
   try {
-    await Ticket.create({
+    ticket = await Ticket.create({
       ...value,
       userId,
     });
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(204).end();
+  const returnedTicket = {
+    ...ticket.toJSON(),
+    updatedAt: undefined,
+  };
+  return res.status(200).send({
+    action: 'POST',
+    data: {
+      ticket: returnedTicket,
+    },
+  });
 };

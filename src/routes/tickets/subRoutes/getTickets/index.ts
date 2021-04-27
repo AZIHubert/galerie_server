@@ -40,58 +40,6 @@ export default async (_req: Request, res: Response) => {
               'updatedAt',
             ],
           },
-          include: [
-            {
-              model: ProfilePicture,
-              as: 'currentProfilePicture',
-              attributes: {
-                exclude: [
-                  'cropedImageId',
-                  'originalImageId',
-                  'pendingImageId',
-                  'userId',
-                  'createdAt',
-                  'deletedAt',
-                  'updatedAt',
-                ],
-              },
-              include: [
-                {
-                  model: Image,
-                  as: 'cropedImage',
-                  attributes: {
-                    exclude: [
-                      'createdAt',
-                      'deletedAt',
-                      'updatedAt',
-                    ],
-                  },
-                },
-                {
-                  model: Image,
-                  as: 'originalImage',
-                  attributes: {
-                    exclude: [
-                      'createdAt',
-                      'deletedAt',
-                      'updatedAt',
-                    ],
-                  },
-                },
-                {
-                  model: Image,
-                  as: 'pendingImage',
-                  attributes: {
-                    exclude: [
-                      'createdAt',
-                      'deletedAt',
-                      'updatedAt',
-                    ],
-                  },
-                },
-              ],
-            },
-          ],
         },
       ],
     });
