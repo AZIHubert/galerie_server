@@ -145,7 +145,6 @@ describe('/users', () => {
                   updatedEmail: 'newemail@email.com',
                 }));
             });
-
             it('is not send', async () => {
               const {
                 body,

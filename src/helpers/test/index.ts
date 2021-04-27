@@ -28,4 +28,5 @@ export { default as putProfilePicture } from './putProfilePicture';
 export { default as putPseudonym } from './putPseudonym';
 export { default as putResetPassword } from './putResetPassword';
 export { default as putUserEmail } from './putUserEmail';
+export { default as putUsersRoleId } from './putUsersRoleId';
 export { default as signin } from './signin';
