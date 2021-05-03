@@ -56,7 +56,7 @@ export default async (req: Request, res: Response) => {
     });
     await Promise.all(
       tickets.map(async (ticket) => {
-        let returnedCurrentProfilePicture = {};
+        let returnedCurrentProfilePicture;
         if (ticket.user) {
           const currentProfilePicture = await ProfilePicture.findOne({
             attributes: {
@@ -169,15 +169,6 @@ export default async (req: Request, res: Response) => {
               updatedAt: undefined,
               userId: undefined,
             };
-            currentProfilePicture
-              .cropedImage
-              .signedUrl = cropedImageSignedUrl;
-            currentProfilePicture
-              .originalImage
-              .signedUrl = originalImageSignedUrl;
-            currentProfilePicture
-              .pendingImage
-              .signedUrl = pendingImageSignedUrl;
           }
         }
         const ticketWithUsersWithProfilPicture: any = {
@@ -194,6 +185,7 @@ export default async (req: Request, res: Response) => {
     console.log(err);
     return res.status(500).send(err);
   }
+
   return res.status(200).send({
     action: 'GET',
     data: {
