@@ -7,6 +7,7 @@ import { User } from '@src/db/models';
 
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
+  cleanGoogleBuckets,
   createUser,
   getGaleries,
   login,
@@ -30,6 +31,7 @@ describe('galeries', () => {
 
   beforeEach(async (done) => {
     try {
+      await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
       user = await createUser({});
       const { body } = await login(app, user.email, userPassword);
@@ -42,6 +44,7 @@ describe('galeries', () => {
 
   afterAll(async (done) => {
     try {
+      await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
       await sequelize.close();
     } catch (err) {

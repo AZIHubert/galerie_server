@@ -6,6 +6,7 @@ export { default as deleteTicketId } from './deleteTicketId';
 export { default as deleteUser } from './deleteUser';
 export { default as getBlackListedUsers } from './getBlackListedUsers';
 export { default as getGaleries } from './getGaleries';
+export { default as getGaleriesId } from './getGaleriesId';
 export { default as getProfilePicture } from './getProfilePicture';
 export { default as getProfilePictures } from './getProfilePictures';
 export { default as getRefreshToken } from './getRefreshToken';

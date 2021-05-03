@@ -5,7 +5,7 @@
 // export { default as deleteGaleriesIdUsersUserId } from './deleteGaleriesIdUsersUserId';
 
 export { default as getGaleries } from './getGaleries';
-// export { default as getGaleriesId } from './getGaleriesId';
+export { default as getGaleriesId } from './getGaleriesId';
 // export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';
 // export { default as getGaleriesIdFramesId } from './getGaleriesIdFramesId';
 // export { default as getGaleriesIdInvitations } from './getGaleriesIdInvitations';

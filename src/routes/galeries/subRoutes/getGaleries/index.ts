@@ -132,6 +132,8 @@ export default async (req: Request, res: Response) => {
             pendingImageBucketName,
             pendingImageFileName,
           );
+
+          // TODO: not finish.
           returnCurrentCoverPicture = {
             ...currentCoverPicture.galeriePictures[0].toJSON(),
             cropedImage: {

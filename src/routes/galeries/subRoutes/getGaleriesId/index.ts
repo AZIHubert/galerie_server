@@ -1,103 +1,63 @@
 import { Request, Response } from 'express';
 
 import {
+  Frame,
   Galerie,
   GaleriePicture,
   GalerieUser,
   Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
-// import signedUrl from '@src/helpers/signedUrl';
+
+import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
   const { id: galerieId } = req.params;
   let galerie: Galerie | null;
+  let returnCurrentCoverPicture = null;
+  let role: string;
+
   try {
     galerie = await Galerie.findByPk(galerieId, {
+      attributes: {
+        exclude: [
+          'updatedAt',
+        ],
+      },
       include: [{
         model: User,
         where: {
           id: userId,
         },
-        attributes: {
-          exclude: [
-            'authTokenVersion',
-            'confirmed',
-            'confirmTokenVersion',
-            'email',
-            'facebookId',
-            'googleId',
-            'password',
-            'resetPasswordTokenVersion',
-            'updatedEmailTokenVersion',
-          ],
-        },
-        include: [
-          {
-            model: ProfilePicture,
-            as: 'currentProfilePicture',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'cropedImageId',
-                'deletedAt',
-                'originalImageId',
-                'pendingImageId',
-                'updatedAt',
-                'userId',
-              ],
-            },
-            include: [
-              {
-                model: Image,
-                as: 'cropedImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-              {
-                model: Image,
-                as: 'originalImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-              {
-                model: Image,
-                as: 'pendingImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-            ],
-          },
-        ],
-      }, {
-        model: GaleriePicture,
-        attributes: {
-          exclude: [
-            'cropedImageId',
-            'id',
-            'index',
-            'originalImageId',
-            'pendingImageId',
-            'frameId',
-          ],
-        },
+      }],
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  if (!galerie) {
+    return res.status(404).send({
+      errors: 'galerie not found',
+    });
+  }
+
+  // Find user's role relative to galerie.
+  try {
+    const galerieUser = await GalerieUser.findOne({
+      where: {
+        galerieId,
+        userId,
+      },
+    });
+    role = galerieUser ? galerieUser.role : 'user';
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Return currentCoverPicture if exist.
+  try {
+    const currentCoverPicture = await Frame.findOne({
+      include: [{
         include: [
           {
             model: Image,
@@ -133,120 +93,94 @@ export default async (req: Request, res: Response) => {
             },
           },
         ],
+        model: GaleriePicture,
+        where: {
+          coverPicture: true,
+        },
       }],
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-  if (!galerie) {
-    return res.status(404).send({
-      errors: 'galerie not found',
-    });
-  }
-  let role: string;
-  try {
-    const galerieUser = await GalerieUser.findOne({
       where: {
-        galerieId,
-        userId,
+        galerieId: galerie.id,
       },
     });
-    if (galerieUser) {
-      role = galerieUser.role;
-    } else {
-      role = 'user';
+
+    // Fetch signed url if galerie have cover picture.
+    if (currentCoverPicture && currentCoverPicture.galeriePictures.length) {
+      const {
+        galeriePictures: [{
+          cropedImage: {
+            bucketName: cropedImageBucketName,
+            fileName: cropedImageFileName,
+          },
+          originalImage: {
+            bucketName: originalImageBucketName,
+            fileName: originalImageFileName,
+          },
+          pendingImage: {
+            bucketName: pendingImageBucketName,
+            fileName: pendingImageFileName,
+          },
+        }],
+      } = currentCoverPicture;
+      const cropedImageSignedUrl = await signedUrl(
+        cropedImageBucketName,
+        cropedImageFileName,
+      );
+      const originalImageSignedUrl = await signedUrl(
+        originalImageBucketName,
+        originalImageFileName,
+      );
+      const pendingImageSignedUrl = await signedUrl(
+        pendingImageBucketName,
+        pendingImageFileName,
+      );
+
+      // TODO: not finish.
+      returnCurrentCoverPicture = {
+        ...currentCoverPicture.galeriePictures[0].toJSON(),
+        cropedImage: {
+          ...currentCoverPicture.galeriePictures[0].cropedImage.toJSON(),
+          bucketName: undefined,
+          createdAt: undefined,
+          fileName: undefined,
+          id: undefined,
+          signedUrl: cropedImageSignedUrl,
+          updatedAt: undefined,
+        },
+        cropedImageId: undefined,
+        originalImage: {
+          ...currentCoverPicture.galeriePictures[0].originalImage.toJSON(),
+          bucketName: undefined,
+          createdAt: undefined,
+          fileName: undefined,
+          id: undefined,
+          signedUrl: originalImageSignedUrl,
+          updatedAt: undefined,
+        },
+        originalImageId: undefined,
+        pendingImage: {
+          ...currentCoverPicture.galeriePictures[0].pendingImage.toJSON(),
+          bucketName: undefined,
+          createdAt: undefined,
+          fileName: undefined,
+          id: undefined,
+          signedUrl: pendingImageSignedUrl,
+          updatedAt: undefined,
+        },
+      };
     }
   } catch (err) {
     return res.status(500).send(err);
   }
-  // if (galerie.coverPicture) {
-  //   try {
-  //     const {
-  //       cropedImage: {
-  //         bucketName: cropedImageBucketName,
-  //         fileName: cropedImageFileName,
-  //       },
-  //       originalImage: {
-  //         bucketName: originalImageBucketName,
-  //         fileName: originalImageFileName,
-  //       },
-  //       pendingImage: {
-  //         bucketName: pendingImageBucketName,
-  //         fileName: pendingImageFileName,
-  //       },
-  //     } = galerie.coverPicture;
-  //     const cropedImageSignedUrl = await signedUrl(
-  //       cropedImageBucketName,
-  //       cropedImageFileName,
-  //     );
-  //     galerie.coverPicture.cropedImage.signedUrl = cropedImageSignedUrl;
-  //     const originalImageSignedUrl = await signedUrl(
-  //       originalImageBucketName,
-  //       originalImageFileName,
-  //     );
-  //     galerie.coverPicture.originalImage.signedUrl = originalImageSignedUrl;
-  //     const pendingImageSignedUrl = await signedUrl(
-  //       pendingImageBucketName,
-  //       pendingImageFileName,
-  //     );
-  //     galerie.coverPicture.pendingImage.signedUrl = pendingImageSignedUrl;
-  //     await Promise
-  //       .all(galerie.users.map(async (user, userIndex) => {
-  //         if (galerie && user.currentProfilePicture) {
-  //           const {
-  //             currentProfilePicture: {
-  //               cropedImage: {
-  //                 bucketName: userCropedImageBucketName,
-  //                 fileName: userCropedImageFileName,
-  //               },
-  //               originalImage: {
-  //                 bucketName: userOriginalImageBucketName,
-  //                 fileName: userOriginalImageFileName,
-  //               },
-  //               pendingImage: {
-  //                 bucketName: userPendingImageBucketName,
-  //                 fileName: userPendingImageFileName,
-  //               },
-  //             },
-  //           } = user;
-  //           const userCropedImageSignedUrl = await signedUrl(
-  //             userCropedImageBucketName,
-  //             userCropedImageFileName,
-  //           );
-  //           galerie
-  //             .users[userIndex]
-  //             .currentProfilePicture
-  //             .cropedImage
-  //             .signedUrl = userCropedImageSignedUrl;
-  //           const userOriginalImageSignedUrl = await signedUrl(
-  //             userOriginalImageBucketName,
-  //             userOriginalImageFileName,
-  //           );
-  //           galerie
-  //             .users[userIndex]
-  //             .currentProfilePicture
-  //             .originalImage
-  //             .signedUrl = userOriginalImageSignedUrl;
-  //           const userPendingImageSignedUrl = await signedUrl(
-  //             userPendingImageBucketName,
-  //             userPendingImageFileName,
-  //           );
-  //           galerie
-  //             .users[userIndex]
-  //             .currentProfilePicture
-  //             .pendingImage
-  //             .signedUrl = userPendingImageSignedUrl;
-  //         }
-  //       }));
-  //   } catch (err) {
-  //     return res.status(500).send(err);
-  //   }
-  // }
+
   return res.status(200).send({
-    galerie: {
-      ...galerie.toJSON(),
-      role,
+    action: 'GET',
+    data: {
+      galerie: {
+        ...galerie.toJSON(),
+        currentCoverPicture: returnCurrentCoverPicture,
+        role,
+        users: [],
+      },
     },
-    type: 'GET',
   });
 };

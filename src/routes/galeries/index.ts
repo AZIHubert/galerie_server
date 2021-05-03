@@ -13,7 +13,7 @@ import {
   // deleteGaleriesIdUsersUserId,
 
   getGaleries,
-  // getGaleriesId,
+  getGaleriesId,
   // getGaleriesIdFrames,
   // getGaleriesIdFramesId,
   // getGaleriesIdInvitations,
@@ -44,7 +44,7 @@ const galeriesRoutes: () => Router = () => {
   // passport.authenticate('jwt', { session: false }), deleteGaleriesIdInvitationsId);
 
   router.get('/', passport.authenticate('jwt', { session: false }), getGaleries);
-  // router.get('/:id', passport.authenticate('jwt', { session: false }), getGaleriesId);
+  router.get('/:id', passport.authenticate('jwt', { session: false }), getGaleriesId);
   // router.get('/:id/frames/',
   // passport.authenticate('jwt', { session: false }), getGaleriesIdFrames);
   // router.get('/:id/frames/:frameId',
