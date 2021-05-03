@@ -15,7 +15,7 @@ import usersRouter from '@src/routes/users';
 import notificationsRouter from '@src/routes/notifications';
 import profilePicturesRouter from '@src/routes/profilePictures';
 import ticketsRouter from '@src/routes/tickets';
-// import galeriesRouter from '@src/routes/galeries';
+import galeriesRouter from '@src/routes/galeries';
 
 const SESSION_SECRET = accEnv('SESSION_SECRET');
 
@@ -69,11 +69,13 @@ const initApp: () => http.Server = () => {
       ],
     }),
   );
-  app.use('/users', usersRouter());
+
+  app.use('/galeries', galeriesRouter());
   app.use('/notifications', notificationsRouter());
   app.use('/profilePictures', profilePicturesRouter());
   app.use('/tickets', ticketsRouter());
-  // app.use('/galeries', galeriesRouter());
+  app.use('/users', usersRouter());
+
   return server;
 };
 

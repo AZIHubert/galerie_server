@@ -1,4 +1,7 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 
 import {
   Galerie,
@@ -57,12 +60,21 @@ const map = (
 ) => ((value - x1) * (y2 - x2)) / ((y1 - x1) + x2);
 
 export default async (req: Request, res: Response) => {
-  const { error, value } = validatePostGaleriesBody(req.body);
+  const user = req.user as User;
+  let galerie: Galerie;
+
+  const {
+    error,
+    value,
+  } = validatePostGaleriesBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
     });
   }
+
+  // Create delete defaultCoverPicture
+  // has a CSS linear gradient property.
   const shade = colors[Math.floor(Math.random() * colors.length)];
   const numOfColor = Math.floor((Math.random() * 2)) + 3;
   const angle = Math.floor(Math.random() * 180);
@@ -72,8 +84,8 @@ export default async (req: Request, res: Response) => {
   const defaultCoverPicture = `linear-gradient(${angle}deg, ${randomColors
     .map((randomColor, index) => `${randomColor} ${map(index, 0, numOfColor - 1, 0, 100)}%`)
     .join(', ')})`;
-  const user = req.user as User;
-  let galerie: Galerie;
+
+  // Create galerie and GalerieUser.
   try {
     galerie = await Galerie.create({
       ...value,
@@ -88,8 +100,16 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
   return res.status(200).send({
-    galerie: { ...galerie.toJSON(), users: [] },
-    type: 'POST',
+    action: 'POST',
+    data: {
+      galerie: {
+        ...galerie.toJSON(),
+        updatedAt: undefined,
+        // It should not include user's creator.
+        users: [],
+      },
+    },
   });
 };

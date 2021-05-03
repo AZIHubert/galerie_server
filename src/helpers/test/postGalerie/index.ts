@@ -5,7 +5,7 @@ export default async (
   app: Server,
   token: string,
   body: {
-    name?: string;
+    name?: any;
   },
 ) => {
   const response = await request(app)
