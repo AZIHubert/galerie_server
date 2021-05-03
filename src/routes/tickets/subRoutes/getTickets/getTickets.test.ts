@@ -101,12 +101,15 @@ describe('tickets', () => {
         });
         const {
           body: {
+            action,
             data: {
               tickets,
             },
           },
           status,
         } = await getTickets(app, adminToken);
+        expect(action).toBe('GET');
+        expect(status).toBe(200);
         expect(tickets.length).toBe(3);
         expect(tickets[0].body).toBe(body);
         expect(tickets[0].createdAt).toBeTruthy();
@@ -170,7 +173,6 @@ describe('tickets', () => {
         expect(tickets[0].user.updateEmailTokenVersion).toBeUndefined();
         expect(tickets[0].user.updatedAt).toBeUndefined();
         expect(tickets[0].user.userName).toBe(user.userName);
-        expect(status).toBe(200);
       });
       it('return a pack of 20 tickets', async () => {
         const numOfTickets = new Array(25).fill(0);

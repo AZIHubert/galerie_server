@@ -87,12 +87,14 @@ describe('tickets', () => {
           });
           const {
             body: {
+              action,
               data: {
                 ticket,
               },
             },
             status,
           } = await getTicketId(app, adminToken, id);
+          expect(action).toBe('GET');
           expect(status).toBe(200);
           expect(ticket.body).toBe(body);
           expect(ticket.createdAt).toEqual(createdAt);
