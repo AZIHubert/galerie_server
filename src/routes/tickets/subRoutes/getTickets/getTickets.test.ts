@@ -1,92 +1,63 @@
-import { hash } from 'bcrypt';
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
-import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
 import {
-  Image,
-  ProfilePicture,
-  Ticket,
   User,
 } from '@src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
 import initSequelize from '@src/helpers/initSequelize.js';
-import gc from '@src/helpers/gc';
-import saltRounds from '@src/helpers/saltRounds';
+import {
+  cleanGoogleBuckets,
+  createUser,
+  deleteUser,
+  getTickets,
+  postTicket,
+  postProfilePicture,
+  login,
+} from '@src/helpers/test';
+
 import initApp from '@src/server';
 
-const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
-const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
-
-const cleanDatas = async (sequelize: Sequelize) => {
-  await Image.sync({ force: true });
-  await ProfilePicture.sync({ force: true });
-  await Ticket.sync({ force: true });
-  await User.sync({ force: true });
-  await sequelize.model('Sessions').sync({ force: true });
-  const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
-  await Promise.all(cropedImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
-  await Promise.all(originalImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
-  await Promise.all(pendingImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-};
-
-const newUser = {
-  email: 'user@email.com',
-  password: 'password',
-  userName: 'userName',
-};
+const userPassword = 'Password0!';
 
 describe('tickets', () => {
-  let agent: request.SuperAgentTest;
+  let adminToken: string;
   let app: Server;
   let sequelize: Sequelize;
-  let user: User;
   let token: string;
+  let user: User;
+
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
   });
+
   beforeEach(async (done) => {
-    agent = request.agent(app);
     try {
-      await cleanDatas(sequelize);
-      const hashPassword = await hash(newUser.password, saltRounds);
-      user = await User.create({
-        ...newUser,
-        confirmed: true,
+      await sequelize.sync({ force: true });
+      await cleanGoogleBuckets();
+      user = await createUser({});
+      const admin = await createUser({
+        email: 'user2@email.com',
+        userName: 'user2',
         role: 'superAdmin',
-        password: hashPassword,
       });
-      const { body } = await agent
-        .post('/users/login')
-        .send({
-          password: newUser.password,
-          userNameOrEmail: user.userName,
-        });
+      const { body } = await login(app, user.email, userPassword);
+      const { body: adminLoginBody } = await login(app, admin.email, userPassword);
       token = body.token;
+      adminToken = adminLoginBody.token;
     } catch (err) {
       done(err);
     }
     done();
   });
+
   afterAll(async (done) => {
     try {
-      await cleanDatas(sequelize);
+      await sequelize.sync({ force: true });
+      await cleanGoogleBuckets();
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -94,232 +65,159 @@ describe('tickets', () => {
     app.close();
     done();
   });
+
   describe('GET', () => {
     describe('should return status 200 and', () => {
-      it('an empty array', async () => {
-        const { status, body } = await agent
-          .get('/tickets')
-          .set('authorization', token);
-        expect(status).toBe(200);
-        expect(body.length).toBe(0);
-      });
-      it('an array with one ticket', async () => {
-        await agent.post('/tickets')
-          .set('authorization', token)
-          .send({
-            header: 'header ticket',
-            body: 'body ticket',
-          });
-        const { status, body } = await agent
-          .get('/tickets')
-          .set('authorization', token);
-        expect(status).toBe(200);
-        expect(body.length).toBe(1);
-      });
-      it('an array with one ticket', async () => {
-        await agent.post('/tickets')
-          .set('authorization', token)
-          .send({
-            header: 'header ticket',
-            body: 'body ticket',
-          });
-        await agent.post('/tickets')
-          .set('authorization', token)
-          .send({
-            header: 'header ticket',
-            body: 'body ticket',
-          });
-        const { status, body } = await agent
-          .get('/tickets')
-          .set('authorization', token);
-        expect(status).toBe(200);
-        expect(body.length).toBe(2);
-      });
-      it('with only relevent attributes', async () => {
-        const ticketHeader = 'header ticket';
-        const bodyHeader = 'body ticket';
-        await agent.post('/tickets')
-          .set('authorization', token)
-          .send({
-            header: ticketHeader,
-            body: bodyHeader,
-          });
+      it('return all tickets', async () => {
+        const thirdUser = await createUser({
+          email: 'user3@email.com',
+          userName: 'user3',
+        });
         const {
           body: {
-            id: currentProfilePictureId,
-            cropedImage: {
-              id: cropedImageId,
-              bucketName: cropedImageBucketName,
-              fileName: cropedImageFileName,
-              format: cropedImageFormat,
-              height: cropedImageHeight,
-              size: cropedImageSize,
-              width: cropedImageWidth,
-            },
-            originalImage: {
-              id: originalImageId,
-              bucketName: originalImageBucketName,
-              fileName: originalImageFileName,
-              format: originalImageFormat,
-              height: originalImageHeight,
-              size: originalImageSize,
-              width: originalImageWidth,
-            },
-            pendingImage: {
-              id: pendingImageId,
-              bucketName: pendingImageBucketName,
-              fileName: pendingImageFileName,
-              format: pendingImageFormat,
-              height: pendingImageHeight,
-              size: pendingImageSize,
-              width: pendingImageWidth,
+            token: thirdUserToken,
+          },
+        } = await login(app, thirdUser.email, userPassword);
+        const body = 'ticket\'s body';
+        const header = 'ticket\'s header';
+        const {
+          body: {
+            data: {
+              profilePicture,
             },
           },
-        } = await agent
-          .post('/users/me/ProfilePictures')
-          .set('authorization', token)
-          .attach('image', `${__dirname}/../../ressources/image.jpg`);
-        const { id } = await Ticket.findOne({
-          where: {
-            userId: user.id,
-          },
-        }) as Ticket;
-        const { status, body } = await agent
-          .get('/tickets')
-          .set('authorization', token);
-        expect(status).toBe(200);
-        const [returnedTicket] = body;
-        expect(returnedTicket.id).toBe(id);
-        expect(returnedTicket.header).toBe(ticketHeader);
-        expect(returnedTicket.body).toBe(bodyHeader);
-        expect(returnedTicket.createdAt).not.toBeNull();
-        expect(returnedTicket.updatedAt).toBe(undefined);
-        expect(returnedTicket.userId).toBe(undefined);
-        expect(returnedTicket.user.id).toBe(user.id);
-        expect(returnedTicket.user.defaultProfilePicture).toBe(null);
-        expect(returnedTicket.user.email).toBe(user.email);
-        expect(returnedTicket.user.role).toBe(user.role);
-        expect(returnedTicket.user.userName).toBe(user.userName);
-        expect(returnedTicket.user.authTokenVersion).toBe(undefined);
-        expect(returnedTicket.user.blackListId).toBe(undefined);
-        expect(returnedTicket.user.confirmed).toBe(undefined);
-        expect(returnedTicket.user.confirmTokenVersion).toBe(undefined);
-        expect(returnedTicket.user.currentProfilePictureId).toBe(undefined);
-        expect(returnedTicket.user.facebookId).toBe(undefined);
-        expect(returnedTicket.user.googleId).toBe(undefined);
-        expect(returnedTicket.user.password).toBe(undefined);
-        expect(returnedTicket.user.resetPasswordTokenVersion).toBe(undefined);
-        expect(returnedTicket.user.updatedEmailTokenVersion).toBe(undefined);
-        expect(returnedTicket.user.createdAt).toBe(undefined);
-        expect(returnedTicket.user.updatedAt).toBe(undefined);
-        expect(returnedTicket.user.deletedAt).toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.id).toBe(currentProfilePictureId);
-        expect(returnedTicket.user.currentProfilePicture.cropedImageId).toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.originalImageId).toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.pendingImageId).toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.userId).toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.createdAt).toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.deletedAt).toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.updatedAt).toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.cropedImage.id)
-          .toBe(cropedImageId);
-        expect(returnedTicket.user.currentProfilePicture.cropedImage.bucketName)
-          .toBe(cropedImageBucketName);
-        expect(returnedTicket.user.currentProfilePicture.cropedImage.fileName)
-          .toBe(cropedImageFileName);
-        expect(returnedTicket.user.currentProfilePicture.cropedImage.format)
-          .toBe(cropedImageFormat);
-        expect(returnedTicket.user.currentProfilePicture.cropedImage.height)
-          .toBe(cropedImageHeight);
-        expect(returnedTicket.user.currentProfilePicture.cropedImage.size)
-          .toBe(cropedImageSize);
-        expect(returnedTicket.user.currentProfilePicture.cropedImage.width)
-          .toBe(cropedImageWidth);
-        expect(returnedTicket.user.currentProfilePicture.cropedImage.createdAt)
-          .toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.cropedImage.updatedAt)
-          .toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.cropedImage.deletedAt)
-          .toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.cropedImage.signedUrl)
-          .not.toBeNull();
-        expect(returnedTicket.user.currentProfilePicture.originalImage.id)
-          .toBe(originalImageId);
-        expect(returnedTicket.user.currentProfilePicture.originalImage.bucketName)
-          .toBe(originalImageBucketName);
-        expect(returnedTicket.user.currentProfilePicture.originalImage.fileName)
-          .toBe(originalImageFileName);
-        expect(returnedTicket.user.currentProfilePicture.originalImage.format)
-          .toBe(originalImageFormat);
-        expect(returnedTicket.user.currentProfilePicture.originalImage.height)
-          .toBe(originalImageHeight);
-        expect(returnedTicket.user.currentProfilePicture.originalImage.size)
-          .toBe(originalImageSize);
-        expect(returnedTicket.user.currentProfilePicture.originalImage.width)
-          .toBe(originalImageWidth);
-        expect(returnedTicket.user.currentProfilePicture.originalImage.createdAt)
-          .toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.originalImage.updatedAt)
-          .toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.originalImage.deletedAt)
-          .toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.originalImage.signedUrl)
-          .not.toBeNull();
-        expect(returnedTicket.user.currentProfilePicture.pendingImage.id)
-          .toBe(pendingImageId);
-        expect(returnedTicket.user.currentProfilePicture.pendingImage.bucketName)
-          .toBe(pendingImageBucketName);
-        expect(returnedTicket.user.currentProfilePicture.pendingImage.fileName)
-          .toBe(pendingImageFileName);
-        expect(returnedTicket.user.currentProfilePicture.pendingImage.format)
-          .toBe(pendingImageFormat);
-        expect(returnedTicket.user.currentProfilePicture.pendingImage.height)
-          .toBe(pendingImageHeight);
-        expect(returnedTicket.user.currentProfilePicture.pendingImage.size)
-          .toBe(pendingImageSize);
-        expect(returnedTicket.user.currentProfilePicture.pendingImage.width)
-          .toBe(pendingImageWidth);
-        expect(returnedTicket.user.currentProfilePicture.pendingImage.createdAt)
-          .toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.pendingImage.updatedAt)
-          .toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.pendingImage.deletedAt)
-          .toBe(undefined);
-        expect(returnedTicket.user.currentProfilePicture.pendingImage.signedUrl)
-          .not.toBeNull();
-      });
-      it('return tickets even if the user has deleted his account', async () => {
-        const hashPassword = await hash(newUser.password, saltRounds);
-        const userTwo = await User.create({
-          userName: 'user2',
-          email: 'user2@email.com',
-          confirmed: true,
-          password: hashPassword,
+        } = await postProfilePicture(app, token);
+        await postTicket(app, token, {
+          body,
+          header,
         });
-        const agentTwo = request.agent(app);
-        const { body: { token: tokenTwo } } = await agentTwo
-          .post('/users/login')
-          .send({
-            password: newUser.password,
-            userNameOrEmail: userTwo.userName,
-          });
-        await agentTwo.post('/tickets')
-          .set('authorization', tokenTwo)
-          .send({
-            header: 'header ticket',
-            body: 'body ticket',
-          });
-        await agentTwo
-          .delete('/users/me')
-          .set('authorization', tokenTwo)
-          .send({ password: newUser.password });
-        const { status, body } = await agent
-          .get('/tickets')
-          .set('authorization', token);
-        const [returnedTicket] = body;
+        await postTicket(app, token, {
+          body: 'ticket\'s body',
+          header: 'ticket\'s header',
+        });
+        await postTicket(app, thirdUserToken, {
+          body: 'ticket\'s body',
+          header: 'ticket\'s header',
+        });
+        const {
+          body: {
+            data: {
+              tickets,
+            },
+          },
+          status,
+        } = await getTickets(app, adminToken);
+        expect(tickets.length).toBe(3);
+        expect(tickets[0].body).toBe(body);
+        expect(tickets[0].createdAt).toBeTruthy();
+        expect(tickets[0].header).toBe(header);
+        expect(tickets[0].id).toBeTruthy();
+        expect(tickets[0].updatedAt).toBeUndefined();
+        expect(tickets[0].userId).toBeUndefined();
+        expect(tickets[0].user.authTokenVersion).toBeUndefined();
+        expect(tickets[0].user.confirmed).toBeUndefined();
+        expect(tickets[0].user.confirmTokenVersion).toBeUndefined();
+        expect(new Date(tickets[0].user.createdAt)).toEqual(user.createdAt);
+        expect(tickets[0].user.currentProfilePicture.createdAt).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.cropedImage.bucketName).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.cropedImage.createdAt).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.cropedImage.fileName).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.cropedImage.format).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.cropedImage.height).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.cropedImage.id).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.cropedImage.signedUrl).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.cropedImage.size).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.cropedImage.width).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.cropedImagesId).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.current).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.id).toBe(profilePicture.id);
+        expect(tickets[0].user.currentProfilePicture.originalImage.bucketName).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.originalImage.createdAt).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.originalImage.fileName).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.originalImage.format).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.originalImage.height).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.originalImage.id).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.originalImage.signedUrl).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.originalImage.size).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.originalImage.updatedAt).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.originalImage.width).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.originalImageId).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.pendingImage.bucketName).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.pendingImage.createdAt).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.pendingImage.fileName).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.pendingImage.format).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.pendingImage.height).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.pendingImage.id).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.pendingImage.signedUrl).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.pendingImage.size).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.pendingImage.width).toBeTruthy();
+        expect(tickets[0].user.currentProfilePicture.pendingImageId).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.updatedAt).toBeUndefined();
+        expect(tickets[0].user.currentProfilePicture.userId).toBeUndefined();
+        expect(tickets[0].user.defaultProfilePicture).toBe(user.defaultProfilePicture);
+        expect(tickets[0].user.email).toBeUndefined();
+        expect(tickets[0].user.emailTokenVersion).toBeUndefined();
+        expect(tickets[0].user.facebookId).toBeUndefined();
+        expect(tickets[0].user.googleId).toBeUndefined();
+        expect(tickets[0].user.id).toBe(user.id);
+        expect(tickets[0].user.password).toBeUndefined();
+        expect(tickets[0].user.pseudonym).toBe(user.pseudonym);
+        expect(tickets[0].user.resetPasswordTokenVersion).toBeUndefined();
+        expect(tickets[0].user.role).toBe(user.role);
+        expect(tickets[0].user.socialMediaUserName).toBe(user.socialMediaUserName);
+        expect(tickets[0].user.updateEmailTokenVersion).toBeUndefined();
+        expect(tickets[0].user.updatedAt).toBeUndefined();
+        expect(tickets[0].user.userName).toBe(user.userName);
         expect(status).toBe(200);
-        expect(body.length).toBe(1);
-        expect(returnedTicket.user).toBeNull();
+      });
+      it('return a pack of 20 tickets', async () => {
+        const numOfTickets = new Array(25).fill(0);
+        await Promise.all(
+          numOfTickets.map(async () => {
+            await postTicket(app, token, {
+              body: 'ticket\'s body',
+              header: 'ticket\'s header',
+            });
+          }),
+        );
+        const {
+          body: {
+            data: {
+              tickets: firstPack,
+            },
+          },
+        } = await getTickets(app, adminToken);
+        const {
+          body: {
+            data: {
+              tickets: secondPack,
+            },
+          },
+        } = await getTickets(app, adminToken, 2);
+        expect(firstPack.length).toBe(20);
+        expect(secondPack.length).toBe(5);
+      });
+      it('return ticket even if it\'s user has delete his account', async () => {
+        await postTicket(app, token, {
+          body: 'ticket\'s body',
+          header: 'ticket\'s header',
+        });
+        await deleteUser(app, token, {
+          deleteAccountSentence: 'delete my account',
+          password: userPassword,
+          userNameOrEmail: user.email,
+        });
+        const {
+          body: {
+            data: {
+              tickets,
+            },
+          },
+        } = await getTickets(app, adminToken);
+        expect(tickets.length).toBe(1);
+        expect(tickets[0].user).toBeUndefined();
       });
     });
   });
