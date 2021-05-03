@@ -106,6 +106,8 @@ export default async (req: Request, res: Response) => {
     data: {
       galerie: {
         ...galerie.toJSON(),
+        currentCoverPicture: null,
+        role: 'creator',
         updatedAt: undefined,
         // It should not include user's creator.
         users: [],

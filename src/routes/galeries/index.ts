@@ -11,17 +11,20 @@ import {
   // deleteGaleriesIdInvitationsId,
   // deleteGaleriesIdUnsubscribe,
   // deleteGaleriesIdUsersUserId,
-  // getGaleries,
+
+  getGaleries,
   // getGaleriesId,
   // getGaleriesIdFrames,
   // getGaleriesIdFramesId,
   // getGaleriesIdInvitations,
   // getGaleriesIdInvitationsId,
   // getGaleriesIdUsers,
+
   postGaleries,
   // postGaleriesIdFrames,
   // postGaleriesIdInvitations,
   // postGaleriesSubscribeCode,
+
   // putGaleriesId,
   // putGaleriesIdFramesId,
   // putGaleriesIdUsersUserId,
@@ -40,7 +43,7 @@ const galeriesRoutes: () => Router = () => {
   // router.delete('/:id/invitations/:invitationId',
   // passport.authenticate('jwt', { session: false }), deleteGaleriesIdInvitationsId);
 
-  // router.get('/', passport.authenticate('jwt', { session: false }), getGaleries);
+  router.get('/', passport.authenticate('jwt', { session: false }), getGaleries);
   // router.get('/:id', passport.authenticate('jwt', { session: false }), getGaleriesId);
   // router.get('/:id/frames/',
   // passport.authenticate('jwt', { session: false }), getGaleriesIdFrames);

@@ -74,9 +74,11 @@ describe('galerie', () => {
         } = await postGalerie(app, token, { name });
         expect(action).toBe('POST');
         expect(galerie.archived).toBeFalsy();
+        expect(galerie.currentCoverPicture).toBeNull();
         expect(galerie.defaultCoverPicture).toBeTruthy();
         expect(galerie.id).toBeTruthy();
         expect(galerie.name).toBe(name);
+        expect(galerie.role).toBe('creator');
         expect(galerie.updatedAt).toBeUndefined();
         expect(galerie.users.length).toBe(0);
         expect(status).toBe(200);
