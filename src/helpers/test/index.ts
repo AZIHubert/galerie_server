@@ -29,6 +29,7 @@ export { default as postTicket } from './postTicket';
 export { default as postUpdateEmail } from './postUpdateEmail';
 export { default as postUpdateEmailConfirm } from './postUpdateEmailConfirm';
 export { default as putConfirmation } from './putConfirmation';
+export { default as putGalerieId } from './putGalerieId';
 export { default as putPassword } from './putPassword';
 export { default as putProfilePicture } from './putProfilePicture';
 export { default as putPseudonym } from './putPseudonym';

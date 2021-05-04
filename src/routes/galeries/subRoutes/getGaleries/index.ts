@@ -4,7 +4,6 @@ import {
   Frame,
   Galerie,
   GaleriePicture,
-  GalerieUser,
   Image,
   User,
 } from '@src/db/models';
@@ -46,13 +45,6 @@ export default async (req: Request, res: Response) => {
     await Promise.all(
       galeries.map(async (galerie) => {
         let returnCurrentCoverPicture = null;
-        // find user's role relative to galerie.
-        const galerieUser = await GalerieUser.findOne({
-          where: {
-            galerieId: galerie.id,
-            userId: id,
-          },
-        });
 
         // Return currentCoverPicture if exist.
         const currentCoverPicture = await Frame.findOne({
@@ -171,7 +163,10 @@ export default async (req: Request, res: Response) => {
         galerieWithUsers.push({
           ...galerie.toJSON(),
           currentCoverPicture: returnCurrentCoverPicture,
-          role: galerieUser ? galerieUser.role : 'user',
+          role: galerie
+            .users
+            .filter((user) => user.id === id)[0]
+            .GalerieUser.role,
           users: [],
         });
       }),

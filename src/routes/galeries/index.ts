@@ -25,7 +25,7 @@ import {
   // postGaleriesIdInvitations,
   // postGaleriesSubscribeCode,
 
-  // putGaleriesId,
+  putGaleriesId,
   // putGaleriesIdFramesId,
   // putGaleriesIdUsersUserId,
 } from './subRoutes';
@@ -63,11 +63,14 @@ const galeriesRoutes: () => Router = () => {
   // router.post('/subscribe/:code',
   // passport.authenticate('jwt', { session: false }), postGaleriesSubscribeCode);
 
-  // router.put('/:id', passport.authenticate('jwt', { session: false }), putGaleriesId);
+  router.put('/:id', passport.authenticate('jwt', { session: false }), putGaleriesId);
   // router.put('/:id/frames/:frameId',
   // passport.authenticate('jwt', { session: false }), putGaleriesIdFramesId);
   // router.put('/:id/users/:userId',
   // passport.authenticate('jwt', { session: false }), putGaleriesIdUsersUserId);
+  // TODO:
+  // router.put('/:id/frames/:frameId/galeriePicture/:galeriePictureId',
+  // passport.authenticate('jwt', { session: false }), async () => {});
 
   router.post('/:id/frames/:frameId/likes', () => {
     // check if galerie exist

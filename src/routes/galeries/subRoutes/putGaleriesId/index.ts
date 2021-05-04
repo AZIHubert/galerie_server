@@ -1,9 +1,7 @@
 import { Request, Response } from 'express';
 
 import {
-  Frame,
   Galerie,
-  GaleriePicture,
   User,
 } from '@src/db/models';
 
@@ -16,6 +14,8 @@ export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
   const { id: galerieId } = req.params;
   let galerie: Galerie | null;
+
+  // Find galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
       include: [{
@@ -23,11 +23,6 @@ export default async (req: Request, res: Response) => {
         where: {
           id: userId,
         },
-      }, {
-        model: Frame,
-        include: [{
-          model: GaleriePicture,
-        }],
       }],
     });
   } catch (err) {
@@ -38,11 +33,15 @@ export default async (req: Request, res: Response) => {
       errors: 'galerie not found',
     });
   }
+
+  // Archived galerie can't by updated.
   if (galerie.archived) {
     return res.status(400).send({
       errors: 'you cannot update an archived galerie',
     });
   }
+
+  // Only creator or admin are allow to update galerie.
   const { role } = galerie
     .users
     .filter((user) => user.id === userId)[0]
@@ -54,53 +53,28 @@ export default async (req: Request, res: Response) => {
       errors: 'not allow to update this galerie',
     });
   }
-  if (!Object.keys(req.body).length) {
+
+  const {
+    error,
+    value,
+  } = validatePutGaleriesIdBody(req.body);
+  if (error) {
     return res.status(400).send({
-      errors: 'no changes commited',
+      errors: normalizeJoiErrors(error),
     });
   }
-  const changes = {} as {
-    coverPictureId?: string | null;
-    name?: string;
-  };
-  const {
-    coverPictureId,
-    name,
-  } = req.body;
-  if (coverPictureId) {
-    const galeriePictureExist = galerie
-      .frames
-      .map((frame) => frame
-        .galeriePictures
-        .filter((e) => e.id === coverPictureId).length)
-      .reduce((acc, current) => acc + current);
-    if (!galeriePictureExist) {
-      return res.status(400).send({
-        errors: 'picture id doen\'t exist',
-      });
-    }
-    if (galerie.coverPictureId === coverPictureId) {
-      changes.coverPictureId = null;
-    } else {
-      changes.coverPictureId = coverPictureId;
-    }
-  }
-  if (name !== undefined) {
-    const {
-      error,
-      value,
-    } = validatePutGaleriesIdBody(req.body);
-    if (error) {
-      return res.status(400).send({
-        errors: normalizeJoiErrors(error),
-      });
-    }
-    changes.name = value.name;
-  }
+
   try {
-    await galerie.update(changes);
+    await galerie.update(value);
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(204).end();
+
+  return res.status(200).send({
+    action: 'PUT',
+    data: {
+      id: galerie.id,
+      name: galerie.name,
+    },
+  });
 };

@@ -4,7 +4,6 @@ import {
   Frame,
   Galerie,
   GaleriePicture,
-  GalerieUser,
   Image,
   User,
 } from '@src/db/models';
@@ -16,7 +15,6 @@ export default async (req: Request, res: Response) => {
   const { id: galerieId } = req.params;
   let galerie: Galerie | null;
   let returnCurrentCoverPicture = null;
-  let role: string;
 
   try {
     galerie = await Galerie.findByPk(galerieId, {
@@ -39,19 +37,6 @@ export default async (req: Request, res: Response) => {
     return res.status(404).send({
       errors: 'galerie not found',
     });
-  }
-
-  // Find user's role relative to galerie.
-  try {
-    const galerieUser = await GalerieUser.findOne({
-      where: {
-        galerieId,
-        userId,
-      },
-    });
-    role = galerieUser ? galerieUser.role : 'user';
-  } catch (err) {
-    return res.status(500).send(err);
   }
 
   // Return currentCoverPicture if exist.
@@ -178,7 +163,10 @@ export default async (req: Request, res: Response) => {
       galerie: {
         ...galerie.toJSON(),
         currentCoverPicture: returnCurrentCoverPicture,
-        role,
+        role: galerie
+          .users
+          .filter((user) => user.id === userId)[0]
+          .GalerieUser.role,
         users: [],
       },
     },
