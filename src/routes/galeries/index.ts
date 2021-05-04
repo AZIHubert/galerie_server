@@ -6,7 +6,7 @@ import { Router } from 'express';
 import passport from '@src/helpers/passport';
 
 import {
-  // deleteGalerieId,
+  deleteGalerieId,
   // deleteGaleriesIdFramesId,
   // deleteGaleriesIdInvitationsId,
   // deleteGaleriesIdUnsubscribe,
@@ -33,7 +33,7 @@ import {
 const router = Router();
 
 const galeriesRoutes: () => Router = () => {
-  // router.delete('/:id', passport.authenticate('jwt', { session: false }), deleteGalerieId);
+  router.delete('/:id', passport.authenticate('jwt', { session: false }), deleteGalerieId);
   // router.delete('/:id/frames/:frameId',
   // passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId);
   // router.delete('/:id/unsubscribe/',

@@ -1,106 +1,71 @@
-import { hash } from 'bcrypt';
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
-import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
 import {
-  Frame,
+  // Frame,
   Galerie,
-  GalerieUser,
-  GaleriePicture,
-  Image,
+  // GalerieUser,
+  // GaleriePicture,
+  // Image,
   User,
-  Like,
-  Invitation,
+  // Like,
+  // Invitation,
 } from '@src/db/models';
+
+import {
+  FIELD_IS_EMPTY,
+  FIELD_IS_REQUIRED,
+  FIELD_NOT_A_STRING,
+  WRONG_PASSWORD,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
-import saltRounds from '@src/helpers/saltRounds';
-import accEnv from '@src/helpers/accEnv';
+// import accEnv from '@src/helpers/accEnv';
+// import gc from '@src/helpers/gc';
+import {
+  cleanGoogleBuckets,
+  createUser,
+  deleteGalerieId,
+  login,
+  postGalerie,
+} from '@src/helpers/test';
+
 import initApp from '@src/server';
-import gc from '@src/helpers/gc';
 
-const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
-const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
-
-const cleanDatas = async (sequelize: Sequelize) => {
-  await Frame.sync({ force: true });
-  await Galerie.sync({ force: true });
-  await GaleriePicture.sync({ force: true });
-  await GalerieUser.sync({ force: true });
-  await Image.sync({ force: true });
-  await Like.sync({ force: true });
-  await Invitation.sync({ force: true });
-  await User.sync({ force: true });
-  await sequelize.model('Sessions').sync({ force: true });
-  const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
-  await Promise.all(originalImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
-  await Promise.all(cropedImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
-  await Promise.all(pendingImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-};
-
-const newUser = {
-  pseudonym: 'userName',
-  email: 'user@email.com',
-  password: 'password',
-  userName: '@userName',
-};
+const userPassword = 'Password0!';
+// const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
+// const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
+// const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
 describe('galeries', () => {
-  let sequelize: Sequelize;
   let app: Server;
-  let user: User;
-  let agent: request.SuperAgentTest;
+  let sequelize: Sequelize;
   let token: string;
-  let galerieId: string;
+  let user: User;
+
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
-    agent = request.agent(app);
   });
+
   beforeEach(async (done) => {
-    agent = request.agent(app);
     try {
-      await cleanDatas(sequelize);
-      const hashPassword = await hash(newUser.password, saltRounds);
-      user = await User.create({
-        ...newUser,
-        confirmed: true,
-        password: hashPassword,
-      });
-      const { body } = await agent
-        .post('/users/login')
-        .send({
-          password: newUser.password,
-          userNameOrEmail: user.email,
-        });
+      await cleanGoogleBuckets();
+      await sequelize.sync({ force: true });
+      user = await createUser({});
+      const { body } = await login(app, user.email, userPassword);
       token = body.token;
-      const { body: createGalerieBody } = await agent
-        .post('/galeries')
-        .set('authorization', token)
-        .send({ name: 'galerie name' });
-      galerieId = createGalerieBody.id;
     } catch (err) {
       done(err);
     }
     done();
   });
+
   afterAll(async (done) => {
     try {
-      await cleanDatas(sequelize);
+      await cleanGoogleBuckets();
+      await sequelize.sync({ force: true });
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -108,160 +73,219 @@ describe('galeries', () => {
     app.close();
     done();
   });
+
   describe(':id', () => {
     describe('DELETE', () => {
       describe('should return status 200 and', () => {
-        it('delete all images from Google Storage', async () => {
-          await agent
-            .post(`/galeries/${galerieId}/frames`)
-            .set('authorization', token)
-            .attach('image', `${__dirname}/../../ressources/image.jpg`);
-          await agent
-            .delete(`/galeries/${galerieId}`)
-            .set('authorization', token);
-          const [filesCrop] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
-          expect(filesCrop.length).toBe(0);
-          const [filesOriginal] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
-          expect(filesOriginal.length).toBe(0);
-          const [filesPending] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
-          expect(filesPending.length).toBe(0);
+        let galerieId: string;
+        const name = 'galerie\'s name';
+        beforeEach(async (done) => {
+          try {
+            const {
+              body: {
+                data: {
+                  galerie: {
+                    id,
+                  },
+                },
+              },
+            } = await postGalerie(app, token, {
+              name,
+            });
+            galerieId = id;
+          } catch (err) {
+            done(err);
+          }
+          done();
         });
-        it('should delete all images', async () => {
-          await agent
-            .post(`/galeries/${galerieId}/frames`)
-            .set('authorization', token)
-            .attach('image', `${__dirname}/../../ressources/image.jpg`);
-          await agent
-            .delete(`/galeries/${galerieId}`)
-            .set('authorization', token);
-          const images = await Image.findAll();
-          expect(images.length).toEqual(0);
-        });
-        it('should delete all galeriePictures', async () => {
-          await agent
-            .post(`/galeries/${galerieId}/frames`)
-            .set('authorization', token)
-            .attach('image', `${__dirname}/../../ressources/image.jpg`);
-          await agent
-            .delete(`/galeries/${galerieId}`)
-            .set('authorization', token);
-          const galeriePictures = await GaleriePicture.findAll();
-          expect(galeriePictures.length).toEqual(0);
-        });
-        it('should delete all frames', async () => {
-          await agent
-            .post(`/galeries/${galerieId}/frames`)
-            .set('authorization', token)
-            .attach('image', `${__dirname}/../../ressources/image.jpg`);
-          await agent
-            .delete(`/galeries/${galerieId}`)
-            .set('authorization', token);
-          const frames = await Frame.findAll();
-          expect(frames.length).toEqual(0);
-        });
-        it('should delete all likes', async () => {
-          const { body: { id: frameId } } = await agent
-            .post(`/galeries/${galerieId}/frames`)
-            .set('authorization', token)
-            .attach('image', `${__dirname}/../../ressources/image.jpg`);
-          await agent
-            .put(`/galeries/${galerieId}/frames/${frameId}`)
-            .set('authorization', token);
-          await agent
-            .delete(`/galeries/${galerieId}`)
-            .set('authorization', token);
-          const likes = await Like.findAll();
-          expect(likes.length).toEqual(0);
-        });
-        it('should delete even if galerie has a coverPicture', async () => {
-          const { body: { galeriePictures } } = await agent
-            .post(`/galeries/${galerieId}/frames`)
-            .set('authorization', token)
-            .attach('image', `${__dirname}/../../ressources/image.jpg`);
-          const pictureId = galeriePictures[0].id;
-          await agent
-            .put(`/galeries/${galerieId}`)
-            .set('authorization', token)
-            .send({ coverPictureId: pictureId });
-          const { body, status } = await agent
-            .delete(`/galeries/${galerieId}`)
-            .set('authorization', token);
-          expect(status).toEqual(200);
-          expect(body).toStrictEqual({
+        it('destroy galerie', async () => {
+          const {
+            body: {
+              action,
+              data,
+            },
+            status,
+          } = await deleteGalerieId(app, token, galerieId, {
+            name,
+            password: userPassword,
+          });
+          const galerie = await Galerie.findByPk(galerieId);
+          expect(action).toBe('DELETE');
+          expect(data).toEqual({
             id: galerieId,
           });
+          expect(galerie).toBeNull();
+          expect(status).toBe(200);
         });
-        it('should delete all invitations', async () => {
-          await agent
-            .post(`/galeries/${galerieId}/invitations`)
-            .set('authorization', token)
-            .send({});
-          await agent
-            .delete(`/galeries/${galerieId}`)
-            .set('authorization', token);
-          const invitations = await Invitation.findAll();
-          expect(invitations.length).toEqual(0);
-        });
-        it('should delete all galerieUser', async () => {
-          const hashPassword = await hash(newUser.password, saltRounds);
-          const userTwo = await User.create({
-            ...newUser,
-            userName: 'user2',
-            email: 'user2@email.com',
-            confirmed: true,
-            password: hashPassword,
-          });
-          await GalerieUser.create({
-            userId: userTwo.id,
-            galerieId,
-            role: 'user',
-          });
-          await agent
-            .delete(`/galeries/${galerieId}`)
-            .set('authorization', token);
-          const galerieUsers = await GalerieUser.findAll();
-          expect(galerieUsers.length).toEqual(0);
-        });
+        it('TODO: destroy frames', async () => {});
+        it('TODO: destroy likes', async () => {});
+        it('TODO: destroy images and images from Google buckets', async () => {});
+        it('TODO: destroy invitations', async () => {});
+        it('TODO: destroy GalerieUser models', async () => {});
       });
       describe('should return error 400 if', () => {
-        it('user\'s role is not creator', async () => {
-          const hashPassword = await hash(newUser.password, saltRounds);
-          const userTwo = await User.create({
-            ...newUser,
-            userName: 'user2',
-            email: 'user2@email.com',
-            confirmed: true,
-            password: hashPassword,
+        it('TODO: user\'s role is user', async () => {});
+        it('TODO: user\'s role is admin', async () => {});
+        describe('name', () => {
+          let galerieId: string;
+          const name = 'galerie\'s name';
+          beforeEach(async (done) => {
+            try {
+              const {
+                body: {
+                  data: {
+                    galerie: {
+                      id,
+                    },
+                  },
+                },
+              } = await postGalerie(app, token, {
+                name,
+              });
+              galerieId = id;
+            } catch (err) {
+              done(err);
+            }
+            done();
           });
-          await GalerieUser.create({
-            userId: userTwo.id,
-            galerieId,
-            role: 'user',
-          });
-          const { body: { token: tokenTwo } } = await agent
-            .post('/users/login')
-            .send({
-              password: newUser.password,
-              userNameOrEmail: userTwo.email,
+          it('is not send', async () => {
+            const {
+              body,
+              status,
+            } = await deleteGalerieId(app, token, galerieId, {
+              password: userPassword,
             });
-          const { body, status } = await agent
-            .delete(`/galeries/${galerieId}`)
-            .set('authorization', tokenTwo);
-          expect(status).toEqual(400);
-          expect(body).toStrictEqual({
-            errors: 'not allow to delete this galerie',
+            expect(body.errors).toEqual({
+              name: FIELD_IS_REQUIRED,
+            });
+            expect(status).toBe(400);
+          });
+          it('is not a string', async () => {
+            const {
+              body,
+              status,
+            } = await deleteGalerieId(app, token, galerieId, {
+              name: 1234,
+              password: userPassword,
+            });
+            expect(body.errors).toEqual({
+              name: FIELD_NOT_A_STRING,
+            });
+            expect(status).toBe(400);
+          });
+          it('is an empty string', async () => {
+            const {
+              body,
+              status,
+            } = await deleteGalerieId(app, token, galerieId, {
+              name: '',
+              password: userPassword,
+            });
+            expect(body.errors).toEqual({
+              name: FIELD_IS_EMPTY,
+            });
+            expect(status).toBe(400);
+          });
+          it('not match galerie\'s name', async () => {
+            const {
+              body,
+              status,
+            } = await deleteGalerieId(app, token, galerieId, {
+              name: `wrong${name}`,
+              password: userPassword,
+            });
+            expect(body.errors).toEqual({
+              name: 'wrong galerie\'s name',
+            });
+            expect(status).toBe(400);
+          });
+        });
+        describe('password', () => {
+          let galerieId: string;
+          const name = 'galerie\'s name';
+          beforeEach(async (done) => {
+            try {
+              const {
+                body: {
+                  data: {
+                    galerie: {
+                      id,
+                    },
+                  },
+                },
+              } = await postGalerie(app, token, {
+                name,
+              });
+              galerieId = id;
+            } catch (err) {
+              done(err);
+            }
+            done();
+          });
+          it('is not send', async () => {
+            const {
+              body,
+              status,
+            } = await deleteGalerieId(app, token, galerieId, {
+              name,
+            });
+            expect(body.errors).toEqual({
+              password: FIELD_IS_REQUIRED,
+            });
+            expect(status).toBe(400);
+          });
+          it('is not a string', async () => {
+            const {
+              body,
+              status,
+            } = await deleteGalerieId(app, token, galerieId, {
+              name,
+              password: 1234,
+            });
+            expect(body.errors).toEqual({
+              password: FIELD_NOT_A_STRING,
+            });
+            expect(status).toBe(400);
+          });
+          it('is an empty string', async () => {
+            const {
+              body,
+              status,
+            } = await deleteGalerieId(app, token, galerieId, {
+              name,
+              password: '',
+            });
+            expect(body.errors).toEqual({
+              password: FIELD_IS_EMPTY,
+            });
+            expect(status).toBe(400);
+          });
+          it('not match user\'s password', async () => {
+            const {
+              body,
+              status,
+            } = await deleteGalerieId(app, token, galerieId, {
+              name,
+              password: 'wrongPassword',
+            });
+            expect(body.errors).toEqual({
+              password: WRONG_PASSWORD,
+            });
+            expect(status).toBe(400);
           });
         });
       });
       describe('should return error 404 if', () => {
         it('galerie doesn\'t exist', async () => {
-          const { body, status } = await agent
-            .delete('/galeries/100/')
-            .set('authorization', token);
-          expect(status).toBe(404);
-          expect(body).toStrictEqual({
-            errors: 'galerie not found',
+          const {
+            body,
+            status,
+          } = await deleteGalerieId(app, token, '100', {
+            name: 'galerie\'s name',
+            password: userPassword,
           });
+          expect(body.errors).toBe('galerie not found');
+          expect(status).toBe(404);
         });
       });
     });

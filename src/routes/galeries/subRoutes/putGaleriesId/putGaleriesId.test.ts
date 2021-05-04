@@ -95,19 +95,24 @@ describe('galeries', () => {
         it('TODO: user role is user', async () => {});
         describe('name', () => {
           let galerieId: string;
-          beforeEach(async () => {
-            const {
-              body: {
-                data: {
-                  galerie: {
-                    id,
+          beforeEach(async (done) => {
+            try {
+              const {
+                body: {
+                  data: {
+                    galerie: {
+                      id,
+                    },
                   },
                 },
-              },
-            } = await postGalerie(app, token, {
-              name: 'galeries\'s name',
-            });
-            galerieId = id;
+              } = await postGalerie(app, token, {
+                name: 'galeries\'s name',
+              });
+              galerieId = id;
+            } catch (err) {
+              done(err);
+            }
+            done();
           });
           it('is not send', async () => {
             const {

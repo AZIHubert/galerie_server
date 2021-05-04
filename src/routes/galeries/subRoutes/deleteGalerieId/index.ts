@@ -1,4 +1,9 @@
-import { Request, Response } from 'express';
+import { compare } from 'bcrypt';
+import {
+  Request,
+  Response,
+} from 'express';
+import { Op } from 'sequelize';
 
 import {
   Frame,
@@ -11,12 +16,23 @@ import {
   User,
 } from '@src/db/models';
 
+import { WRONG_PASSWORD } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
+import {
+  normalizeJoiErrors,
+  validateDeleteGaleriesIdBody,
+} from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
-  const { id: userId } = req.user as User;
   const { id: galerieId } = req.params;
+  const {
+    id: userId,
+    password,
+  } = req.user as User;
   let galerie: Galerie | null;
+  let passwordsMatch: boolean;
+
+  // Find galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
       include: [{
@@ -34,6 +50,9 @@ export default async (req: Request, res: Response) => {
       errors: 'galerie not found',
     });
   }
+
+  // Check if user\'s role relative to
+  // this galerie is 'creator'.
   const { role } = galerie
     .users
     .filter((user) => user.id === userId)[0]
@@ -43,67 +62,97 @@ export default async (req: Request, res: Response) => {
       errors: 'not allow to delete this galerie',
     });
   }
+
+  // Check if body have errors.
+  const errors: {[key: string]: string} = {};
+  const {
+    error,
+    value,
+  } = validateDeleteGaleriesIdBody(req.body);
+  if (error) {
+    Object
+      .keys(normalizeJoiErrors(error))
+      .forEach((key) => {
+        errors[key] = normalizeJoiErrors(error)[key];
+      });
+  }
+  if (!errors.name && value.name !== galerie.name) {
+    errors.name = 'wrong galerie\'s name';
+  }
+  if (!errors.password) {
+    try {
+      passwordsMatch = await compare(value.password, password);
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+    if (!passwordsMatch) {
+      errors.password = WRONG_PASSWORD;
+    }
+  }
+  if (Object.keys(errors).length) {
+    return res.status(400).send({ errors });
+  }
+
   try {
-    await galerie.update({ coverPictureId: null });
     const frames = await Frame.findAll({
       where: {
         galerieId: galerie.id,
       },
     });
 
-    await Promise.all(frames.map(async (frame) => {
-      const galeriePictures = await GaleriePicture.findAll({
-        where: { frameId: frame.id },
-        include: [
-          {
-            all: true,
+    await Promise.all(
+      frames.map(async (frame) => {
+        await frame.destroy();
+        await Like.destroy({
+          where: { frameId: frame.id },
+        });
+        const galeriePictures = await GaleriePicture.findAll({
+          where: {
+            frameId: frame.id,
           },
-        ],
-      });
-      await Promise.all(
-        galeriePictures.map(async (galeriePicture) => {
-          const {
-            originalImage,
-            cropedImage,
-            pendingImage,
-          } = galeriePicture;
-          await gc
-            .bucket(originalImage.bucketName)
-            .file(originalImage.fileName)
-            .delete();
-          await Image.destroy({
-            where: {
-              id: originalImage.id,
-            },
-          });
-          await gc
-            .bucket(cropedImage.bucketName)
-            .file(cropedImage.fileName)
-            .delete();
-          await Image.destroy({
-            where: {
-              id: cropedImage.id,
-            },
-          });
-          await gc
-            .bucket(pendingImage.bucketName)
-            .file(pendingImage.fileName)
-            .delete();
-          await Image.destroy({
-            where: {
-              id: pendingImage.id,
-            },
-          });
-        }),
-      );
-      await GaleriePicture.destroy({
-        where: { frameId: frame.id },
-      });
-      await Like.destroy({
-        where: { frameId: frame.id },
-      });
-      await frame.destroy();
-    }));
+          include: [{
+            all: true,
+          }],
+        });
+        await Promise.all(
+          galeriePictures.map(async (galeriePicture) => {
+            await galeriePicture.destroy();
+            const {
+              originalImage,
+              cropedImage,
+              pendingImage,
+            } = galeriePicture;
+            await Image.destroy({
+              where: {
+                [Op.or]: [
+                  {
+                    id: cropedImage.id,
+                  },
+                  {
+                    id: originalImage.id,
+                  },
+                  {
+                    id: pendingImage.id,
+                  },
+                ],
+              },
+            });
+            await gc
+              .bucket(originalImage.bucketName)
+              .file(originalImage.fileName)
+              .delete();
+            await gc
+              .bucket(cropedImage.bucketName)
+              .file(cropedImage.fileName)
+              .delete();
+            await gc
+              .bucket(pendingImage.bucketName)
+              .file(pendingImage.fileName)
+              .delete();
+          }),
+        );
+      }),
+    );
     await Invitation.destroy({
       where: {
         galerieId: galerie.id,
@@ -118,7 +167,11 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
   return res.status(200).send({
-    id: galerie.id,
+    action: 'DELETE',
+    data: {
+      id: galerie.id,
+    },
   });
 };
