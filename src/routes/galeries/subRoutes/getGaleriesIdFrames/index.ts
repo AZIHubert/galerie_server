@@ -1,4 +1,7 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 
 import {
   Frame,
@@ -12,17 +15,22 @@ import {
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
+  const { id: galerieId } = req.params;
   const limit = 20;
   const { page } = req.query;
+  const { id: userId } = req.user as User;
+  const returnedFrames: Array<any> = [];
+  let frames: Frame[];
+  let galerie: Galerie | null;
   let offset: number;
+
   if (typeof page === 'string') {
     offset = ((+page || 1) - 1) * limit;
   } else {
     offset = 0;
   }
-  const { id: userId } = req.user as User;
-  const { id: galerieId } = req.params;
-  let galerie: Galerie | null;
+
+  // Fecth galerie,
   try {
     galerie = await Galerie.findByPk(galerieId, {
       include: [{
@@ -40,254 +48,102 @@ export default async (req: Request, res: Response) => {
       errors: 'galerie not found',
     });
   }
-  let frames: Frame[];
+
+  // Fetch all frames relative to this galerie.
   try {
     frames = await Frame.findAll({
-      order: [['createdAt', 'DESC']],
-      limit,
-      offset,
       attributes: {
         exclude: [
           'userId',
         ],
       },
+      include: [
+        {
+          attributes: {
+            exclude: [
+              'createdAt',
+              'cropedImageId',
+              'frameId',
+              'originalImageId',
+              'pendingImageId',
+              'updatedAt',
+            ],
+          },
+          include: [
+            {
+              as: 'cropedImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'id',
+                  'updatedAt',
+                ],
+              },
+              model: Image,
+            },
+            {
+              as: 'originalImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'id',
+                  'updatedAt',
+                ],
+              },
+              model: Image,
+            },
+            {
+              as: 'pendingImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'id',
+                  'updatedAt',
+                ],
+              },
+              model: Image,
+            },
+          ],
+          model: GaleriePicture,
+        }, {
+          as: 'user',
+          attributes: {
+            exclude: [
+              'authTokenVersion',
+              'confirmed',
+              'confirmTokenVersion',
+              'emailTokenVersion',
+              'email',
+              'facebookId',
+              'googleId',
+              'password',
+              'resetPasswordTokenVersion',
+              'updatedAt',
+              'updatedEmailTokenVersion',
+            ],
+          },
+          model: User,
+        },
+      ],
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']],
       where: {
         galerieId,
       },
-      include: [{
-        model: GaleriePicture,
-        include: [
-          {
-            model: Image,
-            as: 'cropedImage',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'deletedAt',
-                'updatedAt',
-              ],
-            },
-          },
-          {
-            model: Image,
-            as: 'originalImage',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'deletedAt',
-                'updatedAt',
-              ],
-            },
-          },
-          {
-            model: Image,
-            as: 'pendingImage',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'deletedAt',
-                'updatedAt',
-              ],
-            },
-          },
-        ],
-      }, {
-        model: User,
-        as: 'user',
-        attributes: {
-          exclude: [
-            'authTokenVersion',
-            'blackListId',
-            'confirmed',
-            'confirmTokenVersion',
-            'email',
-            'facebookId',
-            'googleId',
-            'password',
-            'resetPasswordTokenVersion',
-            'updatedEmailTokenVersion',
-          ],
-        },
-        include: [
-          {
-            model: ProfilePicture,
-            as: 'currentProfilePicture',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'cropedImageId',
-                'deletedAt',
-                'originalImageId',
-                'pendingImageId',
-                'updatedAt',
-                'userId',
-              ],
-            },
-            include: [
-              {
-                model: Image,
-                as: 'cropedImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-              {
-                model: Image,
-                as: 'originalImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-              {
-                model: Image,
-                as: 'pendingImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-            ],
-          },
-        ],
-      }, {
-        model: User,
-        as: 'likes',
-        attributes: {
-          exclude: [
-            'authTokenVersion',
-            'blackListId',
-            'confirmed',
-            'confirmTokenVersion',
-            'email',
-            'facebookId',
-            'googleId',
-            'password',
-            'resetPasswordTokenVersion',
-            'updatedEmailTokenVersion',
-          ],
-        },
-        include: [
-          {
-            model: ProfilePicture,
-            as: 'currentProfilePicture',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'cropedImageId',
-                'deletedAt',
-                'originalImageId',
-                'pendingImageId',
-                'updatedAt',
-                'userId',
-              ],
-            },
-            include: [
-              {
-                model: Image,
-                as: 'cropedImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-              {
-                model: Image,
-                as: 'originalImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-              {
-                model: Image,
-                as: 'pendingImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-            ],
-          },
-        ],
-      }],
     });
+
     await Promise.all(
-      frames.map(async (frame, index) => {
-        await Promise.all(
-          frame
-            .likes
-            .map(async (like, likeIndex) => {
-              if (like.currentProfilePicture) {
-                const {
-                  currentProfilePicture: {
-                    cropedImage: {
-                      bucketName: cropedImageBucketName,
-                      fileName: cropedImageFileName,
-                    },
-                    originalImage: {
-                      bucketName: originalImageBucketName,
-                      fileName: originalImageFileName,
-                    },
-                    pendingImage: {
-                      bucketName: pendingImageBucketName,
-                      fileName: pendingImageFileName,
-                    },
-                  },
-                } = like;
-                const cropedImageSignedUrl = await signedUrl(
-                  cropedImageBucketName,
-                  cropedImageFileName,
-                );
-                frames[index]
-                  .likes[likeIndex]
-                  .currentProfilePicture
-                  .cropedImage
-                  .signedUrl = cropedImageSignedUrl;
-                const originalImageSignedUrl = await signedUrl(
-                  originalImageBucketName,
-                  originalImageFileName,
-                );
-                frames[index]
-                  .likes[likeIndex]
-                  .currentProfilePicture
-                  .originalImage
-                  .signedUrl = originalImageSignedUrl;
-                const pendingImageSignedUrl = await signedUrl(
-                  pendingImageBucketName,
-                  pendingImageFileName,
-                );
-                frames[index]
-                  .likes[likeIndex]
-                  .currentProfilePicture
-                  .pendingImage
-                  .signedUrl = pendingImageSignedUrl;
-              }
-            }),
-        );
+      frames.map(async (frame) => {
+        let returnedCurrentProfilePicture;
+        const returnedGaleriePictures: Array<any> = [];
+
         await Promise.all(
           frame
             .galeriePictures
-            .map(async (galeriePicture, galeriePicturesIndex) => {
+            .map(async (galeriePicture) => {
+              // Fetch signed url for each
+              // galerie pictures images.
               const {
                 cropedImage: {
                   bucketName: cropedImageBucketName,
@@ -306,68 +162,176 @@ export default async (req: Request, res: Response) => {
                 cropedImageBucketName,
                 cropedImageFileName,
               );
-              frames[index]
-                .galeriePictures[galeriePicturesIndex]
-                .cropedImage
-                .signedUrl = cropedImageSignedUrl;
               const originalImageSignedUrl = await signedUrl(
                 originalImageBucketName,
                 originalImageFileName,
               );
-              frames[index]
-                .galeriePictures[galeriePicturesIndex]
-                .originalImage
-                .signedUrl = originalImageSignedUrl;
               const pendingImageSignedUrl = await signedUrl(
                 pendingImageBucketName,
                 pendingImageFileName,
               );
-              frames[index]
-                .galeriePictures[galeriePicturesIndex]
-                .pendingImage
-                .signedUrl = pendingImageSignedUrl;
+              const returnedGaleriePicture = {
+                ...galeriePicture.toJSON(),
+                cropedImage: {
+                  ...galeriePicture.cropedImage.toJSON(),
+                  bucketName: undefined,
+                  createdAt: undefined,
+                  fileName: undefined,
+                  id: undefined,
+                  signedUrl: cropedImageSignedUrl,
+                  updatedAt: undefined,
+                },
+                originalImage: {
+                  ...galeriePicture.originalImage.toJSON(),
+                  bucketName: undefined,
+                  createdAt: undefined,
+                  fileName: undefined,
+                  id: undefined,
+                  signedUrl: originalImageSignedUrl,
+                  updatedAt: undefined,
+                },
+                pendingImage: {
+                  ...galeriePicture.pendingImage.toJSON(),
+                  bucketName: undefined,
+                  createdAt: undefined,
+                  fileName: undefined,
+                  id: undefined,
+                  signedUrl: pendingImageSignedUrl,
+                  updatedAt: undefined,
+                },
+              };
+              returnedGaleriePictures.push(returnedGaleriePicture);
             }),
         );
-        if (frame.user.currentProfilePictureId) {
-          const {
-            currentProfilePicture: {
-              cropedImage: {
-                bucketName: cropedImageBucketName,
-                fileName: cropedImageFileName,
+
+        // Find the current profile picture
+        // of the current user.
+        const currentProfilePicture = await ProfilePicture.findOne({
+          attributes: {
+            exclude: [
+              'createdAt',
+              'cropedImageId',
+              'current',
+              'originalImageId',
+              'pendingImageId',
+              'updatedAt',
+              'userId',
+            ],
+          },
+          include: [
+            {
+              as: 'cropedImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'id',
+                  'updatedAt',
+                ],
               },
-              originalImage: {
-                bucketName: originalImageBucketName,
-                fileName: originalImageFileName,
-              },
-              pendingImage: {
-                bucketName: pendingImageBucketName,
-                fileName: pendingImageFileName,
-              },
+              model: Image,
             },
-          } = frame.user;
+            {
+              as: 'originalImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'id',
+                  'updatedAt',
+                ],
+              },
+              model: Image,
+            },
+            {
+              as: 'pendingImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'id',
+                  'updatedAt',
+                ],
+              },
+              model: Image,
+            },
+          ],
+          where: {
+            userId: frame.user.id,
+            current: true,
+          },
+        });
+        if (currentProfilePicture) {
+          const {
+            cropedImage: {
+              bucketName: cropedImageBucketName,
+              fileName: cropedImageFileName,
+            },
+            originalImage: {
+              bucketName: originalImageBucketName,
+              fileName: originalImageFileName,
+            },
+            pendingImage: {
+              bucketName: pendingImageBucketName,
+              fileName: pendingImageFileName,
+            },
+          } = currentProfilePicture;
           const cropedImageSignedUrl = await signedUrl(
             cropedImageBucketName,
             cropedImageFileName,
           );
-          frames[index].user.currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
           const originalImageSignedUrl = await signedUrl(
             originalImageBucketName,
             originalImageFileName,
           );
-          frames[index].user.currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
           const pendingImageSignedUrl = await signedUrl(
             pendingImageBucketName,
             pendingImageFileName,
           );
-          frames[index].user.currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+          returnedCurrentProfilePicture = {
+            ...currentProfilePicture.toJSON(),
+            cropedImage: {
+              ...currentProfilePicture.cropedImage.toJSON(),
+              bucketName: undefined,
+              fileName: undefined,
+              signedUrl: cropedImageSignedUrl,
+            },
+            originalImage: {
+              ...currentProfilePicture.originalImage.toJSON(),
+              bucketName: undefined,
+              fileName: undefined,
+              signedUrl: originalImageSignedUrl,
+            },
+            pendingImage: {
+              ...currentProfilePicture.pendingImage.toJSON(),
+              bucketName: undefined,
+              fileName: undefined,
+              signedUrl: pendingImageSignedUrl,
+            },
+          };
         }
+
+        // Compose the final frame and push it
+        // to returnedFrames.
+        const returnedFrame = {
+          ...frame.toJSON(),
+          galerieId: undefined,
+          galeriePictures: returnedGaleriePictures,
+          updatedAt: undefined,
+          user: {
+            ...frame.user.toJSON(),
+            currentProfilePicture: returnedCurrentProfilePicture,
+          },
+        };
+        returnedFrames.push(returnedFrame);
       }),
     );
   } catch (err) {
     return res.status(500).send(err);
   }
+
   return res.status(200).send({
-    galerieId,
-    frames,
+    action: 'GET',
+    data: {
+      galerieId,
+      frames: returnedFrames,
+    },
   });
 };

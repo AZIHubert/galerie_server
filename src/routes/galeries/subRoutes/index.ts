@@ -6,13 +6,12 @@ export { default as deleteGalerieId } from './deleteGalerieId';
 
 export { default as getGaleries } from './getGaleries';
 export { default as getGaleriesId } from './getGaleriesId';
-// export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';
+export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';
 // export { default as getGaleriesIdFramesId } from './getGaleriesIdFramesId';
 // export { default as getGaleriesIdInvitations } from './getGaleriesIdInvitations';
 // export { default as getGaleriesIdInvitationsId } from './getGaleriesIdInvitationsId';
 // export { default as getGaleriesIdUsers } from './getGaleriesIdUsers';
 
-// eslint-disable-next-line import/prefer-default-export
 export { default as postGaleries } from './postGaleries';
 export { default as postGaleriesIdFrames } from './postGaleriesIdFrames';
 // export { default as postGaleriesIdInvitations } from './postGaleriesIdInvitations';
