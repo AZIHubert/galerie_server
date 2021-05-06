@@ -29,6 +29,7 @@ export default class GaleriePicture extends Model implements GaleriePictureI {
   // is the cover picture of his belonging galerie.
   // Only one galeriePicture can have this
   // property to true.
+  @Default(false)
   @Column({
     type: DataType.BOOLEAN,
   })

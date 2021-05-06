@@ -6,16 +6,16 @@ import {
 import multer from 'multer';
 
 export default (
-  next: NextFunction,
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   const upload = multer({
     limits: {
       fileSize: 5 * 1024 * 1024,
     },
     storage: multer.memoryStorage(),
-  }).array('images', 6);
+  }).array('image', 6);
 
   upload(req, res, (err: any) => {
     if (err instanceof multer.MulterError) {

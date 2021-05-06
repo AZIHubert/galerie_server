@@ -26,7 +26,7 @@ import {
   createUser,
   deleteUser,
   login,
-  postFrame,
+  postGaleriesIdFrames,
   postGalerie,
   postInvitation,
   postProfilePicture,
@@ -140,7 +140,7 @@ describe('/users', () => {
               },
             },
           } = await postGalerie(app, token, {});
-          await postFrame(app, token, galerieId);
+          await postGaleriesIdFrames(app, token, galerieId);
           await postInvitation(app, token, galerieId);
           await deleteUser(app, token, {
             deleteAccountSentence: 'delete my account',

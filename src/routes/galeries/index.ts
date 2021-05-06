@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
-// import {
-//   uploadFiles,
-// } from '@src/helpers/middlewares';
+import {
+  uploadFiles,
+} from '@src/helpers/middlewares';
 import passport from '@src/helpers/passport';
 
 import {
@@ -21,7 +21,7 @@ import {
   // getGaleriesIdUsers,
 
   postGaleries,
-  // postGaleriesIdFrames,
+  postGaleriesIdFrames,
   // postGaleriesIdInvitations,
   // postGaleriesSubscribeCode,
 
@@ -56,8 +56,7 @@ const galeriesRoutes: () => Router = () => {
   // router.get('/:id/users', passport.authenticate('jwt', { session: false }), getGaleriesIdUsers);
 
   router.post('/', passport.authenticate('jwt', { session: false }), postGaleries);
-  // router.post('/:id/frames',
-  // passport.authenticate('jwt', { session: false }), uploadFiles, postGaleriesIdFrames);
+  router.post('/:id/frames', passport.authenticate('jwt', { session: false }), uploadFiles, postGaleriesIdFrames);
   // router.post('/:id/invitations',
   // passport.authenticate('jwt', { session: false }), postGaleriesIdInvitations);
   // router.post('/subscribe/:code',
