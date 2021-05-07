@@ -1,6 +1,13 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 
-import { Image, ProfilePicture, User } from '@src/db/models';
+import {
+  Image,
+  ProfilePicture,
+  User,
+} from '@src/db/models';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {

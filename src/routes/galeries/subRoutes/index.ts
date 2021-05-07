@@ -18,5 +18,6 @@ export { default as postGaleriesIdFrames } from './postGaleriesIdFrames';
 // export { default as postGaleriesSubscribeCode } from './postGaleriesSubscribeCode';
 
 export { default as putGaleriesId } from './putGaleriesId';
+export { default as putGaleriesIdFramesIdGaleriePicturesId } from './putGaleriesIdFramesIdGaleriePicturesId';
 // export { default as putGaleriesIdFramesId } from './putGaleriesIdFramesId';
 // export { default as putGaleriesIdUsersUserId } from './putGaleriesIdUsersUserId';
