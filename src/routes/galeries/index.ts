@@ -7,7 +7,7 @@ import passport from '@src/helpers/passport';
 
 import {
   deleteGalerieId,
-  // deleteGaleriesIdFramesId,
+  deleteGaleriesIdFramesId,
   // deleteGaleriesIdInvitationsId,
   // deleteGaleriesIdUnsubscribe,
   // deleteGaleriesIdUsersUserId,
@@ -34,8 +34,7 @@ const router = Router();
 
 const galeriesRoutes: () => Router = () => {
   router.delete('/:id', passport.authenticate('jwt', { session: false }), deleteGalerieId);
-  // router.delete('/:id/frames/:frameId',
-  // passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId);
+  router.delete('/:id/frames/:frameId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId);
   // router.delete('/:id/unsubscribe/',
   // passport.authenticate('jwt', { session: false }), deleteGaleriesIdUnsubscribe);
   // router.delete('/:id/users/:userId',
@@ -61,13 +60,15 @@ const galeriesRoutes: () => Router = () => {
   // passport.authenticate('jwt', { session: false }), postGaleriesSubscribeCode);
 
   router.put('/:id', passport.authenticate('jwt', { session: false }), putGaleriesId);
+
+  // TODO:
+  // router.put('/:id/frames/:frameId/galeriePicture/:galeriePictureId',
+  // passport.authenticate('jwt', { session: false }), async () => {});
+
   // router.put('/:id/frames/:frameId',
   // passport.authenticate('jwt', { session: false }), putGaleriesIdFramesId);
   // router.put('/:id/users/:userId',
   // passport.authenticate('jwt', { session: false }), putGaleriesIdUsersUserId);
-  // TODO:
-  // router.put('/:id/frames/:frameId/galeriePicture/:galeriePictureId',
-  // passport.authenticate('jwt', { session: false }), async () => {});
 
   router.post('/:id/frames/:frameId/likes', () => {
     // check if galerie exist

@@ -117,9 +117,8 @@ describe('galeries', () => {
           expect(galerie).toBeNull();
           expect(status).toBe(200);
         });
-        it('TODO: destroy frames', async () => {});
+        it('TODO: destroy frames/galeriePictures/images and images from Google Bucket', async () => {});
         it('TODO: destroy likes', async () => {});
-        it('TODO: destroy images and images from Google buckets', async () => {});
         it('TODO: destroy invitations', async () => {});
         it('TODO: destroy GalerieUser models', async () => {});
       });

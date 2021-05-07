@@ -1,4 +1,8 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
+import { Op } from 'sequelize';
 
 import {
   Frame,
@@ -16,6 +20,8 @@ export default async (req: Request, res: Response) => {
   const { id: galerieId, frameId } = req.params;
   let galerie: Galerie | null;
   let frame: Frame | null;
+
+  // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
       include: [{
@@ -33,15 +39,20 @@ export default async (req: Request, res: Response) => {
       errors: 'galerie not found',
     });
   }
+
+  // Fetch frame.
   try {
     frame = await Frame.findOne({
+      include: [{
+        model: GaleriePicture,
+        include: [{
+          all: true,
+        }],
+      }],
       where: {
         id: frameId,
         galerieId,
       },
-      include: [{
-        model: GaleriePicture,
-      }],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -51,6 +62,9 @@ export default async (req: Request, res: Response) => {
       errors: 'frame not found',
     });
   }
+
+  // Only creator/admin or the user
+  // who post the frame can deleted it.
   const { role } = galerie
     .users
     .filter((user) => user.id === userId)[0]
@@ -63,68 +77,68 @@ export default async (req: Request, res: Response) => {
       errors: 'not allow to delete this frame',
     });
   }
+
   try {
-    // if (
-    //   frame
-    //     .galeriePictures
-    //     .map((galeriePicture) => galeriePicture.id)
-    //     .includes(galerie.coverPictureId)
-    // ) {
-    //   await galerie.update({ coverPictureId: null });
-    // }
-    const galeriePictures = await GaleriePicture.findAll({
-      where: { frameId },
-      include: [
-        {
-          all: true,
-        },
-      ],
-    });
+    // Destroy frame.
+    await frame.destroy();
+
     await Promise.all(
-      galeriePictures.map(async (galeriePicture) => {
+      frame.galeriePictures.map(async (galeriePicture) => {
+        // destroy galeriePicture.
+        await galeriePicture.destroy();
+
         const {
           originalImage,
           cropedImage,
           pendingImage,
         } = galeriePicture;
-        await galeriePicture.destroy();
+
+        // Destroy all images
+        // belonging to galeriePicture.
+        await Image.destroy({
+          where: {
+            [Op.or]: [
+              {
+                id: cropedImage.id,
+              },
+              {
+                id: originalImage.id,
+              },
+              {
+                id: pendingImage.id,
+              },
+            ],
+          },
+        });
+
+        // Delete files from Google Buckets.
         await gc
           .bucket(originalImage.bucketName)
           .file(originalImage.fileName)
           .delete();
-        await Image.destroy({
-          where: {
-            id: originalImage.id,
-          },
-        });
         await gc
           .bucket(cropedImage.bucketName)
           .file(cropedImage.fileName)
           .delete();
-        await Image.destroy({
-          where: {
-            id: cropedImage.id,
-          },
-        });
         await gc
           .bucket(pendingImage.bucketName)
           .file(pendingImage.fileName)
           .delete();
-        await Image.destroy({
-          where: {
-            id: pendingImage.id,
-          },
-        });
       }),
     );
+
+    // Destroy all likes.
     await Like.destroy({
       where: { frameId },
     });
-    await frame.destroy();
   } catch (err) {
     return res.status(500).end();
   }
   return res.status(200).send({
-    id: frameId,
+    action: 'DELETE',
+    data: {
+      frameId,
+      galerieId,
+    },
   });
 };

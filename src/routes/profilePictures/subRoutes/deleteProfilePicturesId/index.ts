@@ -1,4 +1,7 @@
-import { Response, Request } from 'express';
+import {
+  Response,
+  Request,
+} from 'express';
 import { Op } from 'sequelize';
 
 import {
