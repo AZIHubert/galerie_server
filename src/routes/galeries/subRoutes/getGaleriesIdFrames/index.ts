@@ -138,12 +138,12 @@ export default async (req: Request, res: Response) => {
         let returnedCurrentProfilePicture;
         const returnedGaleriePictures: Array<any> = [];
 
+        // Fetch signed url for each
+        // galerie pictures images.
         await Promise.all(
           frame
             .galeriePictures
             .map(async (galeriePicture) => {
-              // Fetch signed url for each
-              // galerie pictures images.
               const {
                 cropedImage: {
                   bucketName: cropedImageBucketName,

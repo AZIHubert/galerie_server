@@ -13,7 +13,11 @@ import signedUrl from '@src/helpers/signedUrl';
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
   const { id: galerieId, frameId } = req.params;
+  let frame: Frame | null;
   let galerie: Galerie | null;
+  let returnedFrame;
+
+  // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
       include: [{
@@ -31,189 +35,89 @@ export default async (req: Request, res: Response) => {
       errors: 'galerie not found',
     });
   }
-  let frame: Frame | null;
+
+  // Fectch frame.
   try {
     frame = await Frame.findOne({
+      attributes: {
+        exclude: [
+          'galerieId',
+          'updatedAt',
+          'userId',
+        ],
+      },
+      include: [
+        {
+          attributes: {
+            exclude: [
+              'cropedImageId',
+              'createdAt',
+              'frameId',
+              'originalImageId',
+              'pendingImageId',
+              'updatedAt',
+            ],
+          },
+          include: [
+            {
+              as: 'cropedImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'id',
+                  'updatedAt',
+                ],
+              },
+              model: Image,
+            },
+            {
+              model: Image,
+              as: 'originalImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'id',
+                  'updatedAt',
+                ],
+              },
+            },
+            {
+              model: Image,
+              as: 'pendingImage',
+              attributes: {
+                exclude: [
+                  'createdAt',
+                  'id',
+                  'updatedAt',
+                ],
+              },
+            },
+          ],
+          model: GaleriePicture,
+        }, {
+          model: User,
+          as: 'user',
+          attributes: {
+            exclude: [
+              'authTokenVersion',
+              'confirmed',
+              'confirmTokenVersion',
+              'emailTokenVersion',
+              'email',
+              'facebookId',
+              'googleId',
+              'password',
+              'resetPasswordTokenVersion',
+              'updatedAt',
+              'updatedEmailTokenVersion',
+            ],
+          },
+        },
+      ],
       where: {
         galerieId,
         id: frameId,
       },
-      include: [{
-        model: GaleriePicture,
-        include: [
-          {
-            model: Image,
-            as: 'cropedImage',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'deletedAt',
-                'updatedAt',
-              ],
-            },
-          },
-          {
-            model: Image,
-            as: 'originalImage',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'deletedAt',
-                'updatedAt',
-              ],
-            },
-          },
-          {
-            model: Image,
-            as: 'pendingImage',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'deletedAt',
-                'updatedAt',
-              ],
-            },
-          },
-        ],
-      }, {
-        model: User,
-        as: 'user',
-        attributes: {
-          exclude: [
-            'authTokenVersion',
-            'blackListId',
-            'confirmed',
-            'confirmTokenVersion',
-            'email',
-            'facebookId',
-            'googleId',
-            'password',
-            'resetPasswordTokenVersion',
-            'updatedEmailTokenVersion',
-          ],
-        },
-        include: [
-          {
-            model: ProfilePicture,
-            as: 'currentProfilePicture',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'cropedImageId',
-                'deletedAt',
-                'originalImageId',
-                'pendingImageId',
-                'updatedAt',
-                'userId',
-              ],
-            },
-            include: [
-              {
-                model: Image,
-                as: 'cropedImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-              {
-                model: Image,
-                as: 'originalImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-              {
-                model: Image,
-                as: 'pendingImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-            ],
-          },
-        ],
-      }, {
-        model: User,
-        as: 'likes',
-        attributes: {
-          exclude: [
-            'authTokenVersion',
-            'blackListId',
-            'confirmed',
-            'confirmTokenVersion',
-            'email',
-            'facebookId',
-            'googleId',
-            'password',
-            'resetPasswordTokenVersion',
-            'updatedEmailTokenVersion',
-          ],
-        },
-        include: [
-          {
-            model: ProfilePicture,
-            as: 'currentProfilePicture',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'cropedImageId',
-                'deletedAt',
-                'originalImageId',
-                'pendingImageId',
-                'updatedAt',
-                'userId',
-              ],
-            },
-            include: [
-              {
-                model: Image,
-                as: 'cropedImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-              {
-                model: Image,
-                as: 'originalImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-              {
-                model: Image,
-                as: 'pendingImage',
-                attributes: {
-                  exclude: [
-                    'createdAt',
-                    'deletedAt',
-                    'updatedAt',
-                  ],
-                },
-              },
-            ],
-          },
-        ],
-      }],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -223,137 +127,187 @@ export default async (req: Request, res: Response) => {
       errors: 'frame not found',
     });
   }
+
   try {
+    const returnedGaleriePictures: Array<any> = [];
+    let returnedCurrentProfilePicture;
+
+    // Fetch signed url for each
+    // galerie pictures images.
     await Promise.all(
-      frame.likes.map(async (like, index) => {
-        if (frame && like.currentProfilePicture) {
+      frame
+        .galeriePictures
+        .map(async (galeriePicture) => {
           const {
-            currentProfilePicture: {
-              cropedImage: {
-                bucketName: cropedImageBucketName,
-                fileName: cropedImageFileName,
-              },
-              originalImage: {
-                bucketName: originalImageBucketName,
-                fileName: originalImageFileName,
-              },
-              pendingImage: {
-                bucketName: pendingImageBucketName,
-                fileName: pendingImageFileName,
-              },
+            cropedImage: {
+              bucketName: cropedImageBucketName,
+              fileName: cropedImageFileName,
             },
-          } = like;
+            originalImage: {
+              bucketName: originalImageBucketName,
+              fileName: originalImageFileName,
+            },
+            pendingImage: {
+              bucketName: pendingImageBucketName,
+              fileName: pendingImageFileName,
+            },
+          } = galeriePicture;
           const cropedImageSignedUrl = await signedUrl(
             cropedImageBucketName,
             cropedImageFileName,
           );
-          frame
-            .likes[index]
-            .currentProfilePicture
-            .cropedImage
-            .signedUrl = cropedImageSignedUrl;
           const originalImageSignedUrl = await signedUrl(
             originalImageBucketName,
             originalImageFileName,
           );
-          frame
-            .likes[index]
-            .currentProfilePicture
-            .originalImage
-            .signedUrl = originalImageSignedUrl;
           const pendingImageSignedUrl = await signedUrl(
             pendingImageBucketName,
             pendingImageFileName,
           );
-          frame
-            .likes[index]
-            .currentProfilePicture
-            .pendingImage
-            .signedUrl = pendingImageSignedUrl;
-        }
-      }),
-    );
-    await Promise.all(
-      frame
-        .galeriePictures
-        .map(async (galeriePicture, index) => {
-          if (frame) {
-            const {
-              cropedImage: {
-                bucketName: cropedImageBucketName,
-                fileName: cropedImageFileName,
-              },
-              originalImage: {
-                bucketName: originalImageBucketName,
-                fileName: originalImageFileName,
-              },
-              pendingImage: {
-                bucketName: pendingImageBucketName,
-                fileName: pendingImageFileName,
-              },
-            } = galeriePicture;
-            const cropedImageSignedUrl = await signedUrl(
-              cropedImageBucketName,
-              cropedImageFileName,
-            );
-            frame
-              .galeriePictures[index]
-              .cropedImage
-              .signedUrl = cropedImageSignedUrl;
-            const originalImageSignedUrl = await signedUrl(
-              originalImageBucketName,
-              originalImageFileName,
-            );
-            frame
-              .galeriePictures[index]
-              .originalImage
-              .signedUrl = originalImageSignedUrl;
-            const pendingImageSignedUrl = await signedUrl(
-              pendingImageBucketName,
-              pendingImageFileName,
-            );
-            frame
-              .galeriePictures[index]
-              .pendingImage
-              .signedUrl = pendingImageSignedUrl;
-          }
+          const returnedGaleriePicture = {
+            ...galeriePicture.toJSON(),
+            cropedImage: {
+              ...galeriePicture.cropedImage.toJSON(),
+              bucketName: undefined,
+              fileName: undefined,
+              signedUrl: cropedImageSignedUrl,
+            },
+            originalImage: {
+              ...galeriePicture.originalImage.toJSON(),
+              bucketName: undefined,
+              fileName: undefined,
+              signedUrl: originalImageSignedUrl,
+            },
+            pendingImage: {
+              ...galeriePicture.pendingImage.toJSON(),
+              bucketName: undefined,
+              fileName: undefined,
+              signedUrl: pendingImageSignedUrl,
+            },
+          };
+          returnedGaleriePictures.push(returnedGaleriePicture);
         }),
     );
-    if (frame.user.currentProfilePictureId) {
-      const {
-        currentProfilePicture: {
-          cropedImage: {
-            bucketName: cropedImageBucketName,
-            fileName: cropedImageFileName,
+
+    // Find the current profile picture
+    // of the current user.
+    const currentProfilePicture = await ProfilePicture.findOne({
+      attributes: {
+        exclude: [
+          'createdAt',
+          'cropedImageId',
+          'current',
+          'originalImageId',
+          'pendingImageId',
+          'updatedAt',
+          'userId',
+        ],
+      },
+      include: [
+        {
+          as: 'cropedImage',
+          attributes: {
+            exclude: [
+              'createdAt',
+              'id',
+              'updatedAt',
+            ],
           },
-          originalImage: {
-            bucketName: originalImageBucketName,
-            fileName: originalImageFileName,
-          },
-          pendingImage: {
-            bucketName: pendingImageBucketName,
-            fileName: pendingImageFileName,
-          },
+          model: Image,
         },
-      } = frame.user;
+        {
+          as: 'originalImage',
+          attributes: {
+            exclude: [
+              'createdAt',
+              'id',
+              'updatedAt',
+            ],
+          },
+          model: Image,
+        },
+        {
+          as: 'pendingImage',
+          attributes: {
+            exclude: [
+              'createdAt',
+              'id',
+              'updatedAt',
+            ],
+          },
+          model: Image,
+        },
+      ],
+      where: {
+        userId: frame.user.id,
+        current: true,
+      },
+    });
+    if (currentProfilePicture) {
+      const {
+        cropedImage: {
+          bucketName: cropedImageBucketName,
+          fileName: cropedImageFileName,
+        },
+        originalImage: {
+          bucketName: originalImageBucketName,
+          fileName: originalImageFileName,
+        },
+        pendingImage: {
+          bucketName: pendingImageBucketName,
+          fileName: pendingImageFileName,
+        },
+      } = currentProfilePicture;
       const cropedImageSignedUrl = await signedUrl(
         cropedImageBucketName,
         cropedImageFileName,
       );
-      frame.user.currentProfilePicture.cropedImage.signedUrl = cropedImageSignedUrl;
       const originalImageSignedUrl = await signedUrl(
         originalImageBucketName,
         originalImageFileName,
       );
-      frame.user.currentProfilePicture.originalImage.signedUrl = originalImageSignedUrl;
       const pendingImageSignedUrl = await signedUrl(
         pendingImageBucketName,
         pendingImageFileName,
       );
-      frame.user.currentProfilePicture.pendingImage.signedUrl = pendingImageSignedUrl;
+      returnedCurrentProfilePicture = {
+        ...currentProfilePicture.toJSON(),
+        cropedImage: {
+          ...currentProfilePicture.cropedImage.toJSON(),
+          bucketName: undefined,
+          fileName: undefined,
+          signedUrl: cropedImageSignedUrl,
+        },
+        originalImage: {
+          ...currentProfilePicture.originalImage.toJSON(),
+          bucketName: undefined,
+          fileName: undefined,
+          signedUrl: originalImageSignedUrl,
+        },
+        pendingImage: {
+          ...currentProfilePicture.pendingImage.toJSON(),
+          bucketName: undefined,
+          fileName: undefined,
+          signedUrl: pendingImageSignedUrl,
+        },
+      };
     }
+    returnedFrame = {
+      ...frame.toJSON(),
+      galeriePictures: returnedGaleriePictures,
+      user: {
+        ...frame.user.toJSON(),
+        currentProfilePicture: returnedCurrentProfilePicture,
+      },
+    };
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(200).send(frame);
+  return res.status(200).send({
+    action: 'GET',
+    data: {
+      frame: returnedFrame,
+      galerieId,
+    },
+  });
 };

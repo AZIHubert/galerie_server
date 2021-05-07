@@ -8,6 +8,7 @@ export { default as deleteUser } from './deleteUser';
 export { default as getBlackListedUsers } from './getBlackListedUsers';
 export { default as getGaleries } from './getGaleries';
 export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';
+export { default as getGaleriesIdFramesFrameId } from './getGaleriesIdFramesFrameId';
 export { default as getGaleriesId } from './getGaleriesId';
 export { default as getProfilePicture } from './getProfilePicture';
 export { default as getProfilePictures } from './getProfilePictures';
