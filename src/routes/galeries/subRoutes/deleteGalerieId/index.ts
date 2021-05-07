@@ -35,12 +35,23 @@ export default async (req: Request, res: Response) => {
   // Find galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
-      include: [{
-        model: User,
-        where: {
-          id: userId,
+      include: [
+        {
+          where: {
+            id: userId,
+          },
+          model: User,
         },
-      }],
+        {
+          include: [{
+            include: [{
+              all: true,
+            }],
+            model: GaleriePicture,
+          }],
+          model: Frame,
+        },
+      ],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -94,34 +105,22 @@ export default async (req: Request, res: Response) => {
   }
 
   try {
-    const frames = await Frame.findAll({
-      where: {
-        galerieId: galerie.id,
-      },
-    });
-
     await Promise.all(
-      frames.map(async (frame) => {
+      galerie.frames.map(async (frame) => {
         await frame.destroy();
+
         await Like.destroy({
           where: { frameId: frame.id },
         });
-        const galeriePictures = await GaleriePicture.findAll({
-          where: {
-            frameId: frame.id,
-          },
-          include: [{
-            all: true,
-          }],
-        });
         await Promise.all(
-          galeriePictures.map(async (galeriePicture) => {
+          frame.galeriePictures.map(async (galeriePicture) => {
             await galeriePicture.destroy();
             const {
               originalImage,
               cropedImage,
               pendingImage,
             } = galeriePicture;
+
             await Image.destroy({
               where: {
                 [Op.or]: [
@@ -137,6 +136,7 @@ export default async (req: Request, res: Response) => {
                 ],
               },
             });
+
             await gc
               .bucket(originalImage.bucketName)
               .file(originalImage.fileName)

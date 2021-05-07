@@ -4,11 +4,11 @@ import { Sequelize } from 'sequelize';
 import '@src/helpers/initEnv';
 
 import {
-  // Frame,
+  Frame,
   Galerie,
   // GalerieUser,
-  // GaleriePicture,
-  // Image,
+  GaleriePicture,
+  Image,
   User,
   // Like,
   // Invitation,
@@ -20,23 +20,24 @@ import {
   FIELD_NOT_A_STRING,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
+import accEnv from '@src/helpers/accEnv';
+import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
-// import accEnv from '@src/helpers/accEnv';
-// import gc from '@src/helpers/gc';
 import {
   cleanGoogleBuckets,
   createUser,
   deleteGalerieId,
   login,
   postGalerie,
+  postGaleriesIdFrames,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
 
 const userPassword = 'Password0!';
-// const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
-// const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-// const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
+const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
+const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
+const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
 describe('galeries', () => {
   let app: Server;
@@ -117,7 +118,47 @@ describe('galeries', () => {
           expect(galerie).toBeNull();
           expect(status).toBe(200);
         });
-        it('TODO: destroy frames/galeriePictures/images and images from Google Bucket', async () => {});
+        it('destroy frames/galeriePictures/images and images from Google Bucket', async () => {
+          const {
+            body: {
+              data: {
+                frame: {
+                  id: frameId,
+                },
+              },
+            },
+          } = await postGaleriesIdFrames(app, token, galerieId);
+          await deleteGalerieId(app, token, galerieId, {
+            name,
+            password: userPassword,
+          });
+          const [bucketCropedImages] = await gc
+            .bucket(GALERIES_BUCKET_PP_CROP)
+            .getFiles();
+          const [bucketOriginalImages] = await gc
+            .bucket(GALERIES_BUCKET_PP)
+            .getFiles();
+          const [bucketPendingImages] = await gc
+            .bucket(GALERIES_BUCKET_PP_PENDING)
+            .getFiles();
+          const frames = await Frame.findAll({
+            where: {
+              galerieId,
+            },
+          });
+          const galeriePictures = await GaleriePicture.findAll({
+            where: {
+              frameId,
+            },
+          });
+          const images = await Image.findAll();
+          expect(bucketCropedImages.length).toBe(0);
+          expect(bucketOriginalImages.length).toBe(0);
+          expect(bucketPendingImages.length).toBe(0);
+          expect(frames.length).toBe(0);
+          expect(galeriePictures.length).toBe(0);
+          expect(images.length).toBe(0);
+        });
         it('TODO: destroy likes', async () => {});
         it('TODO: destroy invitations', async () => {});
         it('TODO: destroy GalerieUser models', async () => {});
