@@ -6,12 +6,10 @@ import '@src/helpers/initEnv';
 import {
   Frame,
   Galerie,
-  // GalerieUser,
   GaleriePicture,
   Image,
   User,
-  // Like,
-  // Invitation,
+  Invitation,
 } from '@src/db/models';
 
 import {
@@ -30,6 +28,7 @@ import {
   login,
   postGalerie,
   postGaleriesIdFrames,
+  postGaleriesIdInvitations,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -113,7 +112,7 @@ describe('/galeries', () => {
           const galerie = await Galerie.findByPk(galerieId);
           expect(action).toBe('DELETE');
           expect(data).toEqual({
-            id: galerieId,
+            galerieId,
           });
           expect(galerie).toBeNull();
           expect(status).toBe(200);
@@ -159,8 +158,20 @@ describe('/galeries', () => {
           expect(galeriePictures.length).toBe(0);
           expect(images.length).toBe(0);
         });
+        it('destroy invitations', async () => {
+          await postGaleriesIdInvitations(app, token, galerieId, {});
+          await deleteGalerieId(app, token, galerieId, {
+            name,
+            password: userPassword,
+          });
+          const invitations = await Invitation.findAll({
+            where: {
+              galerieId,
+            },
+          });
+          expect(invitations.length).toBe(0);
+        });
         it('TODO: destroy likes', async () => {});
-        it('TODO: destroy invitations', async () => {});
         it('TODO: destroy GalerieUser models', async () => {});
       });
       describe('should return error 400 if', () => {

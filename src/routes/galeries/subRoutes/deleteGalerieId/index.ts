@@ -112,6 +112,7 @@ export default async (req: Request, res: Response) => {
         await Like.destroy({
           where: { frameId: frame.id },
         });
+
         await Promise.all(
           frame.galeriePictures.map(async (galeriePicture) => {
             await galeriePicture.destroy();
@@ -153,16 +154,19 @@ export default async (req: Request, res: Response) => {
         );
       }),
     );
+
     await Invitation.destroy({
       where: {
         galerieId: galerie.id,
       },
     });
+
     await GalerieUser.destroy({
       where: {
         galerieId: galerie.id,
       },
     });
+
     await galerie.destroy();
   } catch (err) {
     return res.status(500).send(err);
@@ -171,7 +175,7 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'DELETE',
     data: {
-      id: galerie.id,
+      galerieId: galerie.id,
     },
   });
 };
