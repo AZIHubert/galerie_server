@@ -3,6 +3,7 @@ export { default as normalizeJoiErrors } from './normalizeJoiErrors';
 export { default as validateDeleteGaleriesIdBody } from './validateDeleteGaleriesIdBody';
 export { default as validatePostGaleriesBody } from './validatePostGaleriesBody';
 export { default as validatePostGaleriesIdInvationsBody } from './validatePostGaleriesIdInvationsBody';
+export { default as validatePostGaleriesSubscribeBody } from './validatePostGaleriesSubscribeBody';
 export { default as validatePostUsersBlacklistIdBody } from './validatePostUsersBlacklistIdBody';
 export { default as validatePostUsersLoginBody } from './validatePostUsersLoginBody';
 export { default as validatePostUsersMeUpdateEmailBody } from './validatePostUsersMeUpdateEmailBody';

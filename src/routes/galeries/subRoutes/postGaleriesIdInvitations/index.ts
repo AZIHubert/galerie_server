@@ -79,7 +79,7 @@ export default async (req: Request, res: Response) => {
       ...value,
       userId: user.id,
       galerieId,
-      code: `${customAlphabet('1234567890', 4)()}-${customAlphabet('abcdefghjkmnpqrstuvwxyz23456789', 10)()}}`,
+      code: `${customAlphabet('1234567890', 4)()}-${customAlphabet('abcdefghjkmnpqrstuvwxyz23456789', 10)()}`,
     });
   } catch (err) {
     return res.status(500).send(err);

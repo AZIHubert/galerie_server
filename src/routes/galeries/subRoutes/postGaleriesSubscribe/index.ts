@@ -1,45 +1,72 @@
-import { Request, Response } from 'express';
-import { Op } from 'sequelize';
+import {
+  Request,
+  Response,
+} from 'express';
 
 import {
   Invitation,
   GalerieUser,
   Galerie,
-  Notification,
-  NotificationUser,
   User,
 } from '@src/db/models';
 
+import {
+  normalizeJoiErrors,
+  validatePostGaleriesSubscribeBody,
+} from '@src/helpers/schemas';
+
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
-  const { code } = req.params;
+  let galerie: Galerie | null;
+  let galerieUser: GalerieUser | null;
   let invitation: Invitation | null;
+
+  // Validate body.
+  const {
+    error,
+    value,
+  } = validatePostGaleriesSubscribeBody(req.body);
+  if (error) {
+    return res.status(400).send({
+      errors: normalizeJoiErrors(error),
+    });
+  }
+
+  // Fetch invitation.
   try {
     invitation = await Invitation.findOne({
       where: {
-        code,
+        code: value.code,
       },
     });
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if invitation exist.
   if (!invitation) {
     return res.status(404).send({
       errors: 'invitation not found',
     });
   }
+
+  // Fetch galerie.
   try {
-    const galerie = await Galerie.findByPk(invitation.galerieId);
-    if (!galerie || galerie.archived) {
-      await invitation.destroy();
-      return res.status(400).send({
-        errors: 'this invitation is not valid',
-      });
-    }
+    galerie = await Galerie.findByPk(invitation.galerieId);
   } catch (err) {
     return res.status(500).send(err);
   }
-  let galerieUser: GalerieUser | null;
+
+  // Check if galerie exist and it's not archived.
+  if (!galerie || galerie.archived) {
+    await invitation.destroy();
+    return res.status(400).send({
+      errors: 'this invitation is not valid',
+    });
+  }
+
+  // Check if user is not already
+  // subscribe to this galerie.
   try {
     galerieUser = await GalerieUser.findOne({
       where: {
@@ -55,6 +82,9 @@ export default async (req: Request, res: Response) => {
       errors: 'you are already subscribe to this galerie',
     });
   }
+
+  // Check invitation's numOfInvit is not null and valid.
+  // If it's not valid, destroy the invitation.
   if (invitation.numOfInvit !== null && invitation.numOfInvit < 1) {
     try {
       await invitation.destroy();
@@ -65,11 +95,13 @@ export default async (req: Request, res: Response) => {
       errors: 'this invitation is not valid',
     });
   }
-  const { createdAt, time } = invitation;
-  if (time) {
-    const dateCreatedAt = new Date(createdAt);
+
+  // Check if invitation's time is not null and valid.
+  // If it's not valid, destroy the invitation.
+  if (invitation.time) {
+    const dateCreatedAt = new Date(invitation.createdAt);
     const today = new Date().getTime();
-    const createdAtPlusTime = dateCreatedAt.getTime() + time;
+    const createdAtPlusTime = dateCreatedAt.getTime() + invitation.time;
     if (today < createdAtPlusTime) {
       try {
         await invitation.destroy();
@@ -81,64 +113,32 @@ export default async (req: Request, res: Response) => {
       });
     }
   }
+
   try {
+    // If invitation's numOfInvit is not null,
+    // descrement numOfInvit and destroy invitation
+    // if numOfInvit < 1.
     if (invitation.numOfInvit) {
       await invitation.decrement({ numOfInvit: 1 });
-      if (invitation.numOfInvit - 1 < 1) {
+      if (invitation.numOfInvit < 1) {
         await invitation.destroy();
       }
     }
+
+    // Create GalerieUser.
     await GalerieUser.create({
       userId,
       galerieId: invitation.galerieId,
       role: 'user',
     });
-    const users = await User.findAll({
-      include: [{
-        model: User,
-        where: {
-          [Op.or]: [
-            { role: 'admin' },
-            { role: 'creator' },
-          ],
-        },
-      }],
-    });
-    await Promise.all(
-      users.map(async (user) => {
-        if (invitation) {
-          let notification = await Notification.findOne({
-            where: {
-              galerieId: invitation.galerieId,
-              type: 'invitation',
-            },
-          });
-          if (!notification) {
-            notification = await Notification.create({
-              galerieId: invitation.galerieId,
-              type: 'invitation',
-              user: user.id,
-            });
-          }
-          const notificationUser = await NotificationUser.findOne({
-            where: {
-              notificationId: notification.id,
-              userId,
-            },
-          });
-          if (!notificationUser) {
-            await NotificationUser.create({
-              notificationId: notification.id,
-              userId,
-            });
-          }
-        }
-      }),
-    );
   } catch (err) {
     return res.status(500).send(err);
   }
+
   return res.status(200).send({
-    id: invitation.galerieId,
+    action: 'POST',
+    data: {
+      galerieId: galerie.id,
+    },
   });
 };

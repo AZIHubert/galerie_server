@@ -23,7 +23,7 @@ import {
   postGaleries,
   postGaleriesIdFrames,
   postGaleriesIdInvitations,
-  // postGaleriesSubscribeCode,
+  postGaleriesSubscribe,
 
   putGaleriesId,
   putGaleriesIdFramesIdGaleriePicturesId,
@@ -53,8 +53,13 @@ const galeriesRoutes: () => Router = () => {
   router.post('/', passport.authenticate('jwt', { session: false }), postGaleries);
   router.post('/:id/frames/', passport.authenticate('jwt', { session: false }), uploadFiles, postGaleriesIdFrames);
   router.post('/:id/invitations/', passport.authenticate('jwt', { session: false }), postGaleriesIdInvitations);
-  // router.post('/subscribe/:code',
-  // passport.authenticate('jwt', { session: false }), postGaleriesSubscribeCode);
+
+  // TODO:
+  // this route can be access through QR code,
+  // it need a middleware before passwport authentication to assure
+  // that this QRcode is scan with and only with
+  // Galerie's mobile app.
+  router.post('/subscribe/', passport.authenticate('jwt', { session: false }), postGaleriesSubscribe);
 
   router.put('/:id/', passport.authenticate('jwt', { session: false }), putGaleriesId);
   router.put('/:id/frames/:frameId/galeriePictures/:galeriePictureId/', passport.authenticate('jwt', { session: false }), putGaleriesIdFramesIdGaleriePicturesId);

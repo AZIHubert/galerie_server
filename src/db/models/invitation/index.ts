@@ -23,6 +23,13 @@ interface InvitationI {
   tableName: 'invitation',
 })
 export default class Invitation extends Model implements InvitationI {
+  // A unique code to enter
+  // to register to this galerie.
+  @Column({
+    type: DataType.STRING,
+  })
+  code!: string;
+
   @ForeignKey(() => Galerie)
   @Column({
     type: DataType.BIGINT,
@@ -47,13 +54,6 @@ export default class Invitation extends Model implements InvitationI {
     type: DataType.INTEGER,
   })
   numOfInvit!: number | null;
-
-  // A unique code to enter
-  // to register to this galerie.
-  @Column({
-    type: DataType.STRING,
-  })
-  code!: string;
 
   // The user who created this invitation.
   @ForeignKey(() => User)

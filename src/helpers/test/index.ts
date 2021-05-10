@@ -27,6 +27,7 @@ export { default as login } from './login';
 export { default as postBlackListUser } from './postBlackListUser';
 export { default as postConfirmation } from './postConfirmation';
 export { default as postGalerie } from './postGalerie';
+export { default as postGaleriesSubscribe } from './postGaleriesSubscribe';
 export { default as postGaleriesIdFrames } from './postGaleriesIdFrames';
 export { default as postGaleriesIdInvitations } from './postGaleriesIdInvitations';
 export { default as postInvitation } from './postInvitation';

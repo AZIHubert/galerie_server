@@ -157,9 +157,9 @@ export default async (req: Request, res: Response) => {
   // TODO:
   // destroy all black list where userId === user.id
   // set to null all black list field where adminId === user.id
-  // test
+  // then test it.
 
-  // Destroy all frames/galeriePictures/images/likes
+  // Destroy all frames/galeriePictures/images
   // and images from Google buckets.
   try {
     const frames = await Frame.findAll({
@@ -199,6 +199,7 @@ export default async (req: Request, res: Response) => {
                 ],
               },
             });
+
             await gc
               .bucket(originalImage.bucketName)
               .file(originalImage.fileName)
@@ -222,6 +223,33 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  // Destroy all likes and decrement there
+  // relative frame.
+  // TODO:
+  // Need to test it.
+  try {
+    const likes = await Like.findAll({
+      where: {
+        userId: user.id,
+      },
+    });
+    await Promise.all(
+      likes.map(async (like) => {
+        await like.destroy();
+        await Frame.increment({
+          numOfLikes: -1,
+        }, {
+          where: {
+            id: like.id,
+          },
+        });
+      }),
+
+    );
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
   // Destroy all galerieUser related to this user.
   // If user is the creator of the galerie
   // and if it is the only one left on this galerie,
@@ -233,35 +261,44 @@ export default async (req: Request, res: Response) => {
         userId: user.id,
       },
     });
+
+    // Destroy all galerieUsers.
     await Promise.all(
       galerieUsers.map(async (galerieUser) => {
         await galerieUser.destroy();
-        const allUsers = await GalerieUser.findAll({
-          where: {
-            galerieId: galerieUser.galerieId,
-          },
-        });
+        // If user's role is 'creator'
+        // destroy all invitations.
+        // if there is still user remain
+        // on this galerie, set galerie.archived === true
+        // else destroy this galerie.
         // TODO:
-        // something wrong with invitation.destroy.
-        if (allUsers.length === 0) {
-          await Galerie.destroy({
-            where: {
-              id: galerieUser.galerieId,
-            },
-          });
-        } else if (galerieUser.role === 'creator') {
-          await Galerie.update({
-            archived: true,
-          }, {
-            where: {
-              id: galerieUser.galerieId,
-            },
-          });
+        // test it.
+        if (galerieUser.role === 'creator') {
           await Invitation.destroy({
             where: {
               galerieId: galerieUser.galerieId,
             },
           });
+          const allUsers = await GalerieUser.findAll({
+            where: {
+              galerieId: galerieUser.galerieId,
+            },
+          });
+          if (allUsers.length === 0) {
+            await Galerie.destroy({
+              where: {
+                id: galerieUser.galerieId,
+              },
+            });
+          } else {
+            await Galerie.update({
+              archived: true,
+            }, {
+              where: {
+                id: galerieUser.galerieId,
+              },
+            });
+          }
         }
       }),
     );

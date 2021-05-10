@@ -37,14 +37,6 @@ export default class Galerie extends Model implements GalerieI {
   })
   archived!: boolean;
 
-  @Column({
-    allowNull: false,
-    autoIncrement: true,
-    primaryKey: true,
-    type: DataType.BIGINT,
-  })
-  id!: string;
-
   // A CSS gradiant background
   // randomly generated when the galerie is create.
   @Column({
@@ -52,6 +44,14 @@ export default class Galerie extends Model implements GalerieI {
     type: DataType.STRING,
   })
   defaultCoverPicture!: string;
+
+  @Column({
+    allowNull: false,
+    autoIncrement: true,
+    primaryKey: true,
+    type: DataType.BIGINT,
+  })
+  id!: string;
 
   // Name of the galerie.
   // Only the creator or the admins
