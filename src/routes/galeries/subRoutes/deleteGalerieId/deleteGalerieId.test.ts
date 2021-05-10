@@ -39,7 +39,7 @@ const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
 const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
-describe('galeries', () => {
+describe('/galeries', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -75,7 +75,7 @@ describe('galeries', () => {
     done();
   });
 
-  describe(':id', () => {
+  describe('/:id', () => {
     describe('DELETE', () => {
       describe('should return status 200 and', () => {
         let galerieId: string;

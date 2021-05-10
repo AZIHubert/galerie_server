@@ -22,7 +22,7 @@ import {
 
   postGaleries,
   postGaleriesIdFrames,
-  // postGaleriesIdInvitations,
+  postGaleriesIdInvitations,
   // postGaleriesSubscribeCode,
 
   putGaleriesId,
@@ -55,13 +55,11 @@ const galeriesRoutes: () => Router = () => {
 
   router.post('/', passport.authenticate('jwt', { session: false }), postGaleries);
   router.post('/:id/frames', passport.authenticate('jwt', { session: false }), uploadFiles, postGaleriesIdFrames);
-  // router.post('/:id/invitations',
-  // passport.authenticate('jwt', { session: false }), postGaleriesIdInvitations);
+  router.post('/:id/invitations', passport.authenticate('jwt', { session: false }), postGaleriesIdInvitations);
   // router.post('/subscribe/:code',
   // passport.authenticate('jwt', { session: false }), postGaleriesSubscribeCode);
 
   router.put('/:id', passport.authenticate('jwt', { session: false }), putGaleriesId);
-
   router.put('/:id/frames/:frameId/galeriePictures/:galeriePictureId/', passport.authenticate('jwt', { session: false }), putGaleriesIdFramesIdGaleriePicturesId);
 
   // router.put('/:id/frames/:frameId',

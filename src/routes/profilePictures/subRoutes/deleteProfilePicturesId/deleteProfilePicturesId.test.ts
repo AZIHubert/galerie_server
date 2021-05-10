@@ -28,7 +28,7 @@ const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
 const userPassword = 'Password0!';
 
-describe('users', () => {
+describe('/profilePictures', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -64,58 +64,54 @@ describe('users', () => {
     done();
   });
 
-  describe('me', () => {
-    describe('profilePictures', () => {
-      describe(':id', () => {
-        describe('DELETE', () => {
-          describe('should return status 200 and', () => {
-            it('return action type/profile picture\'id and delete profile picture/image and all images from Google buckets', async () => {
-              const {
-                body: {
-                  data: {
-                    profilePicture: {
-                      id,
-                    },
-                  },
+  describe('/:id', () => {
+    describe('DELETE', () => {
+      describe('should return status 200 and', () => {
+        it('return action type/profile picture\'id and delete profile picture/image and all images from Google buckets', async () => {
+          const {
+            body: {
+              data: {
+                profilePicture: {
+                  id,
                 },
-              } = await postProfilePicture(app, token);
-              const {
-                body,
-                status,
-              } = await deleteProfilePicture(app, token, id);
-              const [bucketCropedImages] = await gc
-                .bucket(GALERIES_BUCKET_PP_CROP)
-                .getFiles();
-              const [bucketOriginalImages] = await gc
-                .bucket(GALERIES_BUCKET_PP)
-                .getFiles();
-              const [bucketPendingImages] = await gc
-                .bucket(GALERIES_BUCKET_PP_PENDING)
-                .getFiles();
-              const images = await Image.findAll();
-              const profilePictures = await ProfilePicture.findAll();
-              expect(status).toBe(200);
-              expect(body.action).toEqual('DELETE');
-              expect(body.data.id).toEqual(id);
-              expect(bucketCropedImages.length).toBe(0);
-              expect(bucketOriginalImages.length).toBe(0);
-              expect(bucketPendingImages.length).toBe(0);
-              expect(images.length).toBe(0);
-              expect(profilePictures.length).toBe(0);
-            });
-          });
+              },
+            },
+          } = await postProfilePicture(app, token);
+          const {
+            body,
+            status,
+          } = await deleteProfilePicture(app, token, id);
+          const [bucketCropedImages] = await gc
+            .bucket(GALERIES_BUCKET_PP_CROP)
+            .getFiles();
+          const [bucketOriginalImages] = await gc
+            .bucket(GALERIES_BUCKET_PP)
+            .getFiles();
+          const [bucketPendingImages] = await gc
+            .bucket(GALERIES_BUCKET_PP_PENDING)
+            .getFiles();
+          const images = await Image.findAll();
+          const profilePictures = await ProfilePicture.findAll();
+          expect(status).toBe(200);
+          expect(body.action).toEqual('DELETE');
+          expect(body.data.id).toEqual(id);
+          expect(bucketCropedImages.length).toBe(0);
+          expect(bucketOriginalImages.length).toBe(0);
+          expect(bucketPendingImages.length).toBe(0);
+          expect(images.length).toBe(0);
+          expect(profilePictures.length).toBe(0);
+        });
+      });
 
-          describe('should return status 404 if', () => {
-            it('profile picture id not found', async () => {
-              const {
-                body,
-                status,
-              } = await deleteProfilePicture(app, token, '1');
-              expect(status).toBe(404);
-              expect(body).toStrictEqual({
-                errors: 'profile picture not found',
-              });
-            });
+      describe('should return status 404 if', () => {
+        it('profile picture id not found', async () => {
+          const {
+            body,
+            status,
+          } = await deleteProfilePicture(app, token, '1');
+          expect(status).toBe(404);
+          expect(body).toStrictEqual({
+            errors: 'profile picture not found',
           });
         });
       });

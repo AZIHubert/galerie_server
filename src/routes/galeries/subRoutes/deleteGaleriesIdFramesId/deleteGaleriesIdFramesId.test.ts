@@ -29,7 +29,7 @@ const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
 const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 const userPassword = 'Password0!';
 
-describe('galeries', () => {
+describe('/galeries', () => {
   let app: Server;
   let galerieId: string;
   let sequelize: Sequelize;
@@ -76,9 +76,9 @@ describe('galeries', () => {
     done();
   });
 
-  describe(':id', () => {
-    describe('frames', () => {
-      describe(':frameId', () => {
+  describe('/:id', () => {
+    describe('/frames', () => {
+      describe('/:frameId', () => {
         describe('DELETE', () => {
           describe('it should return status 200 and', () => {
             it('delete frame', async () => {
