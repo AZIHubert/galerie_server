@@ -56,7 +56,7 @@ export default async (req: Request, res: Response) => {
     });
     await Promise.all(
       tickets.map(async (ticket) => {
-        let returnedCurrentProfilePicture;
+        let returnedCurrentProfilePicture = null;
         if (ticket.user) {
           const currentProfilePicture = await ProfilePicture.findOne({
             attributes: {
@@ -76,6 +76,7 @@ export default async (req: Request, res: Response) => {
                 attributes: {
                   exclude: [
                     'createdAt',
+                    'id',
                     'updatedAt',
                   ],
                 },
@@ -86,6 +87,7 @@ export default async (req: Request, res: Response) => {
                 attributes: {
                   exclude: [
                     'createdAt',
+                    'id',
                     'updatedAt',
                   ],
                 },
@@ -96,6 +98,7 @@ export default async (req: Request, res: Response) => {
                 attributes: {
                   exclude: [
                     'createdAt',
+                    'id',
                     'updatedAt',
                   ],
                 },
@@ -139,35 +142,21 @@ export default async (req: Request, res: Response) => {
               cropedImage: {
                 ...currentProfilePicture.cropedImage.toJSON(),
                 bucketName: undefined,
-                createdAt: undefined,
                 fileName: undefined,
-                id: undefined,
                 signedUrl: cropedImageSignedUrl,
-                updatedAt: undefined,
               },
-              cropedImageId: undefined,
               originalImage: {
                 ...currentProfilePicture.originalImage.toJSON(),
                 bucketName: undefined,
-                createdAt: undefined,
                 fileName: undefined,
-                id: undefined,
                 signedUrl: originalImageSignedUrl,
-                updatedAt: undefined,
               },
-              originalImageId: undefined,
               pendingImage: {
                 ...currentProfilePicture.pendingImage.toJSON(),
                 bucketName: undefined,
-                createdAt: undefined,
                 fileName: undefined,
-                id: undefined,
                 signedUrl: pendingImageSignedUrl,
-                updatedAt: undefined,
               },
-              pendingImageId: undefined,
-              updatedAt: undefined,
-              userId: undefined,
             };
           }
         }
@@ -175,8 +164,8 @@ export default async (req: Request, res: Response) => {
           ...ticket.toJSON(),
           user: ticket.user ? {
             ...ticket.user.toJSON(),
-            currentProfilePicture: returnedCurrentProfilePicture || undefined,
-          } : undefined,
+            currentProfilePicture: returnedCurrentProfilePicture,
+          } : null,
         };
         returnTickets.push(ticketWithUsersWithProfilPicture);
       }),

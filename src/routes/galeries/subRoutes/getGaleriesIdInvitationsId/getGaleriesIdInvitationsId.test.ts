@@ -1,98 +1,68 @@
-import { hash } from 'bcrypt';
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
-import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
 import {
-  Frame,
-  Galerie,
-  GalerieUser,
-  GaleriePicture,
-  Image,
-  Invitation,
   User,
 } from '@src/db/models';
+
 import initSequelize from '@src/helpers/initSequelize.js';
-import saltRounds from '@src/helpers/saltRounds';
-import accEnv from '@src/helpers/accEnv';
+import {
+  cleanGoogleBuckets,
+  createUser,
+  getGaleriesIdInvitationsId,
+  login,
+  postGalerie,
+  postGaleriesIdInvitations,
+  postProfilePicture,
+} from '@src/helpers/test';
+
 import initApp from '@src/server';
-import gc from '@src/helpers/gc';
 
-const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
-const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
+const userPassword = 'Password0!';
 
-const cleanDatas = async (sequelize: Sequelize) => {
-  await Frame.sync({ force: true });
-  await Galerie.sync({ force: true });
-  await GaleriePicture.sync({ force: true });
-  await GalerieUser.sync({ force: true });
-  await Image.sync({ force: true });
-  await Invitation.sync({ force: true });
-  await User.sync({ force: true });
-  await sequelize.model('Sessions').sync({ force: true });
-  const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
-  await Promise.all(originalImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
-  await Promise.all(cropedImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
-  await Promise.all(pendingImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-};
-
-const newUser = {
-  pseudonym: 'userName',
-  email: 'user@email.com',
-  password: 'password',
-  userName: '@userName',
-};
-
-describe('galeries', () => {
-  let sequelize: Sequelize;
+describe('/galeries', () => {
   let app: Server;
-  let user: User;
-  let agent: request.SuperAgentTest;
+  let galerieId: string;
+  let sequelize: Sequelize;
   let token: string;
+  let user: User;
+
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
-    agent = request.agent(app);
   });
+
   beforeEach(async (done) => {
-    agent = request.agent(app);
     try {
-      await cleanDatas(sequelize);
-      const hashPassword = await hash(newUser.password, saltRounds);
-      user = await User.create({
-        ...newUser,
-        confirmed: true,
-        password: hashPassword,
-      });
-      const { body } = await agent
-        .post('/users/login')
-        .send({
-          password: newUser.password,
-          userNameOrEmail: user.email,
-        });
+      await cleanGoogleBuckets();
+      await sequelize.sync({ force: true });
+      user = await createUser({});
+      const { body } = await login(app, user.email, userPassword);
       token = body.token;
+      const {
+        body: {
+          data: {
+            galerie: {
+              id,
+            },
+          },
+        },
+      } = await postGalerie(app, token, {
+        name: 'galerie\'s name',
+      });
+      galerieId = id;
     } catch (err) {
       done(err);
     }
     done();
   });
+
   afterAll(async (done) => {
     try {
-      await cleanDatas(sequelize);
+      await cleanGoogleBuckets();
+      await sequelize.sync({ force: true });
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -100,82 +70,212 @@ describe('galeries', () => {
     app.close();
     done();
   });
-  describe(':id', () => {
-    describe('invitations', () => {
-      describe(':invitationId', () => {
+
+  describe('/:id', () => {
+    describe('/invitations', () => {
+      describe('/:invitationId', () => {
         describe('should return status 200 and', () => {
           it('return the invitation', async () => {
-            const { body: { id: galerieId } } = await agent
-              .post('/galeries')
-              .set('authorization', token)
-              .send({ name: 'galerie name' });
-            const { body: { id: invitationId } } = await agent
-              .post(`/galeries/${galerieId}/invitations`)
-              .set('authorization', token)
-              .send({});
-            const { body, status } = await agent
-              .get(`/galeries/${galerieId}/invitations/${invitationId}`)
-              .set('authorization', token);
-            expect(status).toEqual(200);
-            expect(body.id).toEqual(invitationId);
+            const {
+              body: {
+                data: {
+                  invitation,
+                },
+              },
+            } = await postGaleriesIdInvitations(app, token, galerieId, {});
+            const {
+              body: {
+                action,
+                data: {
+                  galerieId: returnedGalerieId,
+                  invitation: returnedInvitation,
+                },
+              },
+              status,
+            } = await getGaleriesIdInvitationsId(app, token, galerieId, invitation.id);
+            expect(action).toBe('GET');
+            expect(returnedGalerieId).toBe(galerieId);
+            expect(returnedInvitation.code).toBe(invitation.code);
+            expect(returnedInvitation.createdAt).toBe(invitation.createdAt);
+            expect(returnedInvitation.galerieId).toBeUndefined();
+            expect(returnedInvitation.id).toBe(invitation.id);
+            expect(returnedInvitation.numOfInvit).toBe(invitation.numOfInvit);
+            expect(returnedInvitation.time).toBe(invitation.time);
+            expect(returnedInvitation.updatedAt).toBeUndefined();
+            expect(returnedInvitation.user.authTokenVersion).toBeUndefined();
+            expect(returnedInvitation.user.confirmed).toBeUndefined();
+            expect(returnedInvitation.user.confirmTokenVersion).toBeUndefined();
+            expect(returnedInvitation.user.createdAt).toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture)
+              .toBe(invitation.user.currentProfilePicture);
+            expect(returnedInvitation.user.defaultProfilePicture)
+              .toBe(invitation.user.defaultProfilePicture);
+            expect(returnedInvitation.user.email).toBeUndefined();
+            expect(returnedInvitation.user.emailTokenVersion).toBeUndefined();
+            expect(returnedInvitation.user.facebookId).toBeUndefined();
+            expect(returnedInvitation.user.googleId).toBeUndefined();
+            expect(returnedInvitation.user.id).toBe(invitation.user.id);
+            expect(returnedInvitation.user.password).toBeUndefined();
+            expect(returnedInvitation.user.pseudonym).toBe(invitation.user.pseudonym);
+            expect(returnedInvitation.user.resetPasswordTokenVersion).toBeUndefined();
+            expect(returnedInvitation.user.role).toBe(invitation.user.role);
+            expect(returnedInvitation.user.socialMediaUserName)
+              .toBe(invitation.user.socialMediaUserName);
+            expect(returnedInvitation.user.updatedAt).toBeUndefined();
+            expect(returnedInvitation.user.updatedEmailTokenVersion).toBeUndefined();
+            expect(returnedInvitation.user.userName).toBe(invitation.user.userName);
+            expect(returnedInvitation.userId).toBeUndefined();
+            expect(status).toBe(200);
           });
+          it('return user\'s profile picture', async () => {
+            await postProfilePicture(app, token);
+            const {
+              body: {
+                data: {
+                  invitation,
+                },
+              },
+            } = await postGaleriesIdInvitations(app, token, galerieId, {});
+            const {
+              body: {
+                data: {
+                  invitation: returnedInvitation,
+                },
+              },
+            } = await getGaleriesIdInvitationsId(app, token, galerieId, invitation.id);
+            expect(returnedInvitation.user.currentProfilePicture.createdAt).toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.cropedImageId).toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.cropedImage.bucketName)
+              .toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.cropedImage.createdAt)
+              .toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.cropedImage.fileName)
+              .toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.cropedImage.format)
+              .not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.cropedImage.id).toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.cropedImage.signedUrl)
+              .not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.cropedImage.size)
+              .not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.cropedImage.updatedAt)
+              .toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.cropedImage.width)
+              .not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.current).toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.id).not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.originalImageId).toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.originalImage.bucketName)
+              .toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.originalImage.createdAt)
+              .toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.originalImage.fileName)
+              .toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.originalImage.format)
+              .not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.originalImage.id).toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.originalImage.signedUrl)
+              .not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.originalImage.size)
+              .not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.originalImage.updatedAt)
+              .toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.originalImage.width)
+              .not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.pendingImageId).toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.pendingImage.bucketName)
+              .toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.pendingImage.createdAt)
+              .toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.pendingImage.fileName)
+              .toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.pendingImage.format)
+              .not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.pendingImage.id).toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.pendingImage.signedUrl)
+              .not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.pendingImage.size)
+              .not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.pendingImage.updatedAt)
+              .toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.pendingImage.width)
+              .not.toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.updatedAt).toBeUndefined();
+            expect(returnedInvitation.user.currentProfilePicture.userId).toBeUndefined();
+          });
+          it('TODO: does not return user if he\'s black listed', async () => {});
         });
-        describe('should return error 400', () => {
-          it('if user\'s role of this galerie is "user"', async () => {
-            const { body: { id: galerieId } } = await agent
-              .post('/galeries')
-              .set('authorization', token)
-              .send({ name: 'galerie name' });
-            const hashPassword = await hash(newUser.password, saltRounds);
-            const userTwo = await User.create({
-              ...newUser,
-              email: 'use2r@email.com',
-              userName: '@userName2',
-              confirmed: true,
-              password: hashPassword,
-            });
-            await GalerieUser.create({
-              userId: userTwo.id,
-              galerieId,
-              role: 'user',
-            });
-            const { body: { token: tokenTwo } } = await agent
-              .post('/users/login')
-              .send({
-                password: newUser.password,
-                userNameOrEmail: userTwo.email,
-              });
-            const { body, status } = await agent
-              .get(`/galeries/${galerieId}/invitations/1`)
-              .set('authorization', tokenTwo);
-            expect(status).toEqual(400);
-            expect(body).toStrictEqual({
-              errors: 'not allow to fetch the invitation',
-            });
-          });
+        describe('should return error 400 if', () => {
+          it('TODO: user\'s role of this galerie is \'user\'', async () => {});
         });
         describe('should return error 404 if', () => {
           it('galerie doesn\'t exist', async () => {
-            const { body, status } = await agent
-              .get('/galeries/1/invitations/1')
-              .set('authorization', token);
-            expect(status).toEqual(404);
-            expect(body).toStrictEqual({
-              errors: 'galerie not found',
+            const {
+              body,
+              status,
+            } = await getGaleriesIdInvitationsId(app, token, '100', '100');
+            expect(body.errors).toBe('galerie not found');
+            expect(status).toBe(404);
+          });
+          it('galerie exist but user is not subscribe to it', async () => {
+            const userTwo = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
             });
+            const {
+              body: {
+                token: tokenTwo,
+              },
+            } = await login(app, userTwo.email, userPassword);
+            const {
+              body: {
+                data: {
+                  galerie: {
+                    id,
+                  },
+                },
+              },
+            } = await postGalerie(app, tokenTwo, {
+              name: 'galeries\'name',
+            });
+            const {
+              body,
+              status,
+            } = await getGaleriesIdInvitationsId(app, token, id, '100');
+            expect(body.errors).toBe('galerie not found');
+            expect(status).toBe(404);
           });
           it('invitation doesn\'t exist', async () => {
-            const { body: { id: galerieId } } = await agent
-              .post('/galeries')
-              .set('authorization', token)
-              .send({ name: 'galerie name' });
-            const { body, status } = await agent
-              .get(`/galeries/${galerieId}/invitations/1`)
-              .set('authorization', token);
-            expect(status).toEqual(404);
-            expect(body).toStrictEqual({
-              errors: 'invitation not found',
+            const {
+              body,
+              status,
+            } = await getGaleriesIdInvitationsId(app, token, galerieId, '100');
+            expect(body.errors).toBe('invitation not found');
+            expect(status).toBe(404);
+          });
+          it('invitation exist but does not belong to galerie', async () => {
+            const {
+              body: {
+                data: {
+                  galerie,
+                },
+              },
+            } = await postGalerie(app, token, {
+              name: 'galerie\'s name',
             });
+            const {
+              body: {
+                data: {
+                  invitation,
+                },
+              },
+            } = await postGaleriesIdInvitations(app, token, galerie.id, {});
+            const {
+              body,
+              status,
+            } = await getGaleriesIdInvitationsId(app, token, galerieId, invitation.id);
+            expect(body.errors).toBe('invitation not found');
+            expect(status).toBe(404);
           });
         });
       });

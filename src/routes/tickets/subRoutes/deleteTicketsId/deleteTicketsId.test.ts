@@ -17,7 +17,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('tickets', () => {
+describe('/tickets', () => {
   let adminToken: string;
   let app: Server;
   let sequelize: Sequelize;

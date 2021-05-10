@@ -22,7 +22,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('tickets', () => {
+describe('/tickets', () => {
   let adminToken: string;
   let app: Server;
   let sequelize: Sequelize;
@@ -219,7 +219,7 @@ describe('tickets', () => {
           },
         } = await getTickets(app, adminToken);
         expect(tickets.length).toBe(1);
-        expect(tickets[0].user).toBeUndefined();
+        expect(tickets[0].user).toBeNull();
       });
     });
   });

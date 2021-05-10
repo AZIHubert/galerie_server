@@ -173,7 +173,7 @@ export default async (req: Request, res: Response) => {
       user: ticket.user ? {
         ...ticket.user.toJSON(),
         currentProfilePicture: returnedCurrentProfilePicture,
-      } : undefined,
+      } : null,
     };
   } catch (err) {
     return res.status(500).send(err);

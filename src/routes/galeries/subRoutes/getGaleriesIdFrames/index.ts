@@ -204,6 +204,9 @@ export default async (req: Request, res: Response) => {
             }),
         );
 
+        // TODO:
+        // check if user is not blacklisted.
+
         // Find the current profile picture
         // of the current user.
         const currentProfilePicture = await ProfilePicture.findOne({

@@ -22,7 +22,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('tickets', () => {
+describe('/tickets', () => {
   let adminToken: string;
   let app: Server;
   let sequelize: Sequelize;
@@ -66,7 +66,7 @@ describe('tickets', () => {
     done();
   });
 
-  describe(':id', () => {
+  describe('/:id', () => {
     describe('GET', () => {
       describe('should return status 200 and', () => {
         it('and return a ticket', async () => {
@@ -217,7 +217,7 @@ describe('tickets', () => {
               },
             },
           } = await getTicketId(app, adminToken, id);
-          expect(ticket.user).toBeUndefined();
+          expect(ticket.user).toBeNull();
         });
       });
       describe('should return status 404 if', () => {
