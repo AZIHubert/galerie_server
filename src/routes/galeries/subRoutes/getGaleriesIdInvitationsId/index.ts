@@ -101,6 +101,12 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // TODO:
+  // Check if invitation is expired.
+  // If true,
+  // destroy invitation and send error 400
+  // 'invitation is expired.
+
   // Check if user is black listed.
   try {
     userIsBlackListed = await checkBlackList(invitation.user);

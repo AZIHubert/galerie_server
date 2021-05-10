@@ -101,6 +101,12 @@ export default async (req: Request, res: Response) => {
 
     await Promise.all(
       invitations.map(async (invitation) => {
+        // TODO:
+        // Check if invitation is not exipired.
+        // If true, destroy invitation
+        // and do not push invitation
+        // to returnedInvitations.
+
         let returnedCurrentProfilePicture = null;
         let userIsBlackListed: boolean = false;
 

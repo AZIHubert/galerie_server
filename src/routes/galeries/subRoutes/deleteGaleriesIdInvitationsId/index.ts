@@ -1,4 +1,7 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 
 import {
   Galerie,
@@ -10,6 +13,9 @@ export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
   const { id: galerieId, invitationId } = req.params;
   let galerie: Galerie | null;
+  let invitation: Invitation | null;
+
+  // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
       include: [{
@@ -22,11 +28,16 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if galerie exist.
   if (!galerie) {
     return res.status(404).send({
       errors: 'galerie not found',
     });
   }
+
+  // Check if user's role for this galerie
+  // is not 'user'.
   const { role } = galerie
     .users
     .filter((user) => user.id === userId)[0]
@@ -36,7 +47,8 @@ export default async (req: Request, res: Response) => {
       errors: 'not allow to delete invitations',
     });
   }
-  let invitation: Invitation | null;
+
+  // Fetch invitation.
   try {
     invitation = await Invitation.findOne({
       where: {
@@ -47,17 +59,26 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if invitation exist.
   if (!invitation) {
     return res.status(404).send({
       errors: 'invitation not found',
     });
   }
+
+  // Destroy invitation.
   try {
     await invitation.destroy();
   } catch (err) {
     return res.status(500).send(err);
   }
+
   return res.status(200).send({
-    id: invitationId,
+    action: 'DELETE',
+    data: {
+      galerieId: galerie.id,
+      invitationId: invitation.id,
+    },
   });
 };
