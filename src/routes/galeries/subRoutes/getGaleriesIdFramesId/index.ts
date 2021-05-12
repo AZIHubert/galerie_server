@@ -10,6 +10,15 @@ import {
 } from '@src/db/models';
 import signedUrl from '@src/helpers/signedUrl';
 
+// TODO:
+// Need protection:
+//  If this frame doesn't have GaleriePictures
+//    => destroy it and send a 404 error.
+//  If this galerie picture doesn't have croped/pending/original image
+//    => destroy it and send a 404 error.
+//  If this galerie picture is destroy and frame.galeriePictures.length === 1
+//    => destroy frame and send a 404 error.
+
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
   const { id: galerieId, frameId } = req.params;

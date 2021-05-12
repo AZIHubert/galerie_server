@@ -14,6 +14,15 @@ import {
 
 import signedUrl from '@src/helpers/signedUrl';
 
+// TODO:
+// Need protection:
+//  If a frame doesn't have GaleriePictures
+//    => destroy it.
+//  If a galerie picture doesn't have croped/pending/original image
+//    => destroy it.
+//  If a galerie picture is destroy and frame.galeriePictures.length === 1
+//    => destroy frame.
+
 export default async (req: Request, res: Response) => {
   const { id: galerieId } = req.params;
   const limit = 20;
