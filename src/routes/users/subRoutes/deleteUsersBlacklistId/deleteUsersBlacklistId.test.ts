@@ -13,7 +13,7 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  deleteBlacklist,
+  deleteUsersBlacklistId,
   login,
 } from '@src/helpers/test';
 
@@ -90,12 +90,12 @@ describe('/users', () => {
                 action,
               },
               status,
-            } = await deleteBlacklist(app, token, userId);
+            } = await deleteUsersBlacklistId(app, token, userId);
             expect(action).toBe('DELETE');
             expect(status).toBe(200);
           });
           it('delete blacklist', async () => {
-            await deleteBlacklist(app, token, userId);
+            await deleteUsersBlacklistId(app, token, userId);
             const blacklist = await BlackList.findByPk(blacklistId);
             expect(blacklist).toBeNull();
           });
@@ -109,7 +109,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await deleteBlacklist(app, token, userId);
+            } = await deleteUsersBlacklistId(app, token, userId);
             expect(body.errors).toBe('user is not black listed');
             expect(status).toBe(401);
           });
@@ -119,7 +119,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await deleteBlacklist(app, token, '100');
+            } = await deleteUsersBlacklistId(app, token, '100');
             expect(body.errors).toBe(USER_NOT_FOUND);
             expect(status).toBe(404);
           });
@@ -132,7 +132,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await deleteBlacklist(app, token, userId);
+            } = await deleteUsersBlacklistId(app, token, userId);
             expect(body.errors).toBe(USER_NOT_FOUND);
             expect(status).toBe(404);
           });

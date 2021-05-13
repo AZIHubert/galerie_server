@@ -1,96 +1,69 @@
-import { hash } from 'bcrypt';
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
-import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
-import {
-  Frame,
-  Galerie,
-  GalerieUser,
-  GaleriePicture,
-  Image,
-  User,
-} from '@src/db/models';
+import { User } from '@src/db/models';
+
 import initSequelize from '@src/helpers/initSequelize.js';
-import saltRounds from '@src/helpers/saltRounds';
-import accEnv from '@src/helpers/accEnv';
+import {
+  cleanGoogleBuckets,
+  createUser,
+  getGaleriesIdUsers,
+  login,
+  postGalerie,
+  postGaleriesIdInvitations,
+  postGaleriesSubscribe,
+  postProfilePicture,
+} from '@src/helpers/test';
+
 import initApp from '@src/server';
-import gc from '@src/helpers/gc';
 
-const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
-const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
-
-const cleanDatas = async (sequelize: Sequelize) => {
-  await Frame.sync({ force: true });
-  await Galerie.sync({ force: true });
-  await GaleriePicture.sync({ force: true });
-  await GalerieUser.sync({ force: true });
-  await Image.sync({ force: true });
-  await User.sync({ force: true });
-  await sequelize.model('Sessions').sync({ force: true });
-  const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
-  await Promise.all(originalImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
-  await Promise.all(cropedImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
-  await Promise.all(pendingImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-};
-
-const newUser = {
-  pseudonym: 'userName',
-  email: 'user@email.com',
-  password: 'password',
-  userName: '@userName',
-};
+const userPassword = 'Password0!';
 
 describe('galeries', () => {
-  let sequelize: Sequelize;
   let app: Server;
-  let user: User;
-  let agent: request.SuperAgentTest;
+  let galerieId: string;
+  let sequelize: Sequelize;
   let token: string;
+  let user: User;
+
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
-    agent = request.agent(app);
   });
+
   beforeEach(async (done) => {
-    agent = request.agent(app);
     try {
-      await cleanDatas(sequelize);
-      const hashPassword = await hash(newUser.password, saltRounds);
-      user = await User.create({
-        ...newUser,
-        confirmed: true,
-        password: hashPassword,
+      await cleanGoogleBuckets();
+      await sequelize.sync({ force: true });
+      user = await createUser({
+        role: 'superAdmin',
       });
-      const { body } = await agent
-        .post('/users/login')
-        .send({
-          password: newUser.password,
-          userNameOrEmail: user.email,
-        });
+      const { body } = await login(app, user.email, userPassword);
       token = body.token;
+      const {
+        body: {
+          data: {
+            galerie: {
+              id,
+            },
+          },
+        },
+      } = await postGalerie(app, token, {
+        name: 'galerie\'s name',
+      });
+      galerieId = id;
     } catch (err) {
       done(err);
     }
     done();
   });
+
   afterAll(async (done) => {
     try {
-      await cleanDatas(sequelize);
+      await cleanGoogleBuckets();
+      await sequelize.sync({ force: true });
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -98,90 +71,196 @@ describe('galeries', () => {
     app.close();
     done();
   });
+
   describe(':id', () => {
     describe('users', () => {
-      describe('it should return status 200', () => {
-        it('should return 0 users', async () => {
-          const { body: { id: galerieId } } = await agent
-            .post('/galeries')
-            .set('authorization', token)
-            .send({ name: 'galerie name' });
-          const { body, status } = await agent
-            .get(`/galeries/${galerieId}/users`)
-            .set('authorization', token);
-          expect(status).toEqual(200);
-          expect(body.length).toEqual(0);
+      describe('it should return status 200 and', () => {
+        it('return no user', async () => {
+          const {
+            body: {
+              action,
+              data: {
+                galerieId: returnedGalerieId,
+                users,
+              },
+            },
+            status,
+          } = await getGaleriesIdUsers(app, token, galerieId);
+          expect(action).toBe('GET');
+          expect(returnedGalerieId).toBe(galerieId);
+          expect(users.length).toBe(0);
+          expect(status).toBe(200);
         });
-        it('should return 1 users', async () => {
-          const hashPassword = await hash(newUser.password, saltRounds);
-          const { body: { id: galerieId } } = await agent
-            .post('/galeries')
-            .set('authorization', token)
-            .send({ name: 'galerie name' });
-          const { id: userTwoId } = await User.create({
-            ...newUser,
-            confirmed: true,
-            password: hashPassword,
-            userName: 'user2',
+        it('return 1 user', async () => {
+          const userTwo = await createUser({
             email: 'user2@email.com',
+            userName: 'user2',
           });
-          await GalerieUser.create({
-            galerieId,
-            userId: userTwoId,
-            role: 'user',
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await login(app, userTwo.email, userPassword);
+          const {
+            body: {
+              data: {
+                invitation: {
+                  code,
+                },
+              },
+            },
+          } = await postGaleriesIdInvitations(app, token, galerieId, {});
+          await postGaleriesSubscribe(app, tokenTwo, {
+            code,
           });
-          const { body, status } = await agent
-            .get(`/galeries/${galerieId}/users`)
-            .set('authorization', token);
-          expect(status).toEqual(200);
-          expect(body.length).toEqual(1);
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getGaleriesIdUsers(app, token, galerieId);
+          expect(users.length).toBe(1);
+          expect(users[0].authTokenVersion).toBeUndefined();
+          expect(users[0].confirmed).toBeUndefined();
+          expect(users[0].confirmTokenVersion).toBeUndefined();
+          expect(users[0].createdAt).toBeUndefined();
+          expect(users[0].currentProfilePicture).not.toBeUndefined();
+          expect(users[0].defaultProfilePicture).not.toBeUndefined();
+          expect(users[0].email).toBeUndefined();
+          expect(users[0].emailTokenVersion).toBeUndefined();
+          expect(users[0].facebookId).toBeUndefined();
+          expect(users[0].galerieRole).not.toBeUndefined();
+          expect(users[0].galeries).toBeUndefined();
+          expect(users[0].googleId).toBeUndefined();
+          expect(users[0].id).not.toBeUndefined();
+          expect(users[0].password).toBeUndefined();
+          expect(users[0].pseudonym).not.toBeUndefined();
+          expect(users[0].resetPasswordTokenVersion).toBeUndefined();
+          expect(users[0].role).not.toBeUndefined();
+          expect(users[0].socialMediaUserName).not.toBeUndefined();
+          expect(users[0].updatedAt).toBeUndefined();
+          expect(users[0].updatedEmailTokenVersion).toBeUndefined();
+          expect(users[0].userName).not.toBeUndefined();
         });
-        it('should return 2 users', async () => {
-          const hashPassword = await hash(newUser.password, saltRounds);
-          const { body: { id: galerieId } } = await agent
-            .post('/galeries')
-            .set('authorization', token)
-            .send({ name: 'galerie name' });
-          const { id: userTwoId } = await User.create({
-            ...newUser,
-            confirmed: true,
-            password: hashPassword,
-            userName: 'user2',
+        it('return users with their current profile picture', async () => {
+          const userTwo = await createUser({
             email: 'user2@email.com',
+            userName: 'user2',
           });
-          await GalerieUser.create({
-            galerieId,
-            userId: userTwoId,
-            role: 'user',
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await login(app, userTwo.email, userPassword);
+          const {
+            body: {
+              data: {
+                invitation: {
+                  code,
+                },
+              },
+            },
+          } = await postGaleriesIdInvitations(app, token, galerieId, {});
+          await postGaleriesSubscribe(app, tokenTwo, {
+            code,
           });
-          const { id: userThreeId } = await User.create({
-            ...newUser,
-            confirmed: true,
-            password: hashPassword,
-            userName: 'user3',
-            email: 'user3@email.com',
+          await postProfilePicture(app, tokenTwo);
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getGaleriesIdUsers(app, token, galerieId);
+          expect(users[0].currentProfilePicture.createdAt).toBeUndefined();
+          expect(users[0].currentProfilePicture.cropedImageId).toBeUndefined();
+          expect(users[0].currentProfilePicture.cropedImage.bucketName).toBeUndefined();
+          expect(users[0].currentProfilePicture.cropedImage.createdAt).toBeUndefined();
+          expect(users[0].currentProfilePicture.cropedImage.fileName).toBeUndefined();
+          expect(users[0].currentProfilePicture.cropedImage.format).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.cropedImage.height).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.cropedImage.id).toBeUndefined();
+          expect(users[0].currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.cropedImage.size).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
+          expect(users[0].currentProfilePicture.cropedImage.width).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.current).toBeUndefined();
+          expect(users[0].currentProfilePicture.id).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.originalImageId).toBeUndefined();
+          expect(users[0].currentProfilePicture.originalImage.bucketName).toBeUndefined();
+          expect(users[0].currentProfilePicture.originalImage.createdAt).toBeUndefined();
+          expect(users[0].currentProfilePicture.originalImage.fileName).toBeUndefined();
+          expect(users[0].currentProfilePicture.originalImage.format).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.originalImage.height).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.originalImage.id).toBeUndefined();
+          expect(users[0].currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.originalImage.size).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.originalImage.updatedAt).toBeUndefined();
+          expect(users[0].currentProfilePicture.originalImage.width).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.pendingImageId).toBeUndefined();
+          expect(users[0].currentProfilePicture.pendingImage.bucketName).toBeUndefined();
+          expect(users[0].currentProfilePicture.pendingImage.createdAt).toBeUndefined();
+          expect(users[0].currentProfilePicture.pendingImage.fileName).toBeUndefined();
+          expect(users[0].currentProfilePicture.pendingImage.format).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.pendingImage.height).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.pendingImage.id).toBeUndefined();
+          expect(users[0].currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.pendingImage.size).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
+          expect(users[0].currentProfilePicture.pendingImage.width).not.toBeUndefined();
+          expect(users[0].currentProfilePicture.updatedAt).toBeUndefined();
+          expect(users[0].currentProfilePicture.userId).toBeUndefined();
+        });
+        it('should not return users if their not subscribe to this galerie', async () => {
+          await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
           });
-          await GalerieUser.create({
-            galerieId,
-            userId: userThreeId,
-            role: 'user',
-          });
-          const { body, status } = await agent
-            .get(`/galeries/${galerieId}/users`)
-            .set('authorization', token);
-          expect(status).toEqual(200);
-          expect(body.length).toEqual(2);
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getGaleriesIdUsers(app, token, galerieId);
+          expect(users.length).toBe(0);
         });
       });
-      describe('should return error 404', () => {
-        it('if galerie doesn\'t exist', async () => {
-          const { body, status } = await agent
-            .get('/galeries/100/users')
-            .set('authorization', token);
+      describe('should return error 404 if', () => {
+        it('galerie doesn\'t exist', async () => {
+          const {
+            body,
+            status,
+          } = await getGaleriesIdUsers(app, token, '100');
+          expect(body.errors).toBe('galerie not found');
           expect(status).toBe(404);
-          expect(body).toStrictEqual({
-            errors: 'galerie not found',
+        });
+        it('galerie exist but user is not subscribe to it', async () => {
+          const newUser = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
           });
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await login(app, newUser.email, userPassword);
+          const {
+            body: {
+              data: {
+                galerie,
+              },
+            },
+          } = await postGalerie(app, tokenTwo, {
+            name: 'galerie\'s name',
+          });
+          const {
+            body,
+            status,
+          } = await getGaleriesIdUsers(app, token, galerie.id);
+          expect(body.errors).toBe('galerie not found');
+          expect(status).toBe(404);
         });
       });
     });

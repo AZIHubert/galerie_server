@@ -1,6 +1,6 @@
 export { default as cleanGoogleBuckets } from './cleanGoogleBuckets';
 export { default as createUser } from './createUser';
-export { default as deleteBlacklist } from './deleteBlacklist';
+export { default as deleteUsersBlacklistId } from './deleteUsersBlacklistId';
 export { default as deleteGaleriesIdFrameId } from './deleteGaleriesIdFrameId';
 export { default as deleteGalerieId } from './deleteGalerieId';
 export { default as deleteGalerieIdInvitationId } from './deleteGalerieIdInvitationId';
@@ -15,6 +15,7 @@ export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';
 export { default as getGaleriesIdFramesFrameId } from './getGaleriesIdFramesFrameId';
 export { default as getGaleriesIdInvitations } from './getGaleriesIdInvitations';
 export { default as getGaleriesIdInvitationsId } from './getGaleriesIdInvitationsId';
+export { default as getGaleriesIdUsers } from './getGaleriesIdUsers';
 export { default as getProfilePicture } from './getProfilePicture';
 export { default as getProfilePictures } from './getProfilePictures';
 export { default as getRefreshToken } from './getRefreshToken';
