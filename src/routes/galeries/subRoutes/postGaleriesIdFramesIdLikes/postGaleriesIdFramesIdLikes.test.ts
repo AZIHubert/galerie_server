@@ -80,13 +80,18 @@ describe('/galerie', () => {
           describe('POST', () => {
             describe('it should return status 200 and', () => {
               let frame: Frame;
-              beforeEach(async () => {
-                const {
-                  body: {
-                    data,
-                  },
-                } = await postGaleriesIdFrames(app, token, galerieId);
-                frame = data.frame;
+              beforeEach(async (done) => {
+                try {
+                  const {
+                    body: {
+                      data,
+                    },
+                  } = await postGaleriesIdFrames(app, token, galerieId);
+                  frame = data.frame;
+                } catch (err) {
+                  done(err);
+                }
+                done();
               });
               it('post Like if this frame wasn\'s like by current user', async () => {
                 const {

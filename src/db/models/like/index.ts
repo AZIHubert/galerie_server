@@ -1,4 +1,5 @@
 import {
+  BelongsTo,
   Column,
   DataType,
   ForeignKey,
@@ -29,4 +30,10 @@ export default class Like extends Model implements LikeI {
     type: DataType.INTEGER,
   })
   userId!: string;
+
+  @BelongsTo(() => Frame)
+  frame!: Frame;
+
+  @BelongsTo(() => User)
+  user!: User;
 }

@@ -1,6 +1,5 @@
 import {
   BelongsTo,
-  BelongsToMany,
   Column,
   DataType,
   Default,
@@ -57,9 +56,9 @@ export default class Frame extends Model implements FrameI {
   @BelongsTo(() => User)
   user!: User;
 
-  @BelongsToMany(() => User, () => Like)
-  likes!: User[];
-
   @HasMany(() => GaleriePicture)
-  galeriePictures!: GaleriePicture[]
+  galeriePictures!: GaleriePicture[];
+
+  @HasMany(() => Like)
+  likes!: Like[];
 }

@@ -14,6 +14,7 @@ export { default as getGaleries } from './getGaleries';
 export { default as getGaleriesId } from './getGaleriesId';
 export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';
 export { default as getGaleriesIdFramesFrameId } from './getGaleriesIdFramesFrameId';
+export { default as getGaleriesIdFramesIdLikes } from './getGaleriesIdFramesIdLikes';
 export { default as getGaleriesIdInvitations } from './getGaleriesIdInvitations';
 export { default as getGaleriesIdInvitationsId } from './getGaleriesIdInvitationsId';
 export { default as getGaleriesIdUsers } from './getGaleriesIdUsers';

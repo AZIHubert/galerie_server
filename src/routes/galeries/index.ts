@@ -14,6 +14,7 @@ import {
   getGaleriesId,
   getGaleriesIdFrames,
   getGaleriesIdFramesId,
+  getGalerieIdFrameIdLikes,
   getGaleriesIdInvitations,
   getGaleriesIdInvitationsId,
   getGaleriesIdUsers,
@@ -42,6 +43,7 @@ const galeriesRoutes: () => Router = () => {
   router.get('/:id/', passport.authenticate('jwt', { session: false }), getGaleriesId);
   router.get('/:id/frames/', passport.authenticate('jwt', { session: false }), getGaleriesIdFrames);
   router.get('/:id/frames/:frameId/', passport.authenticate('jwt', { session: false }), getGaleriesIdFramesId);
+  router.get('/:id/frames/:frameId/likes', passport.authenticate('jwt', { session: false }), getGalerieIdFrameIdLikes);
   router.get('/:id/invitations/', passport.authenticate('jwt', { session: false }), getGaleriesIdInvitations);
   router.get('/:id/invitations/:invitationId/', passport.authenticate('jwt', { session: false }), getGaleriesIdInvitationsId);
   router.get('/:id/users', passport.authenticate('jwt', { session: false }), getGaleriesIdUsers);

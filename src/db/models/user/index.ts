@@ -195,9 +195,6 @@ export default class User extends Model implements UserI {
   @BelongsToMany(() => Galerie, () => GalerieUser)
   galeries!: Galerie[];
 
-  @BelongsToMany(() => Frame, () => Like)
-  likes!: Frame[];
-
   @BelongsToMany(() => Notification, () => NotificationUser)
   notificationsUser!: Notification[]
 
@@ -209,6 +206,9 @@ export default class User extends Model implements UserI {
 
   @HasMany(() => Invitation)
   invitations!: Invitation[];
+
+  @HasMany(() => Like)
+  likes!: Like[];
 
   @HasMany(() => Notification)
   notifications!: Notification[];
