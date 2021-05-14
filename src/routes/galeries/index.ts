@@ -1,8 +1,6 @@
 import { Router } from 'express';
 
-import {
-  uploadFiles,
-} from '@src/helpers/middlewares';
+import { uploadFiles } from '@src/helpers/middlewares';
 import passport from '@src/helpers/passport';
 
 import {
@@ -10,7 +8,7 @@ import {
   deleteGaleriesIdFramesId,
   deleteGaleriesIdInvitationsId,
   deleteGaleriesIdUnsubscribe,
-  // deleteGaleriesIdUsersUserId,
+  deleteGaleriesIdUsersUserId,
 
   getGaleries,
   getGaleriesId,
@@ -38,8 +36,7 @@ const galeriesRoutes: () => Router = () => {
   router.delete('/:id/frames/:frameId/', passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId);
   router.delete('/:id/invitations/:invitationId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdInvitationsId);
   router.delete('/:id/unsubscribe/', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUnsubscribe);
-  // router.delete('/:id/users/:userId',
-  // passport.authenticate('jwt', { session: false }), deleteGaleriesIdUsersUserId);
+  router.delete('/:id/users/:userId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUsersUserId);
 
   router.get('/', passport.authenticate('jwt', { session: false }), getGaleries);
   router.get('/:id/', passport.authenticate('jwt', { session: false }), getGaleriesId);
@@ -52,7 +49,6 @@ const galeriesRoutes: () => Router = () => {
   router.post('/', passport.authenticate('jwt', { session: false }), postGaleries);
   router.post('/:id/frames/', passport.authenticate('jwt', { session: false }), uploadFiles, postGaleriesIdFrames);
   router.post('/:id/invitations/', passport.authenticate('jwt', { session: false }), postGaleriesIdInvitations);
-
   // TODO:
   // this route can be access through QR code,
   // it need a middleware before passwport authentication to assure
@@ -94,3 +90,7 @@ const galeriesRoutes: () => Router = () => {
 };
 
 export default galeriesRoutes;
+
+// TODO:
+// add description to frame.
+// add description to galerie.

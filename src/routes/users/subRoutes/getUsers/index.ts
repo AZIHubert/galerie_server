@@ -14,16 +14,16 @@ import checkBlackList from '@src/helpers/checkBlackList';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
-  let direction = 'DESC';
-  const { id } = req.user as User;
-  const limit = 20;
-  let offset: number;
-  let order = 'createdAt';
   const {
     direction: queryDirection,
     order: queryOrder,
     page,
   } = req.query;
+  const { id } = req.user as User;
+  const limit = 20;
+  let direction = 'DESC';
+  let offset: number;
+  let order = 'createdAt';
   const usersWithProfilePicture: Array<any> = [];
 
   if (
@@ -62,6 +62,7 @@ export default async (req: Request, res: Response) => {
           'googleId',
           'password',
           'resetPasswordTokenVersion',
+          'updatedAt',
           'updatedEmailTokenVersion',
         ],
       },
@@ -76,12 +77,16 @@ export default async (req: Request, res: Response) => {
       },
     });
 
-    // Fetch current profile pictures
-    // and their signed url.
     await Promise.all(
       users.map(async (user) => {
+        // Check user is not black listed.
+        // If true, do not push user
+        // into final returned users.
         const userIsBlackListed = await checkBlackList(user);
         if (!userIsBlackListed) {
+          // Fetch current profile pictures
+          // and their signed url.
+          let returnedCurrentProfilePicture = null;
           const currentProfilePicture = await ProfilePicture.findOne({
             attributes: {
               exclude: [
@@ -100,6 +105,7 @@ export default async (req: Request, res: Response) => {
                 attributes: {
                   exclude: [
                     'createdAt',
+                    'id',
                     'updatedAt',
                   ],
                 },
@@ -110,6 +116,7 @@ export default async (req: Request, res: Response) => {
                 attributes: {
                   exclude: [
                     'createdAt',
+                    'id',
                     'updatedAt',
                   ],
                 },
@@ -120,6 +127,7 @@ export default async (req: Request, res: Response) => {
                 attributes: {
                   exclude: [
                     'createdAt',
+                    'id',
                     'updatedAt',
                   ],
                 },
@@ -158,21 +166,32 @@ export default async (req: Request, res: Response) => {
               pendingImageBucketName,
               pendingImageFileName,
             );
-            currentProfilePicture
-              .cropedImage
-              .signedUrl = cropedImageSignedUrl;
-            currentProfilePicture
-              .originalImage
-              .signedUrl = originalImageSignedUrl;
-            currentProfilePicture
-              .pendingImage
-              .signedUrl = pendingImageSignedUrl;
+            returnedCurrentProfilePicture = {
+              ...currentProfilePicture.toJSON(),
+              cropedImage: {
+                ...currentProfilePicture.cropedImage.toJSON(),
+                bucketName: undefined,
+                fileName: undefined,
+                signedUrl: cropedImageSignedUrl,
+              },
+              originalImage: {
+                ...currentProfilePicture.originalImage.toJSON(),
+                bucketName: undefined,
+                fileName: undefined,
+                signedUrl: originalImageSignedUrl,
+              },
+              pendingImage: {
+                ...currentProfilePicture.pendingImage.toJSON(),
+                bucketName: undefined,
+                fileName: undefined,
+                signedUrl: pendingImageSignedUrl,
+              },
+            };
           }
           const userWithProfilePicture: any = {
             ...user.toJSON(),
-            currentProfilePicture: currentProfilePicture
-              ? currentProfilePicture.toJSON()
-              : undefined,
+            createdAt: undefined,
+            currentProfilePicture: returnedCurrentProfilePicture,
           };
           delete userWithProfilePicture.blackList;
           usersWithProfilePicture.push(userWithProfilePicture);

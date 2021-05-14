@@ -137,11 +137,9 @@ describe('/users', () => {
         });
         it('return only relevent attributes', async () => {
           const {
-            createdAt,
             id,
             pseudonym,
             role,
-            updatedAt,
             userName,
           } = await createUser({
             email: 'user2@email.com',
@@ -158,7 +156,7 @@ describe('/users', () => {
           expect(returnedUser.blackList).toBeUndefined();
           expect(returnedUser.confirmed).toBeUndefined();
           expect(returnedUser.confirmTokenVersion).toBeUndefined();
-          expect(new Date(returnedUser.createdAt)).toEqual(createdAt);
+          expect(returnedUser.createdAt).toBeUndefined();
           expect(returnedUser.defaultProfilePicture).toBeNull();
           expect(returnedUser.emailTokenVersion).toBeUndefined();
           expect(returnedUser.email).toBeUndefined();
@@ -170,7 +168,7 @@ describe('/users', () => {
           expect(returnedUser.pseudonym).toEqual(pseudonym);
           expect(returnedUser.resetPasswordTokenVersion).toBeUndefined();
           expect(returnedUser.role).toEqual(role);
-          expect(new Date(returnedUser.updatedAt)).toEqual(updatedAt);
+          expect(returnedUser.updatedAt).toBeUndefined();
           expect(returnedUser.userName).toEqual(userName);
         });
         it('include current profile picture', async () => {

@@ -3,6 +3,7 @@ export { default as createUser } from './createUser';
 export { default as deleteUsersBlacklistId } from './deleteUsersBlacklistId';
 export { default as deleteGaleriesIdFrameId } from './deleteGaleriesIdFrameId';
 export { default as deleteGalerieId } from './deleteGalerieId';
+export { default as deleteGaleriesIdUsersId } from './deleteGaleriesIdUsersId';
 export { default as deleteGalerieIdInvitationId } from './deleteGalerieIdInvitationId';
 export { default as deleteGaleriesUnsubscribe } from './deleteGaleriesUnsubscribe';
 export { default as deleteProfilePicture } from './deleteProfilePicture';

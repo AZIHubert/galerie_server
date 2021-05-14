@@ -25,7 +25,6 @@ import initApp from '@src/server';
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
 const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
-
 const userPassword = 'Password0!';
 
 describe('/profilePictures', () => {

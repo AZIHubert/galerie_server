@@ -158,11 +158,15 @@ export default async (req: Request, res: Response) => {
     }
 
     // ...destroy all invitations...
-    await Invitation.destroy({
-      where: {
-        galerieId: galerie.id,
-      },
-    });
+    try {
+      await Invitation.destroy({
+        where: {
+          galerieId: galerie.id,
+        },
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
 
   // If there is still users
   // remain on this galerie....
@@ -233,7 +237,10 @@ export default async (req: Request, res: Response) => {
           });
         }),
       );
-
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+    try {
       // ...and destroy all likes posted
       // by this user.
       await Like.destroy({

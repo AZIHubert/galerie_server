@@ -1,96 +1,80 @@
-import { hash } from 'bcrypt';
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
-import request from 'supertest';
 
 import '@src/helpers/initEnv';
 
 import {
   Frame,
-  Galerie,
   GalerieUser,
   GaleriePicture,
   Image,
   User,
 } from '@src/db/models';
-import initSequelize from '@src/helpers/initSequelize.js';
-import saltRounds from '@src/helpers/saltRounds';
+
 import accEnv from '@src/helpers/accEnv';
-import initApp from '@src/server';
 import gc from '@src/helpers/gc';
+import initSequelize from '@src/helpers/initSequelize.js';
+import {
+  cleanGoogleBuckets,
+  createUser,
+  deleteGaleriesIdUsersId,
+  login,
+  postGalerie,
+  postGaleriesIdFrames,
+  postGaleriesIdInvitations,
+  postGaleriesSubscribe,
+} from '@src/helpers/test';
+
+import initApp from '@src/server';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
 const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
+const userPassword = 'Password0!';
 
-const cleanDatas = async (sequelize: Sequelize) => {
-  await Frame.sync({ force: true });
-  await Galerie.sync({ force: true });
-  await GaleriePicture.sync({ force: true });
-  await GalerieUser.sync({ force: true });
-  await Image.sync({ force: true });
-  await User.sync({ force: true });
-  await sequelize.model('Sessions').sync({ force: true });
-  const [originalImages] = await gc.bucket(GALERIES_BUCKET_PP).getFiles();
-  await Promise.all(originalImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [cropedImages] = await gc.bucket(GALERIES_BUCKET_PP_CROP).getFiles();
-  await Promise.all(cropedImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-  const [pendingImages] = await gc.bucket(GALERIES_BUCKET_PP_PENDING).getFiles();
-  await Promise.all(pendingImages
-    .map(async (image) => {
-      await image.delete();
-    }));
-};
-
-const newUser = {
-  pseudonym: 'userName',
-  email: 'user@email.com',
-  password: 'password',
-  userName: '@userName',
-};
-
-describe('galeries', () => {
-  let sequelize: Sequelize;
+describe('/galeries', () => {
   let app: Server;
-  let user: User;
-  let agent: request.SuperAgentTest;
+  let galerieId: string;
+  let sequelize: Sequelize;
   let token: string;
+  let user: User;
+
   beforeAll(() => {
     sequelize = initSequelize();
     app = initApp();
-    agent = request.agent(app);
   });
+
   beforeEach(async (done) => {
-    agent = request.agent(app);
     try {
-      await cleanDatas(sequelize);
-      const hashPassword = await hash(newUser.password, saltRounds);
-      user = await User.create({
-        ...newUser,
-        confirmed: true,
-        password: hashPassword,
+      await cleanGoogleBuckets();
+      await sequelize.sync({ force: true });
+      user = await createUser({
+        role: 'superAdmin',
       });
-      const { body } = await agent
-        .post('/users/login')
-        .send({
-          password: newUser.password,
-          userNameOrEmail: user.email,
-        });
+      const { body } = await login(app, user.email, userPassword);
       token = body.token;
+      const {
+        body: {
+          data: {
+            galerie: {
+              id,
+            },
+          },
+        },
+      } = await postGalerie(app, token, {
+        name: 'galerie\'s name',
+      });
+      galerieId = id;
     } catch (err) {
       done(err);
     }
     done();
   });
+
   afterAll(async (done) => {
     try {
-      await cleanDatas(sequelize);
+      await cleanGoogleBuckets();
+      await sequelize.sync({ force: true });
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -98,182 +82,178 @@ describe('galeries', () => {
     app.close();
     done();
   });
-  describe(':id', () => {
-    describe('users', () => {
-      describe(':userId', () => {
+
+  describe('/:id', () => {
+    describe('/users', () => {
+      describe('/:userId', () => {
         describe('DELETE', () => {
           describe('should return status 200 and', () => {
+            let tokenTwo: string;
+            let userTwo: User;
+            beforeEach(async (done) => {
+              try {
+                userTwo = await createUser({
+                  email: 'user2@email.com',
+                  userName: 'user2',
+                });
+                const { body } = await login(app, userTwo.email, userPassword);
+                tokenTwo = body.token;
+                const {
+                  body: {
+                    data: {
+                      invitation: {
+                        code,
+                      },
+                    },
+                  },
+                } = await postGaleriesIdInvitations(app, token, galerieId, {});
+                await postGaleriesSubscribe(app, tokenTwo, { code });
+              } catch (err) {
+                done(err);
+              }
+              done();
+            });
             it('delete model GalerieUser', async () => {
-              const { body: { id } } = await agent
-                .post('/galeries')
-                .set('authorization', token)
-                .send({ name: 'galerie name' });
-              const hashPassword = await hash(newUser.password, saltRounds);
-              const userTwo = await User.create({
-                ...newUser,
-                confirmed: true,
-                email: 'user2@email.com',
-                password: hashPassword,
-                userName: 'user2',
+              const {
+                body: {
+                  action,
+                  data: {
+                    galerieId: returnedGalerieId,
+                    userId: returnedUserId,
+                  },
+                },
+                status,
+              } = await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
+              const galerieUser = await GalerieUser.findOne({
+                where: {
+                  galerieId,
+                  userId: userTwo.id,
+                },
               });
-              await GalerieUser.create({
-                userId: userTwo.id,
-                galerieId: id,
-                role: 'user',
-              });
-              const { body, status } = await agent
-                .delete(`/galeries/${id}/users/${userTwo.id}`)
-                .set('authorization', token);
-              expect(status).toEqual(200);
-              expect(body).toStrictEqual({
-                userId: userTwo.id,
-                galerieId: id,
-              });
-              const galerieUsers = await GalerieUser.findAll();
-              expect(galerieUsers.length).toEqual(1);
+              expect(action).toBe('DELETE');
+              expect(galerieUser).toBeNull();
+              expect(returnedGalerieId).toBe(galerieId);
+              expect(returnedUserId).toBe(userTwo.id);
+              expect(status).toBe(200);
             });
+            it('delete all frames/galeriePictures/images/images from Google Buckets/likes relative to this frames', async () => {
+              await postGaleriesIdFrames(app, tokenTwo, galerieId);
+              await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
+              const [bucketCropedImages] = await gc
+                .bucket(GALERIES_BUCKET_PP_CROP)
+                .getFiles();
+              const [bucketOriginalImages] = await gc
+                .bucket(GALERIES_BUCKET_PP)
+                .getFiles();
+              const [bucketPendingImages] = await gc
+                .bucket(GALERIES_BUCKET_PP_PENDING)
+                .getFiles();
+              const frames = await Frame.findAll();
+              const galeriePicture = await GaleriePicture.findAll();
+              const images = await Image.findAll();
+              expect(bucketCropedImages.length).toBe(0);
+              expect(bucketOriginalImages.length).toBe(0);
+              expect(bucketPendingImages.length).toBe(0);
+              expect(frames.length).toBe(0);
+              expect(galeriePicture.length).toBe(0);
+              expect(images.length).toBe(0);
+            });
+            it('TODO: delete all likes posted by this deleted user', async () => {});
+            it('TODO: current user is creator and user with :userId is admin', async () => {});
           });
-          describe('should return error 400', () => {
-            it('if userId is the same as current user id', async () => {
-              const { body, status } = await agent
-                .delete(`/galeries/1/users/${user.id}`)
-                .set('authorization', token);
-              expect(status).toEqual(400);
-              expect(body).toStrictEqual({
-                errors: 'you cannot delete yourself',
-              });
+          describe('should return error 400 if', () => {
+            it(':userId is the same as current user.id', async () => {
+              const {
+                body,
+                status,
+              } = await deleteGaleriesIdUsersId(app, token, galerieId, user.id);
+              expect(body.errors).toBe('you cannot delete yourself');
+              expect(status).toBe(400);
             });
-            it('if the role of this user in this galerie is "user"', async () => {
-              const { body: { id } } = await agent
-                .post('/galeries')
-                .set('authorization', token)
-                .send({ name: 'galerie name' });
-              const hashPassword = await hash(newUser.password, saltRounds);
-              const userTwo = await User.create({
-                ...newUser,
-                confirmed: true,
+            it('the role of current user for this galerie is \'user\'', async () => {
+              const userTwo = await createUser({
                 email: 'user2@email.com',
-                password: hashPassword,
                 userName: 'user2',
               });
-              await GalerieUser.create({
-                userId: userTwo.id,
-                galerieId: id,
-                role: 'user',
-              });
-              const { body: { token: tokenTwo } } = await agent
-                .post('/users/login')
-                .send({
-                  password: newUser.password,
-                  userNameOrEmail: userTwo.email,
-                });
-              const { body, status } = await agent
-                .delete(`/galeries/${id}/users/100`)
-                .set('authorization', tokenTwo);
-              expect(status).toEqual(400);
-              expect(body).toStrictEqual({
-                errors: 'you should be an admin or the creator to this galerie to delete a user',
-              });
+              const {
+                body: {
+                  token: tokenTwo,
+                },
+              } = await login(app, userTwo.email, userPassword);
+              const {
+                body: {
+                  data: {
+                    invitation: {
+                      code,
+                    },
+                  },
+                },
+              } = await postGaleriesIdInvitations(app, token, galerieId, {});
+              await postGaleriesSubscribe(app, tokenTwo, { code });
+              const {
+                body,
+                status,
+              } = await deleteGaleriesIdUsersId(app, tokenTwo, galerieId, user.id);
+              expect(body.errors).toBe('you should be an admin or the creator of this galerie to delete a user');
+              expect(status).toBe(400);
             });
-            it('if the user with userId is the creator of this galerie', async () => {
-              const { body: { id } } = await agent
-                .post('/galeries')
-                .set('authorization', token)
-                .send({ name: 'galerie name' });
-              const hashPassword = await hash(newUser.password, saltRounds);
-              const userTwo = await User.create({
-                ...newUser,
-                confirmed: true,
-                email: 'user2@email.com',
-                password: hashPassword,
-                userName: 'user2',
-              });
-              await GalerieUser.create({
-                userId: userTwo.id,
-                galerieId: id,
-                role: 'admin',
-              });
-              const { body: { token: tokenTwo } } = await agent
-                .post('/users/login')
-                .send({
-                  password: newUser.password,
-                  userNameOrEmail: userTwo.email,
-                });
-              const { body, status } = await agent
-                .delete(`/galeries/${id}/users/${user.id}`)
-                .set('authorization', tokenTwo);
-              expect(status).toEqual(400);
-              expect(body).toStrictEqual({
-                errors: 'you can\'t delete the creator of this galerie',
-              });
-            });
-            it('if the user with userId is an admin and current user is not the creator of this galerie', async () => {
-              const { body: { id } } = await agent
-                .post('/galeries')
-                .set('authorization', token)
-                .send({ name: 'galerie name' });
-              const hashPassword = await hash(newUser.password, saltRounds);
-              const userTwo = await User.create({
-                ...newUser,
-                confirmed: true,
-                email: 'user2@email.com',
-                password: hashPassword,
-                userName: 'user2',
-              });
-              await GalerieUser.create({
-                userId: userTwo.id,
-                galerieId: id,
-                role: 'admin',
-              });
-              const userThree = await User.create({
-                ...newUser,
-                confirmed: true,
-                email: 'user3@email.com',
-                password: hashPassword,
-                userName: 'user3',
-              });
-              await GalerieUser.create({
-                userId: userThree.id,
-                galerieId: id,
-                role: 'admin',
-              });
-              const { body: { token: tokenTwo } } = await agent
-                .post('/users/login')
-                .send({
-                  password: newUser.password,
-                  userNameOrEmail: userTwo.email,
-                });
-              const { body, status } = await agent
-                .delete(`/galeries/${id}/users/${userThree.id}`)
-                .set('authorization', tokenTwo);
-              expect(status).toEqual(400);
-              expect(body).toStrictEqual({
-                errors: 'you should be the creator of this galerie to delete an admin',
-              });
-            });
+            it('TODO: user with :userId is the creator of this galerie', async () => {});
+            it('TODO: user with :userId is an admin and current user is an admin', async () => {});
           });
-          describe('should return error 404', () => {
-            it('if galerie not found', async () => {
-              const { body, status } = await agent
-                .delete('/galeries/1/users/100')
-                .set('authorization', token);
-              expect(status).toEqual(404);
-              expect(body).toStrictEqual({
-                errors: 'galerie not found',
-              });
+          describe('should return error 404 if', () => {
+            it('galerie not found', async () => {
+              const {
+                body,
+                status,
+              } = await deleteGaleriesIdUsersId(app, token, '100', '100');
+              expect(body.errors).toBe('galerie not found');
+              expect(status).toBe(404);
             });
-            it('if user with userId is not found in this galerie', async () => {
-              const { body: { id } } = await agent
-                .post('/galeries')
-                .set('authorization', token)
-                .send({ name: 'galerie name' });
-              const { body, status } = await agent
-                .delete(`/galeries/${id}/users/100`)
-                .set('authorization', token);
-              expect(status).toEqual(404);
-              expect(body).toStrictEqual({
-                errors: 'user not found',
+            it('galerie exist but current user is not subscribe to this galerie', async () => {
+              const userTwo = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
               });
+              const {
+                body: {
+                  token: tokenTwo,
+                },
+              } = await login(app, userTwo.email, userPassword);
+              const {
+                body: {
+                  data: {
+                    galerie,
+                  },
+                },
+              } = await postGalerie(app, tokenTwo, {
+                name: 'galerie\'s name',
+              });
+              const {
+                body,
+                status,
+              } = await deleteGaleriesIdUsersId(app, token, galerie.id, '100');
+              expect(body.errors).toBe('galerie not found');
+              expect(status).toBe(404);
+            });
+            it('user not found', async () => {
+              const {
+                body,
+                status,
+              } = await deleteGaleriesIdUsersId(app, token, galerieId, '100');
+              expect(body.errors).toBe('user not found');
+              expect(status).toBe(404);
+            });
+            it('user with id === :userId is not subscribe to this galerie', async () => {
+              const userTwo = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              const {
+                body,
+                status,
+              } = await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
+              expect(body.errors).toBe('user not found');
+              expect(status).toBe(404);
             });
           });
         });
