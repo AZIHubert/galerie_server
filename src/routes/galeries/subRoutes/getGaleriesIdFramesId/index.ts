@@ -21,7 +21,10 @@ import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
-  const { id: galerieId, frameId } = req.params;
+  const {
+    frameId,
+    id: galerieId,
+  } = req.params;
   let frame: Frame | null;
   let galerie: Galerie | null;
   let returnedFrame;

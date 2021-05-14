@@ -20,13 +20,13 @@ import {
 
   postGaleries,
   postGaleriesIdFrames,
+  postGaleriesIdFramesIdLikes,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
 
   putGaleriesId,
   putGaleriesIdFramesIdGaleriePicturesId,
   putGaleriesIdUsersUserId,
-  // putGaleriesIdFramesId,
 } from './subRoutes';
 
 const router = Router();
@@ -48,36 +48,14 @@ const galeriesRoutes: () => Router = () => {
 
   router.post('/', passport.authenticate('jwt', { session: false }), postGaleries);
   router.post('/:id/frames/', passport.authenticate('jwt', { session: false }), uploadFiles, postGaleriesIdFrames);
+  router.post('/:id/frames/:frameId/likes/', passport.authenticate('jwt', { session: false }), postGaleriesIdFramesIdLikes);
   router.post('/:id/invitations/', passport.authenticate('jwt', { session: false }), postGaleriesIdInvitations);
-  // TODO:
-  // this route can be access through QR code,
-  // it need a middleware before passwport authentication to assure
-  // that this QRcode is scan with and only with
-  // Galerie's mobile app.
   router.post('/subscribe/', passport.authenticate('jwt', { session: false }), postGaleriesSubscribe);
 
   router.put('/:id/', passport.authenticate('jwt', { session: false }), putGaleriesId);
   router.put('/:id/frames/:frameId/galeriePictures/:galeriePictureId/', passport.authenticate('jwt', { session: false }), putGaleriesIdFramesIdGaleriePicturesId);
   router.put('/:id/users/:userId', passport.authenticate('jwt', { session: false }), putGaleriesIdUsersUserId);
 
-  // router.put('/:id/frames/:frameId',
-  // passport.authenticate('jwt', { session: false }), putGaleriesIdFramesId);
-
-  router.post('/:id/frames/:frameId/likes/', () => {
-    // check if galerie exist
-    // check if user is subscribe to this galerie
-    // check if frame exist
-    // check if like with frameId and userId exist
-    //  if not
-    //    create likes with frameId and userId
-    //    create a notification with type like
-    //    increment numOfLikes
-    //  else,
-    //    remove like
-    //    decrement numOfLikes
-    //    check if notification of type like with frameId and userId exist
-    //    if exist, destroy it
-  });
   router.get('/:id/frames/:frameId/likes/', () => {
     // check if galerie exist
     // check if user is subscribe to this galerie
