@@ -25,8 +25,8 @@ import {
 
   putGaleriesId,
   putGaleriesIdFramesIdGaleriePicturesId,
+  putGaleriesIdUsersUserId,
   // putGaleriesIdFramesId,
-  // putGaleriesIdUsersUserId,
 } from './subRoutes';
 
 const router = Router();
@@ -58,11 +58,10 @@ const galeriesRoutes: () => Router = () => {
 
   router.put('/:id/', passport.authenticate('jwt', { session: false }), putGaleriesId);
   router.put('/:id/frames/:frameId/galeriePictures/:galeriePictureId/', passport.authenticate('jwt', { session: false }), putGaleriesIdFramesIdGaleriePicturesId);
+  router.put('/:id/users/:userId', passport.authenticate('jwt', { session: false }), putGaleriesIdUsersUserId);
 
   // router.put('/:id/frames/:frameId',
   // passport.authenticate('jwt', { session: false }), putGaleriesIdFramesId);
-  // router.put('/:id/users/:userId',
-  // passport.authenticate('jwt', { session: false }), putGaleriesIdUsersUserId);
 
   router.post('/:id/frames/:frameId/likes/', () => {
     // check if galerie exist
