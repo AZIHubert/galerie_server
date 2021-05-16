@@ -12,7 +12,10 @@ import {
   login,
   postGalerie,
   postGaleriesIdFrames,
+  postGaleriesIdInvitations,
+  postGaleriesSubscribe,
   postProfilePicture,
+  postBlackListUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -181,7 +184,7 @@ describe('galeries', () => {
                 },
               },
             } = await getGaleriesIdFramesFrameId(app, token, galerieId, frame.id);
-            expect(returnedFrame.user.currentProfilePicture.createdAt).toBeUndefined();
+            expect(returnedFrame.user.currentProfilePicture.createdAt).not.toBeUndefined();
             expect(returnedFrame.user.currentProfilePicture.cropedImageId).toBeUndefined();
             expect(returnedFrame.user.currentProfilePicture.cropedImage.bucketName).toBeUndefined();
             expect(returnedFrame.user.currentProfilePicture.cropedImage.createdAt).toBeUndefined();
@@ -232,12 +235,48 @@ describe('galeries', () => {
             expect(returnedFrame.user.currentProfilePicture.updatedAt).toBeUndefined();
             expect(returnedFrame.user.currentProfilePicture.userId).toBeUndefined();
           });
-          it('TODO: should not include frame\'s user if he\'s ban', async () => {
-            // created new user
-            // create invitation
-            // new user register to the galerie using this invitation
-            // new user post frame to the galerie
-            // ban new user
+          it('should not include frame\'s user if he\'s ban', async () => {
+            const userTwo = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            const {
+              body: {
+                token: tokenTwo,
+              },
+            } = await login(app, userTwo.email, userPassword);
+            const {
+              body: {
+                data: {
+                  invitation: {
+                    code,
+                  },
+                },
+              },
+            } = await postGaleriesIdInvitations(app, token, galerieId, {});
+            await postGaleriesSubscribe(app, tokenTwo, { code });
+            const {
+              body: {
+                data: {
+                  frame: {
+                    id: frameId,
+                  },
+                },
+              },
+            } = await postGaleriesIdFrames(app, tokenTwo, galerieId);
+            await postBlackListUser(app, token, userTwo.id, {
+              reason: 'black list reason',
+            });
+            const {
+              body: {
+                data: {
+                  frame: {
+                    user: frameUser,
+                  },
+                },
+              },
+            } = await getGaleriesIdFramesFrameId(app, token, galerieId, frameId);
+            expect(frameUser).toBeNull();
           });
         });
         describe('should return error 404 if', () => {

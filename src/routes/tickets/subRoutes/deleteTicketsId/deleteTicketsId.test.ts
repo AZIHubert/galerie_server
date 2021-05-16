@@ -59,16 +59,14 @@ describe('/tickets', () => {
     done();
   });
 
-  describe(':id', () => {
+  describe('/:ticketId', () => {
     describe('DELETE', () => {
       describe('should return status 200 and', () => {
         it('delete ticket', async () => {
           const {
             body: {
               data: {
-                ticket: {
-                  id,
-                },
+                ticket,
               },
             },
           } = await postTicket(app, token, {
@@ -78,12 +76,14 @@ describe('/tickets', () => {
           const {
             body: {
               action,
-              data,
+              data: {
+                ticketId,
+              },
             },
             status,
-          } = await deleteTicketId(app, adminToken, id);
+          } = await deleteTicketId(app, adminToken, ticket.id);
           expect(action).toBe('DELETE');
-          expect(data).toEqual({ id });
+          expect(ticketId).toEqual(ticket.id);
           expect(status).toBe(200);
         });
       });

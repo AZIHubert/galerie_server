@@ -6,20 +6,24 @@ import {
 import {
   Galerie,
   GalerieUser,
-  Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
-import signedUrl from '@src/helpers/signedUrl';
+import checkBlackList from '@src/helpers/checkBlackList';
+import { userExcluder } from '@src/helpers/excluders';
+import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 
 export default async (req: Request, res: Response) => {
-  const { id: galerieId, userId: UId } = req.params;
+  const {
+    galerieId,
+    userId: UId,
+  } = req.params;
   const { id: userId } = req.user as User;
+  let currentProfilePicture;
   let galerie: Galerie | null;
   let galerieUser: GalerieUser | null;
-  let returnedCurrentProfilePicture = null;
   let user: User | null;
+  let userIsBlackListed: boolean;
 
   // Current user cannot update
   // his role himself.
@@ -103,19 +107,7 @@ export default async (req: Request, res: Response) => {
   try {
     user = await User.findByPk(galerieUser.userId, {
       attributes: {
-        exclude: [
-          'authTokenVersion',
-          'confirmed',
-          'confirmTokenVersion',
-          'email',
-          'emailTokenVersion',
-          'facebookId',
-          'googleId',
-          'password',
-          'resetPasswordTokenVersion',
-          'updatedAt',
-          'updatedEmailTokenVersion',
-        ],
+        exclude: userExcluder,
       },
     });
   } catch (err) {
@@ -144,116 +136,22 @@ export default async (req: Request, res: Response) => {
   // Fetch user current profile picture
   // and its signed URLs.
   try {
-    const currentProfilePicture = await ProfilePicture.findOne({
-      attributes: {
-        exclude: [
-          'createdAt',
-          'cropedImageId',
-          'current',
-          'originalImageId',
-          'pendingImageId',
-          'updatedAt',
-          'userId',
-        ],
-      },
-      include: [
-        {
-          as: 'cropedImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'id',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-        {
-          as: 'originalImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'id',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-        {
-          as: 'pendingImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'id',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-      ],
-      where: {
-        current: true,
-        userId: user.id,
-      },
-    });
-    if (currentProfilePicture) {
-      const {
-        cropedImage: {
-          bucketName: cropedImageBucketName,
-          fileName: cropedImageFileName,
-        },
-        originalImage: {
-          bucketName: originalImageBucketName,
-          fileName: originalImageFileName,
-        },
-        pendingImage: {
-          bucketName: pendingImageBucketName,
-          fileName: pendingImageFileName,
-        },
-      } = currentProfilePicture;
-      const cropedImageSignedUrl = await signedUrl(
-        cropedImageBucketName,
-        cropedImageFileName,
-      );
-      const originalImageSignedUrl = await signedUrl(
-        originalImageBucketName,
-        originalImageFileName,
-      );
-      const pendingImageSignedUrl = await signedUrl(
-        pendingImageBucketName,
-        pendingImageFileName,
-      );
-      returnedCurrentProfilePicture = {
-        ...currentProfilePicture.toJSON(),
-        cropedImage: {
-          ...currentProfilePicture.cropedImage.toJSON(),
-          bucketName: undefined,
-          fileName: undefined,
-          signedUrl: cropedImageSignedUrl,
-        },
-        originalImage: {
-          ...currentProfilePicture.originalImage.toJSON(),
-          bucketName: undefined,
-          fileName: undefined,
-          signedUrl: originalImageSignedUrl,
-        },
-        pendingImage: {
-          ...currentProfilePicture.pendingImage.toJSON(),
-          bucketName: undefined,
-          fileName: undefined,
-          signedUrl: pendingImageSignedUrl,
-        },
-      };
-    }
+    currentProfilePicture = await fetchCurrentProfilePicture(user);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  try {
+    userIsBlackListed = await checkBlackList(user);
   } catch (err) {
     return res.status(500).send(err);
   }
 
   const returnedUser = {
     ...user.toJSON(),
-    createdAt: undefined,
-    currentProfilePicture: returnedCurrentProfilePicture,
+    currentProfilePicture,
     galerieRole: galerieUser.role,
+    isBlackListed: userIsBlackListed ? true : undefined,
   };
 
   return res.status(200).send({

@@ -13,7 +13,7 @@ import {
 export default async (req: Request, res: Response) => {
   const {
     frameId,
-    id: galerieId,
+    galerieId,
   } = req.params;
   const user = req.user as User;
   let frame: Frame | null;
@@ -36,7 +36,9 @@ export default async (req: Request, res: Response) => {
 
   // Check if galerie exist.
   if (!galerie) {
-    return res.status(404).send('galerie not found');
+    return res.status(404).send({
+      errors: 'galerie not found',
+    });
   }
 
   // Fetch Frame.
@@ -53,7 +55,9 @@ export default async (req: Request, res: Response) => {
 
   // Check if frame exist
   if (!frame) {
-    return res.status(404).send('frame not found');
+    return res.status(404).send({
+      errors: 'frame not found',
+    });
   }
 
   // Fetch like.

@@ -10,3 +10,9 @@ const notificationRouter: () => Router = () => {
 };
 
 export default notificationRouter;
+
+// Notification when
+// someone likes your frame
+// someone subscribe with your invitation
+// your the creator of the galerie and someone subscribe to it
+// someone delete one of your frame

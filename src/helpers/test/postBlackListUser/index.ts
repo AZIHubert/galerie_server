@@ -11,7 +11,7 @@ export default async (
   },
 ) => {
   const response = await request(app)
-    .post(`/users/blacklist/${userId}/`)
+    .post(`/blacklists/${userId}/`)
     .set('authorization', token)
     .send(body);
   return response;

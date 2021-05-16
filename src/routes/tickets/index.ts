@@ -15,8 +15,8 @@ const router = Router();
 const ticketsRouter: () => Router = () => {
   router.post('/', passport.authenticate('jwt', { session: false }), postTickets);
   router.get('/', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, getTickets);
-  router.get('/:id', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, getTicketsId);
-  router.delete('/:id', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, deleteTicketsId);
+  router.get('/:ticketId', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, getTicketsId);
+  router.delete('/:ticketId', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, deleteTicketsId);
 
   return router;
 };

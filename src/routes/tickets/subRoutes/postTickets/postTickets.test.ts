@@ -78,10 +78,10 @@ describe('/tickets', () => {
         });
         expect(action).toBe('POST');
         expect(status).toBe(200);
-        expect(ticket.createdAt).toBeTruthy();
+        expect(ticket.createdAt).not.toBeUndefined();
         expect(ticket.body).toBe(body);
         expect(ticket.header).toBe(header);
-        expect(ticket.id).toBeTruthy();
+        expect(ticket.id).not.toBeUndefined();
         expect(ticket.updatedAt).toBeUndefined();
         expect(ticket.userId).toBe(user.id);
       });

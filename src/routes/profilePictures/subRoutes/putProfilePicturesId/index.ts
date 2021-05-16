@@ -8,65 +8,57 @@ import {
   ProfilePicture,
   User,
 } from '@src/db/models';
+
+import {
+  profilePictureExcluder,
+  imageExcluder,
+} from '@src/helpers/excluders';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { profilePictureId } = req.params;
   const user = req.user as User;
   const { id: userId } = user;
   let profilePicture: ProfilePicture | null;
-  let returnProfilePicture: {};
+  let returnedProfilePicture: any;
 
   try {
     profilePicture = await ProfilePicture.findOne({
       attributes: {
-        exclude: [
-          'cropedImageId',
-          'originalImageId',
-          'pendingImageId',
-          'userId',
-        ],
+        exclude: profilePictureExcluder,
       },
       include: [
         {
           as: 'cropedImage',
           attributes: {
-            exclude: [
-              'createdAt',
-              'updatedAt',
-            ],
+            exclude: imageExcluder,
           },
           model: Image,
         },
         {
           as: 'originalImage',
           attributes: {
-            exclude: [
-              'createdAt',
-              'updatedAt',
-            ],
+            exclude: imageExcluder,
           },
           model: Image,
         },
         {
           as: 'pendingImage',
           attributes: {
-            exclude: [
-              'createdAt',
-              'updatedAt',
-            ],
+            exclude: imageExcluder,
           },
           model: Image,
         },
       ],
       where: {
-        id,
+        id: profilePictureId,
         userId,
       },
     });
   } catch (err) {
     return res.status(500).send(err);
   }
+
   if (!profilePicture) {
     return res.status(404).send({
       errors: 'profile picture not found',
@@ -112,28 +104,26 @@ export default async (req: Request, res: Response) => {
       profilePicture.pendingImage.bucketName,
       profilePicture.pendingImage.fileName,
     );
-    returnProfilePicture = {
+    returnedProfilePicture = {
       ...profilePicture.toJSON(),
       cropedImage: {
         ...profilePicture.cropedImage.toJSON(),
         bucketName: undefined,
         fileName: undefined,
-        id: undefined,
         signedUrl: cropedImageSignedUrl,
       },
       originalImage: {
         ...profilePicture.originalImage.toJSON(),
         bucketName: undefined,
         fileName: undefined,
-        id: undefined,
         signedUrl: originalImageSignedUrl,
       },
       pendingImage: {
         ...profilePicture.pendingImage.toJSON(),
         bucketName: undefined,
         fileName: undefined,
-        id: undefined,
         signedUrl: pendingImageSignedUrl,
+        updatedAt: undefined,
       },
       updatedAt: undefined,
     };
@@ -144,7 +134,7 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'PUT',
     data: {
-      profilePicture: returnProfilePicture,
+      profilePicture: returnedProfilePicture,
     },
   });
 };

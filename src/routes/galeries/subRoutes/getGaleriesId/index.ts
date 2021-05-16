@@ -1,4 +1,7 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 
 import {
   Frame,
@@ -9,13 +12,18 @@ import {
 } from '@src/db/models';
 
 import signedUrl from '@src/helpers/signedUrl';
+import {
+  galeriePictureExcluder,
+  imageExcluder,
+} from '@src/helpers/excluders';
 
 export default async (req: Request, res: Response) => {
-  const { id: userId } = req.user as User;
-  const { id: galerieId } = req.params;
+  const { galerieId } = req.params;
+  const user = req.user as User;
   let galerie: Galerie | null;
   let returnCurrentCoverPicture = null;
 
+  // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
       attributes: {
@@ -26,13 +34,15 @@ export default async (req: Request, res: Response) => {
       include: [{
         model: User,
         where: {
-          id: userId,
+          id: user.id,
         },
       }],
     });
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if galerie exist.
   if (!galerie) {
     return res.status(404).send({
       errors: 'galerie not found',
@@ -43,39 +53,30 @@ export default async (req: Request, res: Response) => {
   try {
     const currentCoverPicture = await Frame.findOne({
       include: [{
+        attributes: {
+          exclude: galeriePictureExcluder,
+        },
         include: [
           {
-            model: Image,
             as: 'cropedImage',
             attributes: {
-              exclude: [
-                'createdAt',
-                'deletedAt',
-                'updatedAt',
-              ],
+              exclude: imageExcluder,
             },
+            model: Image,
           },
           {
-            model: Image,
             as: 'originalImage',
             attributes: {
-              exclude: [
-                'createdAt',
-                'deletedAt',
-                'updatedAt',
-              ],
+              exclude: imageExcluder,
             },
+            model: Image,
           },
           {
-            model: Image,
             as: 'pendingImage',
             attributes: {
-              exclude: [
-                'createdAt',
-                'deletedAt',
-                'updatedAt',
-              ],
+              exclude: imageExcluder,
             },
+            model: Image,
           },
         ],
         model: GaleriePicture,
@@ -119,37 +120,25 @@ export default async (req: Request, res: Response) => {
         pendingImageFileName,
       );
 
-      // TODO: not finish.
       returnCurrentCoverPicture = {
         ...currentCoverPicture.galeriePictures[0].toJSON(),
         cropedImage: {
           ...currentCoverPicture.galeriePictures[0].cropedImage.toJSON(),
           bucketName: undefined,
-          createdAt: undefined,
           fileName: undefined,
-          id: undefined,
           signedUrl: cropedImageSignedUrl,
-          updatedAt: undefined,
         },
-        cropedImageId: undefined,
         originalImage: {
           ...currentCoverPicture.galeriePictures[0].originalImage.toJSON(),
           bucketName: undefined,
-          createdAt: undefined,
           fileName: undefined,
-          id: undefined,
           signedUrl: originalImageSignedUrl,
-          updatedAt: undefined,
         },
-        originalImageId: undefined,
         pendingImage: {
           ...currentCoverPicture.galeriePictures[0].pendingImage.toJSON(),
           bucketName: undefined,
-          createdAt: undefined,
           fileName: undefined,
-          id: undefined,
           signedUrl: pendingImageSignedUrl,
-          updatedAt: undefined,
         },
       };
     }
@@ -165,7 +154,7 @@ export default async (req: Request, res: Response) => {
         currentCoverPicture: returnCurrentCoverPicture,
         role: galerie
           .users
-          .filter((user) => user.id === userId)[0]
+          .filter((u) => u.id === user.id)[0]
           .GalerieUser.role,
         users: [],
       },

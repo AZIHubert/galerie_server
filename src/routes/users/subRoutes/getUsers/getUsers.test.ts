@@ -60,7 +60,7 @@ describe('/users', () => {
   describe('GET', () => {
     describe('should return status 200 and', () => {
       describe('get all users', () => {
-        it('exept current', async () => {
+        it('exept current one', async () => {
           const {
             body: {
               action,
@@ -156,7 +156,7 @@ describe('/users', () => {
           expect(returnedUser.blackList).toBeUndefined();
           expect(returnedUser.confirmed).toBeUndefined();
           expect(returnedUser.confirmTokenVersion).toBeUndefined();
-          expect(returnedUser.createdAt).toBeUndefined();
+          expect(returnedUser.createdAt).not.toBeUndefined();
           expect(returnedUser.defaultProfilePicture).toBeNull();
           expect(returnedUser.emailTokenVersion).toBeUndefined();
           expect(returnedUser.email).toBeUndefined();
@@ -199,7 +199,7 @@ describe('/users', () => {
               },
             },
           } = await getUsers(app, token);
-          expect(currentProfilePicture.createdAt).toBeUndefined();
+          expect(currentProfilePicture.createdAt).not.toBeUndefined();
           expect(currentProfilePicture.cropedImageId).toBeUndefined();
           expect(currentProfilePicture.current).toBeUndefined();
           expect(currentProfilePicture.id).toEqual(id);
@@ -207,13 +207,13 @@ describe('/users', () => {
           expect(currentProfilePicture.pendingImageId).toBeUndefined();
           expect(currentProfilePicture.updatedAt).toBeUndefined();
           expect(currentProfilePicture.userId).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.signedUrl).toBeTruthy();
+          expect(currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
           expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
           expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.originalImage.signedUrl).toBeTruthy();
+          expect(currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
           expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
           expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.signedUrl).toBeTruthy();
+          expect(currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
           expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
           expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
         });

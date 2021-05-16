@@ -58,18 +58,30 @@ describe('/users', () => {
   describe('/role', () => {
     describe('/:id', () => {
       describe('PUT', () => {
-        describe('should return status 204 and', () => {
+        describe('should return status 200 and', () => {
           it('set role to \'admin\'', async () => {
             const role = 'admin';
             const userTwo = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
-            const { status } = await putUsersRoleId(app, token, userTwo.id, {
+            const {
+              body: {
+                action,
+                data: {
+                  role: returnedRole,
+                  userId: returnedUserId,
+                },
+              },
+              status,
+            } = await putUsersRoleId(app, token, userTwo.id, {
               role,
             });
             await userTwo.reload();
-            expect(status).toBe(204);
+            expect(action).toBe('PUT');
+            expect(returnedRole).toBe(role);
+            expect(returnedUserId).toBe(userTwo.id);
+            expect(status).toBe(200);
             expect(userTwo.role).toBe(role);
           });
           it('set role to \'superAdmin\'', async () => {

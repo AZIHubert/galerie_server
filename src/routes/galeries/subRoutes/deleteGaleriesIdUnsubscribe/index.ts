@@ -18,7 +18,9 @@ import gc from '@src/helpers/gc';
 
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
-  const { id: galerieId } = req.params;
+  const {
+    galerieId,
+  } = req.params;
   let galerie: Galerie | null;
   let galerieUsers: GalerieUser[];
 

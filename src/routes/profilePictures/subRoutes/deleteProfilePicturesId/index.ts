@@ -13,11 +13,11 @@ import {
 import gc from '@src/helpers/gc';
 
 export default async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { id: userId } = req.user as User;
+  const { profilePictureId } = req.params;
+  const user = req.user as User;
+  let profilePicture: ProfilePicture | null;
 
   // Check if profile picture exist.
-  let profilePicture: ProfilePicture | null;
   try {
     profilePicture = await ProfilePicture.findOne({
       include: [
@@ -26,8 +26,8 @@ export default async (req: Request, res: Response) => {
         },
       ],
       where: {
-        id,
-        userId,
+        id: profilePictureId,
+        userId: user.id,
       },
     });
   } catch (err) {
@@ -82,7 +82,7 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'DELETE',
     data: {
-      id,
+      id: profilePictureId,
     },
   });
 };

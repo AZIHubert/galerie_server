@@ -23,6 +23,7 @@ import {
 
 export default async (req: Request, res: Response) => {
   let user: User | null;
+  let userIsBlackListed: boolean;
 
   // Check if request.body is valid.
   const {
@@ -85,9 +86,13 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if user is black listed.
-  const isBlackListed = await checkBlackList(user);
-  if (isBlackListed) {
-    return res.status(401).send({
+  try {
+    userIsBlackListed = await checkBlackList(user);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  if (userIsBlackListed) {
+    return res.status(400).send({
       errors: USER_IS_BLACK_LISTED,
     });
   }

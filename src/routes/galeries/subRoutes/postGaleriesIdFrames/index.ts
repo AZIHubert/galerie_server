@@ -5,22 +5,23 @@ import {
 import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 
-import gc from '@src/helpers/gc';
-import accEnv from '@src/helpers/accEnv';
 import {
   Frame,
-  GaleriePicture,
   Galerie,
+  GaleriePicture,
   Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
+
+import accEnv from '@src/helpers/accEnv';
 import checkExtension from '@src/helpers/checkExtension';
 import {
   FILE_IS_IMAGE,
   FILES_ARE_REQUIRED,
 } from '@src/helpers/errorMessages';
+import gc from '@src/helpers/gc';
 import signedUrl from '@src/helpers/signedUrl';
+import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
@@ -28,7 +29,7 @@ const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
 export default async (req: Request, res: Response) => {
   const { files } = req;
-  const { id: galerieId } = req.params;
+  const { galerieId } = req.params;
   const user = req.user as User;
   let errors;
   let frame: Frame;
@@ -61,6 +62,7 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
   if (!galerie) {
     return res.status(404).send({
       errors: 'galerie not found',
@@ -249,7 +251,6 @@ export default async (req: Request, res: Response) => {
 
   try {
     const returnedGaleriePictures: Array<any> = [];
-    let returnedCurrentProfilePicture = null;
 
     // Resolve promise for each images and
     // each of its croped/original/pending image.
@@ -338,118 +339,7 @@ export default async (req: Request, res: Response) => {
 
     // Find the current profile picture
     // of the current user.
-    const currentProfilePicture = await ProfilePicture.findOne({
-      attributes: {
-        exclude: [
-          'createdAt',
-          'cropedImageId',
-          'current',
-          'originalImageId',
-          'pendingImageId',
-          'updatedAt',
-          'userId',
-        ],
-      },
-      include: [
-        {
-          as: 'cropedImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-        {
-          as: 'originalImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-        {
-          as: 'pendingImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-      ],
-      where: {
-        userId: user.id,
-        current: true,
-      },
-    });
-    if (currentProfilePicture) {
-      const {
-        cropedImage: {
-          bucketName: cropedImageBucketName,
-          fileName: cropedImageFileName,
-        },
-        originalImage: {
-          bucketName: originalImageBucketName,
-          fileName: originalImageFileName,
-        },
-        pendingImage: {
-          bucketName: pendingImageBucketName,
-          fileName: pendingImageFileName,
-        },
-      } = currentProfilePicture;
-      const cropedImageSignedUrl = await signedUrl(
-        cropedImageBucketName,
-        cropedImageFileName,
-      );
-      const originalImageSignedUrl = await signedUrl(
-        originalImageBucketName,
-        originalImageFileName,
-      );
-      const pendingImageSignedUrl = await signedUrl(
-        pendingImageBucketName,
-        pendingImageFileName,
-      );
-      returnedCurrentProfilePicture = {
-        ...currentProfilePicture.toJSON(),
-        cropedImage: {
-          ...currentProfilePicture.cropedImage.toJSON(),
-          bucketName: undefined,
-          createdAt: undefined,
-          fileName: undefined,
-          id: undefined,
-          signedUrl: cropedImageSignedUrl,
-          updatedAt: undefined,
-        },
-        cropedImageId: undefined,
-        originalImage: {
-          ...currentProfilePicture.originalImage.toJSON(),
-          bucketName: undefined,
-          createdAt: undefined,
-          fileName: undefined,
-          id: undefined,
-          signedUrl: originalImageSignedUrl,
-          updatedAt: undefined,
-        },
-        originalImageId: undefined,
-        pendingImage: {
-          ...currentProfilePicture.pendingImage.toJSON(),
-          bucketName: undefined,
-          createdAt: undefined,
-          fileName: undefined,
-          id: undefined,
-          signedUrl: pendingImageSignedUrl,
-          updatedAt: undefined,
-        },
-        pendingImageId: undefined,
-        updatedAt: undefined,
-        userId: undefined,
-      };
-    }
+    const currentProfilePicture = await fetchCurrentProfilePicture(user);
 
     // Compose the final frame.
     returnedFrame = {
@@ -463,7 +353,7 @@ export default async (req: Request, res: Response) => {
         confirmed: undefined,
         confirmTokenVersion: undefined,
         createdAt: undefined,
-        currentProfilePicture: returnedCurrentProfilePicture,
+        currentProfilePicture,
         email: undefined,
         emailTokenVersion: undefined,
         facebookId: undefined,
@@ -477,6 +367,7 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
   return res.status(200).send({
     action: 'POST',
     data: {

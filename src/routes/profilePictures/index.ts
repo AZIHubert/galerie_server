@@ -14,14 +14,14 @@ import {
 const router = Router();
 
 const profilePicturesRoutes: () => Router = () => {
-  router.delete('/:id/', passport.authenticate('jwt', { session: false }), deleteProfilePicturesId);
+  router.delete('/:profilePictureId/', passport.authenticate('jwt', { session: false }), deleteProfilePicturesId);
 
   router.get('/', passport.authenticate('jwt', { session: false }), getProfilePictures);
-  router.get('/:id/', passport.authenticate('jwt', { session: false }), getProfilePicturesId);
+  router.get('/:profilePictureId/', passport.authenticate('jwt', { session: false }), getProfilePicturesId);
 
   router.post('/', passport.authenticate('jwt', { session: false }), uploadFile, postProfilePictures);
 
-  router.put('/:id/', passport.authenticate('jwt', { session: false }), putProfilePicturesId);
+  router.put('/:profilePictureId/', passport.authenticate('jwt', { session: false }), putProfilePicturesId);
 
   return router;
 };

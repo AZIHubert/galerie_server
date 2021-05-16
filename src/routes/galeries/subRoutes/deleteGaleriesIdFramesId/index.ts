@@ -17,7 +17,10 @@ import gc from '@src/helpers/gc';
 
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
-  const { id: galerieId, frameId } = req.params;
+  const {
+    galerieId,
+    frameId,
+  } = req.params;
   let galerie: Galerie | null;
   let frame: Frame | null;
 
@@ -34,6 +37,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if galerie exist.
   if (!galerie) {
     return res.status(404).send({
       errors: 'galerie not found',
@@ -57,6 +62,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if frame exist.
   if (!frame) {
     return res.status(404).send({
       errors: 'frame not found',
@@ -74,66 +81,64 @@ export default async (req: Request, res: Response) => {
     && role === 'user'
   ) {
     return res.status(400).send({
-      errors: 'not allow to delete this frame',
+      errors: 'your not allow to delete this frame',
     });
   }
 
+  // Destroy all frames/galerieImages/images
+  // /images from Google Buckets/likes.
   try {
-    // Destroy frame.
     await frame.destroy();
 
-    await Promise.all(
-      frame.galeriePictures.map(async (galeriePicture) => {
-        // destroy galeriePicture.
-        await galeriePicture.destroy();
-
-        const {
-          originalImage,
-          cropedImage,
-          pendingImage,
-        } = galeriePicture;
-
-        // Destroy all images
-        // belonging to galeriePicture.
-        await Image.destroy({
-          where: {
-            [Op.or]: [
-              {
-                id: cropedImage.id,
-              },
-              {
-                id: originalImage.id,
-              },
-              {
-                id: pendingImage.id,
-              },
-            ],
-          },
-        });
-
-        // Delete files from Google Buckets.
-        await gc
-          .bucket(originalImage.bucketName)
-          .file(originalImage.fileName)
-          .delete();
-        await gc
-          .bucket(cropedImage.bucketName)
-          .file(cropedImage.fileName)
-          .delete();
-        await gc
-          .bucket(pendingImage.bucketName)
-          .file(pendingImage.fileName)
-          .delete();
-      }),
-    );
-
-    // Destroy all likes.
     await Like.destroy({
       where: { frameId },
     });
+
+    await Promise.all(
+      frame.galeriePictures.map(
+        async (galeriePicture) => {
+          const {
+            originalImage,
+            cropedImage,
+            pendingImage,
+          } = galeriePicture;
+
+          await Image.destroy({
+            where: {
+              [Op.or]: [
+                {
+                  id: cropedImage.id,
+                },
+                {
+                  id: originalImage.id,
+                },
+                {
+                  id: pendingImage.id,
+                },
+              ],
+            },
+          });
+
+          // Delete files from Google Buckets.
+          await gc
+            .bucket(originalImage.bucketName)
+            .file(originalImage.fileName)
+            .delete();
+          await gc
+            .bucket(cropedImage.bucketName)
+            .file(cropedImage.fileName)
+            .delete();
+          await gc
+            .bucket(pendingImage.bucketName)
+            .file(pendingImage.fileName)
+            .delete();
+        },
+      ),
+    );
   } catch (err) {
     return res.status(500).end();
   }
+
   return res.status(200).send({
     action: 'DELETE',
     data: {

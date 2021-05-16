@@ -8,60 +8,50 @@ import {
   ProfilePicture,
   User,
 } from '@src/db/models';
+
+import {
+  imageExcluder,
+  profilePictureExcluder,
+} from '@src/helpers/excluders';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
-  const { id } = req.params;
-  let profilePicture: ProfilePicture | null;
+  const { profilePictureId } = req.params;
   const { id: userId } = req.user as User;
+  let profilePicture: ProfilePicture | null;
+  let returnedProfilePicture: any;
 
   // Fetch profile picture
   try {
     profilePicture = await ProfilePicture.findOne({
       attributes: {
-        exclude: [
-          'createdAt',
-          'cropedImageId',
-          'originalImageId',
-          'pendingImageId',
-          'updatedAt',
-          'userId',
-        ],
+        exclude: profilePictureExcluder,
       },
       include: [
         {
           as: 'cropedImage',
           attributes: {
-            exclude: [
-              'createdAt',
-              'updatedAt',
-            ],
+            exclude: imageExcluder,
           },
           model: Image,
         },
         {
           as: 'originalImage',
           attributes: {
-            exclude: [
-              'createdAt',
-              'updatedAt',
-            ],
+            exclude: imageExcluder,
           },
           model: Image,
         },
         {
           as: 'pendingImage',
           attributes: {
-            exclude: [
-              'createdAt',
-              'updatedAt',
-            ],
+            exclude: imageExcluder,
           },
           model: Image,
         },
       ],
       where: {
-        id,
+        id: profilePictureId,
         userId,
       },
     });
@@ -102,15 +92,27 @@ export default async (req: Request, res: Response) => {
       pendingImageBucketName,
       pendingImageFileName,
     );
-    profilePicture
-      .cropedImage
-      .signedUrl = cropedImageSignedUrl;
-    profilePicture
-      .originalImage
-      .signedUrl = originalImageSignedUrl;
-    profilePicture
-      .pendingImage
-      .signedUrl = pendingImageSignedUrl;
+    returnedProfilePicture = {
+      ...profilePicture.toJSON(),
+      cropedImage: {
+        ...profilePicture.cropedImage.toJSON(),
+        bucketName: undefined,
+        fileName: undefined,
+        signedUrl: cropedImageSignedUrl,
+      },
+      originalImage: {
+        ...profilePicture.originalImage.toJSON(),
+        bucketName: undefined,
+        fileName: undefined,
+        signedUrl: originalImageSignedUrl,
+      },
+      pendingImage: {
+        ...profilePicture.pendingImage.toJSON(),
+        bucketName: undefined,
+        fileName: undefined,
+        signedUrl: pendingImageSignedUrl,
+      },
+    };
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -118,7 +120,7 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'GET',
     data: {
-      profilePicture,
+      profilePicture: returnedProfilePicture,
     },
   });
 };

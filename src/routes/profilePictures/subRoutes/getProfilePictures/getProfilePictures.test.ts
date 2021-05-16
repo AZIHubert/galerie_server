@@ -72,16 +72,7 @@ describe('/profilePictures', () => {
         expect(status).toBe(200);
       });
       it('return profiles pictures with relevant attributes', async () => {
-        const {
-          body: {
-            data: {
-              profilePicture: {
-                id: profilePictureId,
-                current,
-              },
-            },
-          },
-        } = await postProfilePicture(app, token);
+        await postProfilePicture(app, token);
         const {
           body: {
             data: {
@@ -91,23 +82,44 @@ describe('/profilePictures', () => {
             },
           },
         } = await getProfilePictures(app, token);
-        expect(returnProfilePicture.createdAt).toBeUndefined();
+        expect(returnProfilePicture.createdAt).not.toBeUndefined();
         expect(returnProfilePicture.cropedImageId).toBeUndefined();
-        expect(returnProfilePicture.current).toEqual(current);
-        expect(returnProfilePicture.id).toEqual(profilePictureId);
+        expect(returnProfilePicture.cropedImage.bucketName).toBeUndefined();
+        expect(returnProfilePicture.cropedImage.createdAt).toBeUndefined();
+        expect(returnProfilePicture.cropedImage.fileName).toBeUndefined();
+        expect(returnProfilePicture.cropedImage.format).not.toBeUndefined();
+        expect(returnProfilePicture.cropedImage.height).not.toBeUndefined();
+        expect(returnProfilePicture.cropedImage.id).toBeUndefined();
+        expect(returnProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
+        expect(returnProfilePicture.cropedImage.size).not.toBeUndefined();
+        expect(returnProfilePicture.cropedImage.updatedAt).toBeUndefined();
+        expect(returnProfilePicture.cropedImage.width).not.toBeUndefined();
+        expect(returnProfilePicture.current).not.toBeUndefined();
+        expect(returnProfilePicture.id).not.toBeUndefined();
         expect(returnProfilePicture.originalImageId).toBeUndefined();
+        expect(returnProfilePicture.originalImage.bucketName).toBeUndefined();
+        expect(returnProfilePicture.originalImage.createdAt).toBeUndefined();
+        expect(returnProfilePicture.originalImage.fileName).toBeUndefined();
+        expect(returnProfilePicture.originalImage.format).not.toBeUndefined();
+        expect(returnProfilePicture.originalImage.height).not.toBeUndefined();
+        expect(returnProfilePicture.originalImage.id).toBeUndefined();
+        expect(returnProfilePicture.originalImage.signedUrl).not.toBeUndefined();
+        expect(returnProfilePicture.originalImage.size).not.toBeUndefined();
+        expect(returnProfilePicture.originalImage.updatedAt).toBeUndefined();
+        expect(returnProfilePicture.originalImage.width).not.toBeUndefined();
         expect(returnProfilePicture.pendingImageId).toBeUndefined();
+        expect(returnProfilePicture.pendingImage.bucketName).toBeUndefined();
+        expect(returnProfilePicture.pendingImage.createdAt).toBeUndefined();
+        expect(returnProfilePicture.pendingImage.fileName).toBeUndefined();
+        expect(returnProfilePicture.pendingImage.format).not.toBeUndefined();
+        expect(returnProfilePicture.pendingImage.height).not.toBeUndefined();
+        expect(returnProfilePicture.pendingImage.id).toBeUndefined();
+        expect(returnProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
+        expect(returnProfilePicture.pendingImage.size).not.toBeUndefined();
+        expect(returnProfilePicture.pendingImage.updatedAt).toBeUndefined();
+        expect(returnProfilePicture.pendingImage.width).not.toBeUndefined();
         expect(returnProfilePicture.updatedAt).toBeUndefined();
         expect(returnProfilePicture.userId).toBeUndefined();
-        expect(returnProfilePicture.cropedImage.signedUrl).toBeTruthy();
-        expect(returnProfilePicture.cropedImage.createdAt).toBeUndefined();
-        expect(returnProfilePicture.cropedImage.updatedAt).toBeUndefined();
-        expect(returnProfilePicture.originalImage.signedUrl).toBeTruthy();
-        expect(returnProfilePicture.originalImage.createdAt).toBeUndefined();
-        expect(returnProfilePicture.originalImage.updatedAt).toBeUndefined();
-        expect(returnProfilePicture.pendingImage.signedUrl).toBeTruthy();
-        expect(returnProfilePicture.pendingImage.createdAt).toBeUndefined();
-        expect(returnProfilePicture.pendingImage.updatedAt).toBeUndefined();
       });
       it('should return a pack of 20 profile pictures', async () => {
         const NUMBER = 5;

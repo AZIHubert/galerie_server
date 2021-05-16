@@ -1,7 +1,3 @@
-// Check if user with id === req.params.id exist.
-// Check if blacklist with userId === user.id exist.
-// Delete blacklist.
-
 import {
   Request,
   Response,
@@ -16,7 +12,7 @@ import checkBlackList from '@src/helpers/checkBlackList';
 import { USER_NOT_FOUND } from '@src/helpers/errorMessages';
 
 export default async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { userId } = req.params;
   let user: User | null;
   let userIsBlackListed: boolean;
 
@@ -24,13 +20,14 @@ export default async (req: Request, res: Response) => {
   try {
     user = await User.findOne({
       where: {
-        id,
+        id: userId,
         confirmed: true,
       },
     });
   } catch (err) {
     return res.status(500).send(err);
   }
+
   if (!user) {
     return res.status(404).send({
       errors: USER_NOT_FOUND,
@@ -43,6 +40,7 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
   if (!userIsBlackListed) {
     return res.status(401).send({
       errors: 'user is not black listed',

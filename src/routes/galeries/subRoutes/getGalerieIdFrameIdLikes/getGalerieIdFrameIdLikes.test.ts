@@ -73,7 +73,8 @@ describe('/galeries', () => {
     app.close();
     done();
   });
-  describe('/:id', () => {
+
+  describe('/:galerieId', () => {
     describe('/frames', () => {
       describe('/:frameId', () => {
         describe('/likes', () => {
@@ -156,7 +157,7 @@ describe('/galeries', () => {
                 expect(users[0].authTokenVersion).toBeUndefined();
                 expect(users[0].confirmed).toBeUndefined();
                 expect(users[0].confirmTokenVersion).toBeUndefined();
-                expect(users[0].createdAt).toBeUndefined();
+                expect(users[0].createdAt).not.toBeUndefined();
                 expect(users[0].currentProfilePicture).not.toBeUndefined();
                 expect(users[0].defaultProfilePicture).not.toBeUndefined();
                 expect(users[0].email).toBeUndefined();
@@ -202,7 +203,7 @@ describe('/galeries', () => {
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                expect(users[0].currentProfilePicture.createdAt).toBeUndefined();
+                expect(users[0].currentProfilePicture.createdAt).not.toBeUndefined();
                 expect(users[0].currentProfilePicture.cropedImageId).toBeUndefined();
                 expect(users[0].currentProfilePicture.cropedImage.bucketName).toBeUndefined();
                 expect(users[0].currentProfilePicture.cropedImage.createdAt).toBeUndefined();

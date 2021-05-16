@@ -3,11 +3,11 @@ import { Request, Response } from 'express';
 import { Ticket } from '@src/db/models';
 
 export default async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { ticketId } = req.params;
   let ticket: Ticket | null;
 
   try {
-    ticket = await Ticket.findByPk(id);
+    ticket = await Ticket.findByPk(ticketId);
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -26,7 +26,7 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'DELETE',
     data: {
-      id,
+      ticketId,
     },
   });
 };

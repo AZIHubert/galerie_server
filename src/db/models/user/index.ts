@@ -193,7 +193,7 @@ export default class User extends Model implements UserI {
   userName!: string;
 
   @BelongsToMany(() => Galerie, () => GalerieUser)
-  galeries!: Galerie[];
+  galeries!: Array<Galerie & {galerieUser: GalerieUser}>;
 
   @BelongsToMany(() => Notification, () => NotificationUser)
   notificationsUser!: Notification[]

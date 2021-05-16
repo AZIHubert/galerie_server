@@ -130,7 +130,7 @@ describe('/users', () => {
           expect(profilePictures.length).toBe(0);
         });
 
-        xit('delete all frames/galeries/images/invitations and all images from Google buckets', async () => {
+        it('delete all frames/galeries/images/invitations and all images from Google buckets', async () => {
           const {
             body: {
               data: {
@@ -207,7 +207,7 @@ describe('/users', () => {
           expect(profilePictures.length).toBe(1);
         });
 
-        xit('should archive galeries if one other user is still subscribe to it', async () => {
+        it('should archive galeries if one other user is still subscribe to it', async () => {
           const {
             body: {
               data: {
@@ -237,7 +237,7 @@ describe('/users', () => {
           expect(galerieUsers.length).toEqual(1);
         });
 
-        xit('should destroy all invitations if a galerie is archived', async () => {
+        it('should destroy all invitations if a galerie is archived', async () => {
           const {
             body: {
               data: {

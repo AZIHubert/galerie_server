@@ -17,16 +17,16 @@ import gc from '@src/helpers/gc';
 
 export default async (req: Request, res: Response) => {
   const {
-    id: galerieId,
-    userId: UId,
+    galerieId,
+    userId,
   } = req.params;
-  const { id: userId } = req.user as User;
+  const currentUser = req.user as User;
   let galerie: Galerie | null;
   let user: User | null;
 
   // Check if current user.id and req.params.userId
   // are not similar.
-  if (userId === UId) {
+  if (currentUser.id === userId) {
     return res.status(400).send({
       errors: 'you cannot delete yourself',
     });
@@ -38,7 +38,7 @@ export default async (req: Request, res: Response) => {
       include: [{
         model: User,
         where: {
-          id: userId,
+          id: currentUser.id,
         },
       }],
     });
@@ -57,7 +57,7 @@ export default async (req: Request, res: Response) => {
   // is not user.
   const { role } = galerie
     .users
-    .filter((u) => u.id === userId)[0]
+    .filter((u) => u.id === currentUser.id)[0]
     .GalerieUser;
   if (role === 'user') {
     return res.status(400).send({
@@ -69,7 +69,7 @@ export default async (req: Request, res: Response) => {
   try {
     user = await User.findOne({
       where: {
-        id: UId,
+        id: userId,
       },
       include: [{
         model: Galerie,
@@ -117,7 +117,7 @@ export default async (req: Request, res: Response) => {
   try {
     await GalerieUser.destroy({
       where: {
-        userId: UId,
+        userId,
         galerieId,
       },
     });
@@ -139,9 +139,10 @@ export default async (req: Request, res: Response) => {
       },
     });
 
+    // Destroy all frames/galeriePictures/images
+    // images from Google Buckets/likes.
     await Promise.all(
       frames.map(async (frame) => {
-        // Destroy all frames.
         await frame.destroy();
         await Promise.all(
           frame.galeriePictures.map(
@@ -151,7 +152,6 @@ export default async (req: Request, res: Response) => {
                 cropedImage,
                 pendingImage,
               } = galeriePicture;
-              // Destroy all Images.
               await Image.destroy({
                 where: {
                   [Op.or]: [
@@ -167,8 +167,6 @@ export default async (req: Request, res: Response) => {
                   ],
                 },
               });
-
-              // Delete all images from Google Buckets.
               await gc
                 .bucket(pendingImage.bucketName)
                 .file(pendingImage.fileName)
@@ -184,8 +182,6 @@ export default async (req: Request, res: Response) => {
             },
           ),
         );
-
-        // Destroy all likes posted on this frame.
         await Like.destroy({
           where: {
             frameId: frame.id,
@@ -212,7 +208,7 @@ export default async (req: Request, res: Response) => {
     action: 'DELETE',
     data: {
       galerieId,
-      userId: UId,
+      userId,
     },
   });
 };

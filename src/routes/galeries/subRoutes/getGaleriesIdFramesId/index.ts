@@ -4,11 +4,19 @@ import {
   Frame,
   Galerie,
   GaleriePicture,
-  ProfilePicture,
   Image,
   User,
 } from '@src/db/models';
+
+import checkBlackList from '@src/helpers/checkBlackList';
+import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 import signedUrl from '@src/helpers/signedUrl';
+import {
+  frameExcluder,
+  galeriePictureExcluder,
+  imageExcluder,
+  userExcluder,
+} from '@src/helpers/excluders';
 
 // TODO:
 // Need protection:
@@ -20,10 +28,10 @@ import signedUrl from '@src/helpers/signedUrl';
 //    => destroy frame and send a 404 error.
 
 export default async (req: Request, res: Response) => {
-  const { id: userId } = req.user as User;
+  const user = req.user as User;
   const {
     frameId,
-    id: galerieId,
+    galerieId,
   } = req.params;
   let frame: Frame | null;
   let galerie: Galerie | null;
@@ -35,13 +43,15 @@ export default async (req: Request, res: Response) => {
       include: [{
         model: User,
         where: {
-          id: userId,
+          id: user.id,
         },
       }],
     });
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if galerie exist.
   if (!galerie) {
     return res.status(404).send({
       errors: 'galerie not found',
@@ -52,33 +62,18 @@ export default async (req: Request, res: Response) => {
   try {
     frame = await Frame.findOne({
       attributes: {
-        exclude: [
-          'galerieId',
-          'updatedAt',
-          'userId',
-        ],
+        exclude: frameExcluder,
       },
       include: [
         {
           attributes: {
-            exclude: [
-              'cropedImageId',
-              'createdAt',
-              'frameId',
-              'originalImageId',
-              'pendingImageId',
-              'updatedAt',
-            ],
+            exclude: galeriePictureExcluder,
           },
           include: [
             {
               as: 'cropedImage',
               attributes: {
-                exclude: [
-                  'createdAt',
-                  'id',
-                  'updatedAt',
-                ],
+                exclude: imageExcluder,
               },
               model: Image,
             },
@@ -86,22 +81,14 @@ export default async (req: Request, res: Response) => {
               model: Image,
               as: 'originalImage',
               attributes: {
-                exclude: [
-                  'createdAt',
-                  'id',
-                  'updatedAt',
-                ],
+                exclude: imageExcluder,
               },
             },
             {
               model: Image,
               as: 'pendingImage',
               attributes: {
-                exclude: [
-                  'createdAt',
-                  'id',
-                  'updatedAt',
-                ],
+                exclude: imageExcluder,
               },
             },
           ],
@@ -110,19 +97,7 @@ export default async (req: Request, res: Response) => {
           model: User,
           as: 'user',
           attributes: {
-            exclude: [
-              'authTokenVersion',
-              'confirmed',
-              'confirmTokenVersion',
-              'emailTokenVersion',
-              'email',
-              'facebookId',
-              'googleId',
-              'password',
-              'resetPasswordTokenVersion',
-              'updatedAt',
-              'updatedEmailTokenVersion',
-            ],
+            exclude: userExcluder,
           },
         },
       ],
@@ -134,6 +109,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if frame exist.
   if (!frame) {
     return res.status(404).send({
       errors: 'frame not found',
@@ -142,7 +119,7 @@ export default async (req: Request, res: Response) => {
 
   try {
     const returnedGaleriePictures: Array<any> = [];
-    let returnedCurrentProfilePicture;
+    let currentProfilePicture;
 
     // Fetch signed url for each
     // galerie pictures images.
@@ -201,118 +178,23 @@ export default async (req: Request, res: Response) => {
         }),
     );
 
-    // TODO:
-    // Check if user is not black listed.
+    // check if user is not blacklisted.
+    const userIsBlackListed = await checkBlackList(frame.user);
 
-    // Find the current profile picture
-    // of the current user.
-    const currentProfilePicture = await ProfilePicture.findOne({
-      attributes: {
-        exclude: [
-          'createdAt',
-          'cropedImageId',
-          'current',
-          'originalImageId',
-          'pendingImageId',
-          'updatedAt',
-          'userId',
-        ],
-      },
-      include: [
-        {
-          as: 'cropedImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'id',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-        {
-          as: 'originalImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'id',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-        {
-          as: 'pendingImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'id',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-      ],
-      where: {
-        userId: frame.user.id,
-        current: true,
-      },
-    });
-    if (currentProfilePicture) {
-      const {
-        cropedImage: {
-          bucketName: cropedImageBucketName,
-          fileName: cropedImageFileName,
-        },
-        originalImage: {
-          bucketName: originalImageBucketName,
-          fileName: originalImageFileName,
-        },
-        pendingImage: {
-          bucketName: pendingImageBucketName,
-          fileName: pendingImageFileName,
-        },
-      } = currentProfilePicture;
-      const cropedImageSignedUrl = await signedUrl(
-        cropedImageBucketName,
-        cropedImageFileName,
-      );
-      const originalImageSignedUrl = await signedUrl(
-        originalImageBucketName,
-        originalImageFileName,
-      );
-      const pendingImageSignedUrl = await signedUrl(
-        pendingImageBucketName,
-        pendingImageFileName,
-      );
-      returnedCurrentProfilePicture = {
-        ...currentProfilePicture.toJSON(),
-        cropedImage: {
-          ...currentProfilePicture.cropedImage.toJSON(),
-          bucketName: undefined,
-          fileName: undefined,
-          signedUrl: cropedImageSignedUrl,
-        },
-        originalImage: {
-          ...currentProfilePicture.originalImage.toJSON(),
-          bucketName: undefined,
-          fileName: undefined,
-          signedUrl: originalImageSignedUrl,
-        },
-        pendingImage: {
-          ...currentProfilePicture.pendingImage.toJSON(),
-          bucketName: undefined,
-          fileName: undefined,
-          signedUrl: pendingImageSignedUrl,
-        },
-      };
+    // Fetch current profile picture
+    // only if user is not black listed.
+    if (!userIsBlackListed) {
+      // Find the current profile picture
+      // of the current user.
+      currentProfilePicture = await fetchCurrentProfilePicture(frame.user);
     }
+
     returnedFrame = {
       ...frame.toJSON(),
       galeriePictures: returnedGaleriePictures,
-      user: {
+      user: userIsBlackListed ? null : {
         ...frame.user.toJSON(),
-        currentProfilePicture: returnedCurrentProfilePicture,
+        currentProfilePicture,
       },
     };
   } catch (err) {

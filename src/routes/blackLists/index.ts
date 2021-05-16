@@ -1,0 +1,29 @@
+import { Router } from 'express';
+
+import {
+  shouldBeAdmin,
+} from '@src/helpers/middlewares';
+import passport from '@src/helpers/passport';
+
+import {
+  deleteBlackListsId,
+  getBlackLists,
+  getBlackListsId,
+  postBlackListsUserIs,
+} from './subRoutes';
+
+const router = Router();
+
+const profilePicturesRoutes: () => Router = () => {
+  router.delete('/:blacklistId/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, deleteBlackListsId);
+
+  router.get('/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, getBlackLists);
+  router.get('/:blackListId/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, getBlackListsId);
+
+  router.post('/:userId', passport.authenticate('jwt', { session: false }), shouldBeAdmin, postBlackListsUserIs);
+
+  router.put('/:blackListId/', passport.authenticate('jwt', { session: false }), () => {});
+
+  return router;
+};
+export default profilePicturesRoutes;

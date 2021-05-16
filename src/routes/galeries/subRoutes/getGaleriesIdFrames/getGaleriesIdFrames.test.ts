@@ -11,8 +11,11 @@ import {
   createUser,
   getGaleriesIdFrames,
   login,
+  postBlackListUser,
   postGalerie,
   postGaleriesIdFrames,
+  postGaleriesIdInvitations,
+  postGaleriesSubscribe,
   postProfilePicture,
 } from '@src/helpers/test';
 
@@ -20,7 +23,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('galeries', () => {
+describe('/galeries', () => {
   let app: Server;
   let galerieId: string;
   let sequelize: Sequelize;
@@ -71,8 +74,8 @@ describe('galeries', () => {
     done();
   });
 
-  describe(':id', () => {
-    describe('frames', () => {
+  describe(':/galerieId', () => {
+    describe('/frames', () => {
       describe('POST', () => {
         describe('should return status 200 and', () => {
           it('return no frame', async () => {
@@ -183,7 +186,7 @@ describe('galeries', () => {
                 },
               },
             } = await getGaleriesIdFrames(app, token, galerieId);
-            expect(frames[0].user.currentProfilePicture.createdAt).toBeUndefined();
+            expect(frames[0].user.currentProfilePicture.createdAt).not.toBeUndefined();
             expect(frames[0].user.currentProfilePicture.cropedImage.createdAt).toBeUndefined();
             expect(frames[0].user.currentProfilePicture.cropedImage.format).not.toBeUndefined();
             expect(frames[0].user.currentProfilePicture.cropedImage.height).not.toBeUndefined();
@@ -217,7 +220,39 @@ describe('galeries', () => {
             expect(frames[0].user.currentProfilePicture.updatedAt).toBeUndefined();
             expect(frames[0].user.currentProfilePicture.userId).toBeUndefined();
           });
-          it('TODO: should not include frame\'s user if he\'s ban', async () => {});
+          it('should not include frame\'s user if he\'s ban', async () => {
+            const userTwo = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            const {
+              body: {
+                token: tokenTwo,
+              },
+            } = await login(app, userTwo.email, userPassword);
+            const {
+              body: {
+                data: {
+                  invitation: {
+                    code,
+                  },
+                },
+              },
+            } = await postGaleriesIdInvitations(app, token, galerieId, {});
+            await postGaleriesSubscribe(app, tokenTwo, { code });
+            await postGaleriesIdFrames(app, tokenTwo, galerieId);
+            await postBlackListUser(app, token, userTwo.id, {
+              reason: 'black list reason',
+            });
+            const {
+              body: {
+                data: {
+                  frames: [frame],
+                },
+              },
+            } = await getGaleriesIdFrames(app, token, galerieId);
+            expect(frame.user).toBeNull();
+          });
         });
         describe('should return error 404 if', () => {
           it('galerie not found', async () => {

@@ -9,6 +9,7 @@ import {
   GaleriePicture,
   GalerieUser,
   Image,
+  Like,
   User,
 } from '@src/db/models';
 
@@ -23,6 +24,7 @@ import {
   login,
   postGalerie,
   postGaleriesIdFrames,
+  postGaleriesIdFramesIdLikes,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
 } from '@src/helpers/test';
@@ -131,6 +133,8 @@ describe('/galeries', () => {
           expect(status).toBe(200);
         });
         it('destroy all frames/galerie pictures/images/images from GB posted by this user', async () => {
+          await postGaleriesIdFrames(app, token, galerieId);
+          await deleteGaleriesUnsubscribe(app, token, galerieId);
           const [bucketCropedImages] = await gc
             .bucket(GALERIES_BUCKET_PP_CROP)
             .getFiles();
@@ -140,8 +144,6 @@ describe('/galeries', () => {
           const [bucketPendingImages] = await gc
             .bucket(GALERIES_BUCKET_PP_PENDING)
             .getFiles();
-          await postGaleriesIdFrames(app, token, galerieId);
-          await deleteGaleriesUnsubscribe(app, token, galerieId);
           const frames = await Frame.findAll();
           const galeriePictures = await GaleriePicture.findAll();
           const images = await Image.findAll();
@@ -152,7 +154,44 @@ describe('/galeries', () => {
           expect(galeriePictures.length).toBe(0);
           expect(images.length).toBe(0);
         });
-        it('TODO: destroy all likes posted by this user', async () => {});
+        it('destroy all likes to frames posted by deleted user', async () => {
+          const {
+            body: {
+              data: {
+                frame: {
+                  id: frameId,
+                },
+              },
+            },
+          } = await postGaleriesIdFrames(app, token, galerieId);
+          await postGaleriesIdFramesIdLikes(app, tokenTwo, galerieId, frameId);
+          await deleteGaleriesUnsubscribe(app, token, galerieId);
+          const like = await Like.findOne({
+            where: {
+              frameId,
+            },
+          });
+          expect(like).toBeNull();
+        });
+        it('destroy all likes posted by this user', async () => {
+          const {
+            body: {
+              data: {
+                frame: {
+                  id: frameId,
+                },
+              },
+            },
+          } = await postGaleriesIdFrames(app, tokenTwo, galerieId);
+          await postGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+          await deleteGaleriesUnsubscribe(app, token, galerieId);
+          const like = await Like.findOne({
+            where: {
+              frameId,
+            },
+          });
+          expect(like).toBeNull();
+        });
         it('and delete galerie if they\'re no user left', async () => {
           await deleteUser(app, tokenTwo, {
             deleteAccountSentence: 'delete my account',

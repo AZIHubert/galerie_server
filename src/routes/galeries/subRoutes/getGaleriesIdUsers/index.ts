@@ -4,23 +4,19 @@ import {
 } from 'express';
 import { Op } from 'sequelize';
 
-import signedUrl from '@src/helpers/signedUrl';
-
 import {
   Galerie,
-  Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
-// TODO:
-// queryOrder createdAt should be user.galerieUser.
-// [{ model: models.Image, as: 'IdeaHeaderImages' }, 'updated_at', 'asc]
+import checkBlackList from '@src/helpers/checkBlackList';
+import { userExcluder } from '@src/helpers/excluders';
+import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 
 export default async (req: Request, res: Response) => {
   const limit = 20;
-  const { id: galerieId } = req.params;
-  const { id: userId } = req.user as User;
+  const { galerieId } = req.params;
+  const currentUser = req.user as User;
   let direction = 'DESC';
   let galerie: Galerie | null;
   let offset: number;
@@ -60,7 +56,7 @@ export default async (req: Request, res: Response) => {
       include: [{
         model: User,
         where: {
-          id: userId,
+          id: currentUser.id,
         },
       }],
     });
@@ -75,25 +71,21 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Find non black listed user
-  // who subscribe to this galerie
-  // with their respective role.
+  const { role } = galerie
+    .users
+    .filter((user) => user.id === currentUser.id)[0]
+    .GalerieUser;
+
+  // TODO:
+  // if queryOrder === 'createdAt',
+  // need to fetch instead
+  // GalerieUser where galerieId === galerie.id.
+  // and order by createdAt
+
   try {
     users = await User.findAll({
       attributes: {
-        exclude: [
-          'authTokenVersion',
-          'confirmed',
-          'confirmTokenVersion',
-          'email',
-          'emailTokenVersion',
-          'facebookId',
-          'googleId',
-          'password',
-          'resetPasswordTokenVersion',
-          'updatedAt',
-          'updatedEmailTokenVersion',
-        ],
+        exclude: userExcluder,
       },
       include: [
         {
@@ -108,7 +100,7 @@ export default async (req: Request, res: Response) => {
       order: [[order, direction]],
       where: {
         id: {
-          [Op.not]: userId,
+          [Op.not]: currentUser.id,
         },
       },
     });
@@ -119,117 +111,38 @@ export default async (req: Request, res: Response) => {
   try {
     await Promise.all(
       users.map(async (user) => {
-        let returnedCurrentProfilePicture = null;
+        const userIsBlackListed = await checkBlackList(user);
+        const currentProfilePicture = await fetchCurrentProfilePicture(user);
 
-        const currentProfilePicture = await ProfilePicture.findOne({
-          attributes: {
-            exclude: [
-              'createdAt',
-              'cropedImageId',
-              'current',
-              'originalImageId',
-              'pendingImageId',
-              'updatedAt',
-              'userId',
-            ],
-          },
-          include: [
-            {
-              as: 'cropedImage',
-              attributes: {
-                exclude: [
-                  'createdAt',
-                  'id',
-                  'updatedAt',
-                ],
-              },
-              model: Image,
-            },
-            {
-              as: 'originalImage',
-              attributes: {
-                exclude: [
-                  'createdAt',
-                  'id',
-                  'updatedAt',
-                ],
-              },
-              model: Image,
-            },
-            {
-              as: 'pendingImage',
-              attributes: {
-                exclude: [
-                  'createdAt',
-                  'id',
-                  'updatedAt',
-                ],
-              },
-              model: Image,
-            },
-          ],
-          where: {
-            current: true,
-            userId: user.id,
-          },
-        });
-        if (currentProfilePicture) {
-          const {
-            cropedImage: {
-              bucketName: cropedImageBucketName,
-              fileName: cropedImageFileName,
-            },
-            originalImage: {
-              bucketName: originalImageBucketName,
-              fileName: originalImageFileName,
-            },
-            pendingImage: {
-              bucketName: pendingImageBucketName,
-              fileName: pendingImageFileName,
-            },
-          } = currentProfilePicture;
-          const cropedImageSignedUrl = await signedUrl(
-            cropedImageBucketName,
-            cropedImageFileName,
-          );
-          const originalImageSignedUrl = await signedUrl(
-            originalImageBucketName,
-            originalImageFileName,
-          );
-          const pendingImageSignedUrl = await signedUrl(
-            pendingImageBucketName,
-            pendingImageFileName,
-          );
-          returnedCurrentProfilePicture = {
-            ...currentProfilePicture.toJSON(),
-            cropedImage: {
-              ...currentProfilePicture.cropedImage.toJSON(),
-              bucketName: undefined,
-              fileName: undefined,
-              signedUrl: cropedImageSignedUrl,
-            },
-            originalImage: {
-              ...currentProfilePicture.originalImage.toJSON(),
-              bucketName: undefined,
-              fileName: undefined,
-              signedUrl: originalImageSignedUrl,
-            },
-            pendingImage: {
-              ...currentProfilePicture.pendingImage.toJSON(),
-              bucketName: undefined,
-              fileName: undefined,
-              signedUrl: pendingImageSignedUrl,
-            },
-          };
-        }
         const returnedUser = {
           ...user.toJSON(),
-          createdAt: undefined,
-          currentProfilePicture: returnedCurrentProfilePicture,
+          currentProfilePicture,
           galerieRole: user.galeries[0].GalerieUser.role,
           galeries: undefined,
+          // If current user role for this galerie
+          // is 'admin' or 'creator' or current user role
+          // is 'admin' or 'superAdmin' and this user
+          // is black listed, had a field that
+          // indicate this user is black listed.
+          isBlackListed: userIsBlackListed
+            && (role !== 'user' || currentUser.role !== 'user')
+            ? true
+            : undefined,
         };
-        usersWithProfilePicture.push(returnedUser);
+
+        // Push this user if he's not black listed
+        // or he's black listed and current user role
+        // for this galerie is 'admin' or 'creator'
+        // or current user role is 'admin' or 'superAdmin'.
+        if (
+          (
+            userIsBlackListed
+            && (role !== 'user' || currentUser.role !== 'user')
+          )
+          || !userIsBlackListed
+        ) {
+          usersWithProfilePicture.push(returnedUser);
+        }
       }),
     );
   } catch (err) {

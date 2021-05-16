@@ -12,6 +12,10 @@ import {
   getGaleries,
   login,
   postGalerie,
+  postGaleriesIdFrames,
+  postGaleriesIdInvitations,
+  postGaleriesSubscribe,
+  putGaleriesIdFramesIdGaleriePicturesId,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -55,9 +59,6 @@ describe('galeries', () => {
   });
 
   describe('GET', () => {
-    it('TODO: return subscribed galeries', async () => {});
-    it('TODO: return current cover picture', async () => {});
-
     describe('it should return status 200 and', () => {
       it('retun galeries', async () => {
         const {
@@ -116,6 +117,47 @@ describe('galeries', () => {
         expect(firstPack.length).toBe(20);
         expect(secondPack.length).toBe(5);
       });
+      it('return subscribed galeries', async () => {
+        const userTwo = await createUser({
+          email: 'user2@email.com',
+          userName: 'user2',
+        });
+        const {
+          body: {
+            token: tokenTwo,
+          },
+        } = await login(app, userTwo.email, userPassword);
+        const {
+          body: {
+            data: {
+              galerie: {
+                id: galerieId,
+              },
+            },
+          },
+        } = await postGalerie(app, token, {
+          name: 'galerie\'s name',
+        });
+        const {
+          body: {
+            data: {
+              invitation: {
+                code,
+              },
+            },
+          },
+        } = await postGaleriesIdInvitations(app, token, galerieId, {});
+        await postGaleriesSubscribe(app, tokenTwo, { code });
+        const {
+          body: {
+            data: {
+              galeries,
+            },
+          },
+        } = await getGaleries(app, tokenTwo);
+        expect(galeries.length).toBe(1);
+        expect(galeries[0].id).toBe(galerieId);
+      });
       it('don\'t return galerie if user is not subscribe to it', async () => {
         const userTwo = await createUser({
           email: 'user2@email.com',
@@ -140,6 +182,86 @@ describe('galeries', () => {
           },
         } = await getGaleries(app, token);
         expect(galeries.length).toBe(1);
+      });
+      it('include current cover picture', async () => {
+        const {
+          body: {
+            data: {
+              galerie: {
+                id: galerieId,
+              },
+            },
+          },
+        } = await postGalerie(app, token, {
+          name: 'galerie\'s name',
+        });
+        const {
+          body: {
+            data: {
+              frame: {
+                id: frameId,
+                galeriePictures: [{
+                  id: galeriePictureId,
+                }],
+              },
+            },
+          },
+        } = await postGaleriesIdFrames(app, token, galerieId);
+        await putGaleriesIdFramesIdGaleriePicturesId(
+          app,
+          token,
+          galerieId,
+          frameId,
+          galeriePictureId,
+        );
+        const {
+          body: {
+            data: {
+              galeries: [{
+                currentCoverPicture,
+              }],
+            },
+          },
+        } = await getGaleries(app, token);
+        expect(currentCoverPicture.coverPicture).not.toBeUndefined();
+        expect(currentCoverPicture.createdAt).toBeUndefined();
+        expect(currentCoverPicture.cropedImageId).toBeUndefined();
+        expect(currentCoverPicture.cropedImage.bucketName).toBeUndefined();
+        expect(currentCoverPicture.cropedImage.createdAt).toBeUndefined();
+        expect(currentCoverPicture.cropedImage.fileName).toBeUndefined();
+        expect(currentCoverPicture.cropedImage.format).not.toBeUndefined();
+        expect(currentCoverPicture.cropedImage.height).not.toBeUndefined();
+        expect(currentCoverPicture.cropedImage.id).toBeUndefined();
+        expect(currentCoverPicture.cropedImage.signedUrl).not.toBeUndefined();
+        expect(currentCoverPicture.cropedImage.size).not.toBeUndefined();
+        expect(currentCoverPicture.cropedImage.updatedAt).toBeUndefined();
+        expect(currentCoverPicture.cropedImage.width).not.toBeUndefined();
+        expect(currentCoverPicture.frameId).toBeUndefined();
+        expect(currentCoverPicture.id).not.toBeUndefined();
+        expect(currentCoverPicture.index).not.toBeUndefined();
+        expect(currentCoverPicture.originalImageId).toBeUndefined();
+        expect(currentCoverPicture.originalImage.bucketName).toBeUndefined();
+        expect(currentCoverPicture.originalImage.createdAt).toBeUndefined();
+        expect(currentCoverPicture.originalImage.fileName).toBeUndefined();
+        expect(currentCoverPicture.originalImage.format).not.toBeUndefined();
+        expect(currentCoverPicture.originalImage.height).not.toBeUndefined();
+        expect(currentCoverPicture.originalImage.id).toBeUndefined();
+        expect(currentCoverPicture.originalImage.signedUrl).not.toBeUndefined();
+        expect(currentCoverPicture.originalImage.size).not.toBeUndefined();
+        expect(currentCoverPicture.originalImage.updatedAt).toBeUndefined();
+        expect(currentCoverPicture.originalImage.width).not.toBeUndefined();
+        expect(currentCoverPicture.pendingImageId).toBeUndefined();
+        expect(currentCoverPicture.pendingImage.bucketName).toBeUndefined();
+        expect(currentCoverPicture.pendingImage.createdAt).toBeUndefined();
+        expect(currentCoverPicture.pendingImage.fileName).toBeUndefined();
+        expect(currentCoverPicture.pendingImage.format).not.toBeUndefined();
+        expect(currentCoverPicture.pendingImage.height).not.toBeUndefined();
+        expect(currentCoverPicture.pendingImage.id).toBeUndefined();
+        expect(currentCoverPicture.pendingImage.signedUrl).not.toBeUndefined();
+        expect(currentCoverPicture.pendingImage.size).not.toBeUndefined();
+        expect(currentCoverPicture.pendingImage.updatedAt).toBeUndefined();
+        expect(currentCoverPicture.pendingImage.width).not.toBeUndefined();
+        expect(currentCoverPicture.updatedAt).toBeUndefined();
       });
     });
   });

@@ -11,7 +11,10 @@ import {
 
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
-  const { id: galerieId, invitationId } = req.params;
+  const {
+    galerieId,
+    invitationId,
+  } = req.params;
   let galerie: Galerie | null;
   let invitation: Invitation | null;
 
@@ -44,7 +47,7 @@ export default async (req: Request, res: Response) => {
     .GalerieUser;
   if (role === 'user') {
     return res.status(400).send({
-      errors: 'not allow to delete invitations',
+      errors: 'your not allow to delete invitations',
     });
   }
 

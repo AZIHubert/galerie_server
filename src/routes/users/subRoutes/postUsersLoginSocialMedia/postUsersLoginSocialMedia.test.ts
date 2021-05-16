@@ -69,6 +69,7 @@ describe('/users', () => {
               status,
             } = await postLoginSocialMedia(app, {
               id: facebookId,
+              type: 'Facebook',
               userName,
             });
             const facebookUser = await User.findOne({
@@ -88,7 +89,7 @@ describe('/users', () => {
             expect(facebookUser.role).toBe('user');
             expect(facebookUser.socialMediaUserName).toBe(userName);
             expect(facebookUser.userName).toBeNull();
-            expect(loginToken).toBeTruthy();
+            expect(loginToken).not.toBeUndefined();
             expect(status).toBe(200);
           });
           it('create a user if type is Google and no other user with same GoogleId exist', async () => {
@@ -124,7 +125,7 @@ describe('/users', () => {
             expect(googleUser.role).toBe('user');
             expect(googleUser.socialMediaUserName).toBe(userName);
             expect(googleUser.userName).toBeNull();
-            expect(loginToken).toBeTruthy();
+            expect(loginToken).not.toBeUndefined();
           });
           it('update default profile picture if Google/Facebook\'s profile picture has changed', async () => {
             const facebookId = '1';
@@ -132,10 +133,12 @@ describe('/users', () => {
             await postLoginSocialMedia(app, {
               id: facebookId,
               userName: 'user',
+              type: 'Facebook',
             });
             await postLoginSocialMedia(app, {
               id: facebookId,
               profilePicture: newProfilePicture,
+              type: 'Facebook',
             });
             const user = await User.findOne({
               where: {
@@ -150,10 +153,12 @@ describe('/users', () => {
             await postLoginSocialMedia(app, {
               id: facebookId,
               userName: 'user',
+              type: 'Facebook',
             });
             await postLoginSocialMedia(app, {
               id: facebookId,
               email: newEmail,
+              type: 'Facebook',
             });
             const user = await User.findOne({
               where: {
@@ -180,6 +185,7 @@ describe('/users', () => {
               status,
             } = await postLoginSocialMedia(app, {
               id: '1',
+              type: 'Facebook',
             });
             expect(body.errors).toBe('user name not found');
             expect(status).toBe(400);
@@ -199,6 +205,7 @@ describe('/users', () => {
               id: '1',
               userName: 'user',
               email,
+              type: 'Facebook',
             });
             expect(body.errors).toBe('you\'re email is already used for a google account');
             expect(status).toBe(400);
@@ -215,6 +222,7 @@ describe('/users', () => {
               id: '1',
               userName: 'user',
               email,
+              type: 'Facebook',
             });
             expect(body.errors).toBe('you\'re email is already used');
             expect(status).toBe(400);
@@ -222,18 +230,19 @@ describe('/users', () => {
           it('type is Google and email is already used for a Facebook account', async () => {
             const email = 'user@email.com';
             await postLoginSocialMedia(app, {
-              id: '1',
-              userName: 'user',
               email,
+              id: '1',
+              type: 'Facebook',
+              userName: 'user',
             });
             const {
               body,
               status,
             } = await postLoginSocialMedia(app, {
-              id: '1',
-              userName: 'user',
               email,
+              id: '1',
               type: 'Google',
+              userName: 'user',
             });
             expect(body.errors).toBe('you\'re email is already used for a facebook account');
             expect(status).toBe(400);
@@ -264,6 +273,7 @@ describe('/users', () => {
               id: facebookId,
               userName: 'user',
               email: 'user2@email.com',
+              type: 'Facebook',
             });
             const { id } = await User.findOne({
               where: {
@@ -280,6 +290,7 @@ describe('/users', () => {
               status,
             } = await postLoginSocialMedia(app, {
               id: facebookId,
+              type: 'Facebook',
             });
             expect(body.errors).toBe(USER_IS_BLACK_LISTED);
             expect(status).toBe(400);

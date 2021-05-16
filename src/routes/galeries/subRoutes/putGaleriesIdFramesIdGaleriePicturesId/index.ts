@@ -11,11 +11,15 @@ import {
   User,
 } from '@src/db/models';
 
+import {
+  galeriePictureExcluder,
+  imageExcluder,
+} from '@src/helpers/excluders';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
   const {
-    id: galerieId,
+    galerieId,
     frameId,
     galeriePictureId,
   } = req.params;
@@ -36,23 +40,13 @@ export default async (req: Request, res: Response) => {
         {
           include: [{
             attributes: {
-              exclude: [
-                'createdAt',
-                'cropedImageId',
-                'frameId',
-                'originalImageId',
-                'pendingImageId',
-              ],
+              exclude: galeriePictureExcluder,
             },
             include: [
               {
                 as: 'cropedImage',
                 attributes: {
-                  exclude: [
-                    'createdAt',
-                    'id',
-                    'updatedAt',
-                  ],
+                  exclude: imageExcluder,
                 },
                 model: Image,
               },
@@ -60,22 +54,14 @@ export default async (req: Request, res: Response) => {
                 model: Image,
                 as: 'originalImage',
                 attributes: {
-                  exclude: [
-                    'createdAt',
-                    'id',
-                    'updatedAt',
-                  ],
+                  exclude: imageExcluder,
                 },
               },
               {
                 model: Image,
                 as: 'pendingImage',
                 attributes: {
-                  exclude: [
-                    'createdAt',
-                    'id',
-                    'updatedAt',
-                  ],
+                  exclude: imageExcluder,
                 },
               },
             ],
@@ -93,6 +79,25 @@ export default async (req: Request, res: Response) => {
   if (!galerie) {
     return res.status(404).send({
       errors: 'galerie not found',
+    });
+  }
+
+  // Check if user's role for this galerie
+  // is creator or admin.
+  const { role } = galerie
+    .users
+    .filter((user) => user.id === userId)[0]
+    .GalerieUser;
+  if (role === 'user') {
+    return res.status(400).send({
+      errors: 'your\'re not allow to update this frame',
+    });
+  }
+
+  // Check if galerie is not archived.
+  if (galerie.archived) {
+    return res.status(400).send({
+      errors: 'you cannot update an archived galerie',
     });
   }
 
@@ -114,23 +119,12 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if user's role for this galerie
-  // is creator or admin.
-  const { role } = galerie
-    .users
-    .filter((user) => user.id === userId)[0]
-    .GalerieUser;
-  if (role === 'user') {
-    return res.status(400).send({
-      errors: 'not allow to update this frame',
-    });
-  }
-
   // If galerie picuture with :galeriePictureId
   // is not the current cover picture,
   // set current galerie picture to false if exist.
   if (!galeriePicture.coverPicture) {
     const allGaleriePictures: Array<GaleriePicture> = [];
+
     // Set all galerie pictures into a flat array.
     galerie.frames.forEach((f) => {
       f.galeriePictures.forEach((gp) => {

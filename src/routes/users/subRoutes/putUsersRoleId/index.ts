@@ -8,11 +8,11 @@ import {
 
 export default async (req: Request, res: Response) => {
   const { role } = req.body;
-  const { id } = req.params;
-  const { id: userId } = req.user as User;
+  const { userId } = req.params;
+  const currentUser = req.user as User;
   let user: User | null;
 
-  if (id === userId) {
+  if (userId === currentUser.id) {
     return res.status(400).send({
       errors: 'you can\'t modify your role yourself',
     });
@@ -40,18 +40,19 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if user exist
-  // and confirmed.
+  // Fetch user.
   try {
     user = await User.findOne({
       where: {
-        id,
+        id: userId,
         confirmed: true,
       },
     });
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if user exist.
   if (!user) {
     return res.status(404).send({
       errors: USER_NOT_FOUND,
@@ -72,10 +73,21 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // TODO:
+  // set all blackList where user.id === blackList.adminId
+  // to blackList.adminId === null.
+
   try {
     await user.update({ role });
   } catch (err) {
     return res.status(500).send(err);
   }
-  return res.status(204).end();
+
+  return res.status(200).send({
+    action: 'PUT',
+    data: {
+      role: user.role,
+      userId,
+    },
+  });
 };

@@ -3,11 +3,9 @@ import {
   Response,
 } from 'express';
 
-import {
-  BlackList,
-  User,
-} from '@src/db/models';
+import { User } from '@src/db/models';
 
+import checkBlackList from '@src/helpers/checkBlackList';
 import {
   USER_IS_BLACK_LISTED,
 } from '@src/helpers/errorMessages';
@@ -24,15 +22,28 @@ export default async (req: Request, res: Response) => {
     type,
     userName,
   } = req.body;
-  let blackList: BlackList | null;
   let user: User | null;
   let userEmail: User | null;
+  let userIsBlackListed: boolean;
 
   // Check if id has been send.
   // Id should be a facebookId or a googleId.
   if (!id) {
     return res.status(400).send({
       errors: 'id not found',
+    });
+  }
+
+  // Check if type has been send.
+  if (!type) {
+    return res.status(400).send({
+      errors: 'type not found',
+    });
+  }
+  // Type should be 'Facebook' or 'Google'.
+  if (type !== 'Facebook' && type !== 'Google') {
+    return res.status(400).send({
+      errors: 'type should be \'Facebook\' or \'Google\'',
     });
   }
 
@@ -116,27 +127,27 @@ export default async (req: Request, res: Response) => {
         errors: 'user name not found',
       });
     }
-    user = await User.create({
-      confirmed: true,
-      defaultProfilePicture: profilePicture,
-      email,
-      facebookId: type === 'Facebook' ? id : null,
-      googleId: type === 'Google' ? id : null,
-      pseudonym: userName,
-      socialMediaUserName: userName,
-    });
-  } else {
-    // Don't allow black listed user to logged in.
     try {
-      blackList = await BlackList.findOne({
-        where: {
-          userId: user.id,
-        },
+      user = await User.create({
+        confirmed: true,
+        defaultProfilePicture: profilePicture,
+        email,
+        facebookId: type === 'Facebook' ? id : null,
+        googleId: type === 'Google' ? id : null,
+        pseudonym: userName,
+        socialMediaUserName: userName,
       });
     } catch (err) {
       return res.status(500).send(err);
     }
-    if (blackList) {
+  } else {
+    // Check if user is black listed.
+    try {
+      userIsBlackListed = await checkBlackList(user);
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+    if (userIsBlackListed) {
       return res.status(400).send({
         errors: USER_IS_BLACK_LISTED,
       });

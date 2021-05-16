@@ -5,22 +5,27 @@ import {
 
 import {
   Galerie,
-  Image,
   Invitation,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
 import checkBlackList from '@src/helpers/checkBlackList';
-import signedUrl from '@src/helpers/signedUrl';
+import {
+  invitationExcluder,
+  userExcluder,
+} from '@src/helpers/excluders';
+import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
-  const { id: galerieId, invitationId } = req.params;
-  let currentProfilePicture: ProfilePicture | null;
+  const {
+    galerieId,
+    invitationId,
+  } = req.params;
+  let currentProfilePicture;
   let galerie: Galerie | null;
   let invitation: Invitation | null;
-  let returnedCurrentProfilePicture = null;
+  let invitationHasExpired = false;
   let userIsBlackListed: boolean;
 
   // Fetch galerie.
@@ -52,7 +57,7 @@ export default async (req: Request, res: Response) => {
     .GalerieUser;
   if (role === 'user') {
     return res.status(400).send({
-      errors: 'not allow to fetch the invitation',
+      errors: 'you\'re not allow to fetch the invitation',
     });
   }
 
@@ -60,28 +65,11 @@ export default async (req: Request, res: Response) => {
   try {
     invitation = await Invitation.findOne({
       attributes: {
-        exclude: [
-          'galerieId',
-          'updatedAt',
-          'userId',
-        ],
+        exclude: invitationExcluder,
       },
       include: [{
         attributes: {
-          exclude: [
-            'authTokenVersion',
-            'confirmed',
-            'confirmTokenVersion',
-            'createdAt',
-            'email',
-            'emailTokenVersion',
-            'facebookId',
-            'googleId',
-            'password',
-            'resetPasswordTokenVersion',
-            'updatedAt',
-            'updatedEmailTokenVersion',
-          ],
+          exclude: userExcluder,
         },
         model: User,
       }],
@@ -101,11 +89,28 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // TODO:
   // Check if invitation is expired.
-  // If true,
-  // destroy invitation and send error 400
-  // 'invitation is expired.
+  if (invitation.time) {
+    const time = new Date(
+      invitation.createdAt.setMilliseconds(
+        invitation.createdAt.getMilliseconds() + invitation.time,
+      ),
+    );
+    invitationHasExpired = time > new Date(Date.now());
+  }
+
+  // If this invitation is expired,
+  // destroy it and return a 404 error.
+  if (invitationHasExpired) {
+    try {
+      await invitation.destroy();
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+    return res.status(404).send({
+      errors: 'invitation not found',
+    });
+  }
 
   // Check if user is black listed.
   try {
@@ -119,124 +124,14 @@ export default async (req: Request, res: Response) => {
   // current profile picture,
   // invitation.user = null.
   if (!userIsBlackListed) {
-    try {
-      currentProfilePicture = await ProfilePicture.findOne({
-        attributes: {
-          exclude: [
-            'createdAt',
-            'cropedImageId',
-            'current',
-            'originalImageId',
-            'pendingImageId',
-            'updatedAt',
-            'userId',
-          ],
-        },
-        include: [
-          {
-            as: 'cropedImage',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'id',
-                'updatedAt',
-              ],
-            },
-            model: Image,
-          },
-          {
-            as: 'originalImage',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'id',
-                'updatedAt',
-              ],
-            },
-            model: Image,
-          },
-          {
-            as: 'pendingImage',
-            attributes: {
-              exclude: [
-                'createdAt',
-                'id',
-                'updatedAt',
-              ],
-            },
-            model: Image,
-          },
-        ],
-        where: {
-          current: true,
-          userId: invitation.user.id,
-        },
-      });
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-
-    try {
-      if (currentProfilePicture) {
-        const {
-          cropedImage: {
-            bucketName: cropedImageBucketName,
-            fileName: cropedImageFileName,
-          },
-          originalImage: {
-            bucketName: originalImageBucketName,
-            fileName: originalImageFileName,
-          },
-          pendingImage: {
-            bucketName: pendingImageBucketName,
-            fileName: pendingImageFileName,
-          },
-        } = currentProfilePicture;
-        const cropedImageSignedUrl = await signedUrl(
-          cropedImageBucketName,
-          cropedImageFileName,
-        );
-        const originalImageSignedUrl = await signedUrl(
-          originalImageBucketName,
-          originalImageFileName,
-        );
-        const pendingImageSignedUrl = await signedUrl(
-          pendingImageBucketName,
-          pendingImageFileName,
-        );
-
-        returnedCurrentProfilePicture = {
-          ...currentProfilePicture.toJSON(),
-          cropedImage: {
-            ...currentProfilePicture.cropedImage.toJSON(),
-            bucketName: undefined,
-            fileName: undefined,
-            signedUrl: cropedImageSignedUrl,
-          },
-          originalImage: {
-            ...currentProfilePicture.originalImage.toJSON(),
-            bucketName: undefined,
-            fileName: undefined,
-            signedUrl: originalImageSignedUrl,
-          },
-          pendingImage: {
-            ...currentProfilePicture.pendingImage.toJSON(),
-            bucketName: undefined,
-            fileName: undefined,
-            signedUrl: pendingImageSignedUrl,
-          },
-        };
-      }
-    } catch (err) {
-      return res.status(500).send(err);
-    }
+    currentProfilePicture = await fetchCurrentProfilePicture(invitation.user);
   }
 
   const returnedInvitation = {
     ...invitation.toJSON(),
     user: !userIsBlackListed ? {
       ...invitation.user.toJSON(),
-      currentProfilePicture: returnedCurrentProfilePicture,
+      currentProfilePicture,
     } : null,
   };
 

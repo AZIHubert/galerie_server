@@ -7,6 +7,7 @@ import {
   Frame,
   GaleriePicture,
   Image,
+  Like,
   User,
 } from '@src/db/models';
 
@@ -18,8 +19,12 @@ import {
   createUser,
   deleteGaleriesIdFrameId,
   login,
-  postGaleriesIdFrames,
   postGalerie,
+  postGaleriesIdFrames,
+  postGaleriesIdFramesIdLikes,
+  postGaleriesIdInvitations,
+  postGaleriesSubscribe,
+  putGaleriesIdUsersId,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -76,7 +81,7 @@ describe('/galeries', () => {
     done();
   });
 
-  describe('/:id', () => {
+  describe('/:galerieId', () => {
     describe('/frames', () => {
       describe('/:frameId', () => {
         describe('DELETE', () => {
@@ -125,11 +130,150 @@ describe('/galeries', () => {
               expect(images.length).toBe(0);
               expect(status).toBe(200);
             });
-            it('TODO: should destroy all likes', async () => {});
+            it('should destroy all likes', async () => {
+              const {
+                body: {
+                  data: {
+                    frame: {
+                      id: frameId,
+                    },
+                  },
+                },
+              } = await postGaleriesIdFrames(app, token, galerieId);
+              await postGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+              await deleteGaleriesIdFrameId(app, token, galerieId, frameId);
+              const like = await Like.findOne({
+                where: {
+                  frameId,
+                },
+              });
+              expect(like).toBeNull();
+            });
+            it('should destroy frame if it\'s not posted by current user but it\'s role is \'creator\'', async () => {
+              const userTwo = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              const {
+                body: {
+                  token: tokenTwo,
+                },
+              } = await login(app, userTwo.email, userPassword);
+              const {
+                body: {
+                  data: {
+                    invitation: {
+                      code,
+                    },
+                  },
+                },
+              } = await postGaleriesIdInvitations(app, token, galerieId, {});
+              await postGaleriesSubscribe(app, tokenTwo, { code });
+              const {
+                body: {
+                  data: {
+                    frame: {
+                      id: frameId,
+                    },
+                  },
+                },
+              } = await postGaleriesIdFrames(app, tokenTwo, galerieId);
+              await deleteGaleriesIdFrameId(app, token, galerieId, frameId);
+              const frame = await Frame.findByPk(galerieId);
+              expect(frame).toBeNull();
+            });
+            it('should destroy frame if it\'s not posted by current user but it\'s role is \'admin\'', async () => {
+              const userTwo = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              const userThree = await createUser({
+                email: 'user3@email.com',
+                userName: 'user3',
+              });
+              const {
+                body: {
+                  token: tokenTwo,
+                },
+              } = await login(app, userTwo.email, userPassword);
+              const {
+                body: {
+                  token: tokenThree,
+                },
+              } = await login(app, userThree.email, userPassword);
+              const {
+                body: {
+                  data: {
+                    invitation: {
+                      code,
+                    },
+                  },
+                },
+              } = await postGaleriesIdInvitations(app, token, galerieId, {});
+              await postGaleriesSubscribe(app, tokenTwo, { code });
+              await postGaleriesSubscribe(app, tokenThree, { code });
+              const {
+                body: {
+                  data: {
+                    frame: {
+                      id: frameId,
+                    },
+                  },
+                },
+              } = await postGaleriesIdFrames(app, tokenTwo, galerieId);
+              await putGaleriesIdUsersId(app, token, galerieId, userThree.id);
+              await deleteGaleriesIdFrameId(app, tokenThree, galerieId, frameId);
+              const frame = await Frame.findByPk(galerieId);
+              expect(frame).toBeNull();
+            });
           });
           describe('it should return error 400', () => {
-            it('TODO: frame is not upload by this user', async () => {});
-            it('TODO: user\'s role is \'user\'', async () => {});
+            it('user\'s role is \'user\'', async () => {
+              const userTwo = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              const userThree = await createUser({
+                email: 'user3@email.com',
+                userName: 'user3',
+              });
+              const {
+                body: {
+                  token: tokenTwo,
+                },
+              } = await login(app, userTwo.email, userPassword);
+              const {
+                body: {
+                  token: tokenThree,
+                },
+              } = await login(app, userThree.email, userPassword);
+              const {
+                body: {
+                  data: {
+                    invitation: {
+                      code,
+                    },
+                  },
+                },
+              } = await postGaleriesIdInvitations(app, token, galerieId, {});
+              await postGaleriesSubscribe(app, tokenTwo, { code });
+              await postGaleriesSubscribe(app, tokenThree, { code });
+              const {
+                body: {
+                  data: {
+                    frame: {
+                      id: frameId,
+                    },
+                  },
+                },
+              } = await postGaleriesIdFrames(app, tokenTwo, galerieId);
+              const {
+                body,
+                status,
+              } = await deleteGaleriesIdFrameId(app, tokenThree, galerieId, frameId);
+              expect(body.errors).toBe('your not allow to delete this frame');
+              expect(status).toBe(400);
+            });
           });
           describe('it should return error 404', () => {
             it('galerie not found', async () => {

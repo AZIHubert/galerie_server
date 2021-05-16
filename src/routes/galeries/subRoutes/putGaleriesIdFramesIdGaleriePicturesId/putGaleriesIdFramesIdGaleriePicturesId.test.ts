@@ -11,10 +11,14 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
+  deleteUser,
   login,
   postGalerie,
   postGaleriesIdFrames,
+  postGaleriesIdInvitations,
+  postGaleriesSubscribe,
   putGaleriesIdFramesIdGaleriePicturesId,
+  putGaleriesIdUsersId,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -72,7 +76,7 @@ describe('/galeries', () => {
     done();
   });
 
-  describe('/:id', () => {
+  describe('/:galerieId', () => {
     describe('/frames', () => {
       describe('/:frameId', () => {
         describe('/galeriePictures', () => {
@@ -206,7 +210,92 @@ describe('/galeries', () => {
                 });
               });
               describe('should return status 400 if', () => {
-                it('TODO: user\'s role is \'user\'', async () => {});
+                it('user\'s role is \'user\'', async () => {
+                  const userTwo = await createUser({
+                    email: 'user2@email.com',
+                    userName: 'user2',
+                  });
+                  const {
+                    body: {
+                      token: tokenTwo,
+                    },
+                  } = await login(app, userTwo.email, userPassword);
+                  const {
+                    body: {
+                      data: {
+                        invitation: {
+                          code,
+                        },
+                      },
+                    },
+                  } = await postGaleriesIdInvitations(app, token, galerieId, {});
+                  await postGaleriesSubscribe(app, tokenTwo, { code });
+                  const {
+                    body: {
+                      data: {
+                        frame,
+                      },
+                    },
+                  } = await postGaleriesIdFrames(app, token, galerieId);
+                  const {
+                    body,
+                    status,
+                  } = await putGaleriesIdFramesIdGaleriePicturesId(
+                    app,
+                    tokenTwo,
+                    galerieId,
+                    frame.id,
+                    frame.galeriePictures[0].id,
+                  );
+                  expect(body.errors).toBe('your\'re not allow to update this frame');
+                  expect(status).toBe(400);
+                });
+                it('galerie is archived', async () => {
+                  const userTwo = await createUser({
+                    email: 'user2@email.com',
+                    userName: 'user2',
+                  });
+                  const {
+                    body: {
+                      token: tokenTwo,
+                    },
+                  } = await login(app, userTwo.email, userPassword);
+                  const {
+                    body: {
+                      data: {
+                        invitation: {
+                          code,
+                        },
+                      },
+                    },
+                  } = await postGaleriesIdInvitations(app, token, galerieId, {});
+                  await postGaleriesSubscribe(app, tokenTwo, { code });
+                  const {
+                    body: {
+                      data: {
+                        frame,
+                      },
+                    },
+                  } = await postGaleriesIdFrames(app, token, galerieId);
+                  await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
+                  await deleteUser(app, token, {
+                    deleteAccountSentence: 'delete my account',
+                    password: userPassword,
+                    userNameOrEmail: user.email,
+                  });
+                  const {
+                    body,
+                    status,
+                  } = await putGaleriesIdFramesIdGaleriePicturesId(
+                    app,
+                    tokenTwo,
+                    galerieId,
+                    frame.id,
+                    frame.galeriePictures[0].id,
+                  );
+                  expect(body.errors).toBe('you cannot update an archived galerie');
+                  expect(status).toBe(400);
+                });
               });
               describe('should return status 404 if', () => {
                 it('galerie doesn\'t exist', async () => {

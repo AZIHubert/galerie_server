@@ -1,11 +1,12 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 import { customAlphabet } from 'nanoid';
 
 import {
   Galerie,
-  Image,
   Invitation,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
@@ -13,14 +14,14 @@ import {
   normalizeJoiErrors,
   validatePostGaleriesIdInvationsBody,
 } from '@src/helpers/schemas';
-import signedUrl from '@src/helpers/signedUrl';
+import fetchCurrentProfilePicture from '@root/src/helpers/fetchCurrentProfilePicture';
 
 export default async (req: Request, res: Response) => {
-  const { id: galerieId } = req.params;
+  const { galerieId } = req.params;
   const user = req.user as User;
+  let currentProfilePicture;
   let galerie: Galerie | null;
   let invitation: Invitation | null;
-  let returnedCurrentProfilePicture = null;
 
   // Fetch galerie.
   try {
@@ -46,7 +47,7 @@ export default async (req: Request, res: Response) => {
   // Check if galerie is not archived.
   if (galerie.archived) {
     return res.status(400).send({
-      errors: 'you cannot post on an archived galerie',
+      errors: 'you cannot post invitation on an archived galerie',
     });
   }
 
@@ -58,7 +59,7 @@ export default async (req: Request, res: Response) => {
     .GalerieUser;
   if (role === 'user') {
     return res.status(400).send({
-      errors: 'not allow to create an invit',
+      errors: 'you\'re not allow to create an invitation',
     });
   }
 
@@ -87,110 +88,7 @@ export default async (req: Request, res: Response) => {
 
   // Fetch current profile picture.
   try {
-    const currentProfilePicture = await ProfilePicture.findOne({
-      attributes: {
-        exclude: [
-          'createdAt',
-          'cropedImageId',
-          'current',
-          'originalImageId',
-          'pendingImageId',
-          'updatedAt',
-          'userId',
-        ],
-      },
-      include: [
-        {
-          as: 'cropedImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'id',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-        {
-          as: 'originalImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'id',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-        {
-          as: 'pendingImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'id',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-      ],
-      where: {
-        userId: user.id,
-        current: true,
-      },
-    });
-
-    // If current profile picture exist,
-    // Fetch signed URLs.
-    if (currentProfilePicture) {
-      const {
-        cropedImage: {
-          bucketName: cropedImageBucketName,
-          fileName: cropedImageFileName,
-        },
-        originalImage: {
-          bucketName: originalImageBucketName,
-          fileName: originalImageFileName,
-        },
-        pendingImage: {
-          bucketName: pendingImageBucketName,
-          fileName: pendingImageFileName,
-        },
-      } = currentProfilePicture;
-      const cropedImageSignedUrl = await signedUrl(
-        cropedImageBucketName,
-        cropedImageFileName,
-      );
-      const originalImageSignedUrl = await signedUrl(
-        originalImageBucketName,
-        originalImageFileName,
-      );
-      const pendingImageSignedUrl = await signedUrl(
-        pendingImageBucketName,
-        pendingImageFileName,
-      );
-      returnedCurrentProfilePicture = {
-        ...currentProfilePicture.toJSON(),
-        cropedImage: {
-          ...currentProfilePicture.cropedImage.toJSON(),
-          bucketName: undefined,
-          fileName: undefined,
-          signedUrl: cropedImageSignedUrl,
-        },
-        originalImage: {
-          ...currentProfilePicture.originalImage.toJSON(),
-          bucketName: undefined,
-          fileName: undefined,
-          signedUrl: originalImageSignedUrl,
-        },
-        pendingImage: {
-          ...currentProfilePicture.pendingImage.toJSON(),
-          bucketName: undefined,
-          fileName: undefined,
-          signedUrl: pendingImageSignedUrl,
-        },
-      };
-    }
+    currentProfilePicture = await fetchCurrentProfilePicture(user);
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -206,7 +104,7 @@ export default async (req: Request, res: Response) => {
       confirmed: undefined,
       confirmTokenVersion: undefined,
       createdAt: undefined,
-      currentProfilePicture: returnedCurrentProfilePicture,
+      currentProfilePicture,
       email: undefined,
       emailTokenVersion: undefined,
       facebookId: undefined,

@@ -7,9 +7,11 @@ import {
   Frame,
   Galerie,
   GaleriePicture,
+  GalerieUser,
   Image,
-  User,
   Invitation,
+  Like,
+  User,
 } from '@src/db/models';
 
 import {
@@ -28,7 +30,10 @@ import {
   login,
   postGalerie,
   postGaleriesIdFrames,
+  postGaleriesIdFramesIdLikes,
   postGaleriesIdInvitations,
+  postGaleriesSubscribe,
+  putGaleriesIdUsersId,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -74,11 +79,11 @@ describe('/galeries', () => {
     done();
   });
 
-  describe('/:id', () => {
+  describe('/:galerieId', () => {
     describe('DELETE', () => {
       describe('should return status 200 and', () => {
-        let galerieId: string;
         const name = 'galerie\'s name';
+        let galerieId: string;
         beforeEach(async (done) => {
           try {
             const {
@@ -171,12 +176,132 @@ describe('/galeries', () => {
           });
           expect(invitations.length).toBe(0);
         });
-        it('TODO: destroy likes', async () => {});
-        it('TODO: destroy GalerieUser models', async () => {});
+        it('destroy likes', async () => {
+          const {
+            body: {
+              data: {
+                frame,
+              },
+            },
+          } = await postGaleriesIdFrames(app, token, galerieId);
+          await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+          await deleteGalerieId(app, token, galerieId, {
+            name,
+            password: userPassword,
+          });
+          const likes = await Like.findAll();
+          expect(likes.length).toBe(0);
+        });
+        it('destroy GalerieUser models', async () => {
+          const userTwo = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await login(app, userTwo.email, userPassword);
+          const {
+            body: {
+              data: {
+                invitation: {
+                  code,
+                },
+              },
+            },
+          } = await postGaleriesIdInvitations(app, token, galerieId, {});
+          await postGaleriesSubscribe(app, tokenTwo, { code });
+          await deleteGalerieId(app, token, galerieId, {
+            name,
+            password: userPassword,
+          });
+          const galerieUsers = await GalerieUser.findAll();
+          expect(galerieUsers.length).toBe(0);
+        });
       });
       describe('should return error 400 if', () => {
-        it('TODO: user\'s role is user', async () => {});
-        it('TODO: user\'s role is admin', async () => {});
+        it('user\'s role is user', async () => {
+          const name = 'galerie\'s name';
+          const {
+            body: {
+              data: {
+                galerie,
+              },
+            },
+          } = await postGalerie(app, token, {
+            name,
+          });
+          const userTwo = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await login(app, userTwo.email, userPassword);
+          const {
+            body: {
+              data: {
+                invitation: {
+                  code,
+                },
+              },
+            },
+          } = await postGaleriesIdInvitations(app, token, galerie.id, {});
+          await postGaleriesSubscribe(app, tokenTwo, { code });
+          const {
+            body,
+            status,
+          } = await deleteGalerieId(app, tokenTwo, galerie.id, {
+            name,
+            password: userPassword,
+          });
+          expect(body.errors).toBe('not allow to delete this galerie');
+          expect(status).toBe(400);
+        });
+        it('user\'s role is admin', async () => {
+          const name = 'galerie\'s name';
+          const {
+            body: {
+              data: {
+                galerie,
+              },
+            },
+          } = await postGalerie(app, token, {
+            name,
+          });
+          const userTwo = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await login(app, userTwo.email, userPassword);
+          const {
+            body: {
+              data: {
+                invitation: {
+                  code,
+                },
+              },
+            },
+          } = await postGaleriesIdInvitations(app, token, galerie.id, {});
+          await postGaleriesSubscribe(app, tokenTwo, { code });
+          await putGaleriesIdUsersId(app, token, galerie.id, userTwo.id);
+          const {
+            body,
+            status,
+          } = await deleteGalerieId(app, tokenTwo, galerie.id, {
+            name,
+            password: userPassword,
+          });
+          expect(body.errors).toBe('not allow to delete this galerie');
+          expect(status).toBe(400);
+        });
         describe('name', () => {
           let galerieId: string;
           const name = 'galerie\'s name';

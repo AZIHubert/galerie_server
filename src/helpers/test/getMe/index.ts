@@ -6,7 +6,7 @@ export default async (
   token: string,
 ) => {
   const response = await request(app)
-    .get('/users/me')
+    .get('/users/me/')
     .set('authorization', token);
   return response;
 };

@@ -9,7 +9,6 @@ export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 
-export { default as postUsersBlacklistId } from './postUsersBlacklistId';
 export { default as postUsersConfirmation } from './postUsersConfirmation';
 export { default as postUsersLogin } from './postUsersLogin';
 export { default as postUsersLoginSocialMedia } from './postUsersLoginSocialMedia';

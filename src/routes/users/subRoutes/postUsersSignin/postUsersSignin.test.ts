@@ -105,7 +105,7 @@ describe('/users', () => {
           expect(user.emailTokenVersion).toBeUndefined();
           expect(user.facebookId).toBeUndefined();
           expect(user.googleId).toBeUndefined();
-          expect(user.id).toBeTruthy();
+          expect(user.id).not.toBeUndefined();
           expect(user.password).toBeUndefined();
           expect(user.pseudonym).toBe(userName);
           expect(user.resetPasswordTokenVersion).toBeUndefined();

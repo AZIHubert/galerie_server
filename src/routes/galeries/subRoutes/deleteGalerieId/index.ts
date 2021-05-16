@@ -24,7 +24,7 @@ import {
 } from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
-  const { id: galerieId } = req.params;
+  const { galerieId } = req.params;
   const {
     id: userId,
     password,
@@ -32,7 +32,7 @@ export default async (req: Request, res: Response) => {
   let galerie: Galerie | null;
   let passwordsMatch: boolean;
 
-  // Find galerie.
+  // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
       include: [
@@ -56,6 +56,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if galerie exist.
   if (!galerie) {
     return res.status(404).send({
       errors: 'galerie not found',
@@ -104,6 +106,8 @@ export default async (req: Request, res: Response) => {
     return res.status(400).send({ errors });
   }
 
+  // Destroy all frames/galerieImages/images
+  // /images from Google Buckets/likes.
   try {
     await Promise.all(
       galerie.frames.map(async (frame) => {
@@ -114,59 +118,75 @@ export default async (req: Request, res: Response) => {
         });
 
         await Promise.all(
-          frame.galeriePictures.map(async (galeriePicture) => {
-            await galeriePicture.destroy();
-            const {
-              originalImage,
-              cropedImage,
-              pendingImage,
-            } = galeriePicture;
+          frame.galeriePictures.map(
+            async (galeriePicture) => {
+              const {
+                originalImage,
+                cropedImage,
+                pendingImage,
+              } = galeriePicture;
 
-            await Image.destroy({
-              where: {
-                [Op.or]: [
-                  {
-                    id: cropedImage.id,
-                  },
-                  {
-                    id: originalImage.id,
-                  },
-                  {
-                    id: pendingImage.id,
-                  },
-                ],
-              },
-            });
+              await Image.destroy({
+                where: {
+                  [Op.or]: [
+                    {
+                      id: cropedImage.id,
+                    },
+                    {
+                      id: originalImage.id,
+                    },
+                    {
+                      id: pendingImage.id,
+                    },
+                  ],
+                },
+              });
 
-            await gc
-              .bucket(originalImage.bucketName)
-              .file(originalImage.fileName)
-              .delete();
-            await gc
-              .bucket(cropedImage.bucketName)
-              .file(cropedImage.fileName)
-              .delete();
-            await gc
-              .bucket(pendingImage.bucketName)
-              .file(pendingImage.fileName)
-              .delete();
-          }),
+              await gc
+                .bucket(originalImage.bucketName)
+                .file(originalImage.fileName)
+                .delete();
+              await gc
+                .bucket(cropedImage.bucketName)
+                .file(cropedImage.fileName)
+                .delete();
+              await gc
+                .bucket(pendingImage.bucketName)
+                .file(pendingImage.fileName)
+                .delete();
+            },
+          ),
         );
       }),
     );
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
+  // Destroy all invitations.
+  try {
     await Invitation.destroy({
       where: {
         galerieId: galerie.id,
       },
     });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
+  // Destroy all galerieUsers.
+  try {
     await GalerieUser.destroy({
       where: {
         galerieId: galerie.id,
       },
     });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
+  // Destroy galerie.
+  try {
     await galerie.destroy();
   } catch (err) {
     return res.status(500).send(err);

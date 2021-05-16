@@ -72,7 +72,7 @@ describe('/galeries', () => {
     done();
   });
 
-  describe('/:id', () => {
+  describe('/:galerieId', () => {
     describe('/users', () => {
       describe('/:userId', () => {
         describe('PUT', () => {
@@ -161,7 +161,7 @@ describe('/galeries', () => {
                   },
                 },
               } = await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
-              expect(currentProfilePicture.createdAt).toBeUndefined();
+              expect(currentProfilePicture.createdAt).not.toBeUndefined();
               expect(currentProfilePicture.cropedImageId).toBeUndefined();
               expect(currentProfilePicture.cropedImage.bucketName).toBeUndefined();
               expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
@@ -200,6 +200,7 @@ describe('/galeries', () => {
               expect(currentProfilePicture.updatedAt).toBeUndefined();
               expect(currentProfilePicture.userId).toBeUndefined();
             });
+            it('TODO: return user.isBlackListed if user is black listed', async () => {});
           });
           describe('should return status 400 if', () => {
             it('userId and current user id are the same', async () => {

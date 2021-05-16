@@ -11,6 +11,7 @@ import accEnv from '@src/helpers/accEnv';
 import passport from '@src/helpers/passport';
 import initSequelize from '@src/helpers/initSequelize.js';
 
+import blackListsRouter from '@src/routes/blackLists';
 import usersRouter from '@src/routes/users';
 import notificationsRouter from '@src/routes/notifications';
 import profilePicturesRouter from '@src/routes/profilePictures';
@@ -70,6 +71,7 @@ const initApp: () => http.Server = () => {
     }),
   );
 
+  app.unsubscribe('/blackList', blackListsRouter());
   app.use('/galeries', galeriesRouter());
   app.use('/notifications', notificationsRouter());
   app.use('/profilePictures', profilePicturesRouter());

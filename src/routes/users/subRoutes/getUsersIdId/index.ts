@@ -3,25 +3,23 @@ import {
   Response,
 } from 'express';
 
-import {
-  BlackList,
-  Image,
-  ProfilePicture,
-  User,
-} from '@src/db/models';
+import { User } from '@src/db/models';
 
+import checkBlackList from '@src/helpers/checkBlackList';
 import { USER_NOT_FOUND } from '@src/helpers/errorMessages';
-import signedUrl from '@src/helpers/signedUrl';
+import { userExcluder } from '@src/helpers/excluders';
+import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 
 export default async (req: Request, res: Response) => {
-  let currentProfilePicture: ProfilePicture | null;
-  const { id } = req.params;
-  const { id: userId } = req.user as User;
+  const { userId } = req.params;
+  const currentUser = req.user as User;
+  let currentProfilePicture;
   let user: User | null;
+  let userIsBlackListed: boolean;
 
   // Don't allow to fetch current user.
   // To do that, use GET /users/me instead.
-  if (id === userId) {
+  if (userId === currentUser.id) {
     return res.status(400).send({
       errors: 'params.id cannot be the same as your current one',
     });
@@ -31,128 +29,39 @@ export default async (req: Request, res: Response) => {
   try {
     user = await User.findOne({
       attributes: {
-        exclude: [
-          'authTokenVersion',
-          'confirmed',
-          'confirmTokenVersion',
-          'emailTokenVersion',
-          'email',
-          'facebookId',
-          'googleId',
-          'password',
-          'resetPasswordTokenVersion',
-          'updatedEmailTokenVersion',
-        ],
+        exclude: userExcluder,
       },
-      include: [
-        {
-          as: 'blackList',
-          model: BlackList,
-        },
-      ],
       where: {
-        $blackList$: null,
         confirmed: true,
-        id,
+        id: userId,
       },
     });
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if user exist.
   if (!user) {
     return res.status(404).send({
       errors: USER_NOT_FOUND,
     });
   }
 
+  // Check if user is black listed.
+  try {
+    userIsBlackListed = await checkBlackList(user);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  if (userIsBlackListed) {
+    return res.status(404).send({
+      errors: 'user is black listed',
+    });
+  }
+
   // Fetch current profile picture
   try {
-    currentProfilePicture = await ProfilePicture.findOne({
-      attributes: {
-        exclude: [
-          'createdAt',
-          'cropedImageId',
-          'current',
-          'originalImageId',
-          'pendingImageId',
-          'updatedAt',
-          'userId',
-        ],
-      },
-      include: [
-        {
-          as: 'cropedImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-        {
-          as: 'originalImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-        {
-          as: 'pendingImage',
-          attributes: {
-            exclude: [
-              'createdAt',
-              'updatedAt',
-            ],
-          },
-          model: Image,
-        },
-      ],
-      where: {
-        current: true,
-        userId: user.id,
-      },
-    });
-    if (currentProfilePicture) {
-      const {
-        cropedImage: {
-          bucketName: cropedImageBucketName,
-          fileName: cropedImageFileName,
-        },
-        originalImage: {
-          bucketName: originalImageBucketName,
-          fileName: originalImageFileName,
-        },
-        pendingImage: {
-          bucketName: pendingImageBucketName,
-          fileName: pendingImageFileName,
-        },
-      } = currentProfilePicture;
-      const cropedImageSignedUrl = await signedUrl(
-        cropedImageBucketName,
-        cropedImageFileName,
-      );
-      const originalImageSignedUrl = await signedUrl(
-        originalImageBucketName,
-        originalImageFileName,
-      );
-      const pendingImageSignedUrl = await signedUrl(
-        pendingImageBucketName,
-        pendingImageFileName,
-      );
-      currentProfilePicture
-        .cropedImage
-        .signedUrl = cropedImageSignedUrl;
-      currentProfilePicture
-        .originalImage
-        .signedUrl = originalImageSignedUrl;
-      currentProfilePicture
-        .pendingImage
-        .signedUrl = pendingImageSignedUrl;
-    }
+    currentProfilePicture = await fetchCurrentProfilePicture(user);
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -160,11 +69,9 @@ export default async (req: Request, res: Response) => {
   // Compose final returned user.
   const userWithProfilePicture: any = {
     ...user.toJSON(),
-    currentProfilePicture: currentProfilePicture
-      ? currentProfilePicture.toJSON()
-      : undefined,
+    currentProfilePicture,
   };
-  delete userWithProfilePicture.blackList;
+
   return res.status(200).send({
     action: 'GET',
     data: {

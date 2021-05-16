@@ -117,7 +117,6 @@ describe('/users', () => {
               id,
               pseudonym,
               role,
-              updatedAt,
               userName,
             } = await createUser({
               email: 'user2@email.com',
@@ -146,7 +145,7 @@ describe('/users', () => {
             expect(returnedUser.resetPasswordTokenVersion).toBeUndefined();
             expect(returnedUser.role).toEqual(role);
             expect(returnedUser.updatedEmailTokenVersion).toBeUndefined();
-            expect(new Date(returnedUser.updatedAt)).toEqual(updatedAt);
+            expect(returnedUser.updatedAt).toBeUndefined();
             expect(returnedUser.userName).toEqual(userName);
           });
           it('should return a pack of 20 users', async () => {
@@ -206,15 +205,7 @@ describe('/users', () => {
                 token: tokenTwo,
               },
             } = await login(app, email, userPassword);
-            const {
-              body: {
-                data: {
-                  profilePicture: {
-                    id,
-                  },
-                },
-              },
-            } = await postProfilePicture(app, tokenTwo);
+            await postProfilePicture(app, tokenTwo);
             const {
               body: {
                 data: {
@@ -224,23 +215,44 @@ describe('/users', () => {
                 },
               },
             } = await getUsersUserName(app, token, userName);
-            expect(currentProfilePicture.createdAt).toBeUndefined();
+            expect(currentProfilePicture.createdAt).not.toBeUndefined();
             expect(currentProfilePicture.cropedImageId).toBeUndefined();
+            expect(currentProfilePicture.cropedImage.bucketName).toBeUndefined();
+            expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
+            expect(currentProfilePicture.cropedImage.fileName).toBeUndefined();
+            expect(currentProfilePicture.cropedImage.format).not.toBeUndefined();
+            expect(currentProfilePicture.cropedImage.height).not.toBeUndefined();
+            expect(currentProfilePicture.cropedImage.id).toBeUndefined();
+            expect(currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
+            expect(currentProfilePicture.cropedImage.size).not.toBeUndefined();
+            expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
+            expect(currentProfilePicture.cropedImage.width).not.toBeUndefined();
             expect(currentProfilePicture.current).toBeUndefined();
-            expect(currentProfilePicture.id).toEqual(id);
+            expect(currentProfilePicture.id).not.toBeUndefined();
             expect(currentProfilePicture.originalImageId).toBeUndefined();
+            expect(currentProfilePicture.originalImage.bucketName).toBeUndefined();
+            expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
+            expect(currentProfilePicture.originalImage.fileName).toBeUndefined();
+            expect(currentProfilePicture.originalImage.format).not.toBeUndefined();
+            expect(currentProfilePicture.originalImage.height).not.toBeUndefined();
+            expect(currentProfilePicture.originalImage.id).toBeUndefined();
+            expect(currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
+            expect(currentProfilePicture.originalImage.size).not.toBeUndefined();
+            expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
+            expect(currentProfilePicture.originalImage.width).not.toBeUndefined();
             expect(currentProfilePicture.pendingImageId).toBeUndefined();
+            expect(currentProfilePicture.pendingImage.bucketName).toBeUndefined();
+            expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
+            expect(currentProfilePicture.pendingImage.fileName).toBeUndefined();
+            expect(currentProfilePicture.pendingImage.format).not.toBeUndefined();
+            expect(currentProfilePicture.pendingImage.height).not.toBeUndefined();
+            expect(currentProfilePicture.pendingImage.id).toBeUndefined();
+            expect(currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
+            expect(currentProfilePicture.pendingImage.size).not.toBeUndefined();
+            expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
+            expect(currentProfilePicture.pendingImage.width).not.toBeUndefined();
             expect(currentProfilePicture.updatedAt).toBeUndefined();
             expect(currentProfilePicture.userId).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.signedUrl).toBeTruthy();
-            expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.originalImage.signedUrl).toBeTruthy();
-            expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
-            expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.signedUrl).toBeTruthy();
-            expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
           });
         });
       });

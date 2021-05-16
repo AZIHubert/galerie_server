@@ -63,7 +63,7 @@ describe('/profilePictures', () => {
     done();
   });
 
-  describe('/:id', () => {
+  describe('/:profilePictureId', () => {
     describe('DELETE', () => {
       describe('should return status 200 and', () => {
         it('return action type/profile picture\'id and delete profile picture/image and all images from Google buckets', async () => {

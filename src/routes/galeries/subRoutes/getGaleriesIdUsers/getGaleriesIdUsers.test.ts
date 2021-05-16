@@ -124,7 +124,7 @@ describe('galeries', () => {
           expect(users[0].authTokenVersion).toBeUndefined();
           expect(users[0].confirmed).toBeUndefined();
           expect(users[0].confirmTokenVersion).toBeUndefined();
-          expect(users[0].createdAt).toBeUndefined();
+          expect(users[0].createdAt).not.toBeUndefined();
           expect(users[0].currentProfilePicture).not.toBeUndefined();
           expect(users[0].defaultProfilePicture).not.toBeUndefined();
           expect(users[0].email).toBeUndefined();
@@ -173,7 +173,7 @@ describe('galeries', () => {
               },
             },
           } = await getGaleriesIdUsers(app, token, galerieId);
-          expect(users[0].currentProfilePicture.createdAt).toBeUndefined();
+          expect(users[0].currentProfilePicture.createdAt).not.toBeUndefined();
           expect(users[0].currentProfilePicture.cropedImageId).toBeUndefined();
           expect(users[0].currentProfilePicture.cropedImage.bucketName).toBeUndefined();
           expect(users[0].currentProfilePicture.cropedImage.createdAt).toBeUndefined();
@@ -226,6 +226,11 @@ describe('galeries', () => {
           } = await getGaleriesIdUsers(app, token, galerieId);
           expect(users.length).toBe(0);
         });
+        it('TODO: don\'t return user if he\'s black listed and current user role for this galerie is \'user\'', async () => {});
+        it('TODO: return user if he\'s black listed and current user role for this galerie is \'admin\'', async () => {});
+        it('TODO: return user if he\'s black listed and current user role for this galerie is \'creator\'', async () => {});
+        it('TODO: return user if he\'s black list and current user role for this galerie is \'user\' and role is \'admin\'', async () => {});
+        it('TODO: return user if he\'s black list and current user role for this galerie is \'user\' and role is \'superAdmin\'', async () => {});
       });
       describe('should return error 404 if', () => {
         it('galerie doesn\'t exist', async () => {

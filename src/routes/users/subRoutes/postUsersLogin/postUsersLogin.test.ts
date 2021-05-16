@@ -65,7 +65,7 @@ describe('/users', () => {
             userPassword,
           );
           expect(body.expiresIn).toBe(1800);
-          expect(body.token).toBeTruthy();
+          expect(body.token).not.toBeUndefined();
           expect(status).toBe(200);
         });
         it('trim request body.userNameOrEmail', async () => {

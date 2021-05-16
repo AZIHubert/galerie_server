@@ -73,7 +73,7 @@ describe('/galerie', () => {
     done();
   });
 
-  describe('/:id', () => {
+  describe('/:galerieId', () => {
     describe('/frames', () => {
       describe('/:frameId', () => {
         describe('/likes', () => {
@@ -114,7 +114,7 @@ describe('/galerie', () => {
                 expect(action).toBe('POST');
                 expect(like).not.toBeNull();
                 expect(numOfLikes).toBe(frame.numOfLikes + 1);
-                expect(returnedFrameId).toBe(frame.id);
+                expect(returnedFrameId).toBe(frame.id.toString());
                 expect(returnedGalerieId).toBe(galerieId);
                 expect(status).toBe(200);
               });

@@ -1,4 +1,7 @@
-import { Request, Response } from 'express';
+import {
+  Request,
+  Response,
+} from 'express';
 
 import {
   Galerie,
@@ -11,11 +14,11 @@ import {
 } from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
+  const { galerieId } = req.params;
   const { id: userId } = req.user as User;
-  const { id: galerieId } = req.params;
   let galerie: Galerie | null;
 
-  // Find galerie.
+  // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
       include: [{
@@ -28,6 +31,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if galerie exist.
   if (!galerie) {
     return res.status(404).send({
       errors: 'galerie not found',
@@ -50,10 +55,11 @@ export default async (req: Request, res: Response) => {
     role === 'user'
   ) {
     return res.status(400).send({
-      errors: 'not allow to update this galerie',
+      errors: 'you\'re not allow to update this galerie',
     });
   }
 
+  // Validate request.body.
   const {
     error,
     value,
@@ -73,7 +79,7 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'PUT',
     data: {
-      id: galerie.id,
+      galerieId: galerie.id,
       name: galerie.name,
     },
   });

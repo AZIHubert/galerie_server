@@ -14,6 +14,9 @@ import {
   postGalerie,
   postGaleriesIdInvitations,
   postProfilePicture,
+  postGaleriesSubscribe,
+  putGaleriesIdUsersId,
+  postBlackListUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -36,7 +39,9 @@ describe('/galeries', () => {
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
-      user = await createUser({});
+      user = await createUser({
+        role: 'superAdmin',
+      });
       const { body } = await login(app, user.email, userPassword);
       token = body.token;
       const {
@@ -108,7 +113,7 @@ describe('/galeries', () => {
             expect(invitations[0].updatedAt).toBeUndefined();
             expect(invitations[0].user.authTokenVersion).toBeUndefined();
             expect(invitations[0].user.confirmed).toBeUndefined();
-            expect(invitations[0].user.createdAt).toBeUndefined();
+            expect(invitations[0].user.createdAt).not.toBeUndefined();
             expect(invitations[0].user.confirmTokenVersion).toBeUndefined();
             expect(invitations[0].user.currentProfilePicture).not.toBeUndefined();
             expect(invitations[0].user.defaultProfilePicture).not.toBeUndefined();
@@ -158,7 +163,7 @@ describe('/galeries', () => {
                 },
               },
             } = await getGaleriesIdInvitations(app, token, galerieId);
-            expect(invitations[0].user.currentProfilePicture.createdAt).toBeUndefined();
+            expect(invitations[0].user.currentProfilePicture.createdAt).not.toBeUndefined();
             expect(invitations[0].user.currentProfilePicture.cropedImageId).toBeUndefined();
             expect(invitations[0].user.currentProfilePicture.cropedImage.bucketName)
               .toBeUndefined();
@@ -217,10 +222,71 @@ describe('/galeries', () => {
             expect(invitations[0].user.currentProfilePicture.updatedAt).toBeUndefined();
             expect(invitations[0].user.currentProfilePicture.userId).toBeUndefined();
           });
-          it('TODO: return invitation.user === null if user is black listed', async () => {});
+          it('return invitation.user === null if user is black listed', async () => {
+            const userTwo = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            const {
+              body: {
+                token: tokenTwo,
+              },
+            } = await login(app, userTwo.email, userPassword);
+            const {
+              body: {
+                data: {
+                  invitation: {
+                    code,
+                  },
+                },
+              },
+            } = await postGaleriesIdInvitations(app, token, galerieId, {});
+            await postGaleriesSubscribe(app, tokenTwo, { code });
+            await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
+            await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+            await postBlackListUser(app, token, userTwo.id, {
+              reason: 'black list reason',
+            });
+            const {
+              body: {
+                data: {
+                  invitations: [{
+                    user: invitationUser,
+                  }],
+                },
+              },
+            } = await getGaleriesIdInvitations(app, token, galerieId);
+            expect(invitationUser).toBeNull();
+          });
         });
         describe('should return error 400 if', () => {
-          it('TODO: user\'s role for this galerie is \'user\'', async () => {});
+          it('user\'s role for this galerie is \'user\'', async () => {
+            const userTwo = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            const {
+              body: {
+                token: tokenTwo,
+              },
+            } = await login(app, userTwo.email, userPassword);
+            const {
+              body: {
+                data: {
+                  invitation: {
+                    code,
+                  },
+                },
+              },
+            } = await postGaleriesIdInvitations(app, token, galerieId, {});
+            await postGaleriesSubscribe(app, tokenTwo, { code });
+            const {
+              body,
+              status,
+            } = await getGaleriesIdInvitations(app, tokenTwo, galerieId);
+            expect(body.errors).toBe('you\'re not allow to fetch the invitations');
+            expect(status).toBe(400);
+          });
         });
         describe('should return error 404 if', () => {
           it('galerie not found', async () => {

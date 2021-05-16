@@ -63,7 +63,7 @@ export default class Galerie extends Model implements GalerieI {
   name!: string;
 
   @BelongsToMany(() => User, () => GalerieUser)
-  users!: User[];
+  users!: Array<User & {galerieUser: GalerieUser}>;
 
   @HasMany(() => Frame)
   frames!: Frame[];
