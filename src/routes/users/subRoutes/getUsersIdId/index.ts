@@ -53,6 +53,10 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // TODO:
+  // If currentUser.role === 'admin' || 'superAdmin'
+  // include blackList user with a field user.isBlackListed.
   if (userIsBlackListed) {
     return res.status(404).send({
       errors: 'user is black listed',

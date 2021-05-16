@@ -97,13 +97,11 @@ export default async (req: Request, res: Response) => {
     ...invitation.toJSON(),
     galerieId: undefined,
     updatedAt: undefined,
-    userId: undefined,
     user: {
       ...user.toJSON(),
       authTokenVersion: undefined,
       confirmed: undefined,
       confirmTokenVersion: undefined,
-      createdAt: undefined,
       currentProfilePicture,
       email: undefined,
       emailTokenVersion: undefined,
@@ -114,6 +112,7 @@ export default async (req: Request, res: Response) => {
       updatedAt: undefined,
       updatedEmailTokenVersion: undefined,
     },
+    userId: undefined,
   };
 
   return res.status(200).send({

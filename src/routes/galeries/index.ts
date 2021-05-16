@@ -40,6 +40,15 @@ const galeriesRoutes: () => Router = () => {
   router.delete('/:galerieId/users/:userId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUsersUserId);
 
   router.get('/', passport.authenticate('jwt', { session: false }), getGaleries);
+  router.get('/frames', passport.authenticate('jwt', { session: false }), () => {
+    // await Frame.findAll({
+    //  where: {
+    //    galerieId: {
+    //      in: ArrayOfIdWhereUserIsSubscribeToIt
+    //    }
+    //  }
+    // })
+  });
   router.get('/:galerieId/', passport.authenticate('jwt', { session: false }), getGaleriesId);
   router.get('/:galerieId/frames/', passport.authenticate('jwt', { session: false }), getGaleriesIdFrames);
   router.get('/:galerieId/frames/:frameId/', passport.authenticate('jwt', { session: false }), getGaleriesIdFramesId);

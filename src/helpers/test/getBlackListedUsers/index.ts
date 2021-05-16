@@ -7,7 +7,7 @@ export default async (
   page = 1,
 ) => {
   const response = await request(app)
-    .get(`/users/blackList?page=${page}`)
+    .get(`/blackLists?page=${page}`)
     .set('authorization', token);
   return response;
 };

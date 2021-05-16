@@ -352,7 +352,6 @@ export default async (req: Request, res: Response) => {
         authTokenVersion: undefined,
         confirmed: undefined,
         confirmTokenVersion: undefined,
-        createdAt: undefined,
         currentProfilePicture,
         email: undefined,
         emailTokenVersion: undefined,
@@ -363,6 +362,7 @@ export default async (req: Request, res: Response) => {
         updatedEmailTokenVersion: undefined,
         updatedAt: undefined,
       },
+      userId: undefined,
     };
   } catch (err) {
     return res.status(500).send(err);

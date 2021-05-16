@@ -78,7 +78,7 @@ describe('/users', () => {
         });
       });
       describe('should return status 400', () => {
-        describe('if usernameOrEmail is', async () => {
+        describe('if usernameOrEmail is', () => {
           it('empty', async () => {
             const {
               body,

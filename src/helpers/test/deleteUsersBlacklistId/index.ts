@@ -4,10 +4,10 @@ import request from 'supertest';
 export default async (
   app: Server,
   token: string,
-  userId: string,
+  blackListId: string,
 ) => {
   const response = await request(app)
-    .delete(`/users/blacklist/${userId}/`)
+    .delete(`/blackLists/${blackListId}/`)
     .set('authorization', token);
   return response;
 };

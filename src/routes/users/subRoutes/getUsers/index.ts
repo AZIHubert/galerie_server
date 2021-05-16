@@ -68,6 +68,11 @@ export default async (req: Request, res: Response) => {
         // If true, do not push user
         // into final returned users.
         const userIsBlackListed = await checkBlackList(user);
+
+        // TODO:
+        // If currentUser.role === 'admin' || 'superAdmin'
+        // include blackList user with a field user.isBlackListed.
+
         if (!userIsBlackListed) {
           // Fetch current profile picture.
           const currentProfilePicture = await fetchCurrentProfilePicture(user);

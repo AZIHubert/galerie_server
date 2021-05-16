@@ -71,7 +71,7 @@ const initApp: () => http.Server = () => {
     }),
   );
 
-  app.unsubscribe('/blackList', blackListsRouter());
+  app.use('/blackLists', blackListsRouter());
   app.use('/galeries', galeriesRouter());
   app.use('/notifications', notificationsRouter());
   app.use('/profilePictures', profilePicturesRouter());
