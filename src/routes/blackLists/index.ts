@@ -15,7 +15,7 @@ import {
 const router = Router();
 
 const profilePicturesRoutes: () => Router = () => {
-  router.delete('/:blacklistId/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, deleteBlackListsId);
+  router.delete('/:blackListId/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, deleteBlackListsId);
 
   router.get('/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, getBlackLists);
   router.get('/:blackListId/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, getBlackListsId);

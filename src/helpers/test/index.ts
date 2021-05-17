@@ -1,6 +1,6 @@
 export { default as cleanGoogleBuckets } from './cleanGoogleBuckets';
 export { default as createUser } from './createUser';
-export { default as deleteUsersBlacklistId } from './deleteUsersBlacklistId';
+export { default as deleteBlackListsId } from './deleteBlackListsId';
 export { default as deleteGaleriesIdFrameId } from './deleteGaleriesIdFrameId';
 export { default as deleteGalerieId } from './deleteGalerieId';
 export { default as deleteGaleriesIdUsersId } from './deleteGaleriesIdUsersId';
