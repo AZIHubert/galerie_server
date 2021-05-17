@@ -106,7 +106,6 @@ describe('/blackLists', () => {
           });
           expect(action).toBe('POST');
           expect(blackList).not.toBeNull();
-          expect(returnedBlackList.adminId).toBeUndefined();
           expect(returnedBlackList.admin.authTokenVersion).toBeUndefined();
           expect(returnedBlackList.admin.confirmed).toBeUndefined();
           expect(returnedBlackList.admin.confirmTokenVersion).toBeUndefined();
@@ -126,6 +125,7 @@ describe('/blackLists', () => {
           expect(returnedBlackList.admin.updatedEmailTokenVersion).toBeUndefined();
           expect(returnedBlackList.admin.userName).toBe(user.userName);
           expect(returnedBlackList.admin.id).toBe(user.id);
+          expect(returnedBlackList.adminId).toBeUndefined();
           expect(returnedBlackList.createdAt).not.toBeUndefined();
           expect(returnedBlackList.id).not.toBeUndefined();
           expect(returnedBlackList.reason).toBe(reason);

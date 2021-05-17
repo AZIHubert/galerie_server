@@ -10,7 +10,6 @@ import {
 
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
-  cleanGoogleBuckets,
   createUser,
   deleteBlackListsId,
   login,
@@ -34,7 +33,6 @@ describe('blackLists', () => {
 
   beforeEach(async (done) => {
     try {
-      await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
       user = await createUser({
         role: 'superAdmin',
@@ -50,7 +48,6 @@ describe('blackLists', () => {
 
   afterAll(async (done) => {
     try {
-      await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
       await sequelize.close();
     } catch (err) {

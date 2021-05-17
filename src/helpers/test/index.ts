@@ -9,7 +9,7 @@ export { default as deleteGaleriesUnsubscribe } from './deleteGaleriesUnsubscrib
 export { default as deleteProfilePicture } from './deleteProfilePicture';
 export { default as deleteTicketId } from './deleteTicketId';
 export { default as deleteUser } from './deleteUser';
-export { default as getBlackListedUsers } from './getBlackListedUsers';
+export { default as getBlackLists } from './getBlackLists';
 export { default as getGaleries } from './getGaleries';
 export { default as getGaleriesId } from './getGaleriesId';
 export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';

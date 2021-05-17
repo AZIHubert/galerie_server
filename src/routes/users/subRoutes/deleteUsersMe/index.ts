@@ -6,6 +6,7 @@ import {
 import { Op } from 'sequelize';
 
 import {
+  BlackList,
   Frame,
   Galerie,
   GalerieUser,
@@ -158,6 +159,18 @@ export default async (req: Request, res: Response) => {
   // destroy all black list where userId === user.id
   // set to null all black list field where adminId === user.id
   // then test it.
+  try {
+    await BlackList.update(
+      { adminId: null },
+      {
+        where: {
+          adminId: user.id,
+        },
+      },
+    );
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
   // Destroy all frames/galeriePictures/images
   // and images from Google buckets.
