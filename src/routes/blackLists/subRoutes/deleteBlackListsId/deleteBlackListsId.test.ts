@@ -3,7 +3,10 @@ import { Sequelize } from 'sequelize';
 
 import '@src/helpers/initEnv';
 
-import { BlackList, User } from '@src/db/models';
+import {
+  BlackList,
+  User,
+} from '@src/db/models';
 
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -23,7 +26,6 @@ describe('blackLists', () => {
   let sequelize: Sequelize;
   let token: string;
   let user: User;
-  let userTwo: User;
 
   beforeAll(() => {
     sequelize = initSequelize();
@@ -37,10 +39,7 @@ describe('blackLists', () => {
       user = await createUser({
         role: 'superAdmin',
       });
-      userTwo = await createUser({
-        email: 'user2@email.com',
-        userName: 'user2',
-      });
+
       const { body } = await login(app, user.email, userPassword);
       token = body.token;
     } catch (err) {
@@ -60,10 +59,15 @@ describe('blackLists', () => {
     app.close();
     done();
   });
+
   describe(':blackListId', () => {
     describe('DELETE', () => {
       describe('should return status 200 and', () => {
         it('delete blackList', async () => {
+          const userTwo = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
           const {
             body: {
               data: {
