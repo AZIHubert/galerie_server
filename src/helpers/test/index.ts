@@ -10,6 +10,7 @@ export { default as deleteProfilePicture } from './deleteProfilePicture';
 export { default as deleteTicketId } from './deleteTicketId';
 export { default as deleteUser } from './deleteUser';
 export { default as getBlackLists } from './getBlackLists';
+export { default as getBlackListsId } from './getBlackListsId';
 export { default as getGaleries } from './getGaleries';
 export { default as getGaleriesId } from './getGaleriesId';
 export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';

@@ -72,8 +72,8 @@ export default async (req: Request, res: Response) => {
       blackList.createdAt.getMilliseconds() + blackList.time,
     ),
   );
-  const userIsBlackListed = time > new Date(Date.now());
-  if (userIsBlackListed) {
+  const blackListIsExpired = time > new Date(Date.now());
+  if (blackListIsExpired) {
     try {
       await blackList.destroy();
     } catch (err) {
@@ -103,7 +103,7 @@ export default async (req: Request, res: Response) => {
   const returnedBlackList = {
     ...blackList.toJSON(),
     admin: blackList.admin ? {
-      ...blackList.admin.toJSON,
+      ...blackList.admin.toJSON(),
       currentProfilePicture: adminCurrentProfilePicture,
     } : null,
     user: {
