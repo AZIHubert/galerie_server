@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -153,7 +154,7 @@ describe('galeries', () => {
               },
             },
           } = await getGaleriesId(app, token, returnedGalerie.id);
-          expect(currentCoverPicture.coverPicture).not.toBeUndefined();
+          expect(currentCoverPicture.current).not.toBeUndefined();
           expect(currentCoverPicture.createdAt).toBeUndefined();
           expect(currentCoverPicture.cropedImageId).toBeUndefined();
           expect(currentCoverPicture.cropedImage.bucketName).toBeUndefined();
@@ -199,7 +200,7 @@ describe('galeries', () => {
           const {
             body,
             status,
-          } = await getGaleriesId(app, token, '100');
+          } = await getGaleriesId(app, token, uuidv4());
           expect(body.errors).toBe('galerie not found');
           expect(status).toBe(404);
         });

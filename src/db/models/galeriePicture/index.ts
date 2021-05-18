@@ -12,40 +12,49 @@ import Frame from '../frame';
 import Image from '../image';
 
 interface GaleriePictureI {
-  coverPicture: boolean;
   cropedImageId?: string;
+  current: boolean;
+  frameId: string;
   id: string;
   index: number;
   originalImageId?: string;
   pendingImageId?: string;
-  frameId: string;
 }
 
 @Table({
   tableName: 'galeriePicture',
 })
 export default class GaleriePicture extends Model implements GaleriePictureI {
+  @ForeignKey(() => Image)
+  @Column({
+    allowNull: false,
+    type: DataType.UUID,
+  })
+  cropedImageId!: string;
+
   // If true, this galeriePicture
   // is the cover picture of his belonging galerie.
   // Only one galeriePicture can have this
   // property to true.
   @Default(false)
   @Column({
+    allowNull: false,
     type: DataType.BOOLEAN,
   })
-  coverPicture!: boolean;
+  current!: boolean;
 
-  @ForeignKey(() => Image)
+  @ForeignKey(() => Frame)
   @Column({
-    type: DataType.BIGINT,
+    allowNull: false,
+    type: DataType.UUID,
   })
-  cropedImageId!: string;
+  frameId!: string;
 
   @Column({
     allowNull: false,
-    autoIncrement: true,
+    defaultValue: DataType.UUIDV4,
     primaryKey: true,
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   id!: string;
 
@@ -61,22 +70,17 @@ export default class GaleriePicture extends Model implements GaleriePictureI {
 
   @ForeignKey(() => Image)
   @Column({
-    type: DataType.BIGINT,
+    allowNull: false,
+    type: DataType.UUID,
   })
   originalImageId!: string;
 
   @ForeignKey(() => Image)
   @Column({
-    type: DataType.BIGINT,
+    allowNull: false,
+    type: DataType.UUID,
   })
   pendingImageId!: string;
-
-  @ForeignKey(() => Frame)
-  @Column({
-    allowNull: false,
-    type: DataType.BIGINT,
-  })
-  frameId!: string;
 
   @BelongsTo(() => Image, 'cropedImageId')
   cropedImage!: Image;

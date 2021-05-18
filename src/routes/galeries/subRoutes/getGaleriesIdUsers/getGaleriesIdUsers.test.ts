@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -237,7 +238,7 @@ describe('galeries', () => {
           const {
             body,
             status,
-          } = await getGaleriesIdUsers(app, token, '100');
+          } = await getGaleriesIdUsers(app, token, uuidv4());
           expect(body.errors).toBe('galerie not found');
           expect(status).toBe(404);
         });

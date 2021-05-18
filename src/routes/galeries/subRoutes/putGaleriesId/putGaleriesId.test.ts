@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -268,7 +269,7 @@ describe('/galeries', () => {
           const {
             body,
             status,
-          } = await putGalerieId(app, token, '100', {
+          } = await putGalerieId(app, token, uuidv4(), {
             name: 'new galerie\'s name',
           });
           expect(body.errors).toBe('galerie not found');

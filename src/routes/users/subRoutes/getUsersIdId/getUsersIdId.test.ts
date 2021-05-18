@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -192,7 +193,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await getUserId(app, token, '1000');
+          } = await getUserId(app, token, uuidv4());
           expect(status).toBe(404);
           expect(body).toEqual({
             errors: USER_NOT_FOUND,

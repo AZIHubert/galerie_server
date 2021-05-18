@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -150,7 +151,7 @@ describe('/users', () => {
             .mockImplementationOnce(() => ({
               OK: true,
               confirmTokenVersion: user.confirmTokenVersion,
-              id: `${user.id}${user.id}`,
+              id: uuidv4(),
             }));
           const {
             body,

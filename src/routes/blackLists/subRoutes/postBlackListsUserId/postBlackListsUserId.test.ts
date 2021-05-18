@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -492,7 +493,7 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUser(app, token, '100', {});
+          } = await postBlackListUser(app, token, uuidv4(), {});
           expect(body.errors).toBe('user not found');
           expect(status).toBe(404);
         });

@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -92,7 +93,7 @@ describe('/tickets', () => {
           const {
             body,
             status,
-          } = await deleteTicketId(app, adminToken, '100');
+          } = await deleteTicketId(app, adminToken, uuidv4());
           expect(body.errors).toBe('ticket not found');
           expect(status).toBe(404);
         });

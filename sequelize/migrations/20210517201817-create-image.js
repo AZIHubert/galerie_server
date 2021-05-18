@@ -1,13 +1,11 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('image', {
-  id: {
-    allowNull: false,
-    autoIncrement: true,
-    primaryKey: true,
-    type: DataTypes.BIGINT,
-  },
   bucketName: {
     allowNull: false,
     type: DataTypes.STRING,
+  },
+  createdAt: {
+    allowNull: false,
+    type: DataTypes.DATE,
   },
   fileName: {
     allowNull: false,
@@ -21,25 +19,23 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('i
     allowNull: false,
     type: DataTypes.INTEGER,
   },
+  id: {
+    allowNull: false,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+    type: DataTypes.UUID,
+  },
   size: {
     allowNull: false,
     type: DataTypes.INTEGER,
-  },
-  width: {
-    allowNull: false,
-    type: DataTypes.INTEGER,
-  },
-  createdAt: {
-    allowNull: false,
-    type: DataTypes.DATE,
   },
   updatedAt: {
     allowNull: false,
     type: DataTypes.DATE,
   },
-  deletedAt: {
-    allowNull: true,
-    type: DataTypes.DATE,
+  width: {
+    allowNull: false,
+    type: DataTypes.INTEGER,
   },
 }, {
   charset: 'utf8',

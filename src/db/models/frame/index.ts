@@ -15,7 +15,9 @@ import Like from '../like';
 import User from '../user';
 
 interface FrameI {
+  description?: string;
   galerieId?: string;
+  id: string;
   numOfLikes: number;
   userId?: string;
 }
@@ -24,11 +26,24 @@ interface FrameI {
   tableName: 'frame',
 })
 export default class Frame extends Model implements FrameI {
+  @Column({
+    type: DataType.STRING,
+  })
+  description!: string;
+
   @ForeignKey(() => Galerie)
   @Column({
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   galerieId!: string;
+
+  @Column({
+    allowNull: false,
+    defaultValue: DataType.UUIDV4,
+    primaryKey: true,
+    type: DataType.UUID,
+  })
+  id!: string;
 
   // Each time someone like this frame,
   // increment by one.
@@ -46,7 +61,7 @@ export default class Frame extends Model implements FrameI {
 
   @ForeignKey(() => User)
   @Column({
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   userId!: string;
 

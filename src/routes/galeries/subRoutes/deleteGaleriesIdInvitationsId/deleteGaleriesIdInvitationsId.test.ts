@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -141,7 +142,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGalerieIdInvitationId(app, token, '100', '100');
+              } = await deleteGalerieIdInvitationId(app, token, uuidv4(), uuidv4());
               expect(body.errors).toBe('galerie not found');
               expect(status).toBe(404);
             });
@@ -169,7 +170,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGalerieIdInvitationId(app, token, id, '100');
+              } = await deleteGalerieIdInvitationId(app, token, id, uuidv4());
               expect(body.errors).toBe('galerie not found');
               expect(status).toBe(404);
             });
@@ -177,7 +178,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGalerieIdInvitationId(app, token, galerieId, '100');
+              } = await deleteGalerieIdInvitationId(app, token, galerieId, uuidv4());
               expect(body.errors).toBe('invitation not found');
               expect(status).toBe(404);
             });

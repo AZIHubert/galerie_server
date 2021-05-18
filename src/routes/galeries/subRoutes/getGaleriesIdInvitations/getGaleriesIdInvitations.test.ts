@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -108,7 +109,7 @@ describe('/galeries', () => {
             expect(invitations[0].createdAt).not.toBeUndefined();
             expect(invitations[0].galerieId).toBeUndefined();
             expect(invitations[0].id).not.toBeUndefined();
-            expect(invitations[0].numOfInvit).not.toBeUndefined();
+            expect(invitations[0].numOfInvits).not.toBeUndefined();
             expect(invitations[0].time).not.toBeUndefined();
             expect(invitations[0].updatedAt).toBeUndefined();
             expect(invitations[0].user.authTokenVersion).toBeUndefined();
@@ -293,7 +294,7 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdInvitations(app, token, '100');
+            } = await getGaleriesIdInvitations(app, token, uuidv4());
             expect(body.errors).toBe('galerie not found');
             expect(status).toBe(404);
           });

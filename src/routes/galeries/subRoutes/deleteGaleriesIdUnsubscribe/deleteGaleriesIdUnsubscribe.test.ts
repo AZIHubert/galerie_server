@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -242,7 +243,7 @@ describe('/galeries', () => {
           const {
             body,
             status,
-          } = await deleteGaleriesUnsubscribe(app, tokenTwo, '100');
+          } = await deleteGaleriesUnsubscribe(app, tokenTwo, uuidv4());
           expect(body.errors).toBe('galerie not found');
           expect(status).toBe(404);
         });

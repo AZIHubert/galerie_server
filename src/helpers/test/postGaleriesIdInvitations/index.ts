@@ -6,7 +6,7 @@ export default async (
   token: string,
   galerieId: string,
   body: {
-    numOfInvit?: any;
+    numOfInvits?: any;
     time?: any;
   },
 ) => {

@@ -14,7 +14,7 @@ interface InvitationI {
   code: string;
   galerieId: string;
   id: string;
-  numOfInvit: number | null;
+  numOfInvits: number | null;
   time: number | null;
   userId: string;
 }
@@ -26,21 +26,24 @@ export default class Invitation extends Model implements InvitationI {
   // A unique code to enter
   // to register to this galerie.
   @Column({
+    allowNull: false,
     type: DataType.STRING,
   })
   code!: string;
 
+  // The galerie where this invitation is posted.
   @ForeignKey(() => Galerie)
   @Column({
-    type: DataType.BIGINT,
+    allowNull: false,
+    type: DataType.UUID,
   })
   galerieId!: string;
 
   @Column({
     allowNull: false,
-    autoIncrement: true,
+    defaultValue: DataType.UUIDV4,
     primaryKey: true,
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   id!: string;
 
@@ -53,14 +56,7 @@ export default class Invitation extends Model implements InvitationI {
   @Column({
     type: DataType.INTEGER,
   })
-  numOfInvit!: number | null;
-
-  // The user who created this invitation.
-  @ForeignKey(() => User)
-  @Column({
-    type: DataType.BIGINT,
-  })
-  userId!: string;
+  numOfInvits!: number | null;
 
   // How many time this invitation is avaible.
   // If null, this invitation is avaible
@@ -69,6 +65,14 @@ export default class Invitation extends Model implements InvitationI {
     type: DataType.INTEGER,
   })
   time!: number | null;
+
+  // The user who created this invitation.
+  @ForeignKey(() => User)
+  @Column({
+    allowNull: false,
+    type: DataType.UUID,
+  })
+  userId!: string;
 
   @BelongsTo(() => Galerie)
   galerie!: Galerie;

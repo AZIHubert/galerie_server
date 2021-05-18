@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -78,7 +79,7 @@ describe('/galeries', () => {
     describe('/invitations', () => {
       describe('POST', () => {
         describe('Should return status 200 and', () => {
-          it('create an invit with time/numOfInvit === null', async () => {
+          it('create an invit with time/numOfInvits === null', async () => {
             const {
               body: {
                 action,
@@ -96,7 +97,7 @@ describe('/galeries', () => {
             expect(returnedInvitation.createdAt).not.toBeUndefined();
             expect(returnedInvitation.galerieId).toBeUndefined();
             expect(returnedInvitation.id).not.toBeUndefined();
-            expect(returnedInvitation.numOfInvit).toBeNull();
+            expect(returnedInvitation.numOfInvits).toBeNull();
             expect(returnedInvitation.time).toBeNull();
             expect(returnedInvitation.updatedAt).toBeUndefined();
             expect(returnedInvitation.user.authTokenVersion).toBeUndefined();
@@ -123,7 +124,7 @@ describe('/galeries', () => {
             expect(status).toBe(200);
           });
           it('create an invit with time === null', async () => {
-            const numOfInvit = 1;
+            const numOfInvits = 1;
             const {
               body: {
                 data: {
@@ -131,9 +132,9 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleriesIdInvitations(app, token, galerieId, {
-              numOfInvit,
+              numOfInvits,
             });
-            expect(invitation.numOfInvit).toBe(numOfInvit);
+            expect(invitation.numOfInvits).toBe(numOfInvits);
             expect(invitation.time).toBeNull();
           });
           it('create an invit with numOfTime === null', async () => {
@@ -147,11 +148,11 @@ describe('/galeries', () => {
             } = await postGaleriesIdInvitations(app, token, galerieId, {
               time,
             });
-            expect(invitation.numOfInvit).toBeNull();
+            expect(invitation.numOfInvits).toBeNull();
             expect(invitation.time).toBe(time);
           });
           it('create an invit with time/numOfTime', async () => {
-            const numOfInvit = 1;
+            const numOfInvits = 1;
             const time = 1000 * 60 * 5;
             const {
               body: {
@@ -160,10 +161,10 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleriesIdInvitations(app, token, galerieId, {
-              numOfInvit,
+              numOfInvits,
               time,
             });
-            expect(invitation.numOfInvit).toBe(numOfInvit);
+            expect(invitation.numOfInvits).toBe(numOfInvits);
             expect(invitation.time).toBe(time);
           });
           it('should incude profile picture', async () => {
@@ -280,16 +281,16 @@ describe('/galeries', () => {
             expect(body.errors).toBe('you cannot post invitation on an archived galerie');
             expect(status).toBe(400);
           });
-          describe('numOfInvit', () => {
+          describe('numOfInvits', () => {
             it('is not a number', async () => {
               const {
                 body,
                 status,
               } = await postGaleriesIdInvitations(app, token, galerieId, {
-                numOfInvit: 'wrong field',
+                numOfInvits: 'wrong field',
               });
               expect(body.errors).toEqual({
-                numOfInvit: FIELD_NOT_A_NUMBER,
+                numOfInvits: FIELD_NOT_A_NUMBER,
               });
               expect(status).toBe(400);
             });
@@ -298,10 +299,10 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await postGaleriesIdInvitations(app, token, galerieId, {
-                numOfInvit: 0,
+                numOfInvits: 0,
               });
               expect(body.errors).toEqual({
-                numOfInvit: 'should be at least 1',
+                numOfInvits: 'should be at least 1',
               });
               expect(status).toBe(400);
             });
@@ -310,10 +311,10 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await postGaleriesIdInvitations(app, token, galerieId, {
-                numOfInvit: 201,
+                numOfInvits: 201,
               });
               expect(body.errors).toEqual({
-                numOfInvit: 'should be at most 200',
+                numOfInvits: 'should be at most 200',
               });
               expect(status).toBe(400);
             });
@@ -362,7 +363,7 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await postGaleriesIdInvitations(app, token, '100', {});
+            } = await postGaleriesIdInvitations(app, token, uuidv4(), {});
             expect(body.errors).toBe('galerie not found');
             expect(status).toBe(404);
           });

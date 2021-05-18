@@ -1,38 +1,46 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('blackList', {
-  id: {
-    allowNull: false,
-    autoIncrement: true,
-    primaryKey: true,
-    type: DataTypes.BIGINT,
-  },
   adminId: {
     references: {
       key: 'id',
       model: 'users',
     },
-    type: DataTypes.BIGINT,
-  },
-  reason: {
-    allowNul: true,
-    type: DataTypes.STRING,
-  },
-  time: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
   },
   createdAt: {
     allowNull: false,
     type: DataTypes.DATE,
   },
-  deletedAt: {
-    allowNull: true,
+  id: {
+    allowNull: false,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+    type: DataTypes.UUID,
+  },
+  reason: {
+    allowNull: false,
+    type: DataTypes.STRING,
+  },
+  time: {
+    type: DataTypes.INTEGER,
+  },
+  updatedAt: {
+    allowNull: false,
     type: DataTypes.DATE,
   },
-  userId: {
+  updatedById: {
     references: {
       key: 'id',
       model: 'users',
     },
-    type: DataTypes.BIGINT,
+    type: DataTypes.UUID,
+  },
+  userId: {
+    allowNull: false,
+    references: {
+      key: 'id',
+      model: 'users',
+    },
+    type: DataTypes.UUID,
   },
 }, {
   charset: 'utf8',

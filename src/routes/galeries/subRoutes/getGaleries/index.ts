@@ -47,7 +47,11 @@ export default async (req: Request, res: Response) => {
       offset,
       order: [['createdAt', 'DESC']],
     });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
+  try {
     await Promise.all(
       galeries.map(async (galerie) => {
         let returnCurrentCoverPicture = null;
@@ -83,7 +87,7 @@ export default async (req: Request, res: Response) => {
             ],
             model: GaleriePicture,
             where: {
-              coverPicture: true,
+              current: true,
             },
           }],
           where: {

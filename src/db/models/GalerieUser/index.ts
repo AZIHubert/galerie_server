@@ -1,6 +1,7 @@
 import {
   Column,
   DataType,
+  Default,
   ForeignKey,
   Model,
   Table,
@@ -11,6 +12,7 @@ import User from '../user';
 
 interface GalerieUserI {
   galerieId?: string;
+  hasNewFrames: boolean;
   role?: string;
   userId?: string;
 }
@@ -21,15 +23,17 @@ interface GalerieUserI {
 export default class GalerieUser extends Model implements GalerieUserI {
   @ForeignKey(() => Galerie)
   @Column({
-    type: DataType.INTEGER,
+    allowNull: false,
+    type: DataType.UUID,
   })
   galerieId!: string;
 
-  @ForeignKey(() => User)
+  @Default(false)
   @Column({
-    type: DataType.INTEGER,
+    allowNull: false,
+    type: DataType.BOOLEAN,
   })
-  userId!: string;
+  hasNewFrames!: boolean;
 
   // Allow different action based on
   // the role of the user on this galerie.
@@ -38,4 +42,11 @@ export default class GalerieUser extends Model implements GalerieUserI {
     type: DataType.STRING,
   })
   role!: 'creator' | 'admin' | 'user';
+
+  @ForeignKey(() => User)
+  @Column({
+    allowNull: false,
+    type: DataType.UUID,
+  })
+  userId!: string;
 }

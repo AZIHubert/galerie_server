@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -85,6 +86,7 @@ describe('/galeries', () => {
               describe('should return status 200 and', () => {
                 let frameId: string;
                 let galeriePictureId: string;
+
                 beforeEach(async (done) => {
                   try {
                     const {
@@ -101,7 +103,8 @@ describe('/galeries', () => {
                   }
                   done();
                 });
-                it('should set galeriePicture\'s coverPicture to true', async () => {
+
+                it('should set galeriePicture\'s current to true', async () => {
                   const {
                     body: {
                       action,
@@ -122,7 +125,7 @@ describe('/galeries', () => {
                   expect(action).toBe('PUT');
                   expect(returnedFrameId).toBe(String(frameId));
                   expect(returnedGalerieId).toBe(galerieId);
-                  expect(galeriePicture.coverPicture).toBeTruthy();
+                  expect(galeriePicture.current).toBeTruthy();
                   expect(galeriePicture.createdAt).toBeUndefined();
                   expect(galeriePicture.cropedImageId).toBeUndefined();
                   expect(galeriePicture.cropedImage.bucketName).toBeUndefined();
@@ -180,7 +183,7 @@ describe('/galeries', () => {
                   );
                   const galeriePicture = await GaleriePicture
                     .findByPk(galeriePictureId) as GaleriePicture;
-                  expect(galeriePicture.coverPicture).toBeFalsy();
+                  expect(galeriePicture.current).toBeFalsy();
                 });
                 it('should set coverPicture to true and the previous one to false', async () => {
                   await putGaleriesIdFramesIdGaleriePicturesId(
@@ -206,7 +209,7 @@ describe('/galeries', () => {
                   );
                   const galeriePicture = await GaleriePicture
                     .findByPk(galeriePictureId) as GaleriePicture;
-                  expect(galeriePicture.coverPicture).toBeFalsy();
+                  expect(galeriePicture.current).toBeFalsy();
                 });
               });
               describe('should return status 400 if', () => {
@@ -305,9 +308,9 @@ describe('/galeries', () => {
                   } = await putGaleriesIdFramesIdGaleriePicturesId(
                     app,
                     token,
-                    '100',
-                    '100',
-                    '100',
+                    uuidv4(),
+                    uuidv4(),
+                    uuidv4(),
                   );
                   expect(body.errors).toBe('galerie not found');
                   expect(status).toBe(404);
@@ -338,8 +341,8 @@ describe('/galeries', () => {
                     app,
                     token,
                     galerie.id,
-                    '100',
-                    '100',
+                    uuidv4(),
+                    uuidv4(),
                   );
                   expect(body.errors).toBe('galerie not found');
                   expect(status).toBe(404);
@@ -352,8 +355,8 @@ describe('/galeries', () => {
                     app,
                     token,
                     galerieId,
-                    '100',
-                    '100',
+                    uuidv4(),
+                    uuidv4(),
                   );
                   expect(body.errors).toBe('frame not found');
                   expect(status).toBe(404);
@@ -392,7 +395,7 @@ describe('/galeries', () => {
                     token,
                     galerieId,
                     frame.id,
-                    '100',
+                    uuidv4(),
                   );
                   expect(body.errors).toBe('frame not found');
                   expect(status).toBe(404);
@@ -413,7 +416,7 @@ describe('/galeries', () => {
                     token,
                     galerieId,
                     frame.id,
-                    '100',
+                    uuidv4(),
                   );
                   expect(body.errors).toBe('galerie picture not found');
                   expect(status).toBe(404);

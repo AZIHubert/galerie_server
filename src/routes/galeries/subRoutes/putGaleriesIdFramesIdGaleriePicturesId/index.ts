@@ -122,7 +122,7 @@ export default async (req: Request, res: Response) => {
   // If galerie picuture with :galeriePictureId
   // is not the current cover picture,
   // set current galerie picture to false if exist.
-  if (!galeriePicture.coverPicture) {
+  if (!galeriePicture.current) {
     const allGaleriePictures: Array<GaleriePicture> = [];
 
     // Set all galerie pictures into a flat array.
@@ -134,11 +134,11 @@ export default async (req: Request, res: Response) => {
     // Check if one galerie picture's coverPicture
     // attribute is true.
     const currentCoverPicture = allGaleriePictures
-      .filter((gp) => gp.coverPicture);
+      .filter((gp) => gp.current);
     if (currentCoverPicture.length) {
       try {
         await currentCoverPicture[0].update({
-          coverPicture: false,
+          current: false,
         });
       } catch (err) {
         return res.status(500).send(err);
@@ -149,7 +149,7 @@ export default async (req: Request, res: Response) => {
   // Revers galeriePicture.coverPicture boolean value.
   try {
     await galeriePicture.update({
-      coverPicture: !galeriePicture.coverPicture,
+      current: !galeriePicture.current,
     });
   } catch (err) {
     return res.status(500).send(err);

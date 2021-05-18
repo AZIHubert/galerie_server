@@ -14,7 +14,6 @@ interface ImageI {
   format: string;
   height: number;
   id: string;
-  signedUrl?: string;
   size: number;
   width: number;
 }
@@ -50,20 +49,11 @@ export default class Image extends Model implements ImageI {
 
   @Column({
     allowNull: false,
-    autoIncrement: true,
+    defaultValue: DataType.UUIDV4,
     primaryKey: true,
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   id!: string;
-
-  // The Google bucket's signed url.
-  // This is not saved in sequelize
-  // but it is required and added to the Image object
-  // every time an image is display on the apps.
-  @Column({
-    type: DataType.STRING,
-  })
-  signedUrl!: string;
 
   // Size of the image (bit)
   @Column({

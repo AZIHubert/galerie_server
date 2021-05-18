@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -98,7 +99,7 @@ describe('galeries', () => {
             expect(action).toBe('GET');
             expect(returnedFrame.createdAt).toBe(frame.createdAt);
             expect(returnedFrame.galerieId).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].coverPicture).not.toBeUndefined();
+            expect(returnedFrame.galeriePictures[0].current).not.toBeUndefined();
             expect(returnedFrame.galeriePictures[0].createdAt).toBeUndefined();
             expect(returnedFrame.galeriePictures[0].cropedImageId).toBeUndefined();
             expect(returnedFrame.galeriePictures[0].cropedImage.bucketName).toBeUndefined();
@@ -284,7 +285,7 @@ describe('galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdFramesFrameId(app, token, '100', '100');
+            } = await getGaleriesIdFramesFrameId(app, token, uuidv4(), uuidv4());
             expect(body.errors).toBe('galerie not found');
             expect(status).toBe(404);
           });
@@ -292,7 +293,7 @@ describe('galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdFramesFrameId(app, token, galerieId, '100');
+            } = await getGaleriesIdFramesFrameId(app, token, galerieId, uuidv4());
             expect(body.errors).toBe('frame not found');
             expect(status).toBe(404);
           });
@@ -309,7 +310,7 @@ describe('galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdFramesFrameId(app, tokenTwo, '100', '100');
+            } = await getGaleriesIdFramesFrameId(app, tokenTwo, uuidv4(), uuidv4());
             expect(body.errors).toBe('galerie not found');
             expect(status).toBe(404);
           });

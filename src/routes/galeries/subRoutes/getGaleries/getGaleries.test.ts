@@ -223,7 +223,7 @@ describe('galeries', () => {
             },
           },
         } = await getGaleries(app, token);
-        expect(currentCoverPicture.coverPicture).not.toBeUndefined();
+        expect(currentCoverPicture.current).not.toBeUndefined();
         expect(currentCoverPicture.createdAt).toBeUndefined();
         expect(currentCoverPicture.cropedImageId).toBeUndefined();
         expect(currentCoverPicture.cropedImage.bucketName).toBeUndefined();

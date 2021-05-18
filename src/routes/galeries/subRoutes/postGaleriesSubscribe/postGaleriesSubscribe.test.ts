@@ -170,27 +170,27 @@ describe('/galeries', () => {
         });
         expect(galerieUser).not.toBeNull();
       });
-      it('decrement numOfInvit if it\'s not a null field', async () => {
+      it('decrement numOfInvits if it\'s not a null field', async () => {
         const {
           body: {
             data: {
               invitation: {
                 code,
                 id,
-                numOfInvit,
+                numOfInvits,
               },
             },
           },
         } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {
-          numOfInvit: 2,
+          numOfInvits: 2,
         });
         await postGaleriesSubscribe(app, token, {
           code,
         });
         const invitation = await Invitation.findByPk(id) as Invitation;
-        expect(invitation.numOfInvit).toBe(numOfInvit - 1);
+        expect(invitation.numOfInvits).toBe(numOfInvits - 1);
       });
-      it('delete invitation if numOfInvit < 1', async () => {
+      it('delete invitation if numOfInvits < 1', async () => {
         const {
           body: {
             data: {
@@ -201,7 +201,7 @@ describe('/galeries', () => {
             },
           },
         } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {
-          numOfInvit: 1,
+          numOfInvits: 1,
         });
         await postGaleriesSubscribe(app, token, {
           code,

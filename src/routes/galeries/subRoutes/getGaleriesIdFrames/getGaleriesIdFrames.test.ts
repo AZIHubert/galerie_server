@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -106,7 +107,7 @@ describe('/galeries', () => {
             expect(frames.length).toBe(1);
             expect(frames[0].createdAt).not.toBeUndefined();
             expect(frames[0].galerieId).toBeUndefined();
-            expect(frames[0].galeriePictures[0].coverPicture).not.toBeUndefined();
+            expect(frames[0].galeriePictures[0].current).not.toBeUndefined();
             expect(frames[0].galeriePictures[0].createdAt).toBeUndefined();
             expect(frames[0].galeriePictures[0].cropedImage.createdAt).toBeUndefined();
             expect(frames[0].galeriePictures[0].cropedImage.format).not.toBeUndefined();
@@ -259,7 +260,7 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdFrames(app, token, '100');
+            } = await getGaleriesIdFrames(app, token, uuidv4());
             expect(body.errors).toBe('galerie not found');
             expect(status).toBe(404);
           });

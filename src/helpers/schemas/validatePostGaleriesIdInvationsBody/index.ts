@@ -10,7 +10,7 @@ const MAX_TIME = (1000 * 60 * 60 * 24 * 365);
 const MIN_TIME = (1000 * 60 * 5);
 
 const BlackListUserSchema = Joi.object({
-  numOfInvit: Joi.number()
+  numOfInvits: Joi.number()
     .max(MAX_NUM_OF_INVIT)
     .min(MIN_NUM_OF_INVIT)
     .messages({

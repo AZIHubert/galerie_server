@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -107,7 +108,7 @@ describe('/profilePictures', () => {
           const {
             body,
             status,
-          } = await deleteProfilePicture(app, token, '1');
+          } = await deleteProfilePicture(app, token, uuidv4());
           expect(status).toBe(404);
           expect(body).toStrictEqual({
             errors: 'profile picture not found',

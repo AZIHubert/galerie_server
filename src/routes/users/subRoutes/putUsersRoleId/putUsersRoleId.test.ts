@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -188,7 +189,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersRoleId(app, token, '100', {
+            } = await putUsersRoleId(app, token, uuidv4(), {
               role: 'superAdmin',
             });
             expect(body.errors).toBe(USER_NOT_FOUND);

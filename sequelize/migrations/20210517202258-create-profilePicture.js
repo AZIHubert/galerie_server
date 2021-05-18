@@ -1,20 +1,45 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('profilePicture', {
-  id: {
-    allowNull: false,
-    autoIncrement: true,
-    primaryKey: true,
-    type: DataTypes.BIGINT,
-  },
   createdAt: {
     allowNull: false,
     type: DataTypes.DATE,
   },
+  cropedImageId: {
+    allowNull: false,
+    references: {
+      key: 'id',
+      model: 'image',
+    },
+    type: DataTypes.UUID,
+  },
+  current: {
+    allowNull: false,
+    default: false,
+    type: DataTypes.BOOLEAN,
+  },
+  id: {
+    allowNull: false,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+    type: DataTypes.UUID,
+  },
+  originalImageId: {
+    allowNull: false,
+    references: {
+      key: 'id',
+      model: 'image',
+    },
+    type: DataTypes.UUID,
+  },
+  pendingImageId: {
+    allowNull: false,
+    references: {
+      key: 'id',
+      model: 'image',
+    },
+    type: DataTypes.UUID,
+  },
   updatedAt: {
     allowNull: false,
-    type: DataTypes.DATE,
-  },
-  deletedAt: {
-    allowNull: true,
     type: DataTypes.DATE,
   },
   userId: {
@@ -23,28 +48,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('p
       key: 'id',
       model: 'users',
     },
-    type: DataTypes.BIGINT,
-  },
-  originalImageId: {
-    references: {
-      key: 'id',
-      model: 'image',
-    },
-    type: DataTypes.BIGINT,
-  },
-  cropedImageId: {
-    references: {
-      key: 'id',
-      model: 'image',
-    },
-    type: DataTypes.BIGINT,
-  },
-  pendingImageId: {
-    references: {
-      key: 'id',
-      model: 'image',
-    },
-    type: DataTypes.BIGINT,
+    type: DataTypes.UUID,
   },
 }, {
   charset: 'utf8',

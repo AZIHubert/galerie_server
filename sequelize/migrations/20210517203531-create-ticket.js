@@ -1,36 +1,32 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('ticket', {
-  id: {
+  body: {
     allowNull: false,
-    autoIncrement: true,
-    primaryKey: true,
-    type: DataTypes.BIGINT,
+    type: DataTypes.STRING,
+  },
+  createdAt: {
+    allowNull: false,
+    type: DataTypes.DATE,
   },
   header: {
     allowNull: false,
     type: DataTypes.STRING,
   },
-  body: {
+  id: {
     allowNull: false,
-    type: DataTypes.STRING,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+    type: DataTypes.UUID,
+  },
+  updatedAt: {
+    allowNull: false,
+    type: DataTypes.DATE,
   },
   userId: {
     references: {
       key: 'id',
       model: 'users',
     },
-    type: DataTypes.BIGINT,
-  },
-  createdAt: {
-    allowNull: false,
-    type: DataTypes.DATE,
-  },
-  updatedAt: {
-    allowNull: false,
-    type: DataTypes.DATE,
-  },
-  deletedAt: {
-    allowNull: true,
-    type: DataTypes.DATE,
+    type: DataTypes.UUID,
   },
 }, {
   charset: 'utf8',

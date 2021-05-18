@@ -15,7 +15,8 @@ import User from '../user';
 
 interface GalerieI {
   archived: boolean;
-  defaultCoverPicture?: string
+  defaultCoverPicture?: string;
+  description?: string;
   id: string;
   name: string;
 }
@@ -46,10 +47,15 @@ export default class Galerie extends Model implements GalerieI {
   defaultCoverPicture!: string;
 
   @Column({
+    type: DataType.STRING,
+  })
+  description!: string;
+
+  @Column({
     allowNull: false,
-    autoIncrement: true,
+    defaultValue: DataType.UUIDV4,
     primaryKey: true,
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   id!: string;
 
@@ -63,15 +69,11 @@ export default class Galerie extends Model implements GalerieI {
   name!: string;
 
   @BelongsToMany(() => User, () => GalerieUser)
-  users!: Array<User & {galerieUser: GalerieUser}>;
+  users!: Array<User & {GalerieUser: GalerieUser}>;
 
   @HasMany(() => Frame)
   frames!: Frame[];
 
   @HasMany(() => Invitation)
   invitations!: Invitation[];
-
-  // Need it to properly include
-  // GalerieUser model when fetching galerie.
-  GalerieUser!: GalerieUser;
 }

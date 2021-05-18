@@ -83,9 +83,9 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check invitation's numOfInvit is not null and valid.
+  // Check invitation's numOfInvits is not null and valid.
   // If it's not valid, destroy the invitation.
-  if (invitation.numOfInvit !== null && invitation.numOfInvit < 1) {
+  if (invitation.numOfInvits !== null && invitation.numOfInvits < 1) {
     try {
       await invitation.destroy();
     } catch (err) {
@@ -115,12 +115,12 @@ export default async (req: Request, res: Response) => {
   }
 
   try {
-    // If invitation's numOfInvit is not null,
-    // descrement numOfInvit and destroy invitation
-    // if numOfInvit < 1.
-    if (invitation.numOfInvit) {
-      await invitation.decrement({ numOfInvit: 1 });
-      if (invitation.numOfInvit < 1) {
+    // If invitation's numOfInvits is not null,
+    // descrement numOfInvits and destroy invitation
+    // if numOfInvits < 1.
+    if (invitation.numOfInvits) {
+      await invitation.decrement({ numOfInvits: 1 });
+      if (invitation.numOfInvits < 1) {
         await invitation.destroy();
       }
     }

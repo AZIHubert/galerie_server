@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
@@ -104,7 +105,7 @@ describe('/galeries', () => {
             expect(returnedInvitation.createdAt).toBe(invitation.createdAt);
             expect(returnedInvitation.galerieId).toBeUndefined();
             expect(returnedInvitation.id).toBe(invitation.id);
-            expect(returnedInvitation.numOfInvit).toBe(invitation.numOfInvit);
+            expect(returnedInvitation.numOfInvits).toBe(invitation.numOfInvits);
             expect(returnedInvitation.time).toBe(invitation.time);
             expect(returnedInvitation.updatedAt).toBeUndefined();
             expect(returnedInvitation.user.authTokenVersion).toBeUndefined();
@@ -288,7 +289,7 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdInvitationsId(app, token, '100', '100');
+            } = await getGaleriesIdInvitationsId(app, token, uuidv4(), uuidv4());
             expect(body.errors).toBe('galerie not found');
             expect(status).toBe(404);
           });
@@ -316,7 +317,7 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdInvitationsId(app, token, id, '100');
+            } = await getGaleriesIdInvitationsId(app, token, id, uuidv4());
             expect(body.errors).toBe('galerie not found');
             expect(status).toBe(404);
           });
@@ -324,7 +325,7 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdInvitationsId(app, token, galerieId, '100');
+            } = await getGaleriesIdInvitationsId(app, token, galerieId, uuidv4());
             expect(body.errors).toBe('invitation not found');
             expect(status).toBe(404);
           });

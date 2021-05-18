@@ -15,8 +15,8 @@ import Galerie from '../galerie';
 import GalerieUser from '../galerieUser';
 import Invitation from '../invitation';
 import Like from '../like';
-import Notification from '../notification';
-import NotificationUser from '../notificationUser';
+// import Notification from '../notification';
+// import NotificationUser from '../notificationUser';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
 
@@ -24,24 +24,19 @@ interface UserI {
   authTokenVersion: number;
   confirmed: boolean;
   confirmTokenVersion: number;
-  currentProfilePictureId?: string;
   defaultProfilePicture?: string;
   emailTokenVersion: number;
   email?: string;
   facebookId?: string;
-  galeries?: Galerie[];
-  GalerieUser: GalerieUser;
   googleId?: string;
   id: string;
-  password: string;
-  profilePictures: ProfilePicture[];
+  password?: string;
   pseudonym?: string;
   resetPasswordTokenVersion: number;
   role: 'superAdmin' | 'admin' | 'user';
-  socialMediaUserName: string;
-  tickets: Ticket[];
+  socialMediaUserName?: string;
   updatedEmailTokenVersion: number;
-  userName: string;
+  userName?: string;
 }
 
 @Table({
@@ -120,9 +115,9 @@ export default class User extends Model implements UserI {
 
   @Column({
     allowNull: false,
-    autoIncrement: true,
+    defaultValue: DataType.UUIDV4,
     primaryKey: true,
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   id!: string;
 
@@ -193,10 +188,10 @@ export default class User extends Model implements UserI {
   userName!: string;
 
   @BelongsToMany(() => Galerie, () => GalerieUser)
-  galeries!: Array<Galerie & {galerieUser: GalerieUser}>;
+  galeries!: Array<Galerie & {GalerieUser: GalerieUser}>;
 
-  @BelongsToMany(() => Notification, () => NotificationUser)
-  notificationsUser!: Notification[]
+  // @BelongsToMany(() => Notification, () => NotificationUser)
+  // notificationsUser!: Notification[]
 
   @HasMany(() => BlackList, 'adminId')
   blackLists!: BlackList[];
@@ -210,8 +205,8 @@ export default class User extends Model implements UserI {
   @HasMany(() => Like)
   likes!: Like[];
 
-  @HasMany(() => Notification)
-  notifications!: Notification[];
+  // @HasMany(() => Notification)
+  // notifications!: Notification[];
 
   @HasMany(() => ProfilePicture)
   profilePictures!: ProfilePicture[];
@@ -221,8 +216,4 @@ export default class User extends Model implements UserI {
 
   @HasOne(() => BlackList, 'userId')
   blackList!: BlackList;
-
-  // Need it to properly include
-  // GalerieUser model when fetching galerie.
-  GalerieUser!: GalerieUser;
 }

@@ -34,15 +34,15 @@ export default class Ticket extends Model implements TicketI {
 
   @Column({
     allowNull: false,
-    autoIncrement: true,
+    defaultValue: DataType.UUIDV4,
     primaryKey: true,
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   id!: string;
 
   @ForeignKey(() => User)
   @Column({
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   userId!: string;
 

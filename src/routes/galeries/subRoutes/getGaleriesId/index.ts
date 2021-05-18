@@ -81,7 +81,7 @@ export default async (req: Request, res: Response) => {
         ],
         model: GaleriePicture,
         where: {
-          coverPicture: true,
+          current: true,
         },
       }],
       where: {

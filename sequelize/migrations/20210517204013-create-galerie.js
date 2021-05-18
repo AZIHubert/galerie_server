@@ -1,24 +1,32 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('galerie', {
-  id: {
+  archived: {
     allowNull: false,
-    autoIncrement: true,
-    primaryKey: true,
-    type: DataTypes.BIGINT,
-  },
-  name: {
-    allowNull: false,
-    type: DataTypes.STRING,
+    default: false,
+    type: DataTypes.BOOLEAN,
   },
   createdAt: {
     allowNull: false,
     type: DataTypes.DATE,
   },
+  defaultCoverPicture: {
+    allowNull: false,
+    type: DataTypes.STRING,
+  },
+  description: {
+    type: DataTypes.STRING,
+  },
+  id: {
+    allowNull: false,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+    type: DataTypes.UUID,
+  },
+  name: {
+    allowNull: false,
+    type: DataTypes.STRING,
+  },
   updatedAt: {
     allowNull: false,
-    type: DataTypes.DATE,
-  },
-  deleteAt: {
-    allowNull: true,
     type: DataTypes.DATE,
   },
 }, {
