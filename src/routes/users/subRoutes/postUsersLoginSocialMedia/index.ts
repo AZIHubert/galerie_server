@@ -5,6 +5,7 @@ import {
 
 import { User } from '@src/db/models';
 
+import accEnv from '@src/helpers/accEnv';
 import checkBlackList from '@src/helpers/checkBlackList';
 import {
   USER_IS_BLACK_LISTED,
@@ -13,6 +14,8 @@ import {
   signAuthToken,
 } from '@src/helpers/issueJWT';
 import setRefreshToken from '@src/helpers/setRefreshToken';
+
+const IS_BETA = accEnv('IS_BETA');
 
 export default async (req: Request, res: Response) => {
   const {
@@ -25,6 +28,12 @@ export default async (req: Request, res: Response) => {
   let user: User | null;
   let userEmail: User | null;
   let userIsBlackListed: boolean;
+
+  if (IS_BETA === 'true') {
+    return res.status(400).send({
+      errors: 'you can\'t signin with this route in beta',
+    });
+  }
 
   // Check if id has been send.
   // Id should be a facebookId or a googleId.

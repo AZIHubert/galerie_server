@@ -52,6 +52,9 @@ const usersRoutes: () => Router = () => {
   router.post('/me/email/confirm/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, postUsersMeEmailConfirm);
   router.post('/password/', shouldNotBeAuth, postUsersPassword);
   router.post('/signin/', postUsersSignin);
+  // TODO:
+  // POST /signin/beta/
+  // same as Signin but with a beta key code required
 
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.put('/me/email/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeEmail);

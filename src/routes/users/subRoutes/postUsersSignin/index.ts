@@ -6,6 +6,7 @@ import {
 
 import { User } from '@src/db/models';
 
+import accEnv from '@src/helpers/accEnv';
 import {
   ALREADY_TAKEN,
 } from '@src/helpers/errorMessages';
@@ -15,6 +16,8 @@ import {
   normalizeJoiErrors,
   validatePostUsersSigninBody,
 } from '@src/helpers/schemas';
+
+const IS_BETA = accEnv('IS_BETA');
 
 // Normalize Sequelize errors for response
 // if email or `@{userName}` are already registered.
@@ -35,6 +38,12 @@ export default async (req: Request, res: Response) => {
   const objectUserExcluder: { [key: string]: undefined } = {};
   let errors: any;
   let newUser: User;
+
+  if (IS_BETA === 'true') {
+    return res.status(400).send({
+      errors: 'you can\'t signin with this route in beta',
+    });
+  }
 
   const {
     error,
