@@ -19,18 +19,17 @@ import {
 } from '@src/db/models';
 
 import {
-  FIELD_IS_REQUIRED,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
+import {
+  normalizeJoiErrors,
+  validateDeleteUserMeBody,
+} from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
-  const {
-    deleteAccountSentence,
-    password,
-    userNameOrEmail,
-  } = req.body;
   const user = req.user as User;
+  let passwordsMatch: boolean;
 
   // Check if user is created with Google or Facebook.
   // If true, the user can't delete his account.
@@ -42,8 +41,16 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // TODO:
-  // use schema to validate request.body.
+  // Check if request.body is valid.
+  const {
+    error,
+    value,
+  } = validateDeleteUserMeBody(req.body);
+  if (error) {
+    return res.status(400).send({
+      errors: normalizeJoiErrors(error),
+    });
+  }
 
   // Return error if
   // deleteAccountSentence/userNameOrEmail/password
@@ -53,29 +60,20 @@ export default async (req: Request, res: Response) => {
     password?: string;
     userNameOrEmail?: string;
   } = {};
-  if (!deleteAccountSentence) {
-    errors.deleteAccountSentence = FIELD_IS_REQUIRED;
-  } else if (deleteAccountSentence !== 'delete my account') {
+  if (value.deleteAccountSentence !== 'delete my account') {
     errors.deleteAccountSentence = 'wrong sentence';
   }
-  if (!password) {
-    errors.password = FIELD_IS_REQUIRED;
-  } else {
-    let passwordsMatch: boolean;
-    try {
-      passwordsMatch = await compare(password, user.password);
-      if (!passwordsMatch) {
-        errors.password = WRONG_PASSWORD;
-      }
-    } catch (err) {
-      return res.status(500).send(err);
+  try {
+    passwordsMatch = await compare(value.password, user.password);
+    if (!passwordsMatch) {
+      errors.password = WRONG_PASSWORD;
     }
+  } catch (err) {
+    return res.status(500).send(err);
   }
-  if (!userNameOrEmail) {
-    errors.userNameOrEmail = FIELD_IS_REQUIRED;
-  } else if (
-    userNameOrEmail !== user.email
-    && `@${userNameOrEmail}` !== user.userName
+  if (
+    value.userNameOrEmail !== user.email
+    && `@${value.userNameOrEmail}` !== user.userName
   ) {
     errors.userNameOrEmail = 'wrong user name or email';
   }

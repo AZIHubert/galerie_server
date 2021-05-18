@@ -16,7 +16,9 @@ import {
 
 import accEnv from '@src/helpers/accEnv';
 import {
+  FIELD_IS_EMPTY,
   FIELD_IS_REQUIRED,
+  FIELD_NOT_A_STRING,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
@@ -291,7 +293,32 @@ describe('/users', () => {
               },
             });
           });
-
+          it('is not a string', async () => {
+            const { body, status } = await deleteUser(app, token, {
+              deleteAccountSentence: 1234,
+              password: userPassword,
+              userNameOrEmail: user.email,
+            });
+            expect(status).toBe(400);
+            expect(body).toStrictEqual({
+              errors: {
+                deleteAccountSentence: FIELD_NOT_A_STRING,
+              },
+            });
+          });
+          it('is an empty string', async () => {
+            const { body, status } = await deleteUser(app, token, {
+              deleteAccountSentence: '',
+              password: userPassword,
+              userNameOrEmail: user.email,
+            });
+            expect(status).toBe(400);
+            expect(body).toStrictEqual({
+              errors: {
+                deleteAccountSentence: FIELD_IS_EMPTY,
+              },
+            });
+          });
           it('not match', async () => {
             const { body, status } = await deleteUser(app, token, {
               deleteAccountSentence: 'wrong sentence',
@@ -320,7 +347,32 @@ describe('/users', () => {
               },
             });
           });
-
+          it('is not a string', async () => {
+            const { body, status } = await deleteUser(app, token, {
+              deleteAccountSentence: 'delete my account',
+              password: 1234,
+              userNameOrEmail: user.email,
+            });
+            expect(status).toBe(400);
+            expect(body).toStrictEqual({
+              errors: {
+                password: FIELD_NOT_A_STRING,
+              },
+            });
+          });
+          it('is an empty string', async () => {
+            const { body, status } = await deleteUser(app, token, {
+              deleteAccountSentence: 'delete my account',
+              password: '',
+              userNameOrEmail: user.email,
+            });
+            expect(status).toBe(400);
+            expect(body).toStrictEqual({
+              errors: {
+                password: FIELD_IS_EMPTY,
+              },
+            });
+          });
           it('not match', async () => {
             const { body, status } = await deleteUser(app, token, {
               deleteAccountSentence: 'delete my account',
@@ -346,6 +398,32 @@ describe('/users', () => {
             expect(body).toStrictEqual({
               errors: {
                 userNameOrEmail: FIELD_IS_REQUIRED,
+              },
+            });
+          });
+          it('is not a string', async () => {
+            const { body, status } = await deleteUser(app, token, {
+              deleteAccountSentence: 'delete my account',
+              password: userPassword,
+              userNameOrEmail: 1234,
+            });
+            expect(status).toBe(400);
+            expect(body).toStrictEqual({
+              errors: {
+                userNameOrEmail: FIELD_NOT_A_STRING,
+              },
+            });
+          });
+          it('is an empty string', async () => {
+            const { body, status } = await deleteUser(app, token, {
+              deleteAccountSentence: 'delete my account',
+              password: userPassword,
+              userNameOrEmail: '',
+            });
+            expect(status).toBe(400);
+            expect(body).toStrictEqual({
+              errors: {
+                userNameOrEmail: FIELD_IS_EMPTY,
               },
             });
           });
