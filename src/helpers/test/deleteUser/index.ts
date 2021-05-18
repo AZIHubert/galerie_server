@@ -5,9 +5,9 @@ export default async (
   app: Server,
   token: string,
   body: {
-    deleteAccountSentence?: string;
-    password?: string;
-    userNameOrEmail?: string;
+    deleteAccountSentence?: any;
+    password?: any;
+    userNameOrEmail?: any;
   },
 ) => {
   const response = await request(app)

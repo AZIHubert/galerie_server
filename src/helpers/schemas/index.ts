@@ -1,6 +1,7 @@
 export { default as normalizeJoiErrors } from './normalizeJoiErrors';
 
 export { default as validateDeleteGaleriesIdBody } from './validateDeleteGaleriesIdBody';
+export { default as validateDeleteUserMeBody } from './validateDeleteUserMeBody';
 export { default as validatePostGaleriesBody } from './validatePostGaleriesBody';
 export { default as validatePostGaleriesIdInvationsBody } from './validatePostGaleriesIdInvationsBody';
 export { default as validatePostGaleriesSubscribeBody } from './validatePostGaleriesSubscribeBody';
