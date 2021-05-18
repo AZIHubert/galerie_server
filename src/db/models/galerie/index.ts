@@ -14,51 +14,66 @@ import Invitation from '../invitation';
 import User from '../user';
 
 interface GalerieI {
-  coverPictureId?: string;
+  archived: boolean;
+  defaultCoverPicture?: string;
+  description?: string;
   id: string;
   name: string;
-  defaultCoverPicture?: string
-  archived?: boolean;
 }
 
 @Table({
   tableName: 'galerie',
 })
 export default class Galerie extends Model implements GalerieI {
+  // If the creator of this galerie has delete his account,
+  // and there are still subscriber users remaining,
+  // this galerie become archived.
+  // No frames/invitations can be created,
+  // all users's become 'user'
+  // and his name/cover picture can't be changed.
   @Default(false)
   @Column({
+    allowNull: false,
     type: DataType.BOOLEAN,
   })
   archived!: boolean;
 
+  // A CSS gradiant background
+  // randomly generated when the galerie is create.
   @Column({
     allowNull: false,
-    autoIncrement: true,
+    type: DataType.STRING,
+  })
+  defaultCoverPicture!: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  description!: string;
+
+  @Column({
+    allowNull: false,
+    defaultValue: DataType.UUIDV4,
     primaryKey: true,
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   id!: string;
 
+  // Name of the galerie.
+  // Only the creator or the admins
+  // of the galerie can changed it.
   @Column({
     allowNull: false,
     type: DataType.STRING,
   })
   name!: string;
 
-  @Column({
-    allowNull: true,
-    type: DataType.STRING,
-  })
-  defaultCoverPicture!: string;
-
   @BelongsToMany(() => User, () => GalerieUser)
-  users!: User[];
+  users!: Array<User & {GalerieUser: GalerieUser}>;
 
   @HasMany(() => Frame)
   frames!: Frame[];
 
   @HasMany(() => Invitation)
   invitations!: Invitation[];
-
-  GalerieUser!: GalerieUser;
 }

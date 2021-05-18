@@ -4,11 +4,7 @@ import request from 'supertest';
 export default async (
   app: Server,
   token: string,
-  {
-    deleteAccountSentence,
-    password,
-    userNameOrEmail,
-  }: {
+  body: {
     deleteAccountSentence?: string;
     password?: string;
     userNameOrEmail?: string;
@@ -17,10 +13,6 @@ export default async (
   const response = await request(app)
     .delete('/users/me/')
     .set('authorization', token)
-    .send({
-      deleteAccountSentence,
-      password,
-      userNameOrEmail,
-    });
+    .send(body);
   return response;
 };

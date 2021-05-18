@@ -1,13 +1,21 @@
-import { Request, Response, NextFunction } from 'express';
+import {
+  NextFunction,
+  Request,
+  Response,
+} from 'express';
 import multer from 'multer';
 
-export default (req: Request, res: Response, next: NextFunction) => {
+export default (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const upload = multer({
-    storage: multer.memoryStorage(),
     limits: {
       fileSize: 5 * 1024 * 1024,
     },
-  }).array('images', 6);
+    storage: multer.memoryStorage(),
+  }).array('image', 6);
 
   upload(req, res, (err: any) => {
     if (err instanceof multer.MulterError) {

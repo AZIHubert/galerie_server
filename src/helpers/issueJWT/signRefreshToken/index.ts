@@ -8,10 +8,14 @@ const PRIV_KEY = fs.readFileSync(path.join('./id_rsa_priv.refreshToken.pem'));
 
 export default ({ id, authTokenVersion }: User) => {
   const payload = {
-    sub: id,
     authTokenVersion,
     iat: Date.now(),
+    sub: id,
   };
-  const signedToken = sign(payload, PRIV_KEY, { algorithm: 'RS256' });
+  const signedToken = sign(
+    payload,
+    PRIV_KEY,
+    { algorithm: 'RS256' },
+  );
   return signedToken;
 };

@@ -8,42 +8,59 @@ import {
   Table,
 } from 'sequelize-typescript';
 
-import Image from '../image';
 import Frame from '../frame';
+import Image from '../image';
 
 interface GaleriePictureI {
-  coverPicture: boolean;
   cropedImageId?: string;
+  current: boolean;
+  frameId: string;
   id: string;
   index: number;
   originalImageId?: string;
   pendingImageId?: string;
-  frameId: string;
 }
 
 @Table({
   tableName: 'galeriePicture',
 })
 export default class GaleriePicture extends Model implements GaleriePictureI {
-  @Column({
-    type: DataType.BOOLEAN,
-  })
-  coverPicture!: boolean;
-
   @ForeignKey(() => Image)
   @Column({
-    type: DataType.BIGINT,
+    allowNull: false,
+    type: DataType.UUID,
   })
   cropedImageId!: string;
 
+  // If true, this galeriePicture
+  // is the cover picture of his belonging galerie.
+  // Only one galeriePicture can have this
+  // property to true.
+  @Default(false)
   @Column({
     allowNull: false,
-    autoIncrement: true,
+    type: DataType.BOOLEAN,
+  })
+  current!: boolean;
+
+  @ForeignKey(() => Frame)
+  @Column({
+    allowNull: false,
+    type: DataType.UUID,
+  })
+  frameId!: string;
+
+  @Column({
+    allowNull: false,
+    defaultValue: DataType.UUIDV4,
     primaryKey: true,
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   id!: string;
 
+  // galeriePictures are display inside
+  // a carousel. To maintain the correct
+  // order desire, an index is require.
   @Default(0)
   @Column({
     allowNull: false,
@@ -53,22 +70,17 @@ export default class GaleriePicture extends Model implements GaleriePictureI {
 
   @ForeignKey(() => Image)
   @Column({
-    type: DataType.BIGINT,
+    allowNull: false,
+    type: DataType.UUID,
   })
   originalImageId!: string;
 
   @ForeignKey(() => Image)
   @Column({
-    type: DataType.BIGINT,
+    allowNull: false,
+    type: DataType.UUID,
   })
   pendingImageId!: string;
-
-  @ForeignKey(() => Frame)
-  @Column({
-    allowNull: false,
-    type: DataType.BIGINT,
-  })
-  frameId!: string;
 
   @BelongsTo(() => Image, 'cropedImageId')
   cropedImage!: Image;

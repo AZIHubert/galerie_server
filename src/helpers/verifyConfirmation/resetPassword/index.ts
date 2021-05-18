@@ -11,8 +11,8 @@ const RESET_PASSWORD_SECRET = accEnv('RESET_PASSWORD_SECRET');
 
 interface Error {
   OK: false;
-  status: number;
   errors: any;
+  status: number;
 }
 interface Success {
   OK: true;
@@ -22,13 +22,17 @@ interface Success {
 
 export default (req: Request) => {
   const { confirmation } = req.headers;
+  let id: string;
+  let resetPasswordTokenVersion: number;
+
   if (!confirmation) {
     return {
       OK: false,
-      status: 401,
       errors: TOKEN_NOT_FOUND,
+      status: 401,
     } as Error;
   }
+
   const token = (<string>confirmation).split(' ')[1];
   if (!token) {
     return {
@@ -37,8 +41,7 @@ export default (req: Request) => {
       errors: WRONG_TOKEN,
     } as Error;
   }
-  let id: string;
-  let resetPasswordTokenVersion: number;
+
   try {
     const verifiedToken = verify(
       token,
@@ -52,10 +55,11 @@ export default (req: Request) => {
   } catch (err) {
     return {
       OK: false,
-      status: 500,
       errors: err,
+      status: 500,
     } as Error;
   }
+
   return {
     OK: true,
     id,

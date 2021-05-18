@@ -1,4 +1,5 @@
 import {
+  BelongsTo,
   Column,
   DataType,
   ForeignKey,
@@ -11,6 +12,7 @@ import User from '../user';
 
 interface LikeI {
   frameId: string;
+  id: string;
   userId: string;
 }
 
@@ -20,13 +22,29 @@ interface LikeI {
 export default class Like extends Model implements LikeI {
   @ForeignKey(() => Frame)
   @Column({
-    type: DataType.INTEGER,
+    allowNull: false,
+    type: DataType.UUID,
   })
   frameId!: string;
 
+  @Column({
+    allowNull: false,
+    defaultValue: DataType.UUIDV4,
+    primaryKey: true,
+    type: DataType.UUID,
+  })
+  id!: string;
+
   @ForeignKey(() => User)
   @Column({
-    type: DataType.INTEGER,
+    allowNull: false,
+    type: DataType.UUID,
   })
   userId!: string;
+
+  @BelongsTo(() => Frame)
+  frame!: Frame;
+
+  @BelongsTo(() => User)
+  user!: User;
 }

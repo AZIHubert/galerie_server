@@ -7,17 +7,29 @@ import {
 import saltRounds from '@src/helpers/saltRounds';
 
 export default async ({
+  confirmed = true,
   email,
+  facebookId,
+  googleId,
   password,
+  role = 'user',
   userName,
 }: {
-  email?: string
+  confirmed?: boolean;
+  email?: string;
+  facebookId?: string;
+  googleId?: string;
   password?: string;
+  role?: 'admin' | 'superAdmin' | 'user'
   userName?: string;
 }) => {
   const newUser = {
+    confirmed,
     email: email === undefined ? 'user@email.com' : email,
-    pseudonym: 'userName',
+    facebookId,
+    googleId,
+    pseudonym: userName || 'pseudonym',
+    role,
     userName: userName === undefined ? '@userName' : `@${userName}`,
   };
   const hashPassword = await hash(
@@ -26,7 +38,6 @@ export default async ({
   );
   const user = await User.create({
     ...newUser,
-    confirmed: true,
     password: hashPassword,
   });
   return user;

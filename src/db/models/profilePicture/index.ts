@@ -2,6 +2,7 @@ import {
   BelongsTo,
   Column,
   DataType,
+  Default,
   ForeignKey,
   Model,
   Table,
@@ -25,10 +26,14 @@ interface ProfilePictureI {
 export default class ProfilePicture extends Model implements ProfilePictureI {
   @ForeignKey(() => Image)
   @Column({
-    type: DataType.BIGINT,
+    allowNull: false,
+    type: DataType.UUID,
   })
   cropedImageId!: string;
 
+  // If true, this profile picture
+  // is the display one of the user.
+  @Default(false)
   @Column({
     allowNull: false,
     type: DataType.BOOLEAN,
@@ -37,28 +42,30 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
 
   @Column({
     allowNull: false,
-    autoIncrement: true,
+    defaultValue: DataType.UUIDV4,
     primaryKey: true,
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   id!: string;
 
   @ForeignKey(() => Image)
   @Column({
-    type: DataType.BIGINT,
+    allowNull: false,
+    type: DataType.UUID,
   })
   originalImageId!: string;
 
   @ForeignKey(() => Image)
   @Column({
-    type: DataType.BIGINT,
+    allowNull: false,
+    type: DataType.UUID,
   })
   pendingImageId!: string;
 
   @ForeignKey(() => User)
   @Column({
     allowNull: false,
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   userId!: string;
 

@@ -10,14 +10,10 @@ import ProfilePicture from '../profilePicture';
 
 interface ImageI {
   bucketName: string;
-  cropedProfilePicture: ProfilePicture;
   fileName: string;
   format: string;
   height: number;
   id: string;
-  originalProfilePicture: ProfilePicture;
-  pendingProfilePicture: ProfilePicture;
-  signedUrl?: string;
   size: number;
   width: number;
 }
@@ -32,17 +28,13 @@ export default class Image extends Model implements ImageI {
   })
   bucketName!: string;
 
-  @HasOne(() => ProfilePicture, {
-    onDelete: 'CASCADE',
-  })
-  cropedProfilePicture!: ProfilePicture;
-
   @Column({
     allowNull: false,
     type: DataType.STRING,
   })
   fileName!: string;
 
+  // jpg/jpeg/gif/png
   @Column({
     allowNull: false,
     type: DataType.STRING,
@@ -57,17 +49,29 @@ export default class Image extends Model implements ImageI {
 
   @Column({
     allowNull: false,
-    autoIncrement: true,
+    defaultValue: DataType.UUIDV4,
     primaryKey: true,
-    type: DataType.BIGINT,
+    type: DataType.UUID,
   })
   id!: string;
 
+  // Size of the image (bit)
   @Column({
     allowNull: false,
     type: DataType.INTEGER,
   })
   size!: number;
+
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  width!: number;
+
+  @HasOne(() => ProfilePicture, {
+    onDelete: 'CASCADE',
+  })
+  cropedProfilePicture!: ProfilePicture;
 
   @HasOne(() => ProfilePicture, {
     onDelete: 'CASCADE',
@@ -78,15 +82,4 @@ export default class Image extends Model implements ImageI {
     onDelete: 'CASCADE',
   })
   pendingProfilePicture!: ProfilePicture;
-
-  @Column({
-    type: DataType.STRING,
-  })
-  signedUrl!: string;
-
-  @Column({
-    allowNull: false,
-    type: DataType.INTEGER,
-  })
-  width!: number;
 }

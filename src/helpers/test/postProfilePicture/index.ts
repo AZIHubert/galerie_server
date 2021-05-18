@@ -6,7 +6,7 @@ export default async (
   token: string,
 ) => {
   const response = await request(app)
-    .post('/users/me/ProfilePictures')
+    .post('/ProfilePictures')
     .set('authorization', token)
     .attach('image', `${__dirname}/../ressources/image.jpg`);
   return response;

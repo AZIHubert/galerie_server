@@ -2,23 +2,19 @@ import nodemailer from 'nodemailer';
 
 import accEnv from '@src/helpers/accEnv';
 
-const MAIL_USERNAME = accEnv('MAIL_USERNAME');
 const MAIL_PASSWORD = accEnv('MAIL_PASSWORD');
+const MAIL_USERNAME = accEnv('MAIL_USERNAME');
 
 const mailConfig = {
+  auth: {
+    pass: MAIL_PASSWORD,
+    user: MAIL_USERNAME,
+  },
   host: 'smtp.ethereal.email',
   port: 587,
-  auth: {
-    user: MAIL_USERNAME,
-    pass: MAIL_PASSWORD,
-  },
 };
 
 const confirmAccountMessage = (email: string, token: string) => ({
-  from: 'Galeries <sender@mail.com>',
-  to: email,
-  subject: 'validate your account',
-  text: 'Hello',
   html: `<html>
     <body>
       <h1>Galeries</h1>
@@ -29,13 +25,13 @@ const confirmAccountMessage = (email: string, token: string) => ({
       </a>
     </body>
   </html>`,
+  from: 'Galeries <sender@mail.com>',
+  subject: 'validate your account',
+  text: 'Hello',
+  to: email,
 });
 
 const resetPasswordMessage = (email: string, token: string) => ({
-  from: 'Galeries <sender@mail.com>',
-  to: email,
-  subject: 'reset your password',
-  text: 'Hello',
   html: `<html>
     <body>
       <h1>Galeries</h1>
@@ -45,13 +41,13 @@ const resetPasswordMessage = (email: string, token: string) => ({
       </a>
     </body>
   </html>`,
+  from: 'Galeries <sender@mail.com>',
+  subject: 'reset your password',
+  text: 'Hello',
+  to: email,
 });
 
 const updateEmailMessage = (email: string, token: string) => ({
-  from: 'Galeries <sender@mail.com>',
-  to: email,
-  subject: 'update your email',
-  text: 'Hello',
   html: `<html>
     <body>
       <h1>Galeries</h1>
@@ -61,13 +57,13 @@ const updateEmailMessage = (email: string, token: string) => ({
       </a>
     </body>
   </html>`,
+  from: 'Galeries <sender@mail.com>',
+  subject: 'update your email',
+  text: 'Hello',
+  to: email,
 });
 
 const validateEmailMessage = (email: string, token: string) => ({
-  from: 'Galeries <sender@mail.com>',
-  to: email,
-  subject: 'validate your email',
-  text: 'Hello',
   html: `<html>
     <body>
       <h1>Galeries</h1>
@@ -77,6 +73,10 @@ const validateEmailMessage = (email: string, token: string) => ({
       </a>
     </body>
   </html>`,
+  from: 'Galeries <sender@mail.com>',
+  subject: 'validate your email',
+  text: 'Hello',
+  to: email,
 });
 
 export const sendConfirmAccount = (email: string, token: string) => {
