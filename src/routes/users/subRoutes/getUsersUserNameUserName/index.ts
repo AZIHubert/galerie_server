@@ -19,7 +19,7 @@ export default async (req: Request, res: Response) => {
     order: queryOrder,
     page,
   } = req.query;
-  const usersWithProfilePicture: Array<any> = [];
+  const returnedUsers: Array<any> = [];
   let direction = 'DESC';
   let offset: number;
   let order = 'createdAt';
@@ -79,12 +79,11 @@ export default async (req: Request, res: Response) => {
 
         if (!userIsBlackListed) {
           currentProfilePicture = await fetchCurrentProfilePicture(user);
-          const userWithProfilePicture: any = {
+          const returnedUser: any = {
             ...user.toJSON(),
             currentProfilePicture,
           };
-          delete userWithProfilePicture.blackList;
-          usersWithProfilePicture.push(userWithProfilePicture);
+          returnedUsers.push(returnedUser);
         }
       }),
     );
@@ -95,7 +94,7 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'GET',
     data: {
-      users: usersWithProfilePicture,
+      users: returnedUsers,
     },
   });
 };

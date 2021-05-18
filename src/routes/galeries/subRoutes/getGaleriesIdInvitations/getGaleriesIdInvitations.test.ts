@@ -6,6 +6,7 @@ import '@src/helpers/initEnv';
 
 import { User } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -260,7 +261,15 @@ describe('/galeries', () => {
             expect(invitationUser).toBeNull();
           });
         });
-        describe('should return error 400 if', () => {
+        describe('should return status 400 if', () => {
+          it('request.params.invitationId is not a UUID v4', async () => {
+            const {
+              body,
+              status,
+            } = await getGaleriesIdInvitations(app, token, '100');
+            expect(body.errors).toBe(INVALID_UUID('galerie'));
+            expect(status).toBe(400);
+          });
           it('user\'s role for this galerie is \'user\'', async () => {
             const userTwo = await createUser({
               email: 'user2@email.com',

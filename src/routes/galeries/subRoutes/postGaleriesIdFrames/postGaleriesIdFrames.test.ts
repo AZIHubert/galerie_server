@@ -15,6 +15,7 @@ import accEnv from '@src/helpers/accEnv';
 import {
   FILES_ARE_REQUIRED,
   FILE_IS_IMAGE,
+  INVALID_UUID,
 } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -592,7 +593,15 @@ describe('/galeries', () => {
             expect(frame.user.currentProfilePicture.userId).toBeUndefined();
           });
         });
-        describe('should return error 400 if', () => {
+        describe('should return status 400 if', () => {
+          it('request.params.galerieId is not a UUID v4', async () => {
+            const {
+              body,
+              status,
+            } = await postGaleriesIdFrames(app, token, '100');
+            expect(body.errors).toBe(INVALID_UUID('galerie'));
+            expect(status).toBe(400);
+          });
           it('no images are sent', async () => {
             const {
               body,
@@ -650,7 +659,7 @@ describe('/galeries', () => {
             expect(status).toBe(400);
           });
         });
-        describe('should return error 404 if', () => {
+        describe('should return status 404 if', () => {
           it('galerie not found', async () => {
             const {
               body,

@@ -14,6 +14,7 @@ import {
 } from '@src/db/models';
 
 import accEnv from '@src/helpers/accEnv';
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -206,8 +207,24 @@ describe('/galeries', () => {
               expect(status).toBe(200);
             });
           });
-          describe('should return error 400 if', () => {
-            it(':userId is the same as current user.id', async () => {
+          describe('should return status 400 if', () => {
+            it('request.params.galerieId is not a UUID v4', async () => {
+              const {
+                body,
+                status,
+              } = await deleteGaleriesIdUsersId(app, token, '100', uuidv4());
+              expect(body.errors).toBe(INVALID_UUID('galerie'));
+              expect(status).toBe(400);
+            });
+            it('request.params.userId is not a UUID v4', async () => {
+              const {
+                body,
+                status,
+              } = await deleteGaleriesIdUsersId(app, token, uuidv4(), '100');
+              expect(body.errors).toBe(INVALID_UUID('user'));
+              expect(status).toBe(400);
+            });
+            it('request.params.userId is the same as current user.id', async () => {
               const {
                 body,
                 status,
@@ -310,7 +327,7 @@ describe('/galeries', () => {
               expect(status).toBe(400);
             });
           });
-          describe('should return error 404 if', () => {
+          describe('should return status 404 if', () => {
             it('galerie not found', async () => {
               const {
                 body,

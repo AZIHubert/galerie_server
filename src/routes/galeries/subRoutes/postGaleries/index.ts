@@ -8,6 +8,10 @@ import {
   GalerieUser,
   User,
 } from '@src/db/models';
+
+import {
+  galerieExcluder,
+} from '@src/helpers/excluders';
 import {
   normalizeJoiErrors,
   validatePostGaleriesBody,
@@ -60,7 +64,8 @@ const map = (
 ) => ((value - x1) * (y2 - x2)) / ((y1 - x1) + x2);
 
 export default async (req: Request, res: Response) => {
-  const user = req.user as User;
+  const objectGalerieExcluder: { [key: string]: undefined } = {};
+  const currentUser = req.user as User;
   let galerie: Galerie;
 
   const {
@@ -91,27 +96,31 @@ export default async (req: Request, res: Response) => {
       ...value,
       defaultCoverPicture,
     });
-    const gu = {
-      userId: user.id,
+    await GalerieUser.create({
+      userId: currentUser.id,
       galerieId: galerie.id,
       role: 'creator',
-    };
-    await GalerieUser.create(gu);
+    });
   } catch (err) {
     return res.status(500).send(err);
   }
 
+  galerieExcluder.forEach((e) => {
+    objectGalerieExcluder[e] = undefined;
+  });
+
+  const returnedGalerie = {
+    ...galerie.toJSON(),
+    ...objectGalerieExcluder,
+    currentCoverPicture: null,
+    role: 'creator',
+    users: [],
+  };
+
   return res.status(200).send({
     action: 'POST',
     data: {
-      galerie: {
-        ...galerie.toJSON(),
-        currentCoverPicture: null,
-        role: 'creator',
-        updatedAt: undefined,
-        // It should not include user's creator.
-        users: [],
-      },
+      galerie: returnedGalerie,
     },
   });
 };

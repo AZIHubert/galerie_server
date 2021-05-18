@@ -8,6 +8,8 @@ import {
   Invitation,
   User,
 } from '@src/db/models';
+
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -107,7 +109,23 @@ describe('/galeries', () => {
               expect(status).toBe(200);
             });
           });
-          describe('should return error 400 if', () => {
+          describe('should return status 400 if', () => {
+            it('req.params.galerieId is not a UUID v4', async () => {
+              const {
+                body,
+                status,
+              } = await deleteGalerieIdInvitationId(app, token, '100', uuidv4());
+              expect(body.errors).toBe(INVALID_UUID('galerie'));
+              expect(status).toBe(400);
+            });
+            it('req.params.invitationId is not a UUID v4', async () => {
+              const {
+                body,
+                status,
+              } = await deleteGalerieIdInvitationId(app, token, uuidv4(), '100');
+              expect(body.errors).toBe(INVALID_UUID('invitation'));
+              expect(status).toBe(400);
+            });
             it('user\'s role is \'user\' for this galerie', async () => {
               const userTwo = await createUser({
                 email: 'user2@email.com',
@@ -137,7 +155,7 @@ describe('/galeries', () => {
               expect(status).toBe(400);
             });
           });
-          describe('should return error 404 if', () => {
+          describe('should return status 404 if', () => {
             it('galerie not found', async () => {
               const {
                 body,

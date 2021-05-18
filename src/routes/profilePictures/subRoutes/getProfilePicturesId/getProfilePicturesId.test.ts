@@ -6,6 +6,7 @@ import '@src/helpers/initEnv';
 
 import { User } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -119,16 +120,24 @@ describe('/profilePictures', () => {
           expect(profilePicture.updatedAt).toBeUndefined();
           expect(profilePicture.userId).toBeUndefined();
         });
+        describe('should return status 400 if', () => {
+          it('request.params.profilePictureId is not a UUID v4', async () => {
+            const {
+              body,
+              status,
+            } = await getProfilePicture(app, token, '100');
+            expect(body.errors).toBe(INVALID_UUID('profile picture'));
+            expect(status).toBe(400);
+          });
+        });
         describe('should return status 404 if', () => {
           it('profile picture id not found', async () => {
             const {
               body,
               status,
             } = await getProfilePicture(app, token, uuidv4());
+            expect(body.errors).toBe('profile picture not found');
             expect(status).toBe(404);
-            expect(body).toStrictEqual({
-              errors: 'profile picture not found',
-            });
           });
         });
       });

@@ -10,6 +10,7 @@ import {
 } from '@src/db/models';
 
 import {
+  INVALID_UUID,
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -177,15 +178,21 @@ describe('/users', () => {
         });
       });
       describe('should return status 400 if', () => {
+        it('request.params.userId is not a UUID v4', async () => {
+          const {
+            body,
+            status,
+          } = await getUserId(app, token, '100');
+          expect(body.errors).toEqual(INVALID_UUID('user'));
+          expect(status).toBe(400);
+        });
         it('params.userId is the same as the current user.id', async () => {
           const {
             body,
             status,
           } = await getUserId(app, token, user.id);
+          expect(body.errors).toEqual('params.id cannot be the same as your current one');
           expect(status).toBe(400);
-          expect(body).toEqual({
-            errors: 'params.id cannot be the same as your current one',
-          });
         });
       });
       describe('should return status 404 if', () => {

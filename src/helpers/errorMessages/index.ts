@@ -20,6 +20,17 @@ export const FIELD_MIN_LENGTH_OF_HEIGH = 'should have a minimum length of 8';
 export const FILE_IS_IMAGE = 'uploaded file must be an image';
 export const FILE_IS_REQUIRED = 'file is required';
 export const FILES_ARE_REQUIRED = 'files are required';
+export const INVALID_UUID = (
+  type:
+  'black list' |
+  'frame' |
+  'galerie' |
+  'galerie picture' |
+  'invitation' |
+  'profile picture' |
+  'ticket' |
+  'user',
+) => `${type} id is not valide`;
 export const NOT_ADMIN = 'you need to be an admin';
 export const NOT_AUTHENTICATED = 'not authenticated';
 export const NOT_CONFIRMED = 'You\'re account need to be confimed';

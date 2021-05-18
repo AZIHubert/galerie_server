@@ -19,6 +19,7 @@ import {
   FIELD_IS_EMPTY,
   FIELD_IS_REQUIRED,
   FIELD_NOT_A_STRING,
+  INVALID_UUID,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import accEnv from '@src/helpers/accEnv';
@@ -221,7 +222,15 @@ describe('/galeries', () => {
           expect(galerieUsers.length).toBe(0);
         });
       });
-      describe('should return error 400 if', () => {
+      describe('should return status 400 if', () => {
+        it('request.params.galerieId is not a UUID v4', async () => {
+          const {
+            body,
+            status,
+          } = await deleteGalerieId(app, token, '100', {});
+          expect(body.errors).toBe(INVALID_UUID('galerie'));
+          expect(status).toBe(400);
+        });
         it('user\'s role is user', async () => {
           const name = 'galerie\'s name';
           const {

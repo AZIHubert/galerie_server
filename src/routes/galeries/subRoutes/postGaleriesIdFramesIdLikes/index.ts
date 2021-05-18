@@ -10,15 +10,33 @@ import {
   User,
 } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
+
 export default async (req: Request, res: Response) => {
   const {
     frameId,
     galerieId,
   } = req.params;
-  const user = req.user as User;
+  const currentUser = req.user as User;
   let frame: Frame | null;
   let galerie: Galerie | null;
   let like: Like | null;
+
+  // Check if request.params.galerieId
+  // is a UUID v4.
+  if (!uuidValidatev4(galerieId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie'),
+    });
+  }
+  // Check if request.params.galerieId
+  // is a UUID v4.
+  if (!uuidValidatev4(frameId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('frame'),
+    });
+  }
 
   // Fetch galerie.
   try {
@@ -26,7 +44,7 @@ export default async (req: Request, res: Response) => {
       include: [{
         model: User,
         where: {
-          id: user.id,
+          id: currentUser.id,
         },
       }],
     });
@@ -65,7 +83,7 @@ export default async (req: Request, res: Response) => {
     like = await Like.findOne({
       where: {
         frameId,
-        userId: user.id,
+        userId: currentUser.id,
       },
     });
   } catch (err) {
@@ -83,7 +101,7 @@ export default async (req: Request, res: Response) => {
   } else {
     await Like.create({
       frameId,
-      userId: user.id,
+      userId: currentUser.id,
     });
     await frame.increment({ numOfLikes: 1 });
   }

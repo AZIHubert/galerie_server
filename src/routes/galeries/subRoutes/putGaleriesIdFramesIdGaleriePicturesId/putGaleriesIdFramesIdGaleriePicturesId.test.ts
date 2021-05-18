@@ -8,6 +8,8 @@ import {
   GaleriePicture,
   User,
 } from '@src/db/models';
+
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -109,9 +111,10 @@ describe('/galeries', () => {
                     body: {
                       action,
                       data: {
+                        current,
                         frameId: returnedFrameId,
                         galerieId: returnedGalerieId,
-                        galeriePicture,
+                        galeriePictureId: returnedGaleriePictureId,
                       },
                     },
                     status,
@@ -122,48 +125,14 @@ describe('/galeries', () => {
                     frameId,
                     galeriePictureId,
                   );
+                  const galeriePicture = await GaleriePicture
+                    .findByPk(galeriePictureId) as GaleriePicture;
                   expect(action).toBe('PUT');
+                  expect(current).toBeTruthy();
+                  expect(galeriePicture.current).toBeTruthy();
                   expect(returnedFrameId).toBe(String(frameId));
                   expect(returnedGalerieId).toBe(galerieId);
-                  expect(galeriePicture.current).toBeTruthy();
-                  expect(galeriePicture.createdAt).toBeUndefined();
-                  expect(galeriePicture.cropedImageId).toBeUndefined();
-                  expect(galeriePicture.cropedImage.bucketName).toBeUndefined();
-                  expect(galeriePicture.cropedImage.createdAt).toBeUndefined();
-                  expect(galeriePicture.cropedImage.fileName).toBeUndefined();
-                  expect(galeriePicture.cropedImage.format).not.toBeUndefined();
-                  expect(galeriePicture.cropedImage.height).not.toBeUndefined();
-                  expect(galeriePicture.cropedImage.id).toBeUndefined();
-                  expect(galeriePicture.cropedImage.signedUrl).not.toBeUndefined();
-                  expect(galeriePicture.cropedImage.size).not.toBeUndefined();
-                  expect(galeriePicture.cropedImage.updatedAt).toBeUndefined();
-                  expect(galeriePicture.cropedImage.width).not.toBeUndefined();
-                  expect(galeriePicture.frameId).toBeUndefined();
-                  expect(galeriePicture.id).not.toBeUndefined();
-                  expect(galeriePicture.index).not.toBeUndefined();
-                  expect(galeriePicture.originalImageId).toBeUndefined();
-                  expect(galeriePicture.originalImage.bucketName).toBeUndefined();
-                  expect(galeriePicture.originalImage.createdAt).toBeUndefined();
-                  expect(galeriePicture.originalImage.fileName).toBeUndefined();
-                  expect(galeriePicture.originalImage.format).not.toBeUndefined();
-                  expect(galeriePicture.originalImage.height).not.toBeUndefined();
-                  expect(galeriePicture.originalImage.id).toBeUndefined();
-                  expect(galeriePicture.originalImage.signedUrl).not.toBeUndefined();
-                  expect(galeriePicture.originalImage.size).not.toBeUndefined();
-                  expect(galeriePicture.originalImage.updatedAt).toBeUndefined();
-                  expect(galeriePicture.originalImage.width).not.toBeUndefined();
-                  expect(galeriePicture.pendingImageId).toBeUndefined();
-                  expect(galeriePicture.pendingImage.bucketName).toBeUndefined();
-                  expect(galeriePicture.pendingImage.createdAt).toBeUndefined();
-                  expect(galeriePicture.pendingImage.fileName).toBeUndefined();
-                  expect(galeriePicture.pendingImage.format).not.toBeUndefined();
-                  expect(galeriePicture.pendingImage.height).not.toBeUndefined();
-                  expect(galeriePicture.pendingImage.id).toBeUndefined();
-                  expect(galeriePicture.pendingImage.signedUrl).not.toBeUndefined();
-                  expect(galeriePicture.pendingImage.size).not.toBeUndefined();
-                  expect(galeriePicture.pendingImage.updatedAt).toBeUndefined();
-                  expect(galeriePicture.pendingImage.width).not.toBeUndefined();
-                  expect(galeriePicture.updatedAt).toBeUndefined();
+                  expect(returnedGaleriePictureId).toBe(galeriePictureId);
                   expect(status).toBe(200);
                 });
                 it('should set galeriePicture\'s coverPicture to true', async () => {
@@ -174,7 +143,13 @@ describe('/galeries', () => {
                     frameId,
                     galeriePictureId,
                   );
-                  await putGaleriesIdFramesIdGaleriePicturesId(
+                  const {
+                    body: {
+                      data: {
+                        current,
+                      },
+                    },
+                  } = await putGaleriesIdFramesIdGaleriePicturesId(
                     app,
                     token,
                     galerieId,
@@ -183,6 +158,7 @@ describe('/galeries', () => {
                   );
                   const galeriePicture = await GaleriePicture
                     .findByPk(galeriePictureId) as GaleriePicture;
+                  expect(current).toBeFalsy();
                   expect(galeriePicture.current).toBeFalsy();
                 });
                 it('should set coverPicture to true and the previous one to false', async () => {
@@ -213,6 +189,48 @@ describe('/galeries', () => {
                 });
               });
               describe('should return status 400 if', () => {
+                it('request.params.galerieId is not a UUID v4', async () => {
+                  const {
+                    body,
+                    status,
+                  } = await putGaleriesIdFramesIdGaleriePicturesId(
+                    app,
+                    token,
+                    '100',
+                    uuidv4(),
+                    uuidv4(),
+                  );
+                  expect(body.errors).toBe(INVALID_UUID('galerie'));
+                  expect(status).toBe(400);
+                });
+                it('request.params.frameId is not a UUID v4', async () => {
+                  const {
+                    body,
+                    status,
+                  } = await putGaleriesIdFramesIdGaleriePicturesId(
+                    app,
+                    token,
+                    uuidv4(),
+                    '100',
+                    uuidv4(),
+                  );
+                  expect(body.errors).toBe(INVALID_UUID('frame'));
+                  expect(status).toBe(400);
+                });
+                it('request.params.galeriePictureId is not a UUID v4', async () => {
+                  const {
+                    body,
+                    status,
+                  } = await putGaleriesIdFramesIdGaleriePicturesId(
+                    app,
+                    token,
+                    uuidv4(),
+                    uuidv4(),
+                    '100',
+                  );
+                  expect(body.errors).toBe(INVALID_UUID('galerie picture'));
+                  expect(status).toBe(400);
+                });
                 it('user\'s role is \'user\'', async () => {
                   const userTwo = await createUser({
                     email: 'user2@email.com',

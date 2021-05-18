@@ -6,6 +6,7 @@ import '@src/helpers/initEnv';
 
 import { User } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -23,7 +24,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('galeries', () => {
+describe('/galeries', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -59,7 +60,7 @@ describe('galeries', () => {
     done();
   });
 
-  describe(':id', () => {
+  describe('/:galerieId', () => {
     describe('GET', () => {
       describe('it should return status 200 and', () => {
         let returnedGalerie: any;
@@ -195,7 +196,17 @@ describe('galeries', () => {
           expect(currentCoverPicture.updatedAt).toBeUndefined();
         });
       });
-      describe('it should return error 404 if', () => {
+      describe('it should return status 400 if', () => {
+        it('request.params.galerieId is not a UUID v4', async () => {
+          const {
+            body,
+            status,
+          } = await getGaleriesId(app, token, '100');
+          expect(body.errors).toBe(INVALID_UUID('galerie'));
+          expect(status).toBe(400);
+        });
+      });
+      describe('it should return status 404 if', () => {
         it('galerie id doesn\'t exist', async () => {
           const {
             body,
@@ -204,7 +215,7 @@ describe('galeries', () => {
           expect(body.errors).toBe('galerie not found');
           expect(status).toBe(404);
         });
-        it('galerie exist but user is not subscribe to it or the creator', async () => {
+        it('galerie exist but user is not subscribe to it', async () => {
           const userTwo = await createUser({
             email: 'user2@email.com',
             userName: 'user2',

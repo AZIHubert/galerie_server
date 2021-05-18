@@ -14,8 +14,7 @@ import {
 } from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
-  const user = req.user as User;
-  let ticket: Ticket;
+  const currentUser = req.user as User;
 
   const {
     error,
@@ -28,23 +27,15 @@ export default async (req: Request, res: Response) => {
   }
 
   try {
-    ticket = await Ticket.create({
+    await Ticket.create({
       ...value,
-      userId: user.id,
+      userId: currentUser.id,
     });
   } catch (err) {
     return res.status(500).send(err);
   }
 
-  const returnedTicket = {
-    ...ticket.toJSON(),
-    updatedAt: undefined,
-  };
-
   return res.status(200).send({
     action: 'POST',
-    data: {
-      ticket: returnedTicket,
-    },
   });
 };

@@ -3,14 +3,24 @@ import { Request, Response } from 'express';
 import { User } from '@src/db/models';
 import {
   FIELD_IS_REQUIRED,
+  INVALID_UUID,
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { role } = req.body;
   const { userId } = req.params;
   const currentUser = req.user as User;
   let user: User | null;
+
+  // Check if request.params.userId
+  // is a UUID v4.
+  if (!uuidValidatev4(userId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('user'),
+    });
+  }
 
   if (userId === currentUser.id) {
     return res.status(400).send({

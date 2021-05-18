@@ -6,6 +6,7 @@ import '@src/helpers/initEnv';
 
 import { User } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -15,7 +16,6 @@ import {
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
   putGaleriesIdUsersId,
-  postProfilePicture,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -111,30 +111,16 @@ describe('/galeries', () => {
                   action,
                   data: {
                     galerieId: returnedGalerieId,
-                    user: returnedUser,
+                    role,
+                    userId: returnedUserId,
                   },
                 },
                 status,
               } = await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               expect(action).toBe('PUT');
               expect(returnedGalerieId).toBe(galerieId);
-              expect(returnedUser.authTokenVersion).toBeUndefined();
-              expect(returnedUser.confirmed).toBeUndefined();
-              expect(returnedUser.confirmTokenVersion).toBeUndefined();
-              expect(returnedUser.currentProfilePicture).not.toBeUndefined();
-              expect(returnedUser.defaultProfilePicture).toBe(userTwo.defaultProfilePicture);
-              expect(returnedUser.email).toBeUndefined();
-              expect(returnedUser.emailTokenVersion).toBeUndefined();
-              expect(returnedUser.facebookId).toBeUndefined();
-              expect(returnedUser.googleId).toBeUndefined();
-              expect(returnedUser.galerieRole).toBe('admin');
-              expect(returnedUser.id).toBe(userTwo.id);
-              expect(returnedUser.password).toBeUndefined();
-              expect(returnedUser.resetPasswordTokenVersion).toBeUndefined();
-              expect(returnedUser.role).toBe(userTwo.role);
-              expect(returnedUser.socialMediaUserName).toBe(userTwo.socialMediaUserName);
-              expect(returnedUser.updatedAt).toBeUndefined();
-              expect(returnedUser.updatedEmailTokenVersion).toBeUndefined();
+              expect(returnedUserId).toBe(userTwo.id);
+              expect(role).toBe('admin');
               expect(status).toBe(200);
             });
             it('update user\'s role to user if previous role was admin', async () => {
@@ -142,68 +128,30 @@ describe('/galeries', () => {
               const {
                 body: {
                   data: {
-                    user: {
-                      galerieRole,
-                    },
+                    role,
                   },
                 },
               } = await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
-              expect(galerieRole).toBe('user');
+              expect(role).toBe('user');
             });
-            it('return user with his current profile picture', async () => {
-              await postProfilePicture(app, tokenTwo);
-              await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
-              const {
-                body: {
-                  data: {
-                    user: {
-                      currentProfilePicture,
-                    },
-                  },
-                },
-              } = await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
-              expect(currentProfilePicture.createdAt).not.toBeUndefined();
-              expect(currentProfilePicture.cropedImageId).toBeUndefined();
-              expect(currentProfilePicture.cropedImage.bucketName).toBeUndefined();
-              expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-              expect(currentProfilePicture.cropedImage.fileName).toBeUndefined();
-              expect(currentProfilePicture.cropedImage.format).not.toBeUndefined();
-              expect(currentProfilePicture.cropedImage.height).not.toBeUndefined();
-              expect(currentProfilePicture.cropedImage.id).toBeUndefined();
-              expect(currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-              expect(currentProfilePicture.cropedImage.size).not.toBeUndefined();
-              expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-              expect(currentProfilePicture.cropedImage.width).not.toBeUndefined();
-              expect(currentProfilePicture.current).toBeUndefined();
-              expect(currentProfilePicture.id).not.toBeUndefined();
-              expect(currentProfilePicture.originalImageId).toBeUndefined();
-              expect(currentProfilePicture.originalImage.bucketName).toBeUndefined();
-              expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
-              expect(currentProfilePicture.originalImage.fileName).toBeUndefined();
-              expect(currentProfilePicture.originalImage.format).not.toBeUndefined();
-              expect(currentProfilePicture.originalImage.height).not.toBeUndefined();
-              expect(currentProfilePicture.originalImage.id).toBeUndefined();
-              expect(currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
-              expect(currentProfilePicture.originalImage.size).not.toBeUndefined();
-              expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-              expect(currentProfilePicture.originalImage.width).not.toBeUndefined();
-              expect(currentProfilePicture.pendingImageId).toBeUndefined();
-              expect(currentProfilePicture.pendingImage.bucketName).toBeUndefined();
-              expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-              expect(currentProfilePicture.pendingImage.fileName).toBeUndefined();
-              expect(currentProfilePicture.pendingImage.format).not.toBeUndefined();
-              expect(currentProfilePicture.pendingImage.height).not.toBeUndefined();
-              expect(currentProfilePicture.pendingImage.id).toBeUndefined();
-              expect(currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-              expect(currentProfilePicture.pendingImage.size).not.toBeUndefined();
-              expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-              expect(currentProfilePicture.pendingImage.width).not.toBeUndefined();
-              expect(currentProfilePicture.updatedAt).toBeUndefined();
-              expect(currentProfilePicture.userId).toBeUndefined();
-            });
-            it('TODO: return user.isBlackListed if user is black listed', async () => {});
           });
           describe('should return status 400 if', () => {
+            it('request.params.galerieId is not a UUID v4', async () => {
+              const {
+                body,
+                status,
+              } = await putGaleriesIdUsersId(app, token, '100', uuidv4());
+              expect(body.errors).toBe(INVALID_UUID('galerie'));
+              expect(status).toBe(400);
+            });
+            it('request.params.userId is not a UUID v4', async () => {
+              const {
+                body,
+                status,
+              } = await putGaleriesIdUsersId(app, token, uuidv4(), '100');
+              expect(body.errors).toBe(INVALID_UUID('user'));
+              expect(status).toBe(400);
+            });
             it('userId and current user id are the same', async () => {
               const {
                 body,

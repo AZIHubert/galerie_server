@@ -10,20 +10,30 @@ import {
 } from '@src/db/models';
 
 import checkBlackList from '@src/helpers/checkBlackList';
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import {
   invitationExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const limit = 20;
   const { galerieId } = req.params;
   const { page } = req.query;
-  const { id: userId } = req.user as User;
+  const currentUser = req.user as User;
   const returnedInvitations: Array<any> = [];
   let galerie: Galerie | null;
   let offset: number;
+
+  // Check if request.params.galerieId
+  // is a UUID v4.
+  if (!uuidValidatev4(galerieId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie'),
+    });
+  }
 
   if (typeof page === 'string') {
     offset = ((+page || 1) - 1) * limit;
@@ -37,7 +47,7 @@ export default async (req: Request, res: Response) => {
       include: [{
         model: User,
         where: {
-          id: userId,
+          id: currentUser.id,
         },
       }],
     });
@@ -56,7 +66,7 @@ export default async (req: Request, res: Response) => {
   // is not 'user'.
   const { role } = galerie
     .users
-    .filter((user) => user.id === userId)[0]
+    .filter((user) => user.id === currentUser.id)[0]
     .GalerieUser;
   if (role === 'user') {
     return res.status(400).send({

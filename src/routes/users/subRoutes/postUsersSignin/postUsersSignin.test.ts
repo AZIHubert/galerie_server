@@ -99,9 +99,10 @@ describe('/users', () => {
           expect(user.authTokenVersion).toBeUndefined();
           expect(user.confirmed).toBeUndefined();
           expect(user.confirmTokenVersion).toBeUndefined();
-          expect(user.createdAt).toBeUndefined();
+          expect(user.currentProfilePicture).toBeNull();
+          expect(user.createdAt).not.toBeUndefined();
           expect(user.defaultProfilePicture).toBeNull();
-          expect(user.email).toBe(email);
+          expect(user.email).toBeUndefined();
           expect(user.emailTokenVersion).toBeUndefined();
           expect(user.facebookId).toBeUndefined();
           expect(user.googleId).toBeUndefined();
@@ -121,7 +122,9 @@ describe('/users', () => {
           const {
             body: {
               data: {
-                user,
+                user: {
+                  id: userId,
+                },
               },
             },
           } = await signin(app, {
@@ -130,6 +133,7 @@ describe('/users', () => {
             password,
             userName: ` ${userName} `,
           });
+          const user = await User.findByPk(userId) as User;
           expect(user.email).toBe(email);
           expect(user.pseudonym).toBe(userName);
           expect(user.userName).toBe(`@${userName}`);

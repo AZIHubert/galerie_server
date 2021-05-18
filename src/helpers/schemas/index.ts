@@ -5,6 +5,7 @@ export { default as validatePostGaleriesBody } from './validatePostGaleriesBody'
 export { default as validatePostGaleriesIdInvationsBody } from './validatePostGaleriesIdInvationsBody';
 export { default as validatePostGaleriesSubscribeBody } from './validatePostGaleriesSubscribeBody';
 export { default as validatePostUsersBlacklistIdBody } from './validatePostUsersBlacklistIdBody';
+export { default as validatePostUsersConfirmationBody } from './validatePostUsersConfirmationBody';
 export { default as validatePostUsersLoginBody } from './validatePostUsersLoginBody';
 export { default as validatePostUsersMeUpdateEmailBody } from './validatePostUsersMeUpdateEmailBody';
 export { default as validatePostUsersMeUpdateEmailConfirmBody } from './validatePostUsersMeUpdateEmailConfirmBody';

@@ -11,11 +11,12 @@ import {
   User,
 } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import {
   galeriePictureExcluder,
   imageExcluder,
 } from '@src/helpers/excluders';
-import signedUrl from '@src/helpers/signedUrl';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {
@@ -25,7 +26,28 @@ export default async (req: Request, res: Response) => {
   } = req.params;
   const { id: userId } = req.user as User;
   let galerie: Galerie | null;
-  let returnedGaleriePicture;
+
+  // Check if request.params.galerieId
+  // is a UUID v4.
+  if (!uuidValidatev4(galerieId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie'),
+    });
+  }
+  // Check if request.params.frameId
+  // is a UUID v4.
+  if (!uuidValidatev4(frameId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('frame'),
+    });
+  }
+  // Check if request.params.galeriePictureId
+  // is a UUID v4.
+  if (!uuidValidatev4(galeriePictureId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie picture'),
+    });
+  }
 
   // Fetch galerie.
   try {
@@ -155,67 +177,13 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // get SignedUrl of images
-  // and compose the final galerie picture.
-  try {
-    const {
-      cropedImage: {
-        bucketName: cropedImageBucketName,
-        fileName: cropedImageFileName,
-      },
-      originalImage: {
-        bucketName: originalImageBucketName,
-        fileName: originalImageFileName,
-      },
-      pendingImage: {
-        bucketName: pendingImageBucketName,
-        fileName: pendingImageFileName,
-      },
-    } = galeriePicture;
-    const cropedImageSignedUrl = await signedUrl(
-      cropedImageBucketName,
-      cropedImageFileName,
-    );
-    const originalImageSignedUrl = await signedUrl(
-      originalImageBucketName,
-      originalImageFileName,
-    );
-    const pendingImageSignedUrl = await signedUrl(
-      pendingImageBucketName,
-      pendingImageFileName,
-    );
-    returnedGaleriePicture = {
-      ...galeriePicture.toJSON(),
-      cropedImage: {
-        ...galeriePicture.cropedImage.toJSON(),
-        bucketName: undefined,
-        fileName: undefined,
-        signedUrl: cropedImageSignedUrl,
-      },
-      originalImage: {
-        ...galeriePicture.originalImage.toJSON(),
-        bucketName: undefined,
-        fileName: undefined,
-        signedUrl: originalImageSignedUrl,
-      },
-      pendingImage: {
-        ...galeriePicture.pendingImage.toJSON(),
-        bucketName: undefined,
-        fileName: undefined,
-        signedUrl: pendingImageSignedUrl,
-      },
-      updatedAt: undefined,
-    };
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   return res.status(200).send({
     action: 'PUT',
     data: {
+      current: galeriePicture.current,
       frameId,
       galerieId,
-      galeriePicture: returnedGaleriePicture,
+      galeriePictureId,
     },
   });
 };

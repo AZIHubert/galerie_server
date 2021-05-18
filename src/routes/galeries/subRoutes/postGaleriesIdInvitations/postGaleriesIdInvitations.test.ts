@@ -4,7 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
-import { FIELD_NOT_A_NUMBER } from '@src/helpers/errorMessages';
+import {
+  FIELD_NOT_A_NUMBER,
+  INVALID_UUID,
+} from '@src/helpers/errorMessages';
 import {
   Invitation,
   User,
@@ -221,6 +224,14 @@ describe('/galeries', () => {
           });
         });
         describe('Should return status 400 if', () => {
+          it('request.params.galerieId is not a UUID v4', async () => {
+            const {
+              body,
+              status,
+            } = await postGaleriesIdInvitations(app, token, '100', {});
+            expect(body.errors).toBe(INVALID_UUID('galerie'));
+            expect(status).toBe(400);
+          });
           it('user\'s role is \'user\'', async () => {
             const userTwo = await createUser({
               email: 'user2@email.com',

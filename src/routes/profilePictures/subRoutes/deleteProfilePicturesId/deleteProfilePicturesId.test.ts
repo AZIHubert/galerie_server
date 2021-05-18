@@ -11,6 +11,7 @@ import {
 } from '@src/db/models';
 
 import accEnv from '@src/helpers/accEnv';
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -72,15 +73,20 @@ describe('/profilePictures', () => {
             body: {
               data: {
                 profilePicture: {
-                  id,
+                  id: profilePictureId,
                 },
               },
             },
           } = await postProfilePicture(app, token);
           const {
-            body,
+            body: {
+              action,
+              data: {
+                profilePictureId: returnedProfilePictureId,
+              },
+            },
             status,
-          } = await deleteProfilePicture(app, token, id);
+          } = await deleteProfilePicture(app, token, profilePictureId);
           const [bucketCropedImages] = await gc
             .bucket(GALERIES_BUCKET_PP_CROP)
             .getFiles();
@@ -91,28 +97,35 @@ describe('/profilePictures', () => {
             .bucket(GALERIES_BUCKET_PP_PENDING)
             .getFiles();
           const images = await Image.findAll();
-          const profilePictures = await ProfilePicture.findAll();
+          const profilePicture = await ProfilePicture.findByPk(profilePictureId);
           expect(status).toBe(200);
-          expect(body.action).toEqual('DELETE');
-          expect(body.data.id).toEqual(id);
+          expect(action).toEqual('DELETE');
+          expect(returnedProfilePictureId).toEqual(profilePictureId);
           expect(bucketCropedImages.length).toBe(0);
           expect(bucketOriginalImages.length).toBe(0);
           expect(bucketPendingImages.length).toBe(0);
           expect(images.length).toBe(0);
-          expect(profilePictures.length).toBe(0);
+          expect(profilePicture).toBeNull();
         });
       });
-
+      describe('should return status 400 if', () => {
+        it('request.params.profilePictureId is not a UUID v4', async () => {
+          const {
+            body,
+            status,
+          } = await deleteProfilePicture(app, token, '100');
+          expect(body.errors).toBe(INVALID_UUID('profile picture'));
+          expect(status).toBe(400);
+        });
+      });
       describe('should return status 404 if', () => {
         it('profile picture id not found', async () => {
           const {
             body,
             status,
           } = await deleteProfilePicture(app, token, uuidv4());
+          expect(body.errors).toBe('profile picture not found');
           expect(status).toBe(404);
-          expect(body).toStrictEqual({
-            errors: 'profile picture not found',
-          });
         });
       });
     });

@@ -11,8 +11,10 @@ import {
   User,
 } from '@src/db/models';
 
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import { userExcluder } from '@src/helpers/excluders';
+import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {
@@ -21,7 +23,7 @@ export default async (req: Request, res: Response) => {
   } = req.params;
   const limit = 20;
   const { page } = req.query;
-  const user = req.user as User;
+  const currentUser = req.user as User;
   const usersWithProfilePicture: Array<any> = [];
   let frame: Frame | null;
   let galerie: Galerie | null;
@@ -34,13 +36,28 @@ export default async (req: Request, res: Response) => {
     offset = 0;
   }
 
+  // Check if request.params.galerie
+  // is a UUID v4.
+  if (!uuidValidatev4(galerieId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie'),
+    });
+  }
+  // Check if request.params.frameId
+  // is a UUID v4.
+  if (!uuidValidatev4(frameId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('frame'),
+    });
+  }
+
   // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
       include: [{
         model: User,
         where: {
-          id: user.id,
+          id: currentUser.id,
         },
       }],
     });
@@ -85,7 +102,7 @@ export default async (req: Request, res: Response) => {
           model: User,
           where: {
             id: {
-              [Op.not]: user.id,
+              [Op.not]: currentUser.id,
             },
           },
         },

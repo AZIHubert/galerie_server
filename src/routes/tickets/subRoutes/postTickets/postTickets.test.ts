@@ -3,7 +3,10 @@ import { Sequelize } from 'sequelize';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import {
+  Ticket,
+  User,
+} from '@src/db/models';
 
 import {
   FIELD_IS_EMPTY,
@@ -60,44 +63,35 @@ describe('/tickets', () => {
   });
 
   describe('POST', () => {
-    describe('should return status 204 and', () => {
+    describe('should return status 200 and', () => {
       it('create a ticket', async () => {
         const body = 'ticket body';
         const header = 'header body';
         const {
           body: {
             action,
-            data: {
-              ticket,
-            },
           },
           status,
         } = await postTicket(app, token, {
           body,
           header,
         });
+        const tickets = await Ticket.findAll();
         expect(action).toBe('POST');
         expect(status).toBe(200);
-        expect(ticket.createdAt).not.toBeUndefined();
-        expect(ticket.body).toBe(body);
-        expect(ticket.header).toBe(header);
-        expect(ticket.id).not.toBeUndefined();
-        expect(ticket.updatedAt).toBeUndefined();
-        expect(ticket.userId).toBe(user.id);
+        expect(tickets.length).toBe(1);
+        expect(tickets[0].body).toBe(body);
+        expect(tickets[0].header).toBe(header);
+        expect(tickets[0].userId).toBe(user.id);
       });
       it('should trim request.body', async () => {
         const body = 'ticket body';
         const header = 'header body';
-        const {
-          body: {
-            data: {
-              ticket,
-            },
-          },
-        } = await postTicket(app, token, {
+        await postTicket(app, token, {
           body: ` ${body} `,
           header: ` ${header} `,
         });
+        const [ticket] = await Ticket.findAll();
         expect(ticket.body).toBe(body);
         expect(ticket.header).toBe(header);
       });

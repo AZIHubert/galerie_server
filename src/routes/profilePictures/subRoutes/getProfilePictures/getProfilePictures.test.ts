@@ -57,7 +57,7 @@ describe('/profilePictures', () => {
 
   describe('GET', () => {
     describe('should return status 200 and', () => {
-      it('return an empty array', async () => {
+      it('return no profile picture', async () => {
         const {
           body: {
             action,
@@ -71,7 +71,7 @@ describe('/profilePictures', () => {
         expect(profilePictures.length).toBe(0);
         expect(status).toBe(200);
       });
-      it('return profiles pictures with relevant attributes', async () => {
+      it('return one profile picture', async () => {
         await postProfilePicture(app, token);
         const {
           body: {

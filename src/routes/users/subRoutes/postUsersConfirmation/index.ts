@@ -9,17 +9,23 @@ import {
   ALREADY_CONFIRMED,
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
+import {
+  normalizeJoiErrors,
+  validatePostUsersConfirmationBody,
+} from '@src/helpers/schemas';
 
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 
 export default async (req: Request, res: Response) => {
-  const { email } = req.body;
   let user: User | null;
 
-  // Email should be send.
-  if (!email) {
+  const {
+    error,
+    value,
+  } = validatePostUsersConfirmationBody(req.body);
+  if (error) {
     return res.status(400).send({
-      errors: 'user email is required',
+      errors: normalizeJoiErrors(error),
     });
   }
 
@@ -29,7 +35,7 @@ export default async (req: Request, res: Response) => {
   try {
     user = await User.findOne({
       where: {
-        email,
+        email: value.email,
         googleId: null,
         facebookId: null,
       },

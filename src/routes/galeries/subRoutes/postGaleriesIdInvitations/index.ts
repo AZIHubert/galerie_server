@@ -10,18 +10,34 @@ import {
   User,
 } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  invitationExcluder,
+  userExcluder,
+} from '@src/helpers/excluders';
+import fetchCurrentProfilePicture from '@root/src/helpers/fetchCurrentProfilePicture';
 import {
   normalizeJoiErrors,
   validatePostGaleriesIdInvationsBody,
 } from '@src/helpers/schemas';
-import fetchCurrentProfilePicture from '@root/src/helpers/fetchCurrentProfilePicture';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
-  const user = req.user as User;
+  const currentUser = req.user as User;
+  const objectInvitationExcluder: { [key:string]: undefined} = {};
+  const objectUserExcluder: { [key:string]: undefined} = {};
   let currentProfilePicture;
   let galerie: Galerie | null;
   let invitation: Invitation | null;
+
+  // Check if request.params.galerieId
+  // is a UUID v4.
+  if (!uuidValidatev4(galerieId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie'),
+    });
+  }
 
   // Fetch galerie.
   try {
@@ -29,7 +45,7 @@ export default async (req: Request, res: Response) => {
       include: [{
         model: User,
         where: {
-          id: user.id,
+          id: currentUser.id,
         },
       }],
     });
@@ -55,7 +71,7 @@ export default async (req: Request, res: Response) => {
   // creator or admin.
   const { role } = galerie
     .users
-    .filter((u) => u.id === user.id)[0]
+    .filter((user) => user.id === currentUser.id)[0]
     .GalerieUser;
   if (role === 'user') {
     return res.status(400).send({
@@ -78,7 +94,7 @@ export default async (req: Request, res: Response) => {
   try {
     invitation = await Invitation.create({
       ...value,
-      userId: user.id,
+      userId: currentUser.id,
       galerieId,
       code: `${customAlphabet('1234567890', 4)()}-${customAlphabet('abcdefghjkmnpqrstuvwxyz23456789', 10)()}`,
     });
@@ -88,31 +104,26 @@ export default async (req: Request, res: Response) => {
 
   // Fetch current profile picture.
   try {
-    currentProfilePicture = await fetchCurrentProfilePicture(user);
+    currentProfilePicture = await fetchCurrentProfilePicture(currentUser);
   } catch (err) {
     return res.status(500).send(err);
   }
 
+  invitationExcluder.forEach((e) => {
+    objectInvitationExcluder[e] = undefined;
+  });
+  userExcluder.forEach((e) => {
+    objectUserExcluder[e] = undefined;
+  });
+
   const returnedInvitation = {
     ...invitation.toJSON(),
-    galerieId: undefined,
-    updatedAt: undefined,
+    ...objectInvitationExcluder,
     user: {
-      ...user.toJSON(),
-      authTokenVersion: undefined,
-      confirmed: undefined,
-      confirmTokenVersion: undefined,
+      ...currentUser.toJSON(),
+      ...objectUserExcluder,
       currentProfilePicture,
-      email: undefined,
-      emailTokenVersion: undefined,
-      facebookId: undefined,
-      googleId: undefined,
-      password: undefined,
-      resetPasswordTokenVersion: undefined,
-      updatedAt: undefined,
-      updatedEmailTokenVersion: undefined,
     },
-    userId: undefined,
   };
 
   return res.status(200).send({

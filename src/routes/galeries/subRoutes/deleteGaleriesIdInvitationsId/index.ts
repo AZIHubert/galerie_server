@@ -9,14 +9,33 @@ import {
   User,
 } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
+
 export default async (req: Request, res: Response) => {
-  const { id: userId } = req.user as User;
   const {
     galerieId,
     invitationId,
   } = req.params;
+  const currentUser = req.user as User;
   let galerie: Galerie | null;
   let invitation: Invitation | null;
+
+  // Check if request.params.galerieId
+  // is a UUID v4.
+  if (!uuidValidatev4(galerieId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie'),
+    });
+  }
+
+  // Check if request.params.invitationId
+  // is a UUID v4.
+  if (!uuidValidatev4(invitationId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('invitation'),
+    });
+  }
 
   // Fetch galerie.
   try {
@@ -24,7 +43,7 @@ export default async (req: Request, res: Response) => {
       include: [{
         model: User,
         where: {
-          id: userId,
+          id: currentUser.id,
         },
       }],
     });
@@ -43,7 +62,7 @@ export default async (req: Request, res: Response) => {
   // is not 'user'.
   const { role } = galerie
     .users
-    .filter((user) => user.id === userId)[0]
+    .filter((user) => user.id === currentUser.id)[0]
     .GalerieUser;
   if (role === 'user') {
     return res.status(400).send({

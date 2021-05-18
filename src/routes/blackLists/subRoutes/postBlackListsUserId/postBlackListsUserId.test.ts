@@ -16,6 +16,7 @@ import {
   FIELD_MIN_LENGTH_OF_TEN,
   FIELD_NOT_A_STRING,
   FIELD_NOT_A_NUMBER,
+  INVALID_UUID,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -299,6 +300,14 @@ describe('/blackLists', () => {
         });
       });
       describe('should return status 400 if', () => {
+        it('req.params.userId is not a UUID v4', async () => {
+          const {
+            body,
+            status,
+          } = await postBlackListUser(app, token, '100', {});
+          expect(body.errors).toBe(INVALID_UUID('user'));
+          expect(status).toBe(400);
+        });
         it('current user.id === :userId', async () => {
           const {
             body,

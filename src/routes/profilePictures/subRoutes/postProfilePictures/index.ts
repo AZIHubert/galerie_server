@@ -17,6 +17,10 @@ import {
   FILE_IS_IMAGE,
   FILE_IS_REQUIRED,
 } from '@src/helpers/errorMessages';
+import {
+  imageExcluder,
+  profilePictureExcluder,
+} from '@src/helpers/excluders';
 import gc from '@src/helpers/gc';
 import signedUrl from '@src/helpers/signedUrl';
 
@@ -27,7 +31,9 @@ const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
   const { file } = req;
-  let profilePicture: {};
+  const objectImageExcluder: { [key: string]: undefined } = {};
+  const objectProfilePictureExcluder: { [key: string]: undefined } = {};
+  let returnedProfilePicture;
 
   // Check if file is send.
   if (!file) {
@@ -210,18 +216,6 @@ export default async (req: Request, res: Response) => {
       },
     });
 
-    // Create a new profile picture with
-    // the ids of all three images created.
-    // This profile picture is now the current one.
-    const newProfilePicture = await ProfilePicture.create({
-      cropedImageId: cropedImage.id,
-      current: true,
-      originalImageId: originalImage.id,
-      pendingImageId: pendingImage.id,
-      userId,
-    });
-
-    // Fetch signed urls of all three images.
     const cropedImageSignedUrl = await signedUrl(
       cropedImage.bucketName,
       cropedImage.fileName,
@@ -235,51 +229,83 @@ export default async (req: Request, res: Response) => {
       pendingImage.fileName,
     );
 
-    // Compose profile picture object to be send.
-    // include signed urls and
-    // remove all non necessary fields.
-    profilePicture = {
-      ...newProfilePicture.toJSON(),
-      cropedImage: {
-        ...cropedImage.toJSON(),
-        bucketName: undefined,
-        createdAt: undefined,
-        fileName: undefined,
-        id: undefined,
-        signedUrl: cropedImageSignedUrl,
-        updatedAt: undefined,
-      },
-      cropedImageId: undefined,
-      originalImage: {
-        ...originalImage.toJSON(),
-        bucketName: undefined,
-        createdAt: undefined,
-        fileName: undefined,
-        id: undefined,
-        signedUrl: originalImageSignedUrl,
-        updatedAt: undefined,
-      },
-      originalImageId: undefined,
-      pendingImage: {
-        ...pendingImage.toJSON(),
-        bucketName: undefined,
-        createdAt: undefined,
-        fileName: undefined,
-        id: undefined,
-        signedUrl: pendingImageSignedUrl,
-        updatedAt: undefined,
-      },
-      pendingImageId: undefined,
-      updatedAt: undefined,
-      userId: undefined,
-    };
+    if (
+      cropedImageSignedUrl.OK
+      && originalImageSignedUrl.OK
+      && pendingImageSignedUrl.OK
+    ) {
+      const profilePicture = await ProfilePicture.create({
+        cropedImageId: cropedImage.id,
+        current: true,
+        originalImageId: originalImage.id,
+        pendingImageId: pendingImage.id,
+        userId,
+      });
+
+      profilePictureExcluder.forEach((e) => {
+        objectProfilePictureExcluder[e] = undefined;
+      });
+      imageExcluder.forEach((e) => {
+        objectImageExcluder[e] = undefined;
+      });
+
+      returnedProfilePicture = {
+        ...profilePicture.toJSON(),
+        ...objectProfilePictureExcluder,
+        cropedImage: {
+          ...cropedImage.toJSON(),
+          ...objectImageExcluder,
+          bucketName: undefined,
+          fileName: undefined,
+          signedUrl: cropedImageSignedUrl,
+        },
+        originalImage: {
+          ...originalImage.toJSON(),
+          ...objectImageExcluder,
+          bucketName: undefined,
+          fileName: undefined,
+          signedUrl: originalImageSignedUrl,
+        },
+        pendingImage: {
+          ...pendingImage.toJSON(),
+          ...objectImageExcluder,
+          bucketName: undefined,
+          fileName: undefined,
+          signedUrl: pendingImageSignedUrl,
+        },
+      };
+    } else {
+      if (cropedImageSignedUrl.OK) {
+        await gc
+          .bucket(cropedImage.bucketName)
+          .file(cropedImage.fileName)
+          .delete();
+      }
+      if (originalImageSignedUrl.OK) {
+        await gc
+          .bucket(originalImage.bucketName)
+          .file(originalImage.fileName)
+          .delete();
+      }
+      if (pendingImageSignedUrl.OK) {
+        await gc
+          .bucket(pendingImage.bucketName)
+          .file(pendingImage.fileName)
+          .delete();
+      }
+      await cropedImage.destroy();
+      await originalImage.destroy();
+      await pendingImage.destroy();
+      throw new Error('something went wrong');
+    }
   } catch (err) {
     return res.status(500).send(err);
   }
+
   return res.status(200).send({
     action: 'POST',
     data: {
-      profilePicture,
+      profilePicture: returnedProfilePicture,
     },
   });
 };

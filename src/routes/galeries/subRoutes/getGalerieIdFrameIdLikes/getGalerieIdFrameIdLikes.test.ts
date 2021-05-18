@@ -6,6 +6,7 @@ import '@src/helpers/initEnv';
 
 import { User } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -244,6 +245,7 @@ describe('/galeries', () => {
                 expect(users[0].currentProfilePicture.userId).toBeUndefined();
               });
               it('return a pack of 20 users', async () => {
+                // TODO: create direct model instead of request.
                 const numOfLikes = new Array(3).fill(0);
                 const {
                   body: {
@@ -277,6 +279,24 @@ describe('/galeries', () => {
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 expect(firstPack.length).toBe(3);
+              });
+            });
+            describe('should return status 400 if', () => {
+              it('request.params.galerieId is not a UUID v4', async () => {
+                const {
+                  body,
+                  status,
+                } = await getGaleriesIdFramesIdLikes(app, token, '100', uuidv4());
+                expect(body.errors).toBe(INVALID_UUID('galerie'));
+                expect(status).toBe(400);
+              });
+              it('request.params.frameId is not a UUID v4', async () => {
+                const {
+                  body,
+                  status,
+                } = await getGaleriesIdFramesIdLikes(app, token, uuidv4(), '100');
+                expect(body.errors).toBe(INVALID_UUID('frame'));
+                expect(status).toBe(400);
               });
             });
             describe('should return status 404 if', () => {

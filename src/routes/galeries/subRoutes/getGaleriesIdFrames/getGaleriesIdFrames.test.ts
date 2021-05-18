@@ -6,6 +6,7 @@ import '@src/helpers/initEnv';
 
 import { User } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -255,7 +256,17 @@ describe('/galeries', () => {
             expect(frame.user).toBeNull();
           });
         });
-        describe('should return error 404 if', () => {
+        describe('should return status 400 if', () => {
+          it('request.params.galerieId is not a UUID v4', async () => {
+            const {
+              body,
+              status,
+            } = await getGaleriesIdFrames(app, token, '100');
+            expect(body.errors).toBe(INVALID_UUID('galerie'));
+            expect(status).toBe(400);
+          });
+        });
+        describe('should return status 404 if', () => {
           it('galerie not found', async () => {
             const {
               body,

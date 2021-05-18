@@ -12,7 +12,9 @@ import {
   FIELD_MAX_LENGTH_THRITY,
   FIELD_MIN_LENGTH_OF_THREE,
   FIELD_NOT_A_STRING,
+  INVALID_UUID,
 } from '@src/helpers/errorMessages';
+
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
@@ -97,6 +99,14 @@ describe('/galeries', () => {
         });
       });
       describe('it should return error 400 if', () => {
+        it('request.params.galerieId is not a UUID v4', async () => {
+          const {
+            body,
+            status,
+          } = await putGalerieId(app, token, '100', {});
+          expect(body.errors).toBe(INVALID_UUID('galerie'));
+          expect(status).toBe(400);
+        });
         it('user role is \'user\'', async () => {
           const {
             body: {

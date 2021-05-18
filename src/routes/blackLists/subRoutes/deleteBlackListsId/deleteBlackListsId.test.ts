@@ -9,6 +9,7 @@ import {
   User,
 } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
@@ -91,6 +92,16 @@ describe('blackLists', () => {
           expect(blackList).toBeNull();
           expect(returnedBlackListId).toBe(blackListId);
           expect(status).toBe(200);
+        });
+      });
+      describe('should return status 400 if', () => {
+        it('req.params.blackListId is not a UUID v4', async () => {
+          const {
+            body,
+            status,
+          } = await deleteBlackListsId(app, token, '100');
+          expect(body.errors).toBe(INVALID_UUID('black list'));
+          expect(status).toBe(400);
         });
       });
       describe('should return status 404 if', () => {

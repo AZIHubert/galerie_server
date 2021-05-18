@@ -6,9 +6,13 @@ import {
 import { User } from '@src/db/models';
 
 import checkBlackList from '@src/helpers/checkBlackList';
-import { USER_NOT_FOUND } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  USER_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import { userExcluder } from '@src/helpers/excluders';
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { userId } = req.params;
@@ -16,6 +20,14 @@ export default async (req: Request, res: Response) => {
   let currentProfilePicture;
   let user: User | null;
   let userIsBlackListed: boolean;
+
+  // Check if request.params.userId
+  // is a UUID v4.
+  if (!uuidValidatev4(userId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('user'),
+    });
+  }
 
   // Don't allow to fetch current user.
   // To do that, use GET /users/me instead.

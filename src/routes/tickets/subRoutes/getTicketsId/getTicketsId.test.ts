@@ -5,9 +5,11 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
+  Ticket,
   User,
 } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -70,69 +72,53 @@ describe('/tickets', () => {
   describe('/:id', () => {
     describe('GET', () => {
       describe('should return status 200 and', () => {
-        it('and return a ticket', async () => {
+        it('return a ticket', async () => {
           const body = 'ticket\'s body';
           const header = 'ticket\'s header';
-          const {
-            body: {
-              data: {
-                ticket: {
-                  id,
-                  createdAt,
-                },
-              },
-            },
-          } = await postTicket(app, token, {
+          await postTicket(app, token, {
             body,
             header,
           });
+          const [ticket] = await Ticket.findAll();
           const {
             body: {
               action,
               data: {
-                ticket,
+                ticket: returnedTicket,
               },
             },
             status,
-          } = await getTicketId(app, adminToken, id);
+          } = await getTicketId(app, adminToken, ticket.id);
           expect(action).toBe('GET');
           expect(status).toBe(200);
-          expect(ticket.body).toBe(body);
-          expect(ticket.createdAt).toEqual(createdAt);
-          expect(ticket.header).toBe(header);
-          expect(ticket.id).toBe(id);
-          expect(ticket.updatedAt).toBeUndefined();
-          expect(ticket.user.authTokenVersion).toBeUndefined();
-          expect(ticket.user.confirmed).toBeUndefined();
-          expect(ticket.user.confirmTokenVersion).toBeUndefined();
-          expect(new Date(ticket.user.createdAt)).toEqual(user.createdAt);
-          expect(ticket.user.currentProfilePicture).toBeNull();
-          expect(ticket.user.defaultProfilePicture).toBeNull();
-          expect(ticket.user.email).toBeUndefined();
-          expect(ticket.user.emailTokenVersion).toBeUndefined();
-          expect(ticket.user.facebookId).toBeUndefined();
-          expect(ticket.user.googleId).toBeUndefined();
-          expect(ticket.user.id).toBe(user.id);
-          expect(ticket.user.password).toBeUndefined();
-          expect(ticket.user.pseudonym).toBe(user.pseudonym);
-          expect(ticket.user.resetPasswordTokenVersion).toBeUndefined();
-          expect(ticket.user.role).toBe(user.role);
-          expect(ticket.user.socialMediaUserName).toBe(user.socialMediaUserName);
-          expect(ticket.user.updatedEmailTokenVersion).toBeUndefined();
-          expect(ticket.user.updatedAt).toBeUndefined();
-          expect(ticket.user.userName).toBe(user.userName);
-          expect(ticket.userId).toBeUndefined();
+          expect(returnedTicket.body).toBe(body);
+          expect(new Date(returnedTicket.createdAt)).toEqual(ticket.createdAt);
+          expect(returnedTicket.header).toBe(header);
+          expect(returnedTicket.id).toBe(ticket.id);
+          expect(returnedTicket.updatedAt).toBeUndefined();
+          expect(returnedTicket.user.authTokenVersion).toBeUndefined();
+          expect(returnedTicket.user.confirmed).toBeUndefined();
+          expect(returnedTicket.user.confirmTokenVersion).toBeUndefined();
+          expect(new Date(returnedTicket.user.createdAt)).toEqual(user.createdAt);
+          expect(returnedTicket.user.currentProfilePicture).toBeNull();
+          expect(returnedTicket.user.defaultProfilePicture).toBeNull();
+          expect(returnedTicket.user.email).toBeUndefined();
+          expect(returnedTicket.user.emailTokenVersion).toBeUndefined();
+          expect(returnedTicket.user.facebookId).toBeUndefined();
+          expect(returnedTicket.user.googleId).toBeUndefined();
+          expect(returnedTicket.user.id).toBe(user.id);
+          expect(returnedTicket.user.password).toBeUndefined();
+          expect(returnedTicket.user.pseudonym).toBe(user.pseudonym);
+          expect(returnedTicket.user.resetPasswordTokenVersion).toBeUndefined();
+          expect(returnedTicket.user.role).toBe(user.role);
+          expect(returnedTicket.user.socialMediaUserName).toBe(user.socialMediaUserName);
+          expect(returnedTicket.user.updatedEmailTokenVersion).toBeUndefined();
+          expect(returnedTicket.user.updatedAt).toBeUndefined();
+          expect(returnedTicket.user.userName).toBe(user.userName);
+          expect(returnedTicket.userId).toBeUndefined();
         });
         it('and return ticket with user\'s profile picture', async () => {
-          const {
-            body: {
-              data: {
-                ticket: {
-                  id,
-                },
-              },
-            },
-          } = await postTicket(app, token, {
+          await postTicket(app, token, {
             body: 'ticket\'s body',
             header: 'ticket\'s header',
           });
@@ -143,6 +129,7 @@ describe('/tickets', () => {
               },
             },
           } = await postProfilePicture(app, token);
+          const [ticket] = await Ticket.findAll();
           const {
             body: {
               data: {
@@ -153,7 +140,7 @@ describe('/tickets', () => {
                 },
               },
             },
-          } = await getTicketId(app, adminToken, id);
+          } = await getTicketId(app, adminToken, ticket.id);
           expect(currentProfilePicture.createdAt).not.toBeUndefined();
           expect(currentProfilePicture.cropedImage.bucketName).toBeUndefined();
           expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
@@ -194,15 +181,7 @@ describe('/tickets', () => {
           expect(currentProfilePicture.userId).toBeUndefined();
         });
         it('return ticket event if his user has deleted his account', async () => {
-          const {
-            body: {
-              data: {
-                ticket: {
-                  id,
-                },
-              },
-            },
-          } = await postTicket(app, token, {
+          await postTicket(app, token, {
             body: 'ticket\'s body',
             header: 'ticket\'s header',
           });
@@ -211,14 +190,25 @@ describe('/tickets', () => {
             password: userPassword,
             userNameOrEmail: user.email,
           });
+          const [ticket] = await Ticket.findAll();
           const {
             body: {
               data: {
-                ticket,
+                ticket: returnedTicket,
               },
             },
-          } = await getTicketId(app, adminToken, id);
-          expect(ticket.user).toBeNull();
+          } = await getTicketId(app, adminToken, ticket.id);
+          expect(returnedTicket.user).toBeNull();
+        });
+      });
+      describe('should return status 400 if', () => {
+        it('request.params.ticketId is not a UUID v4', async () => {
+          const {
+            body,
+            status,
+          } = await getTicketId(app, adminToken, '100');
+          expect(body.errors).toBe(INVALID_UUID('ticket'));
+          expect(status).toBe(400);
         });
       });
       describe('should return status 404 if', () => {

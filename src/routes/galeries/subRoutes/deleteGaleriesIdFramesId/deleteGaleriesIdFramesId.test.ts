@@ -13,6 +13,7 @@ import {
 } from '@src/db/models';
 
 import accEnv from '@src/helpers/accEnv';
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -228,7 +229,23 @@ describe('/galeries', () => {
               expect(frame).toBeNull();
             });
           });
-          describe('it should return error 400', () => {
+          describe('it should return status 400', () => {
+            it('req.params.galerieId is not a UUID v4', async () => {
+              const {
+                body,
+                status,
+              } = await deleteGaleriesIdFrameId(app, token, '100', uuidv4());
+              expect(body.errors).toBe(INVALID_UUID('galerie'));
+              expect(status).toBe(400);
+            });
+            it('req.params.frameId is not a UUID v4', async () => {
+              const {
+                body,
+                status,
+              } = await deleteGaleriesIdFrameId(app, token, uuidv4(), '100');
+              expect(body.errors).toBe(INVALID_UUID('frame'));
+              expect(status).toBe(400);
+            });
             it('user\'s role is \'user\'', async () => {
               const userTwo = await createUser({
                 email: 'user2@email.com',
@@ -276,7 +293,7 @@ describe('/galeries', () => {
               expect(status).toBe(400);
             });
           });
-          describe('it should return error 404', () => {
+          describe('it should return status 404', () => {
             it('galerie not found', async () => {
               const {
                 body,

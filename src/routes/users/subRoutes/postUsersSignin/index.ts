@@ -9,6 +9,7 @@ import { User } from '@src/db/models';
 import {
   ALREADY_TAKEN,
 } from '@src/helpers/errorMessages';
+import { userExcluder } from '@src/helpers/excluders';
 import saltRounds from '@src/helpers/saltRounds';
 import {
   normalizeJoiErrors,
@@ -31,6 +32,7 @@ const normalizeSequelizeErrors = async (email: string, userName: string) => {
 };
 
 export default async (req: Request, res: Response) => {
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let errors: any;
   let newUser: User;
 
@@ -70,20 +72,16 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  userExcluder.forEach((e) => {
+    objectUserExcluder[e] = undefined;
+  });
+
   // Return user with only
   // relevent fields.
   const normalizeUser = {
     ...newUser.toJSON(),
-    authTokenVersion: undefined,
-    confirmed: undefined,
-    confirmTokenVersion: undefined,
-    createdAt: undefined,
-    emailTokenVersion: undefined,
-    facebookId: undefined,
-    googleId: undefined,
-    resetPasswordTokenVersion: undefined,
-    password: undefined,
-    updatedAt: undefined,
+    ...objectUserExcluder,
+    currentProfilePicture: null,
   };
   return res.status(200).send({
     action: 'POST',

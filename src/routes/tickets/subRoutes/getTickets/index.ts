@@ -15,8 +15,8 @@ import {
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 
 export default async (req: Request, res: Response) => {
-  const limit = 20;
   const { page } = req.query;
+  const limit = 20;
   const returnTickets: Array<any> = [];
   let offset: number;
   let tickets: Ticket[];

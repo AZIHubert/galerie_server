@@ -10,24 +10,34 @@ import {
 } from '@src/db/models';
 
 import checkBlackList from '@src/helpers/checkBlackList';
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import { userExcluder } from '@src/helpers/excluders';
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const limit = 20;
   const { galerieId } = req.params;
-  const currentUser = req.user as User;
-  let direction = 'DESC';
-  let galerie: Galerie | null;
-  let offset: number;
-  let order = 'createdAt';
-  let users: User[];
   const {
     direction: queryDirection,
     order: queryOrder,
     page,
   } = req.query;
+  const currentUser = req.user as User;
   const usersWithProfilePicture: Array<any> = [];
+  let direction = 'DESC';
+  let galerie: Galerie | null;
+  let offset: number;
+  let order = 'createdAt';
+  let users: User[];
+
+  // Check if request.params.galerieId
+  // is a UUID v4.
+  if (!uuidValidatev4(galerieId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie'),
+    });
+  }
 
   if (
     queryDirection === 'ASC'

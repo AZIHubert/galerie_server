@@ -4,8 +4,12 @@ import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import {
+  Ticket,
+  User,
+} from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
@@ -64,16 +68,11 @@ describe('/tickets', () => {
     describe('DELETE', () => {
       describe('should return status 200 and', () => {
         it('delete ticket', async () => {
-          const {
-            body: {
-              data: {
-                ticket,
-              },
-            },
-          } = await postTicket(app, token, {
+          await postTicket(app, token, {
             body: 'ticket\'s body',
             header: 'ticket\'s header',
           });
+          const [ticket] = await Ticket.findAll();
           const {
             body: {
               action,
@@ -86,6 +85,16 @@ describe('/tickets', () => {
           expect(action).toBe('DELETE');
           expect(ticketId).toEqual(ticket.id);
           expect(status).toBe(200);
+        });
+      });
+      describe('should return status 400 if', () => {
+        it('request.params.ticketId is not a UUID v4', async () => {
+          const {
+            body,
+            status,
+          } = await deleteTicketId(app, adminToken, '100');
+          expect(body.errors).toBe(INVALID_UUID('ticket'));
+          expect(status).toBe(400);
         });
       });
       describe('should return status 404 if', () => {

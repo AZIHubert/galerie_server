@@ -9,19 +9,27 @@ import {
   User,
 } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import {
   profilePictureExcluder,
   imageExcluder,
 } from '@src/helpers/excluders';
-import signedUrl from '@src/helpers/signedUrl';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { profilePictureId } = req.params;
-  const user = req.user as User;
-  const { id: userId } = user;
+  const currentUser = req.user as User;
   let profilePicture: ProfilePicture | null;
-  let returnedProfilePicture: any;
 
+  // Check if request.params.blackListId
+  // is a UUID v4.
+  if (!uuidValidatev4(profilePictureId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('profile picture'),
+    });
+  }
+
+  // Fetch profile picture.
   try {
     profilePicture = await ProfilePicture.findOne({
       attributes: {
@@ -52,13 +60,14 @@ export default async (req: Request, res: Response) => {
       ],
       where: {
         id: profilePictureId,
-        userId,
+        userId: currentUser.id,
       },
     });
   } catch (err) {
     return res.status(500).send(err);
   }
 
+  // Check if profile picture exist.
   if (!profilePicture) {
     return res.status(404).send({
       errors: 'profile picture not found',
@@ -74,7 +83,7 @@ export default async (req: Request, res: Response) => {
       }, {
         where: {
           current: true,
-          userId,
+          userId: currentUser.id,
         },
       });
     } catch (err) {
@@ -91,50 +100,11 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  try {
-    const cropedImageSignedUrl = await signedUrl(
-      profilePicture.cropedImage.bucketName,
-      profilePicture.cropedImage.fileName,
-    );
-    const originalImageSignedUrl = await signedUrl(
-      profilePicture.originalImage.bucketName,
-      profilePicture.originalImage.fileName,
-    );
-    const pendingImageSignedUrl = await signedUrl(
-      profilePicture.pendingImage.bucketName,
-      profilePicture.pendingImage.fileName,
-    );
-    returnedProfilePicture = {
-      ...profilePicture.toJSON(),
-      cropedImage: {
-        ...profilePicture.cropedImage.toJSON(),
-        bucketName: undefined,
-        fileName: undefined,
-        signedUrl: cropedImageSignedUrl,
-      },
-      originalImage: {
-        ...profilePicture.originalImage.toJSON(),
-        bucketName: undefined,
-        fileName: undefined,
-        signedUrl: originalImageSignedUrl,
-      },
-      pendingImage: {
-        ...profilePicture.pendingImage.toJSON(),
-        bucketName: undefined,
-        fileName: undefined,
-        signedUrl: pendingImageSignedUrl,
-        updatedAt: undefined,
-      },
-      updatedAt: undefined,
-    };
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   return res.status(200).send({
     action: 'PUT',
     data: {
-      profilePicture: returnedProfilePicture,
+      current: profilePicture.current,
+      profilePictureId,
     },
   });
 };

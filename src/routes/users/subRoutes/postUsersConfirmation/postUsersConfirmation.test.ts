@@ -9,6 +9,10 @@ import { User } from '@src/db/models';
 import * as email from '@src/helpers/email';
 import {
   ALREADY_CONFIRMED,
+  FIELD_IS_EMAIL,
+  FIELD_IS_EMPTY,
+  FIELD_IS_REQUIRED,
+  FIELD_NOT_A_STRING,
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -82,14 +86,6 @@ describe('/users', () => {
         });
       });
       describe('should return status 400 if', () => {
-        it('email is not send', async () => {
-          const {
-            body,
-            status,
-          } = await postConfirmation(app, {});
-          expect(body.errors).toBe('user email is required');
-          expect(status).toBe(400);
-        });
         it('user is already confirmed', async () => {
           const { email: userEmail } = await createUser({
             userName: 'user2',
@@ -103,6 +99,54 @@ describe('/users', () => {
           });
           expect(body.errors).toBe(ALREADY_CONFIRMED);
           expect(status).toBe(400);
+        });
+        describe('email', () => {
+          it('is not send', async () => {
+            const {
+              body,
+              status,
+            } = await postConfirmation(app, {});
+            expect(body.errors).toEqual({
+              email: FIELD_IS_REQUIRED,
+            });
+            expect(status).toBe(400);
+          });
+          it('is not a string', async () => {
+            const {
+              body,
+              status,
+            } = await postConfirmation(app, {
+              email: 1234,
+            });
+            expect(body.errors).toEqual({
+              email: FIELD_NOT_A_STRING,
+            });
+            expect(status).toBe(400);
+          });
+          it('is an empty string', async () => {
+            const {
+              body,
+              status,
+            } = await postConfirmation(app, {
+              email: '',
+            });
+            expect(body.errors).toEqual({
+              email: FIELD_IS_EMPTY,
+            });
+            expect(status).toBe(400);
+          });
+          it('is not an email', async () => {
+            const {
+              body,
+              status,
+            } = await postConfirmation(app, {
+              email: 'not an email',
+            });
+            expect(body.errors).toEqual({
+              email: FIELD_IS_EMAIL,
+            });
+            expect(status).toBe(400);
+          });
         });
       });
       describe('should return status 404 if', () => {

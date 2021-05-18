@@ -69,15 +69,6 @@ describe('/tickets', () => {
   describe('GET', () => {
     describe('should return status 200 and', () => {
       it('return all tickets', async () => {
-        const thirdUser = await createUser({
-          email: 'user3@email.com',
-          userName: 'user3',
-        });
-        const {
-          body: {
-            token: thirdUserToken,
-          },
-        } = await login(app, thirdUser.email, userPassword);
         const body = 'ticket\'s body';
         const header = 'ticket\'s header';
         const {
@@ -95,10 +86,6 @@ describe('/tickets', () => {
           body: 'ticket\'s body',
           header: 'ticket\'s header',
         });
-        await postTicket(app, thirdUserToken, {
-          body: 'ticket\'s body',
-          header: 'ticket\'s header',
-        });
         const {
           body: {
             action,
@@ -110,7 +97,7 @@ describe('/tickets', () => {
         } = await getTickets(app, adminToken);
         expect(action).toBe('GET');
         expect(status).toBe(200);
-        expect(tickets.length).toBe(3);
+        expect(tickets.length).toBe(2);
         expect(tickets[0].body).toBe(body);
         expect(tickets[0].createdAt).not.toBeUndefined();
         expect(tickets[0].header).toBe(header);
@@ -120,7 +107,7 @@ describe('/tickets', () => {
         expect(tickets[0].user.authTokenVersion).toBeUndefined();
         expect(tickets[0].user.confirmed).toBeUndefined();
         expect(tickets[0].user.confirmTokenVersion).toBeUndefined();
-        expect(new Date(tickets[0].user.createdAt)).toEqual(user.createdAt);
+        expect(tickets[0].user.createdAt).not.toBeUndefined();
         expect(tickets[0].user.currentProfilePicture.createdAt).not.toBeUndefined();
         expect(tickets[0].user.currentProfilePicture.cropedImage.bucketName).toBeUndefined();
         expect(tickets[0].user.currentProfilePicture.cropedImage.createdAt).toBeUndefined();

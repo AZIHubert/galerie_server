@@ -9,25 +9,36 @@ import {
   User,
 } from '@src/db/models';
 
-import checkBlackList from '@src/helpers/checkBlackList';
-import { userExcluder } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import { INVALID_UUID } from '@src/helpers/errorMessages';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {
     galerieId,
-    userId: UId,
+    userId,
   } = req.params;
-  const { id: userId } = req.user as User;
-  let currentProfilePicture;
+  const currentUser = req.user as User;
   let galerie: Galerie | null;
   let galerieUser: GalerieUser | null;
-  let user: User | null;
-  let userIsBlackListed: boolean;
+
+  // Check if request.params.galerieId
+  // is a UUID v4.
+  if (!uuidValidatev4(galerieId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie'),
+    });
+  }
+  // Check if request.params.userId
+  // is a UUID v4.
+  if (!uuidValidatev4(userId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('user'),
+    });
+  }
 
   // Current user cannot update
   // his role himself.
-  if (userId === UId) {
+  if (userId === currentUser.id) {
     return res.status(400).send({
       errors: 'you cannot change your role yourself',
     });
@@ -39,7 +50,7 @@ export default async (req: Request, res: Response) => {
       include: [{
         model: User,
         where: {
-          id: userId,
+          id: currentUser.id,
         },
       }],
     });
@@ -54,11 +65,11 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if current user role is
-  // 'creator' or 'admin'.
+  // Check if current user role for this galerie
+  // is 'creator' or 'admin'.
   const { role } = galerie
     .users
-    .filter((u) => u.id === userId)[0]
+    .filter((user) => user.id === currentUser.id)[0]
     .GalerieUser;
   if (role === 'user') {
     return res.status(400).send({
@@ -71,7 +82,7 @@ export default async (req: Request, res: Response) => {
     galerieUser = await GalerieUser.findOne({
       where: {
         galerieId,
-        userId: UId,
+        userId,
       },
     });
   } catch (err) {
@@ -103,24 +114,6 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Fetch user.
-  try {
-    user = await User.findByPk(galerieUser.userId, {
-      attributes: {
-        exclude: userExcluder,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // Check if user exist.
-  if (!user) {
-    return res.status(404).send({
-      errors: 'user not found',
-    });
-  }
-
   // If user's role with :userId is 'admin',
   // his new role become 'user'.
   // If user's role with :userId is 'user',
@@ -133,32 +126,12 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Fetch user current profile picture
-  // and its signed URLs.
-  try {
-    currentProfilePicture = await fetchCurrentProfilePicture(user);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  try {
-    userIsBlackListed = await checkBlackList(user);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  const returnedUser = {
-    ...user.toJSON(),
-    currentProfilePicture,
-    galerieRole: galerieUser.role,
-    isBlackListed: userIsBlackListed ? true : undefined,
-  };
-
   return res.status(200).send({
     action: 'PUT',
     data: {
       galerieId,
-      user: returnedUser,
+      role: galerieUser.role,
+      userId,
     },
   });
 };

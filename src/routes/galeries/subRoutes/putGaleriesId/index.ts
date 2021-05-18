@@ -8,15 +8,25 @@ import {
   User,
 } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import {
   validatePutGaleriesIdBody,
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
-  const { id: userId } = req.user as User;
+  const currentUser = req.user as User;
   let galerie: Galerie | null;
+
+  // Check if request.params.galerieId
+  // is a UUID v4.
+  if (!uuidValidatev4(galerieId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie'),
+    });
+  }
 
   // Fetch galerie.
   try {
@@ -24,7 +34,7 @@ export default async (req: Request, res: Response) => {
       include: [{
         model: User,
         where: {
-          id: userId,
+          id: currentUser.id,
         },
       }],
     });
@@ -49,7 +59,7 @@ export default async (req: Request, res: Response) => {
   // Only creator or admin are allow to update galerie.
   const { role } = galerie
     .users
-    .filter((user) => user.id === userId)[0]
+    .filter((user) => user.id === currentUser.id)[0]
     .GalerieUser;
   if (
     role === 'user'

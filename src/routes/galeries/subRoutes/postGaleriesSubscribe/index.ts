@@ -16,7 +16,7 @@ import {
 } from '@src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
-  const { id: userId } = req.user as User;
+  const currentUser = req.user as User;
   let galerie: Galerie | null;
   let galerieUser: GalerieUser | null;
   let invitation: Invitation | null;
@@ -71,7 +71,7 @@ export default async (req: Request, res: Response) => {
     galerieUser = await GalerieUser.findOne({
       where: {
         galerieId: invitation.galerieId,
-        userId,
+        userId: currentUser.id,
       },
     });
   } catch (err) {
@@ -127,7 +127,7 @@ export default async (req: Request, res: Response) => {
 
     // Create GalerieUser.
     await GalerieUser.create({
-      userId,
+      userId: currentUser.id,
       galerieId: invitation.galerieId,
       role: 'user',
     });

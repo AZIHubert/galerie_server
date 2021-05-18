@@ -9,7 +9,10 @@ import {
 } from '@src/db/models';
 
 import checkBlackList from '@src/helpers/checkBlackList';
-import { USER_NOT_FOUND } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  USER_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import {
   blackListExcluder,
   userExcluder,
@@ -19,17 +22,26 @@ import {
   normalizeJoiErrors,
   validatePostUsersBlacklistIdBody,
 } from '@src/helpers/schemas';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   const objectBlackListExcluder: { [key: string]: undefined } = {};
-  const objectUserExluder: { [key: string]: undefined } = {};
+  const objectUserExcluder: { [key: string]: undefined } = {};
   const { userId } = req.params;
   let adminCurrentProfilePicture;
   let blackList: BlackList;
   let currentProfilePicture;
   let user: User | null;
   let userIsBlackListed: boolean;
+
+  // Check if request.params.userId
+  // is a UUID v4.
+  if (!uuidValidatev4(userId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('user'),
+    });
+  }
 
   // You cannot black list yourself.
   if (userId === currentUser.id) {
@@ -125,7 +137,7 @@ export default async (req: Request, res: Response) => {
     objectBlackListExcluder[e] = undefined;
   });
   userExcluder.forEach((e) => {
-    objectUserExluder[e] = undefined;
+    objectUserExcluder[e] = undefined;
   });
 
   const returnedBlackList = {
@@ -133,7 +145,7 @@ export default async (req: Request, res: Response) => {
     ...objectBlackListExcluder,
     admin: {
       ...currentUser.toJSON(),
-      ...objectUserExluder,
+      ...objectUserExcluder,
       currentProfilePicture: adminCurrentProfilePicture,
     },
     user: {

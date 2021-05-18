@@ -118,14 +118,14 @@ describe('/profilePicture', () => {
           body: {
             data: {
               profilePicture: {
-                id,
+                id: profilePictureId,
               },
             },
           },
         } = await postProfilePicture(app, token);
         await postProfilePicture(app, token);
         const profilePicture = await ProfilePicture
-          .findByPk(id) as ProfilePicture;
+          .findByPk(profilePictureId) as ProfilePicture;
         expect(profilePicture.current).toBe(false);
       });
     });

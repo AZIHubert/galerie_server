@@ -21,3 +21,6 @@ initSequelize(() => {
 // https://github.com/zachgoll/express-jwt-authentication-starter/blob/master/lib/utils.js
 // user salt => genPassword(password).salt
 // user hash => genPassword(password).hash
+
+// Test when image does not exist
+// Test when image from GB does not exist

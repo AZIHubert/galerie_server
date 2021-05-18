@@ -16,21 +16,30 @@ import {
   User,
 } from '@src/db/models';
 
-import { WRONG_PASSWORD } from '@src/helpers/errorMessages';
+import {
+  WRONG_PASSWORD,
+  INVALID_UUID,
+} from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import {
   normalizeJoiErrors,
   validateDeleteGaleriesIdBody,
 } from '@src/helpers/schemas';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
-  const {
-    id: userId,
-    password,
-  } = req.user as User;
+  const currentUser = req.user as User;
   let galerie: Galerie | null;
   let passwordsMatch: boolean;
+
+  // Check if request.params.userId
+  // is a UUID v4.
+  if (!uuidValidatev4(galerieId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie'),
+    });
+  }
 
   // Fetch galerie.
   try {
@@ -38,7 +47,7 @@ export default async (req: Request, res: Response) => {
       include: [
         {
           where: {
-            id: userId,
+            id: currentUser.id,
           },
           model: User,
         },
@@ -68,7 +77,7 @@ export default async (req: Request, res: Response) => {
   // this galerie is 'creator'.
   const { role } = galerie
     .users
-    .filter((user) => user.id === userId)[0]
+    .filter((user) => user.id === currentUser.id)[0]
     .GalerieUser;
   if (role !== 'creator') {
     return res.status(400).send({
@@ -94,7 +103,7 @@ export default async (req: Request, res: Response) => {
   }
   if (!errors.password) {
     try {
-      passwordsMatch = await compare(value.password, password);
+      passwordsMatch = await compare(value.password, currentUser.password);
     } catch (err) {
       return res.status(500).send(err);
     }

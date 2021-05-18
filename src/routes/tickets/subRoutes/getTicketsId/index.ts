@@ -8,16 +8,26 @@ import {
   User,
 } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import {
   ticketExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { ticketId } = req.params;
   let ticket: Ticket | null;
   let returnTicket = {};
+
+  // Check if request.params.blackListId
+  // is a UUID v4.
+  if (!uuidValidatev4(ticketId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('ticket'),
+    });
+  }
 
   // Fetch ticket.
   try {

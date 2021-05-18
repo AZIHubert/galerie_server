@@ -13,16 +13,33 @@ import {
   User,
 } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
-  const { id: userId } = req.user as User;
   const {
     galerieId,
     frameId,
   } = req.params;
+  const currentUser = req.user as User;
   let galerie: Galerie | null;
   let frame: Frame | null;
+
+  // Check if request.params.galerieId
+  // is a UUID v4.
+  if (!uuidValidatev4(galerieId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie'),
+    });
+  }
+  // Check if request.params.galerieId
+  // is a UUID v4.
+  if (!uuidValidatev4(frameId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('frame'),
+    });
+  }
 
   // Fetch galerie.
   try {
@@ -30,7 +47,7 @@ export default async (req: Request, res: Response) => {
       include: [{
         model: User,
         where: {
-          id: userId,
+          id: currentUser.id,
         },
       }],
     });
@@ -74,10 +91,10 @@ export default async (req: Request, res: Response) => {
   // who post the frame can deleted it.
   const { role } = galerie
     .users
-    .filter((user) => user.id === userId)[0]
+    .filter((user) => user.id === currentUser.id)[0]
     .GalerieUser;
   if (
-    userId !== frame.userId
+    currentUser.id !== frame.userId
     && role === 'user'
   ) {
     return res.status(400).send({

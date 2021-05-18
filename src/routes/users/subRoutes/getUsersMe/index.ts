@@ -5,10 +5,12 @@ import {
 
 import { User } from '@src/db/models';
 
+import { userExcluder } from '@src/helpers/excluders';
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let currentProfilePicture;
 
   // fetch current profile picture
@@ -18,27 +20,21 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  userExcluder.forEach((e) => {
+    objectUserExcluder[e] = undefined;
+  });
+
   // Compose final returned user.
-  const userWithProfilePicture = {
+  const returnedUser = {
     ...currentUser.toJSON(),
-    authTokenVersion: undefined,
-    confirmed: undefined,
-    confirmTokenVersion: undefined,
+    ...objectUserExcluder,
     currentProfilePicture,
-    email: undefined,
-    emailTokenVersion: undefined,
-    facebookId: undefined,
-    googleId: undefined,
-    password: undefined,
-    resetPasswordTokenVersion: undefined,
-    updatedAt: undefined,
-    updatedEmailTokenVersion: undefined,
   };
 
   return res.status(200).send({
     action: 'GET',
     data: {
-      user: userWithProfilePicture,
+      user: returnedUser,
     },
   });
 };

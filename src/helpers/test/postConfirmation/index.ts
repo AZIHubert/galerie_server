@@ -4,7 +4,7 @@ import request from 'supertest';
 export default async (
   app: Server,
   body: {
-    email?: string;
+    email?: any;
   },
 ) => {
   const response = await request(app)

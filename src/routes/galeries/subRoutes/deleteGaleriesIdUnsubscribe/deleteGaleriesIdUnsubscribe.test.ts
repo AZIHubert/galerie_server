@@ -15,6 +15,7 @@ import {
 } from '@src/db/models';
 
 import accEnv from '@src/helpers/accEnv';
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -228,7 +229,15 @@ describe('/galeries', () => {
           expect(galeries).not.toBeNull();
         });
       });
-      describe('should return error 400 if', () => {
+      describe('should return status 400 if', () => {
+        it('request.params.galerieId is not a UUID v4', async () => {
+          const {
+            body,
+            status,
+          } = await deleteGaleriesUnsubscribe(app, tokenTwo, '100');
+          expect(body.errors).toBe(INVALID_UUID('galerie'));
+          expect(status).toBe(400);
+        });
         it('current user is the creator of this galerie', async () => {
           const {
             body,
@@ -238,7 +247,7 @@ describe('/galeries', () => {
           expect(status).toBe(400);
         });
       });
-      describe('should return error 404 if', () => {
+      describe('should status error 404 if', () => {
         it('galerie not found', async () => {
           const {
             body,

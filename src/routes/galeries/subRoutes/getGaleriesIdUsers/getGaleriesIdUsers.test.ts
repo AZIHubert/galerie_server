@@ -6,6 +6,7 @@ import '@src/helpers/initEnv';
 
 import { User } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -22,7 +23,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('galeries', () => {
+describe('/galeries', () => {
   let app: Server;
   let galerieId: string;
   let sequelize: Sequelize;
@@ -73,8 +74,8 @@ describe('galeries', () => {
     done();
   });
 
-  describe(':id', () => {
-    describe('users', () => {
+  describe('/:galerieId', () => {
+    describe('/users', () => {
       describe('it should return status 200 and', () => {
         it('return no user', async () => {
           const {
@@ -233,7 +234,17 @@ describe('galeries', () => {
         it('TODO: return user if he\'s black list and current user role for this galerie is \'user\' and role is \'admin\'', async () => {});
         it('TODO: return user if he\'s black list and current user role for this galerie is \'user\' and role is \'superAdmin\'', async () => {});
       });
-      describe('should return error 404 if', () => {
+      describe('should return status 400 if', () => {
+        it('request.params.galerieId is not a UUID v4', async () => {
+          const {
+            body,
+            status,
+          } = await getGaleriesIdUsers(app, token, '100');
+          expect(body.errors).toBe(INVALID_UUID('galerie'));
+          expect(status).toBe(400);
+        });
+      });
+      describe('should return status 404 if', () => {
         it('galerie doesn\'t exist', async () => {
           const {
             body,

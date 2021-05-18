@@ -13,7 +13,9 @@ import {
   User,
 } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {
@@ -23,6 +25,21 @@ export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   let galerie: Galerie | null;
   let user: User | null;
+
+  // Check if request.params.galerieId
+  // is a UUID v4.
+  if (!uuidValidatev4(galerieId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('galerie'),
+    });
+  }
+  // Check if request.params.userId
+  // is a UUID v4.
+  if (!uuidValidatev4(userId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('user'),
+    });
+  }
 
   // Check if current user.id and req.params.userId
   // are not similar.

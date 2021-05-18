@@ -10,12 +10,22 @@ import {
   User,
 } from '@src/db/models';
 
+import { INVALID_UUID } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
+import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { profilePictureId } = req.params;
-  const user = req.user as User;
+  const currentUser = req.user as User;
   let profilePicture: ProfilePicture | null;
+
+  // Check if request.params.blackListId
+  // is a UUID v4.
+  if (!uuidValidatev4(profilePictureId)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('profile picture'),
+    });
+  }
 
   // Check if profile picture exist.
   try {
@@ -27,7 +37,7 @@ export default async (req: Request, res: Response) => {
       ],
       where: {
         id: profilePictureId,
-        userId: user.id,
+        userId: currentUser.id,
       },
     });
   } catch (err) {
@@ -82,7 +92,7 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'DELETE',
     data: {
-      id: profilePictureId,
+      profilePictureId,
     },
   });
 };

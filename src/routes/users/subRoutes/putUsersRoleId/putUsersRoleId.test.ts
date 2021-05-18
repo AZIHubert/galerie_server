@@ -7,6 +7,7 @@ import '@src/helpers/initEnv';
 import { User } from '@src/db/models';
 import {
   FIELD_IS_REQUIRED,
+  INVALID_UUID,
   USER_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -112,6 +113,14 @@ describe('/users', () => {
           });
         });
         describe('should return status 400 if', () => {
+          it('request.params.userId is not a UUID v4', async () => {
+            const {
+              body,
+              status,
+            } = await putUsersRoleId(app, token, '100', {});
+            expect(body.errors).toBe(INVALID_UUID('user'));
+            expect(status).toBe(400);
+          });
           it(':id and current user.id are the same', async () => {
             const {
               body,
