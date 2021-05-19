@@ -324,7 +324,7 @@ describe('/galeries', () => {
             done();
           });
 
-          it('TODO: is not a string', async () => {
+          it('is not a string', async () => {
             const {
               body,
               status,
@@ -336,7 +336,7 @@ describe('/galeries', () => {
             });
             expect(status).toBe(400);
           });
-          it('TODO: has more than 200 characters', async () => {
+          it('has more than 200 characters', async () => {
             const {
               body,
               status,

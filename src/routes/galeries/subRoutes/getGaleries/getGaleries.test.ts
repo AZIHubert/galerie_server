@@ -85,6 +85,7 @@ describe('galeries', () => {
         expect(galeries[0].createdAt).toBe(galerie.createdAt);
         expect(galeries[0].currentCoverPicture).toBe(galerie.currentCoverPicture);
         expect(galeries[0].defaultProfilePicture).toBe(galerie.defaultProfilePicture);
+        expect(galeries[0].description).toBe(galerie.description);
         expect(galeries[0].id).toBe(galerie.id);
         expect(galeries[0].name).toBe(galerie.name);
         expect(galeries[0].role).toBe(galerie.role);
