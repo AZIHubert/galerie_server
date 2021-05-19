@@ -87,7 +87,9 @@ describe('galeries', () => {
                   frame,
                 },
               },
-            } = await postGaleriesIdFrames(app, token, galerieId);
+            } = await postGaleriesIdFrames(app, token, galerieId, {
+              description: 'frame\'s description',
+            });
             const {
               body: {
                 action,
@@ -100,6 +102,7 @@ describe('galeries', () => {
             } = await getGaleriesIdFramesFrameId(app, token, galerieId, frame.id);
             expect(action).toBe('GET');
             expect(returnedFrame.createdAt).toBe(frame.createdAt);
+            expect(returnedFrame.description).toBe(frame.description);
             expect(returnedFrame.galerieId).toBeUndefined();
             expect(returnedFrame.galeriePictures[0].current).not.toBeUndefined();
             expect(returnedFrame.galeriePictures[0].createdAt).toBeUndefined();
