@@ -13,7 +13,7 @@ import options from '../options';
 
 const galerieSchema = Joi.object({
   description: Joi.string()
-    .empty()
+    .allow('')
     .trim()
     .max(200)
     .messages({
