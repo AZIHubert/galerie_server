@@ -45,6 +45,7 @@ export { default as postUpdateEmail } from './postUpdateEmail';
 export { default as postUpdateEmailConfirm } from './postUpdateEmailConfirm';
 export { default as putConfirmation } from './putConfirmation';
 export { default as putGalerieId } from './putGalerieId';
+export { default as putGaleriesIdFramesId } from './putGaleriesIdFramesId';
 export { default as putGaleriesIdFramesIdGaleriePicturesId } from './putGaleriesIdFramesIdGaleriePicturesId';
 export { default as putGaleriesIdUsersId } from './putGaleriesIdUsersId';
 export { default as putPassword } from './putPassword';

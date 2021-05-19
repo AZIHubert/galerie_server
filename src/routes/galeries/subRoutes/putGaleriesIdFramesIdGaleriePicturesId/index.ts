@@ -20,8 +20,8 @@ import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {
-    galerieId,
     frameId,
+    galerieId,
     galeriePictureId,
   } = req.params;
   const { id: userId } = req.user as User;

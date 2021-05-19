@@ -15,6 +15,7 @@ export { default as validatePostUsersResetPasswordBody } from './validatePostUse
 export { default as validatePostUsersSigninBody } from './validatePostUsersSigninBody';
 export { default as validatePostTicketBody } from './validatePostTicketBody';
 export { default as validatePutGaleriesIdBody } from './validatePutGaleriesIdBody';
+export { default as validatePutGaleriesIdFramesIdBody } from './validatePutGaleriesIdFramesIdBody';
 export { default as validatePutUsersMeEmailBody } from './validatePutUsersMeEmailBody';
 export { default as validatePutUsersMeEmailConfirmToken } from './validatePutUsersMeEmailConfirmToken';
 export { default as validatePutUsersMePasswordBody } from './validatePutUsersMePasswordBody';
