@@ -20,6 +20,13 @@ export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   let galerie: Galerie | null;
 
+  // Check request.body is not an empty object.
+  if (req.body.description === undefined && req.body.name === undefined) {
+    return res.status(400).send({
+      errors: 'no change submited',
+    });
+  }
+
   // Check if request.params.galerieId
   // is a UUID v4.
   if (!uuidValidatev4(galerieId)) {
@@ -80,6 +87,17 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Check if requested changes are not the same
+  // has actual galerie's fields.
+  if (
+    value.description === galerie.description
+    && value.name === galerie.name
+  ) {
+    return res.status(400).send({
+      errors: 'no change submited',
+    });
+  }
+
   try {
     await galerie.update(value);
   } catch (err) {
@@ -89,6 +107,7 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'PUT',
     data: {
+      description: galerie.description,
       galerieId: galerie.id,
       name: galerie.name,
     },

@@ -73,7 +73,6 @@ export default galeriesRoutes;
 
 // TODO:
 // add description to frame.
-// add description to galerie.
 // add newFrames to galerieUser
 
 // When GET /galeries/:galerieId

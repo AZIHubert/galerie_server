@@ -93,7 +93,8 @@ export default async (req: Request, res: Response) => {
   // Create galerie and GalerieUser.
   try {
     galerie = await Galerie.create({
-      ...value,
+      description: value.description || '',
+      name: value.name,
       defaultCoverPicture,
     });
     await GalerieUser.create({

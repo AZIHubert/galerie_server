@@ -4,12 +4,15 @@ import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import {
+  Galerie,
+  User,
+} from '@src/db/models';
 
 import {
   FIELD_IS_EMPTY,
-  FIELD_IS_REQUIRED,
   FIELD_MAX_LENGTH_THRITY,
+  FIELD_MAX_LENGTH_TWO_HUNDRER,
   FIELD_MIN_LENGTH_OF_THREE,
   FIELD_NOT_A_STRING,
   INVALID_UUID,
@@ -68,8 +71,9 @@ describe('/galeries', () => {
   describe('/:galerieId', () => {
     describe('PUT', () => {
       describe('it should return status 200 and', () => {
-        it('update and return galerie', async () => {
+        it('update galerie\'s name and description', async () => {
           const name = 'new galerie\'s name';
+          const description = 'new galerie\'s description';
           const {
             body: {
               data: {
@@ -88,22 +92,126 @@ describe('/galeries', () => {
             },
             status,
           } = await putGalerieId(app, token, galerieId, {
+            description,
             name,
           });
+          const galerie = await Galerie.findByPk(galerieId) as Galerie;
           expect(action).toBe('PUT');
           expect(data).toEqual({
+            description,
             galerieId,
             name,
           });
+          expect(galerie.description).toBe(data.description);
+          expect(galerie.name).toBe(data.name);
+          expect(status).toBe(200);
+        });
+        it('don\'t update galerie\'s description if request.body.description is undefined', async () => {
+          const name = 'new galerie\'s name';
+          const {
+            body: {
+              data: {
+                galerie: returnedGalerie,
+              },
+            },
+          } = await postGalerie(app, token, {
+            description: 'galerie\'s description',
+            name: 'galeries\'s name',
+          });
+          const {
+            body: {
+              action,
+              data,
+            },
+            status,
+          } = await putGalerieId(app, token, returnedGalerie.id, {
+            name,
+          });
+          const galerie = await Galerie.findByPk(returnedGalerie.id) as Galerie;
+          expect(action).toBe('PUT');
+          expect(data).toEqual({
+            description: returnedGalerie.description,
+            galerieId: returnedGalerie.id,
+            name,
+          });
+          expect(galerie.description).toBe(returnedGalerie.description);
+          expect(galerie.name).toBe(data.name);
+          expect(status).toBe(200);
+        });
+        it('don\'t update galerie\'s name if request.body.name is undefined', async () => {
+          const description = 'new galerie\'s description';
+          const {
+            body: {
+              data: {
+                galerie: returnedGalerie,
+              },
+            },
+          } = await postGalerie(app, token, {
+            description: 'galerie\'s description',
+            name: 'galeries\'s name',
+          });
+          const {
+            body: {
+              action,
+              data,
+            },
+            status,
+          } = await putGalerieId(app, token, returnedGalerie.id, {
+            description,
+          });
+          const galerie = await Galerie.findByPk(returnedGalerie.id) as Galerie;
+          expect(action).toBe('PUT');
+          expect(data).toEqual({
+            description,
+            galerieId: returnedGalerie.id,
+            name: returnedGalerie.name,
+          });
+          expect(galerie.description).toBe(data.description);
+          expect(galerie.name).toBe(returnedGalerie.name);
           expect(status).toBe(200);
         });
       });
       describe('it should return error 400 if', () => {
+        it('req.body is an empty object', async () => {
+          const {
+            body,
+            status,
+          } = await putGalerieId(app, token, uuidv4(), {});
+          expect(body.errors).toBe('no change submited');
+          expect(status).toBe(400);
+        });
+        it('req.body.description === galerie.description && req.body.name === req.body.name', async () => {
+          const {
+            body: {
+              data: {
+                galerie: {
+                  description,
+                  id: galerieId,
+                  name,
+                },
+              },
+            },
+          } = await postGalerie(app, token, {
+            description: 'galerie\'s description',
+            name: 'galeries\'s name',
+          });
+          const {
+            body,
+            status,
+          } = await putGalerieId(app, token, galerieId, {
+            description,
+            name,
+          });
+          expect(body.errors).toBe('no change submited');
+          expect(status).toBe(400);
+        });
         it('request.params.galerieId is not a UUID v4', async () => {
           const {
             body,
             status,
-          } = await putGalerieId(app, token, '100', {});
+          } = await putGalerieId(app, token, '100', {
+            name: '',
+          });
           expect(body.errors).toBe(INVALID_UUID('galerie'));
           expect(status).toBe(400);
         });
@@ -193,8 +301,9 @@ describe('/galeries', () => {
           expect(body.errors).toBe('you cannot update an archived galerie');
           expect(status).toBe(400);
         });
-        describe('name', () => {
+        describe('description', () => {
           let galerieId: string;
+
           beforeEach(async (done) => {
             try {
               const {
@@ -214,16 +323,55 @@ describe('/galeries', () => {
             }
             done();
           });
-          it('is not send', async () => {
+
+          it('is not a string', async () => {
             const {
               body,
               status,
-            } = await putGalerieId(app, token, galerieId, {});
+            } = await putGalerieId(app, token, galerieId, {
+              description: 1234,
+            });
             expect(body.errors).toEqual({
-              name: FIELD_IS_REQUIRED,
+              description: FIELD_NOT_A_STRING,
             });
             expect(status).toBe(400);
           });
+          it('has more than 200 characters', async () => {
+            const {
+              body,
+              status,
+            } = await putGalerieId(app, token, galerieId, {
+              description: 'a'.repeat(201),
+            });
+            expect(body.errors).toEqual({
+              description: FIELD_MAX_LENGTH_TWO_HUNDRER,
+            });
+            expect(status).toBe(400);
+          });
+        });
+        describe('name', () => {
+          let galerieId: string;
+
+          beforeEach(async (done) => {
+            try {
+              const {
+                body: {
+                  data: {
+                    galerie: {
+                      id,
+                    },
+                  },
+                },
+              } = await postGalerie(app, token, {
+                name: 'galeries\'s name',
+              });
+              galerieId = id;
+            } catch (err) {
+              done(err);
+            }
+            done();
+          });
+
           it('is an empty string', async () => {
             const {
               body,

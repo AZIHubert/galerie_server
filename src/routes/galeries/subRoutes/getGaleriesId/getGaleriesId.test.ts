@@ -64,6 +64,7 @@ describe('/galeries', () => {
     describe('GET', () => {
       describe('it should return status 200 and', () => {
         let returnedGalerie: any;
+
         beforeEach(async (done) => {
           try {
             const {
@@ -73,6 +74,7 @@ describe('/galeries', () => {
                 },
               },
             } = await postGalerie(app, token, {
+              description: 'galerie\'s description',
               name: 'galerie\'s name',
             });
             returnedGalerie = galerie;
@@ -81,6 +83,7 @@ describe('/galeries', () => {
           }
           done();
         });
+
         it('return galerie if user is the creator', async () => {
           const {
             body: {
@@ -96,6 +99,7 @@ describe('/galeries', () => {
           expect(galerie.createdAt).toBe(returnedGalerie.createdAt);
           expect(galerie.currentCoverPicture).toBe(returnedGalerie.currentCoverPicture);
           expect(galerie.defaultCoverPicture).toBe(returnedGalerie.defaultCoverPicture);
+          expect(galerie.description).toBe(returnedGalerie.description);
           expect(galerie.id).toBe(returnedGalerie.id);
           expect(galerie.name).toBe(returnedGalerie.name);
           expect(galerie.role).toBe(returnedGalerie.role);

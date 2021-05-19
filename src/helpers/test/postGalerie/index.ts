@@ -5,6 +5,7 @@ export default async (
   app: Server,
   token: string,
   body: {
+    description?: any;
     name?: any;
   },
 ) => {

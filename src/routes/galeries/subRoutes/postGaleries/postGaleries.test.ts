@@ -3,7 +3,10 @@ import { Sequelize } from 'sequelize';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import {
+  Galerie,
+  User,
+} from '@src/db/models';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
@@ -16,9 +19,10 @@ import initApp from '@src/server';
 import {
   FIELD_IS_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
   FIELD_MAX_LENGTH_THRITY,
+  FIELD_MAX_LENGTH_TWO_HUNDRER,
   FIELD_MIN_LENGTH_OF_THREE,
+  FIELD_NOT_A_STRING,
 } from '@src/helpers/errorMessages';
 
 const userPassword = 'Password0!';
@@ -60,32 +64,107 @@ describe('galerie', () => {
   });
 
   describe('POST', () => {
-    describe('should return status 200', () => {
-      it('and create a galerie', async () => {
+    describe('should return status 200 and', () => {
+      it('create a galerie', async () => {
         const name = 'galeries\'s name';
         const {
           body: {
             action,
             data: {
-              galerie,
+              galerie: returnedGalerie,
             },
           },
           status,
         } = await postGalerie(app, token, { name });
+        const galerie = await Galerie.findByPk(returnedGalerie.id);
         expect(action).toBe('POST');
-        expect(galerie.archived).toBeFalsy();
-        expect(galerie.createdAt).not.toBeUndefined();
-        expect(galerie.currentCoverPicture).toBeNull();
-        expect(galerie.defaultCoverPicture).not.toBeUndefined();
-        expect(galerie.id).not.toBeUndefined();
-        expect(galerie.name).toBe(name);
-        expect(galerie.role).toBe('creator');
-        expect(galerie.updatedAt).toBeUndefined();
-        expect(galerie.users.length).toBe(0);
+        expect(galerie).not.toBeNull();
+        expect(returnedGalerie.archived).toBeFalsy();
+        expect(returnedGalerie.createdAt).not.toBeUndefined();
+        expect(returnedGalerie.currentCoverPicture).toBeNull();
+        expect(returnedGalerie.defaultCoverPicture).not.toBeUndefined();
+        expect(returnedGalerie.description).toBe('');
+        expect(returnedGalerie.id).not.toBeUndefined();
+        expect(returnedGalerie.name).toBe(name);
+        expect(returnedGalerie.role).toBe('creator');
+        expect(returnedGalerie.updatedAt).toBeUndefined();
+        expect(returnedGalerie.users.length).toBe(0);
         expect(status).toBe(200);
+      });
+      it('create galerie with descrition', async () => {
+        const description = 'galerie\'s description';
+        const {
+          body: {
+            data: {
+              galerie,
+            },
+          },
+        } = await postGalerie(app, token, {
+          name: 'galerie\'s name',
+          description,
+        });
+        expect(galerie.description).toBe(description);
+      });
+      it('create a galerie with an empty description', async () => {
+        const description = '';
+        const {
+          body: {
+            data: {
+              galerie,
+            },
+          },
+        } = await postGalerie(app, token, {
+          name: 'galerie\'s name',
+          description,
+        });
+        expect(galerie.description).toBe(description);
+      });
+      it('trim request.body', async () => {
+        const name = 'galeries\'s name';
+        const description = 'galerie\'s description';
+        const {
+          body: {
+            data: {
+              galerie,
+            },
+          },
+        } = await postGalerie(app, token, {
+          description: ` ${description} `,
+          name: ` ${name} `,
+        });
+        expect(galerie.description).toBe(description);
+        expect(galerie.name).toBe(name);
       });
     });
     describe('should return status 400 if', () => {
+      describe('description', () => {
+        it('is not a string', async () => {
+          const {
+            body,
+            status,
+          } = await postGalerie(app, token, {
+            description: 1234,
+            name: 'galerie\'s name',
+          });
+          expect(body.errors).toEqual({
+            description: FIELD_NOT_A_STRING,
+          });
+          expect(status).toBe(400);
+        });
+        it('has more than 200 characters', async () => {
+          const {
+            body,
+            status,
+          } = await postGalerie(app, token, {
+            description: 'a'.repeat(201),
+            name: 'galerie\'s name',
+          });
+          expect(body.errors).toEqual({
+            description: FIELD_MAX_LENGTH_TWO_HUNDRER,
+          });
+          expect(status).toBe(400);
+        });
+      });
       describe('name', () => {
         it('is not send', async () => {
           const {
