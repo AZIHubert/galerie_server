@@ -6,6 +6,7 @@ export default async (
   token: string,
   galerieId: string,
   body: {
+    description?: any;
     name?: any;
   },
 ) => {

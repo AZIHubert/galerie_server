@@ -17,7 +17,6 @@ const galerieSchema = Joi.object({
     .trim()
     .max(200)
     .messages({
-      'any.required': FIELD_IS_REQUIRED,
       'string.base': FIELD_NOT_A_STRING,
       'string.max': FIELD_MAX_LENGTH_TWO_HUNDRER,
     }),
