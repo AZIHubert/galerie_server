@@ -20,5 +20,6 @@ export { default as postGaleriesIdInvitations } from './postGaleriesIdInvitation
 export { default as postGaleriesSubscribe } from './postGaleriesSubscribe';
 
 export { default as putGaleriesId } from './putGaleriesId';
+export { default as putGaleriesIdFramesId } from './putGaleriesIdFramesId';
 export { default as putGaleriesIdFramesIdGaleriePicturesId } from './putGaleriesIdFramesIdGaleriePicturesId';
 export { default as putGaleriesIdUsersUserId } from './putGaleriesIdUsersUserId';

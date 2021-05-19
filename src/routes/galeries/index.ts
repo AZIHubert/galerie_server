@@ -26,6 +26,7 @@ import {
   postGaleriesSubscribe,
 
   putGaleriesId,
+  putGaleriesIdFramesId,
   putGaleriesIdFramesIdGaleriePicturesId,
   putGaleriesIdUsersUserId,
 } from './subRoutes';
@@ -64,6 +65,7 @@ const galeriesRoutes: () => Router = () => {
   router.post('/subscribe/', passport.authenticate('jwt', { session: false }), postGaleriesSubscribe);
 
   router.put('/:galerieId/', passport.authenticate('jwt', { session: false }), putGaleriesId);
+  router.put('/:galerieId/frames/:frameId/', passport.authenticate('jwt', { session: false }), putGaleriesIdFramesId);
   router.put('/:galerieId/frames/:frameId/galeriePictures/:galeriePictureId/', passport.authenticate('jwt', { session: false }), putGaleriesIdFramesIdGaleriePicturesId);
   router.put('/:galerieId/users/:userId', passport.authenticate('jwt', { session: false }), putGaleriesIdUsersUserId);
   return router;

@@ -107,6 +107,7 @@ describe('/galeries', () => {
             } = await getGaleriesIdFrames(app, token, galerieId);
             expect(frames.length).toBe(1);
             expect(frames[0].createdAt).not.toBeUndefined();
+            expect(frames[0].description).not.toBeUndefined();
             expect(frames[0].galerieId).toBeUndefined();
             expect(frames[0].galeriePictures[0].current).not.toBeUndefined();
             expect(frames[0].galeriePictures[0].createdAt).toBeUndefined();

@@ -13,6 +13,7 @@ import {
 
 import accEnv from '@src/helpers/accEnv';
 import {
+  FIELD_MAX_LENGTH_TWO_HUNDRER,
   FILES_ARE_REQUIRED,
   FILE_IS_IMAGE,
   INVALID_UUID,
@@ -138,6 +139,7 @@ describe('/galeries', () => {
             expect(createdOriginalImage).not.toBeNull();
             expect(createdPendingImage).not.toBeNull();
             expect(returnedFrame.createdAt).not.toBeUndefined();
+            expect(returnedFrame.description).toBe('');
             expect(returnedFrame.galerieId).toBeUndefined();
             expect(returnedFrame.galeriePictures[0].current).not.toBeUndefined();
             expect(returnedFrame.galeriePictures[0].createdAt).toBeUndefined();
@@ -209,7 +211,9 @@ describe('/galeries', () => {
                   frame,
                 },
               },
-            } = await postGaleriesIdFrames(app, token, galerieId, 2);
+            } = await postGaleriesIdFrames(app, token, galerieId, {
+              numOfGaleriePictures: 2,
+            });
             const createdFrames = await Frame.findAll({
               where: {
                 galerieId,
@@ -261,7 +265,9 @@ describe('/galeries', () => {
                   frame,
                 },
               },
-            } = await postGaleriesIdFrames(app, token, galerieId, 3);
+            } = await postGaleriesIdFrames(app, token, galerieId, {
+              numOfGaleriePictures: 3,
+            });
             const createdFrames = await Frame.findAll({
               where: {
                 galerieId,
@@ -322,7 +328,9 @@ describe('/galeries', () => {
                   frame,
                 },
               },
-            } = await postGaleriesIdFrames(app, token, galerieId, 4);
+            } = await postGaleriesIdFrames(app, token, galerieId, {
+              numOfGaleriePictures: 4,
+            });
             const [bucketCropedImages] = await gc
               .bucket(GALERIES_BUCKET_PP_CROP)
               .getFiles();
@@ -392,7 +400,9 @@ describe('/galeries', () => {
                   frame,
                 },
               },
-            } = await postGaleriesIdFrames(app, token, galerieId, 5);
+            } = await postGaleriesIdFrames(app, token, galerieId, {
+              numOfGaleriePictures: 5,
+            });
             const [bucketCropedImages] = await gc
               .bucket(GALERIES_BUCKET_PP_CROP)
               .getFiles();
@@ -471,7 +481,9 @@ describe('/galeries', () => {
                   frame,
                 },
               },
-            } = await postGaleriesIdFrames(app, token, galerieId, 6);
+            } = await postGaleriesIdFrames(app, token, galerieId, {
+              numOfGaleriePictures: 6,
+            });
             const [bucketCropedImages] = await gc
               .bucket(GALERIES_BUCKET_PP_CROP)
               .getFiles();
@@ -592,6 +604,33 @@ describe('/galeries', () => {
             expect(frame.user.currentProfilePicture.updatedAt).toBeUndefined();
             expect(frame.user.currentProfilePicture.userId).toBeUndefined();
           });
+          it('post a frame with a description', async () => {
+            const description = 'frame\'s description';
+            const {
+              body: {
+                data: {
+                  frame,
+                },
+              },
+            } = await postGaleriesIdFrames(app, token, galerieId, {
+              description,
+            });
+            expect(frame.description).toBe(description);
+          });
+          it('trim description', async () => {
+            const description = 'frame\'s description';
+            const {
+              body: {
+                data: {
+                  frame,
+                },
+              },
+            } = await postGaleriesIdFrames(app, token, galerieId, {
+              description: ` ${description} `,
+              numOfGaleriePictures: 3,
+            });
+            expect(frame.description).toBe(description);
+          });
         });
         describe('should return status 400 if', () => {
           it('request.params.galerieId is not a UUID v4', async () => {
@@ -606,7 +645,9 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await postGaleriesIdFrames(app, token, galerieId, 0);
+            } = await postGaleriesIdFrames(app, token, galerieId, {
+              numOfGaleriePictures: 0,
+            });
             expect(body.errors).toBe(FILES_ARE_REQUIRED);
             expect(status).toBe(400);
           });
@@ -614,7 +655,9 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await postGaleriesIdFrames(app, token, galerieId, 7);
+            } = await postGaleriesIdFrames(app, token, galerieId, {
+              numOfGaleriePictures: 7,
+            });
             expect(body.errors).toBe('too much files have been sent');
             expect(status).toBe(400);
           });
@@ -622,7 +665,9 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await postGaleriesIdFrames(app, token, galerieId, 1, true);
+            } = await postGaleriesIdFrames(app, token, galerieId, {
+              notAnImage: true,
+            });
             expect(body.errors).toBe(FILE_IS_IMAGE);
             expect(status).toBe(400);
           });
@@ -658,13 +703,27 @@ describe('/galeries', () => {
             expect(body.errors).toBe('you cannot post on an archived galerie');
             expect(status).toBe(400);
           });
+          describe('description', () => {
+            it('has more than 200 characters', async () => {
+              const {
+                body,
+                status,
+              } = await postGaleriesIdFrames(app, token, galerieId, {
+                description: 'a'.repeat(201),
+              });
+              expect(body.errors).toEqual({
+                description: FIELD_MAX_LENGTH_TWO_HUNDRER,
+              });
+              expect(status).toBe(400);
+            });
+          });
         });
         describe('should return status 404 if', () => {
           it('galerie not found', async () => {
             const {
               body,
               status,
-            } = await postGaleriesIdFrames(app, token, uuidv4(), 0);
+            } = await postGaleriesIdFrames(app, token, uuidv4());
             expect(body.errors).toBe('galerie not found');
             expect(status).toBe(404);
           });
@@ -692,7 +751,7 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await postGaleriesIdFrames(app, token, id, 0);
+            } = await postGaleriesIdFrames(app, token, id);
             expect(body.errors).toBe('galerie not found');
             expect(status).toBe(404);
           });
