@@ -29,6 +29,10 @@ import {
 import gc from '@src/helpers/gc';
 import signedUrl from '@src/helpers/signedUrl';
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import {
+  normalizeJoiErrors,
+  validatePostGaleriesIdFramesBody,
+} from '@src/helpers/schemas';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
@@ -117,9 +121,21 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Validate request.body.
+  const {
+    error,
+    value,
+  } = validatePostGaleriesIdFramesBody(req.body);
+  if (error) {
+    return res.status(400).send({
+      errors: normalizeJoiErrors(error),
+    });
+  }
+
   // Create frame.
   try {
     frame = await Frame.create({
+      description: value.description || '',
       galerieId,
       userId: currentUser.id,
     });
@@ -137,7 +153,7 @@ export default async (req: Request, res: Response) => {
       const image = sharp(buffer);
       image
         .toBuffer({ resolveWithObject: true })
-        .then((value) => {
+        .then((e) => {
           const {
             info: {
               format,
@@ -145,7 +161,7 @@ export default async (req: Request, res: Response) => {
               width,
               height,
             },
-          } = value;
+          } = e;
           const fileName = `${Date.now()}_${uuidv4()}.jpg`;
           const blobStream = gc
             .bucket(GALERIES_BUCKET_PP)
@@ -179,7 +195,7 @@ export default async (req: Request, res: Response) => {
         .resize(600, 600);
       image
         .toBuffer({ resolveWithObject: true })
-        .then((value) => {
+        .then((e) => {
           const {
             info: {
               format,
@@ -187,7 +203,7 @@ export default async (req: Request, res: Response) => {
               width,
               height,
             },
-          } = value;
+          } = e;
           const fileName = `${Date.now()}_${uuidv4()}.jpg`;
           const blobStream = gc
             .bucket(GALERIES_BUCKET_PP_CROP)
@@ -226,7 +242,7 @@ export default async (req: Request, res: Response) => {
         .resize(1, 1);
       image
         .toBuffer({ resolveWithObject: true })
-        .then((value) => {
+        .then((e) => {
           const {
             info: {
               format,
@@ -234,7 +250,7 @@ export default async (req: Request, res: Response) => {
               width,
               height,
             },
-          } = value;
+          } = e;
           const fileName = `${Date.now()}_${uuidv4()}.jpg`;
           const blobStream = gc
             .bucket(GALERIES_BUCKET_PP_PENDING)
