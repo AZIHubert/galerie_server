@@ -46,14 +46,21 @@ export default async (req: Request, res: Response) => {
       },
       include: [
         {
-          as: 'user',
+          as: 'admin',
           attributes: {
             exclude: userExcluder,
           },
           model: User,
         },
         {
-          as: 'admin',
+          as: 'updatedBy',
+          attributes: {
+            exclude: userExcluder,
+          },
+          model: User,
+        },
+        {
+          as: 'user',
           attributes: {
             exclude: userExcluder,
           },
@@ -90,11 +97,17 @@ export default async (req: Request, res: Response) => {
           if (blackListExpire) {
             await blackList.destroy();
           } else {
-            // Fetch user and admin current profile picture.
+            // Fetch user, admin and updatedBy current profile picture.
             const currentProfilePicture = await fetchCurrentProfilePicture(blackList.user);
             let adminCurrentProfilePicture;
+            let updatedByCurrentProfilePicture;
             if (blackList.admin) {
               adminCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.admin);
+            }
+            if (blackList.updatedBy) {
+              updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(
+                blackList.updatedBy,
+              );
             }
 
             const returnedBlackList = {
@@ -102,6 +115,10 @@ export default async (req: Request, res: Response) => {
               admin: blackList.admin ? {
                 ...blackList.admin.toJSON(),
                 currentProfilePicture: adminCurrentProfilePicture,
+              } : null,
+              updatedBy: blackList.updatedBy ? {
+                ...blackList.updatedBy.toJSON(),
+                currentProfilePicture: updatedByCurrentProfilePicture,
               } : null,
               user: {
                 ...blackList.user.toJSON(),

@@ -153,16 +153,37 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // TODO:
-  // destroy all black list where userId === user.id
-  // set to null all black list field where adminId === user.id
-  // then test it.
+  // TODO: Test it.
+  // Destroy all black list where blackList.userId === currentUser.id.
+  // Put blackList.adminId to null where blackList.adminId === currentUser.id.
+  // Put blackList.updatedById to null where blackList.updatedById === currentUser.id.
+  try {
+    await BlackList.destroy({
+      where: {
+        userId: user.id,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
   try {
     await BlackList.update(
       { adminId: null },
       {
         where: {
           adminId: user.id,
+        },
+      },
+    );
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  try {
+    await BlackList.update(
+      { updatedById: null },
+      {
+        where: {
+          updatedById: user.id,
         },
       },
     );
@@ -188,42 +209,46 @@ export default async (req: Request, res: Response) => {
       frames.map(async (frame) => {
         await frame.destroy();
         await Promise.all(
-          frame.galeriePictures.map(async (galeriePicture) => {
-            const {
-              cropedImage,
-              originalImage,
-              pendingImage,
-            } = galeriePicture;
-            await galeriePicture.destroy();
-            await Image.destroy({
-              where: {
-                [Op.or]: [
-                  {
-                    id: cropedImage.id,
-                  },
-                  {
-                    id: originalImage.id,
-                  },
-                  {
-                    id: pendingImage.id,
-                  },
-                ],
-              },
-            });
+          frame.galeriePictures.map(
+            async (galeriePicture) => {
+              const {
+                cropedImage,
+                originalImage,
+                pendingImage,
+              } = galeriePicture;
+              // TODO:
+              // not sure it's required.
+              await galeriePicture.destroy();
+              await Image.destroy({
+                where: {
+                  [Op.or]: [
+                    {
+                      id: cropedImage.id,
+                    },
+                    {
+                      id: originalImage.id,
+                    },
+                    {
+                      id: pendingImage.id,
+                    },
+                  ],
+                },
+              });
 
-            await gc
-              .bucket(originalImage.bucketName)
-              .file(originalImage.fileName)
-              .delete();
-            await gc
-              .bucket(cropedImage.bucketName)
-              .file(cropedImage.fileName)
-              .delete();
-            await gc
-              .bucket(pendingImage.bucketName)
-              .file(pendingImage.fileName)
-              .delete();
-          }),
+              await gc
+                .bucket(originalImage.bucketName)
+                .file(originalImage.fileName)
+                .delete();
+              await gc
+                .bucket(cropedImage.bucketName)
+                .file(cropedImage.fileName)
+                .delete();
+              await gc
+                .bucket(pendingImage.bucketName)
+                .file(pendingImage.fileName)
+                .delete();
+            },
+          ),
         );
         await Like.destroy({
           where: { frameId: frame.id },

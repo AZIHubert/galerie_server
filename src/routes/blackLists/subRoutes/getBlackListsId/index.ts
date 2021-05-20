@@ -22,6 +22,7 @@ export default async (req: Request, res: Response) => {
   let blackList: BlackList | null;
   let blackListExpire = false;
   let currentProfilePicture;
+  let updatedByCurrentProfilePicture;
 
   // Check if request.params.blackListId
   // is a UUID v4.
@@ -39,14 +40,21 @@ export default async (req: Request, res: Response) => {
       },
       include: [
         {
-          as: 'user',
+          as: 'admin',
           attributes: {
             exclude: userExcluder,
           },
           model: User,
         },
         {
-          as: 'admin',
+          as: 'updatedBy',
+          attributes: {
+            exclude: userExcluder,
+          },
+          model: User,
+        },
+        {
+          as: 'user',
           attributes: {
             exclude: userExcluder,
           },
@@ -111,11 +119,21 @@ export default async (req: Request, res: Response) => {
     }
   }
 
+  if (blackList.updatedBy) {
+    updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(
+      blackList.updatedBy,
+    );
+  }
+
   const returnedBlackList = {
     ...blackList.toJSON(),
     admin: blackList.admin ? {
       ...blackList.admin.toJSON(),
       currentProfilePicture: adminCurrentProfilePicture,
+    } : null,
+    updatedBy: blackList.updatedBy ? {
+      ...blackList.updatedBy.toJSON(),
+      currentProfilePicture: updatedByCurrentProfilePicture,
     } : null,
     user: {
       ...blackList.user.toJSON(),
