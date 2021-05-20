@@ -33,7 +33,5 @@ const profilePicturesRoutes: () => Router = () => {
 export default profilePicturesRoutes;
 
 // TODO:
-// Check that updatedBy.user and current profile picture is fetching when GET
-// updatedAt should be include.
 // update validators name validatePostUsersBlackLists... -> validatePostBlackLists...
 // update check black list time
