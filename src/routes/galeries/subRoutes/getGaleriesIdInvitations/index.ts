@@ -100,14 +100,11 @@ export default async (req: Request, res: Response) => {
         let invitationHasExpired = false;
         let userIsBlackListed: boolean = false;
         // Check if invitation is not exipired.
-        // TODO:
         if (invitation.time) {
           const time = new Date(
-            invitation.createdAt.setMilliseconds(
-              invitation.createdAt.getMilliseconds() + invitation.time,
-            ),
+            invitation.createdAt.getTime() + invitation.time,
           );
-          invitationHasExpired = time > new Date(Date.now());
+          invitationHasExpired = time < new Date(Date.now());
         }
 
         // If invitation has expired,

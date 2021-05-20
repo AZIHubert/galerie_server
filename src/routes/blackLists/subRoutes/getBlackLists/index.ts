@@ -77,16 +77,17 @@ export default async (req: Request, res: Response) => {
         if (!blackList.user) {
           await blackList.destroy();
         } else {
-          // Check if black list is expired.
-          // TODO:
-          const time = new Date(
-            blackList.createdAt.setMilliseconds(
-              blackList.createdAt.getMilliseconds() + blackList.time,
-            ),
-          );
-          const blackListIsExpired = time > new Date(Date.now());
+          let blackListExpire = false;
 
-          if (blackListIsExpired) {
+          // Check if black list is expired.
+          if (blackList.time) {
+            const time = new Date(
+              blackList.createdAt.getTime() + blackList.time,
+            );
+            blackListExpire = time < new Date(Date.now());
+          }
+
+          if (blackListExpire) {
             await blackList.destroy();
           } else {
             // Fetch user and admin current profile picture.

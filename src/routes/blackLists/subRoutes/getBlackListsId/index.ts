@@ -20,6 +20,7 @@ export default async (req: Request, res: Response) => {
   const { blackListId } = req.params;
   let adminCurrentProfilePicture;
   let blackList: BlackList | null;
+  let blackListExpire = false;
   let currentProfilePicture;
 
   // Check if request.params.blackListId
@@ -77,14 +78,13 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if black list is expired.
-  // TODO:
-  const time = new Date(
-    blackList.createdAt.setMilliseconds(
-      blackList.createdAt.getMilliseconds() + blackList.time,
-    ),
-  );
-  const blackListIsExpired = time > new Date(Date.now());
-  if (blackListIsExpired) {
+  if (blackList.time) {
+    const time = new Date(
+      blackList.createdAt.getTime() + blackList.time,
+    );
+    blackListExpire = time < new Date(Date.now());
+  }
+  if (blackListExpire) {
     try {
       await blackList.destroy();
     } catch (err) {

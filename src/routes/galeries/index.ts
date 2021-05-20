@@ -74,7 +74,6 @@ const galeriesRoutes: () => Router = () => {
 export default galeriesRoutes;
 
 // TODO:
-// add description to frame.
 // add newFrames to galerieUser
 
 // When GET /galeries/:galerieId
