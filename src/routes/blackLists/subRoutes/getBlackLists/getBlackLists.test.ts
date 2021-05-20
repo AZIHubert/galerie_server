@@ -24,7 +24,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('blackLists', () => {
+describe('/blackLists', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -167,7 +167,8 @@ describe('blackLists', () => {
         expect(blackLists.length).toBe(2);
       });
       it('return a pack of 20 black lists', async () => {
-        const numOfBlackLists = Array(21).fill(0);
+        const NUM = 21;
+        const numOfBlackLists = Array(NUM).fill(0);
         await Promise.all(
           numOfBlackLists.map(async (_, index) => {
             const newUser = await createUser({

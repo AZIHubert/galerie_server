@@ -4,7 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import {
+  Invitation,
+  User,
+} from '@src/db/models';
 
 import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -132,10 +135,15 @@ describe('/galeries', () => {
             expect(invitations[0].userId).toBeUndefined();
           });
           it('return a pack of 20 invitations', async () => {
-            const numOfInvitations = new Array(25).fill(0);
+            const NUM = 21;
+            const numOfInvitations = new Array(NUM).fill(0);
             await Promise.all(
               numOfInvitations.map(async () => {
-                await postGaleriesIdInvitations(app, token, galerieId, {});
+                await Invitation.create({
+                  code: 'code',
+                  galerieId,
+                  userId: user.id,
+                });
               }),
             );
             const {
@@ -153,7 +161,7 @@ describe('/galeries', () => {
               },
             } = await getGaleriesIdInvitations(app, token, galerieId, 2);
             expect(firstPack.length).toBe(20);
-            expect(secondPack.length).toBe(5);
+            expect(secondPack.length).toBe(1);
           });
           it('return user\'s profile picture', async () => {
             await postGaleriesIdInvitations(app, token, galerieId, {});

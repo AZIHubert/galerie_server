@@ -4,7 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import {
+  Like,
+  User,
+} from '@src/db/models';
 
 import { INVALID_UUID } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -245,30 +248,18 @@ describe('/galeries', () => {
                 expect(users[0].currentProfilePicture.userId).toBeUndefined();
               });
               it('return a pack of 20 users', async () => {
-                // TODO: create direct model instead of request.
-                const numOfLikes = new Array(3).fill(0);
-                const {
-                  body: {
-                    data: {
-                      invitation: {
-                        code,
-                      },
-                    },
-                  },
-                } = await postGaleriesIdInvitations(app, token, galerieId, {});
+                const NUM = 21;
+                const numOfLikes = new Array(NUM).fill(0);
                 await Promise.all(
                   numOfLikes.map(async (_, index) => {
                     const newUser = await createUser({
                       email: `user${index + 2}@email.com`,
                       userName: `user${index + 2}`,
                     });
-                    const {
-                      body: {
-                        token: tokenTwo,
-                      },
-                    } = await login(app, newUser.email, userPassword);
-                    await postGaleriesSubscribe(app, tokenTwo, { code });
-                    await postGaleriesIdFramesIdLikes(app, tokenTwo, galerieId, frameId);
+                    await Like.create({
+                      frameId,
+                      userId: newUser.id,
+                    });
                   }),
                 );
                 const {
@@ -278,7 +269,15 @@ describe('/galeries', () => {
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                expect(firstPack.length).toBe(3);
+                const {
+                  body: {
+                    data: {
+                      users: secondPack,
+                    },
+                  },
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId, 1);
+                expect(firstPack.length).toBe(20);
+                expect(secondPack.length).toBe(20);
               });
             });
             describe('should return status 400 if', () => {

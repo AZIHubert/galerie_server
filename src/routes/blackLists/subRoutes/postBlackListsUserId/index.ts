@@ -148,6 +148,7 @@ export default async (req: Request, res: Response) => {
       ...objectUserExcluder,
       currentProfilePicture: adminCurrentProfilePicture,
     },
+    updatedBy: null,
     user: {
       ...user.toJSON(),
       currentProfilePicture,

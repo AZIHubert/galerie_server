@@ -4,6 +4,7 @@ import { Sequelize } from 'sequelize';
 import '@src/helpers/initEnv';
 
 import {
+  Ticket,
   User,
 } from '@src/db/models';
 
@@ -162,12 +163,14 @@ describe('/tickets', () => {
         expect(tickets[0].user.userName).toBe(user.userName);
       });
       it('return a pack of 20 tickets', async () => {
-        const numOfTickets = new Array(25).fill(0);
+        const NUM = 21;
+        const numOfTickets = new Array(NUM).fill(0);
         await Promise.all(
           numOfTickets.map(async () => {
-            await postTicket(app, token, {
+            await Ticket.create({
               body: 'ticket\'s body',
               header: 'ticket\'s header',
+              userId: user.id,
             });
           }),
         );
@@ -186,7 +189,7 @@ describe('/tickets', () => {
           },
         } = await getTickets(app, adminToken, 2);
         expect(firstPack.length).toBe(20);
-        expect(secondPack.length).toBe(5);
+        expect(secondPack.length).toBe(1);
       });
       it('return ticket even if it\'s user has delete his account', async () => {
         await postTicket(app, token, {

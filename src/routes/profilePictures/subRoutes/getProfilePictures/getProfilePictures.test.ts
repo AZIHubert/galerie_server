@@ -4,9 +4,12 @@ import { Sequelize } from 'sequelize';
 import '@src/helpers/initEnv';
 
 import {
+  Image,
+  ProfilePicture,
   User,
 } from '@src/db/models';
 import initSequelize from '@src/helpers/initSequelize.js';
+import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
   createUser,
@@ -18,6 +21,8 @@ import {
 import initApp from '@src/server';
 
 const userPassword = 'Password0!';
+
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 describe('/profilePictures', () => {
   let app: Server;
@@ -31,6 +36,11 @@ describe('/profilePictures', () => {
   });
 
   beforeEach(async (done) => {
+    jest.clearAllMocks();
+    (signedUrl as jest.Mock).mockImplementation(() => ({
+      OK: true,
+      signedUrl: 'signedUrl',
+    }));
     try {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
@@ -44,6 +54,7 @@ describe('/profilePictures', () => {
   });
 
   afterAll(async (done) => {
+    jest.clearAllMocks();
     try {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
@@ -122,11 +133,27 @@ describe('/profilePictures', () => {
         expect(returnProfilePicture.userId).toBeUndefined();
       });
       it('should return a pack of 20 profile pictures', async () => {
-        const NUMBER = 5;
-        const numOfProfilePictures = new Array(NUMBER).fill(0);
+        const NUM = 21;
+        const numOfProfilePictures = new Array(NUM).fill(0);
         await Promise.all(
           numOfProfilePictures.map(async () => {
-            await postProfilePicture(app, token);
+            const {
+              id: imageId,
+            } = await Image.create({
+              bucketName: 'bucketName',
+              fileName: 'fileName',
+              format: 'format',
+              height: 10,
+              size: 10,
+              width: 10,
+            });
+            await ProfilePicture.create({
+              cropedImageId: imageId,
+              current: false,
+              originalImageId: imageId,
+              pendingImageId: imageId,
+              userId: user.id,
+            });
           }),
         );
         const {
@@ -136,7 +163,15 @@ describe('/profilePictures', () => {
             },
           },
         } = await getProfilePictures(app, token);
-        expect(firstPack.length).toEqual(NUMBER);
+        const {
+          body: {
+            data: {
+              profilePictures: secondPack,
+            },
+          },
+        } = await getProfilePictures(app, token, 2);
+        expect(firstPack.length).toEqual(20);
+        expect(secondPack.length).toEqual(1);
       });
     });
   });
