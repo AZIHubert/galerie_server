@@ -20,7 +20,9 @@ export default async (req: Request, res: Response) => {
   const { blackListId } = req.params;
   let adminCurrentProfilePicture;
   let blackList: BlackList | null;
+  let blackListExpire = false;
   let currentProfilePicture;
+  let updatedByCurrentProfilePicture;
 
   // Check if request.params.blackListId
   // is a UUID v4.
@@ -38,14 +40,21 @@ export default async (req: Request, res: Response) => {
       },
       include: [
         {
-          as: 'user',
+          as: 'admin',
           attributes: {
             exclude: userExcluder,
           },
           model: User,
         },
         {
-          as: 'admin',
+          as: 'updatedBy',
+          attributes: {
+            exclude: userExcluder,
+          },
+          model: User,
+        },
+        {
+          as: 'user',
           attributes: {
             exclude: userExcluder,
           },
@@ -77,13 +86,13 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if black list is expired.
-  const time = new Date(
-    blackList.createdAt.setMilliseconds(
-      blackList.createdAt.getMilliseconds() + blackList.time,
-    ),
-  );
-  const blackListIsExpired = time > new Date(Date.now());
-  if (blackListIsExpired) {
+  if (blackList.time) {
+    const time = new Date(
+      blackList.createdAt.getTime() + blackList.time,
+    );
+    blackListExpire = time < new Date(Date.now());
+  }
+  if (blackListExpire) {
     try {
       await blackList.destroy();
     } catch (err) {
@@ -110,11 +119,21 @@ export default async (req: Request, res: Response) => {
     }
   }
 
+  if (blackList.updatedBy) {
+    updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(
+      blackList.updatedBy,
+    );
+  }
+
   const returnedBlackList = {
     ...blackList.toJSON(),
     admin: blackList.admin ? {
       ...blackList.admin.toJSON(),
       currentProfilePicture: adminCurrentProfilePicture,
+    } : null,
+    updatedBy: blackList.updatedBy ? {
+      ...blackList.updatedBy.toJSON(),
+      currentProfilePicture: updatedByCurrentProfilePicture,
     } : null,
     user: {
       ...blackList.user.toJSON(),

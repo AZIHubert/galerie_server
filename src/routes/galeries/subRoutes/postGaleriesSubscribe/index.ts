@@ -99,10 +99,11 @@ export default async (req: Request, res: Response) => {
   // Check if invitation's time is not null and valid.
   // If it's not valid, destroy the invitation.
   if (invitation.time) {
-    const dateCreatedAt = new Date(invitation.createdAt);
-    const today = new Date().getTime();
-    const createdAtPlusTime = dateCreatedAt.getTime() + invitation.time;
-    if (today < createdAtPlusTime) {
+    const time = new Date(
+      invitation.createdAt.getTime() + invitation.time,
+    );
+    const invitationHasExpired = time < new Date(Date.now());
+    if (invitationHasExpired) {
       try {
         await invitation.destroy();
       } catch (err) {

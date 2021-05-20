@@ -6,11 +6,9 @@ import {
 const blackListExpire = (blackList: BlackList) => {
   if (blackList.time) {
     const time = new Date(
-      blackList.createdAt.setMilliseconds(
-        blackList.createdAt.getMilliseconds() + blackList.time,
-      ),
+      blackList.createdAt.getTime() + blackList.time,
     );
-    return time > new Date(Date.now());
+    return time < new Date(Date.now());
   }
   return false;
 };
