@@ -107,6 +107,7 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if invitation is expired.
+  // TODO:
   if (invitation.time) {
     const time = new Date(
       invitation.createdAt.setMilliseconds(

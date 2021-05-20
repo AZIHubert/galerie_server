@@ -77,6 +77,7 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if black list is expired.
+  // TODO:
   const time = new Date(
     blackList.createdAt.setMilliseconds(
       blackList.createdAt.getMilliseconds() + blackList.time,

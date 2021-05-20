@@ -7,9 +7,13 @@ import passport from '@src/helpers/passport';
 
 import {
   deleteBlackListsId,
+
   getBlackLists,
   getBlackListsId,
+
   postBlackListsUserIs,
+
+  putBlackListsId,
 } from './subRoutes';
 
 const router = Router();
@@ -22,8 +26,14 @@ const profilePicturesRoutes: () => Router = () => {
 
   router.post('/:userId', passport.authenticate('jwt', { session: false }), shouldBeAdmin, postBlackListsUserIs);
 
-  router.put('/:blackListId/', passport.authenticate('jwt', { session: false }), () => {});
+  router.put('/:blackListId/', passport.authenticate('jwt', { session: false }), putBlackListsId);
 
   return router;
 };
 export default profilePicturesRoutes;
+
+// TODO:
+// Check that updatedBy.user and current profile picture is fetching when GET
+// updatedAt should be include.
+// update validators name validatePostUsersBlackLists... -> validatePostBlackLists...
+// update check black list time
