@@ -3,7 +3,11 @@ import { Sequelize } from 'sequelize';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import {
+  Galerie,
+  GalerieUser,
+  User,
+} from '@src/db/models';
 
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -22,7 +26,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('galeries', () => {
+describe('/galeries', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -93,11 +97,20 @@ describe('galeries', () => {
         expect(status).toBe(200);
       });
       it('return a pack of 20 galeries', async () => {
-        const numOfGaleries = new Array(25).fill(0);
+        const NUM = 21;
+        const numOfGaleries = new Array(NUM).fill(0);
         await Promise.all(
           numOfGaleries.map(async () => {
-            await postGalerie(app, token, {
+            const { id: galerieId } = await Galerie.create({
+              archived: false,
+              defaultCoverPicture: 'defaultCoverPicture',
+              description: 'description',
               name: 'galerie\'s name',
+            });
+            await GalerieUser.create({
+              galerieId,
+              role: 'creator',
+              userId: user.id,
             });
           }),
         );
@@ -116,7 +129,7 @@ describe('galeries', () => {
           },
         } = await getGaleries(app, token, 2);
         expect(firstPack.length).toBe(20);
-        expect(secondPack.length).toBe(5);
+        expect(secondPack.length).toBe(1);
       });
       it('return subscribed galeries', async () => {
         const userTwo = await createUser({

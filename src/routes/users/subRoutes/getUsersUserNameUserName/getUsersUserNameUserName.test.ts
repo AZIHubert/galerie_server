@@ -149,8 +149,9 @@ describe('/users', () => {
             expect(returnedUser.userName).toEqual(userName);
           });
           it('should return a pack of 20 users', async () => {
+            const NUM = 21;
             const userName = 'user';
-            const numOfUsers = new Array(25).fill(0);
+            const numOfUsers = new Array(NUM).fill(0);
             await Promise.all(
               numOfUsers.map(async (_, index) => {
                 await createUser({
@@ -174,7 +175,7 @@ describe('/users', () => {
               },
             } = await getUsersUserName(app, token, userName, 2);
             expect(firstPack.length).toBe(20);
-            expect(secondPack.length).toBe(5);
+            expect(secondPack.length).toBe(1);
           });
           it('should be case insensitive', async () => {
             const {

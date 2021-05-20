@@ -22,7 +22,7 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
-describe('blackLists', () => {
+describe('/blackLists', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;
@@ -59,7 +59,7 @@ describe('blackLists', () => {
     done();
   });
 
-  describe(':blackListId', () => {
+  describe('/:blackListId', () => {
     describe('DELETE', () => {
       describe('should return status 200 and', () => {
         it('delete blackList', async () => {

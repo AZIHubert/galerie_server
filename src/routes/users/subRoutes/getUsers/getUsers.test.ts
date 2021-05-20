@@ -109,7 +109,8 @@ describe('/users', () => {
           expect(users.length).toBe(0);
         });
         it('should return a pack of 20 users', async () => {
-          const numOfUsers = new Array(25).fill(0);
+          const NUM = 21;
+          const numOfUsers = new Array(NUM).fill(0);
           await Promise.all(
             numOfUsers.map(async (_, index) => {
               await createUser({
@@ -133,7 +134,7 @@ describe('/users', () => {
             },
           } = await getUsers(app, token, 2);
           expect(firstPack.length).toBe(20);
-          expect(secondPack.length).toBe(5);
+          expect(secondPack.length).toBe(1);
         });
         it('return only relevent attributes', async () => {
           const {

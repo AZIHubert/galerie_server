@@ -4,9 +4,15 @@ import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import {
+  Frame,
+  GaleriePicture,
+  Image,
+  User,
+} from '@src/db/models';
 
 import { INVALID_UUID } from '@src/helpers/errorMessages';
+import signedUrl from '@src/helpers/signedUrl';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -25,6 +31,8 @@ import initApp from '@src/server';
 
 const userPassword = 'Password0!';
 
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
+
 describe('/galeries', () => {
   let app: Server;
   let galerieId: string;
@@ -38,6 +46,11 @@ describe('/galeries', () => {
   });
 
   beforeEach(async (done) => {
+    jest.clearAllMocks();
+    (signedUrl as jest.Mock).mockImplementation(() => ({
+      OK: true,
+      signedUrl: 'signedUrl',
+    }));
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
@@ -65,6 +78,7 @@ describe('/galeries', () => {
   });
 
   afterAll(async (done) => {
+    jest.clearAllMocks();
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
@@ -163,11 +177,33 @@ describe('/galeries', () => {
             expect(frames[0].user.userName).not.toBeUndefined();
           });
           it('should return a pack of 20 frames', async () => {
-            const NUMBER = 5;
+            const NUMBER = 21;
             const numOfFrames = new Array(NUMBER).fill(0);
             await Promise.all(
               numOfFrames.map(async () => {
-                await postGaleriesIdFrames(app, token, galerieId);
+                const {
+                  id: frameId,
+                } = await Frame.create({
+                  galerieId,
+                  userId: user.id,
+                });
+                const {
+                  id: imageId,
+                } = await Image.create({
+                  bucketName: 'bucketName',
+                  fileName: 'fileName',
+                  format: 'format',
+                  height: 10,
+                  size: 10,
+                  width: 10,
+                });
+                await GaleriePicture.create({
+                  cropedImageId: imageId,
+                  current: false,
+                  frameId,
+                  originalImageId: imageId,
+                  pendingImageId: imageId,
+                });
               }),
             );
             const {
@@ -177,7 +213,15 @@ describe('/galeries', () => {
                 },
               },
             } = await getGaleriesIdFrames(app, token, galerieId);
-            expect(firstPack.length).toBe(5);
+            const {
+              body: {
+                data: {
+                  frames: secondPack,
+                },
+              },
+            } = await getGaleriesIdFrames(app, token, galerieId, 2);
+            expect(firstPack.length).toBe(20);
+            expect(secondPack.length).toBe(1);
           });
           it('should include user\'s current profile picture', async () => {
             await postGaleriesIdFrames(app, token, galerieId);

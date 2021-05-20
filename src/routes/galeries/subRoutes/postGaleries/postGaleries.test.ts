@@ -27,7 +27,7 @@ import {
 
 const userPassword = 'Password0!';
 
-describe('galerie', () => {
+describe('/galerie', () => {
   let app: Server;
   let sequelize: Sequelize;
   let token: string;

@@ -132,7 +132,9 @@ describe('/blackLists', () => {
           expect(returnedBlackList.id).not.toBeUndefined();
           expect(returnedBlackList.reason).toBe(reason);
           expect(returnedBlackList.time).toBeNull();
-          expect(returnedBlackList.updatedAt).toBeUndefined();
+          expect(returnedBlackList.updatedAt).not.toBeUndefined();
+          expect(returnedBlackList.updatedBy).toBeNull();
+          expect(returnedBlackList.updatedBYId).toBeUndefined();
           expect(returnedBlackList.user.authTokenVersion).toBeUndefined();
           expect(returnedBlackList.user.confirmed).toBeUndefined();
           expect(returnedBlackList.user.confirmTokenVersion).toBeUndefined();
