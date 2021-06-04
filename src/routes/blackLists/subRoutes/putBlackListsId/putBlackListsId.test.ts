@@ -18,8 +18,8 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  login,
-  postBlackListUser,
+  postBlackListUserId,
+  postUsersLogin,
   putBlackListsId,
 } from '@src/helpers/test';
 
@@ -46,7 +46,12 @@ describe('/blackLists', () => {
         role: 'superAdmin',
       });
 
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -83,7 +88,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list reason',
           });
           const {
@@ -123,7 +128,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list reason',
             time: (1000 * 60 * 10),
           });
@@ -162,7 +167,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list reason',
             time,
           });
@@ -190,7 +195,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list reason',
           });
           const {
@@ -215,7 +220,7 @@ describe('/blackLists', () => {
                     blackList,
                   },
                 },
-              } = await postBlackListUser(app, token, userTwo.id, {
+              } = await postBlackListUserId(app, token, userTwo.id, {
                 reason: 'black list reason',
               });
               blackListId = blackList.id;

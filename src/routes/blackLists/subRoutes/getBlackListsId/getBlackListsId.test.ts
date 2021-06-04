@@ -16,11 +16,11 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  deleteUser,
+  deleteUsersMe,
   getBlackListsId,
-  login,
-  postBlackListUser,
-  postProfilePicture,
+  postBlackListUserId,
+  postProfilePictures,
+  postUsersLogin,
   putBlackListsId,
 } from '@src/helpers/test';
 
@@ -46,7 +46,12 @@ describe('/blackLists', () => {
       user = await createUser({
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -92,7 +97,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list user',
           });
           const {
@@ -157,8 +162,13 @@ describe('/blackLists', () => {
             body: {
               token: tokenTwo,
             },
-          } = await login(app, userTwo.email, userPassword);
-          await postProfilePicture(app, tokenTwo);
+          } = await postUsersLogin(app, {
+            body: {
+              password: userPassword,
+              userNameOrEmail: userTwo.email,
+            },
+          });
+          await postProfilePictures(app, tokenTwo);
           const {
             body: {
               data: {
@@ -167,7 +177,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list user',
           });
           const {
@@ -215,7 +225,7 @@ describe('/blackLists', () => {
           expect(currentProfilePicture.userId).toBeUndefined();
         });
         it('include admin current profile picture', async () => {
-          await postProfilePicture(app, token);
+          await postProfilePictures(app, token);
           const {
             body: {
               data: {
@@ -224,7 +234,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list user',
           });
           const {
@@ -281,7 +291,12 @@ describe('/blackLists', () => {
             body: {
               token: tokenTwo,
             },
-          } = await login(app, userThree.email, userPassword);
+          } = await postUsersLogin(app, {
+            body: {
+              password: userPassword,
+              userNameOrEmail: userThree.email,
+            },
+          });
           const {
             body: {
               data: {
@@ -290,10 +305,10 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, tokenTwo, userTwo.id, {
+          } = await postBlackListUserId(app, tokenTwo, userTwo.id, {
             reason: 'black list reason',
           });
-          await deleteUser(app, tokenTwo, {
+          await deleteUsersMe(app, tokenTwo, {
             deleteAccountSentence: 'delete my account',
             password: userPassword,
             userNameOrEmail: userThree.email,
@@ -318,7 +333,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list reason',
           });
           await putBlackListsId(app, token, blackListId, {
@@ -364,7 +379,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list reason',
           });
           await putBlackListsId(app, token, blackListId, {
@@ -372,7 +387,7 @@ describe('/blackLists', () => {
               time: (1000 * 60 * 10),
             },
           });
-          await postProfilePicture(app, token);
+          await postProfilePictures(app, token);
           const {
             body: {
               data: {
@@ -427,7 +442,12 @@ describe('/blackLists', () => {
             body: {
               token: tokenThree,
             },
-          } = await login(app, userThree.email, userPassword);
+          } = await postUsersLogin(app, {
+            body: {
+              password: userPassword,
+              userNameOrEmail: userThree.email,
+            },
+          });
           const {
             body: {
               data: {
@@ -436,7 +456,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list reason',
           });
           await putBlackListsId(app, tokenThree, blackListId, {
@@ -444,7 +464,7 @@ describe('/blackLists', () => {
               time: (1000 * 60 * 10),
             },
           });
-          await deleteUser(app, tokenThree, {
+          await deleteUsersMe(app, tokenThree, {
             deleteAccountSentence: 'delete my account',
             password: userPassword,
             userNameOrEmail: userThree.email,

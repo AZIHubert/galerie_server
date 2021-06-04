@@ -4,7 +4,7 @@ import { uploadFiles } from '@src/helpers/middlewares';
 import passport from '@src/helpers/passport';
 
 import {
-  deleteGalerieId,
+  deleteGaleriesId,
   deleteGaleriesIdFramesId,
   deleteGaleriesIdInvitationsId,
   deleteGaleriesIdUnsubscribe,
@@ -34,7 +34,7 @@ import {
 const router = Router();
 
 const galeriesRoutes: () => Router = () => {
-  router.delete('/:galerieId/', passport.authenticate('jwt', { session: false }), deleteGalerieId);
+  router.delete('/:galerieId/', passport.authenticate('jwt', { session: false }), deleteGaleriesId);
   router.delete('/:galerieId/frames/:frameId/', passport.authenticate('jwt', { session: false }), deleteGaleriesIdFramesId);
   router.delete('/:galerieId/invitations/:invitationId', passport.authenticate('jwt', { session: false }), deleteGaleriesIdInvitationsId);
   router.delete('/:galerieId/unsubscribe/', passport.authenticate('jwt', { session: false }), deleteGaleriesIdUnsubscribe);

@@ -18,8 +18,8 @@ import {
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
-  login,
-  postTicket,
+  postTickets,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -41,7 +41,12 @@ describe('/tickets', () => {
     try {
       await sequelize.sync({ force: true });
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -70,7 +75,7 @@ describe('/tickets', () => {
             action,
           },
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body,
           header,
         });
@@ -85,7 +90,7 @@ describe('/tickets', () => {
       it('should trim request.body', async () => {
         const body = 'ticket body';
         const header = 'header body';
-        await postTicket(app, token, {
+        await postTickets(app, token, {
           body: ` ${body} `,
           header: ` ${header} `,
         });
@@ -101,7 +106,7 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           header: 'ticket header',
         });
         expect(body.errors).toEqual({
@@ -113,7 +118,7 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: '',
           header: 'ticket header',
         });
@@ -126,7 +131,7 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 1234,
           header: 'ticket header',
         });
@@ -139,7 +144,7 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'a'.repeat(9),
           header: 'ticket header',
         });
@@ -152,7 +157,7 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'a'.repeat(201),
           header: 'ticket header',
         });
@@ -167,7 +172,7 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'ticket body',
         });
         expect(body.errors).toEqual({
@@ -179,7 +184,7 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'ticket body',
           header: '',
         });
@@ -192,7 +197,7 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'ticket body',
           header: 1234,
         });
@@ -205,7 +210,7 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'ticket body',
           header: 'a'.repeat(4),
         });
@@ -218,7 +223,7 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'ticket body',
           header: 'a'.repeat(31),
         });

@@ -14,9 +14,9 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  getProfilePicture,
-  login,
-  postProfilePicture,
+  getProfilePicturesId,
+  postProfilePictures,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -39,7 +39,12 @@ describe('/profilePictures', () => {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -72,7 +77,7 @@ describe('/profilePictures', () => {
                 },
               },
             },
-          } = await postProfilePicture(app, token);
+          } = await postProfilePictures(app, token);
           const {
             body: {
               action,
@@ -81,7 +86,7 @@ describe('/profilePictures', () => {
               },
             },
             status,
-          } = await getProfilePicture(app, token, id);
+          } = await getProfilePicturesId(app, token, id);
           expect(action).toEqual('GET');
           expect(status).toEqual(200);
           expect(profilePicture.createdAt).not.toBeUndefined();
@@ -128,7 +133,7 @@ describe('/profilePictures', () => {
             const {
               body,
               status,
-            } = await getProfilePicture(app, token, '100');
+            } = await getProfilePicturesId(app, token, '100');
             expect(body.errors).toBe(INVALID_UUID('profile picture'));
             expect(status).toBe(400);
           });
@@ -138,7 +143,7 @@ describe('/profilePictures', () => {
             const {
               body,
               status,
-            } = await getProfilePicture(app, token, uuidv4());
+            } = await getProfilePicturesId(app, token, uuidv4());
             expect(body.errors).toBe(MODEL_NOT_FOUND('profile picture'));
             expect(status).toBe(404);
           });

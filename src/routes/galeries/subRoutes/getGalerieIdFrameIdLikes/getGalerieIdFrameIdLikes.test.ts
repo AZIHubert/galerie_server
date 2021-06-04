@@ -18,13 +18,13 @@ import {
   cleanGoogleBuckets,
   createUser,
   getGaleriesIdFramesIdLikes,
-  login,
-  postGalerie,
+  postGaleries,
   postGaleriesIdFrames,
   postGaleriesIdFramesIdLikes,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
-  postProfilePicture,
+  postProfilePictures,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -50,7 +50,12 @@ describe('/galeries', () => {
       user = await createUser({
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
       const {
         body: {
@@ -60,7 +65,7 @@ describe('/galeries', () => {
             },
           },
         },
-      } = await postGalerie(app, token, {
+      } = await postGaleries(app, token, {
         name: 'galerie\'s name',
       });
       galerieId = id;
@@ -142,7 +147,12 @@ describe('/galeries', () => {
                   body: {
                     token: tokenTwo,
                   },
-                } = await login(app, userTwo.email, userPassword);
+                } = await postUsersLogin(app, {
+                  body: {
+                    password: userPassword,
+                    userNameOrEmail: userTwo.email,
+                  },
+                });
                 const {
                   body: {
                     data: {
@@ -191,7 +201,12 @@ describe('/galeries', () => {
                   body: {
                     token: tokenTwo,
                   },
-                } = await login(app, userTwo.email, userPassword);
+                } = await postUsersLogin(app, {
+                  body: {
+                    password: userPassword,
+                    userNameOrEmail: userTwo.email,
+                  },
+                });
                 const {
                   body: {
                     data: {
@@ -203,7 +218,7 @@ describe('/galeries', () => {
                 } = await postGaleriesIdInvitations(app, token, galerieId, {});
                 await postGaleriesSubscribe(app, tokenTwo, { code });
                 await postGaleriesIdFramesIdLikes(app, tokenTwo, galerieId, frameId);
-                await postProfilePicture(app, tokenTwo);
+                await postProfilePictures(app, tokenTwo);
                 const {
                   body: {
                     data: {
@@ -319,14 +334,19 @@ describe('/galeries', () => {
                   body: {
                     token: tokenTwo,
                   },
-                } = await login(app, userTwo.email, userPassword);
+                } = await postUsersLogin(app, {
+                  body: {
+                    password: userPassword,
+                    userNameOrEmail: userTwo.email,
+                  },
+                });
                 const {
                   body: {
                     data: {
                       galerie,
                     },
                   },
-                } = await postGalerie(app, tokenTwo, {
+                } = await postGaleries(app, tokenTwo, {
                   name: 'galerie\'s name',
                 });
                 const {
@@ -351,7 +371,7 @@ describe('/galeries', () => {
                       galerie,
                     },
                   },
-                } = await postGalerie(app, token, {
+                } = await postGaleries(app, token, {
                   name: 'galerie\'s name',
                 });
                 const {

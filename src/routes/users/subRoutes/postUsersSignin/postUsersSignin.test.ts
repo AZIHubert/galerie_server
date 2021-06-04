@@ -21,7 +21,7 @@ import {
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
-  signin,
+  postUsersSignin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -73,7 +73,7 @@ describe('/users', () => {
               },
             },
             status,
-          } = await signin(app, {
+          } = await postUsersSignin(app, {
             confirmPassword: password,
             email,
             password,
@@ -126,7 +126,7 @@ describe('/users', () => {
                 },
               },
             },
-          } = await signin(app, {
+          } = await postUsersSignin(app, {
             confirmPassword: password,
             email: ` ${email} `,
             password,
@@ -145,7 +145,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -160,7 +160,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -176,7 +176,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -192,7 +192,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -208,7 +208,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -224,7 +224,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -244,7 +244,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user2@email.com',
               password,
@@ -262,7 +262,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               password,
               userName: 'user',
@@ -277,7 +277,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: '',
               password,
@@ -293,7 +293,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 1234,
               password,
@@ -309,7 +309,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'not an email',
               password,
@@ -329,7 +329,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email,
               password,
@@ -346,7 +346,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: 'Password0!',
               email: 'user@email.com',
               userName: 'user',
@@ -362,7 +362,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -377,7 +377,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: 'Password0!',
               email: 'user@email.com',
               password: 1234,
@@ -394,7 +394,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -410,7 +410,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -426,7 +426,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -442,7 +442,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -458,7 +458,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -474,7 +474,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -490,7 +490,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: password,
               email: 'user@email.com',
               password,
@@ -507,7 +507,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               email: 'user@email.com',
               password: 'Password0!',
               userName: 'user',
@@ -521,7 +521,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: '',
               email: 'user@email.com',
               password: 'Password0!',
@@ -536,7 +536,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: 1234,
               email: 'user@email.com',
               password: 'Password0!',
@@ -551,7 +551,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await signin(app, {
+            } = await postUsersSignin(app, {
               confirmPassword: 'wrongpassword',
               email: 'user@email.com',
               password: 'Password0!',

@@ -18,10 +18,10 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  login,
-  postGalerie,
+  postGaleries,
   postGaleriesIdFrames,
   postGaleriesIdFramesIdLikes,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -47,7 +47,12 @@ describe('/galerie', () => {
       user = await createUser({
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
       const {
         body: {
@@ -57,7 +62,7 @@ describe('/galerie', () => {
             },
           },
         },
-      } = await postGalerie(app, token, {
+      } = await postGaleries(app, token, {
         name: 'galerie\'s name',
       });
       galerieId = id;
@@ -208,14 +213,19 @@ describe('/galerie', () => {
                   body: {
                     token: tokenTwo,
                   },
-                } = await login(app, userTwo.email, userPassword);
+                } = await postUsersLogin(app, {
+                  body: {
+                    password: userPassword,
+                    userNameOrEmail: userTwo.email,
+                  },
+                });
                 const {
                   body: {
                     data: {
                       galerie,
                     },
                   },
-                } = await postGalerie(app, tokenTwo, {
+                } = await postGaleries(app, tokenTwo, {
                   name: 'galerie\'s name',
                 });
                 const {
@@ -240,7 +250,7 @@ describe('/galerie', () => {
                       galerie,
                     },
                   },
-                } = await postGalerie(app, token, {
+                } = await postGaleries(app, token, {
                   name: 'galerie\'s name',
                 });
                 const {

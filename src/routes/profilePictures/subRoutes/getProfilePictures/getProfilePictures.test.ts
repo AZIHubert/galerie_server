@@ -14,8 +14,8 @@ import {
   cleanGoogleBuckets,
   createUser,
   getProfilePictures,
-  login,
-  postProfilePicture,
+  postProfilePictures,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -45,7 +45,12 @@ describe('/profilePictures', () => {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -83,7 +88,7 @@ describe('/profilePictures', () => {
         expect(status).toBe(200);
       });
       it('return one profile picture', async () => {
-        await postProfilePicture(app, token);
+        await postProfilePictures(app, token);
         const {
           body: {
             data: {

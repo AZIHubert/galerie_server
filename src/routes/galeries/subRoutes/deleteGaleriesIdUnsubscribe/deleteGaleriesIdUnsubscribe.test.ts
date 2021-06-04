@@ -25,13 +25,13 @@ import {
   cleanGoogleBuckets,
   createUser,
   deleteGaleriesUnsubscribe,
-  deleteUser,
-  login,
-  postGalerie,
+  deleteUsersMe,
+  postGaleries,
   postGaleriesIdFrames,
   postGaleriesIdFramesIdLikes,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -66,8 +66,18 @@ describe('/galeries', () => {
         userName: 'user2',
       });
 
-      const { body } = await login(app, user.email, userPassword);
-      const { body: bodyTwo } = await login(app, userTwo.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
+      const { body: bodyTwo } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: userTwo.email,
+        },
+      });
       token = body.token;
       tokenTwo = bodyTwo.token;
 
@@ -79,7 +89,7 @@ describe('/galeries', () => {
             },
           },
         },
-      } = await postGalerie(app, tokenTwo, {
+      } = await postGaleries(app, tokenTwo, {
         name: 'galerie\'s name',
       });
       galerieId = id;
@@ -198,7 +208,7 @@ describe('/galeries', () => {
           expect(like).toBeNull();
         });
         it('and delete galerie if they\'re no user left', async () => {
-          await deleteUser(app, tokenTwo, {
+          await deleteUsersMe(app, tokenTwo, {
             deleteAccountSentence: 'delete my account',
             password: userPassword,
             userNameOrEmail: userTwo.email,
@@ -266,7 +276,7 @@ describe('/galeries', () => {
                 galerie,
               },
             },
-          } = await postGalerie(app, tokenTwo, {
+          } = await postGaleries(app, tokenTwo, {
             name: 'galerie\'s name',
           });
           const {

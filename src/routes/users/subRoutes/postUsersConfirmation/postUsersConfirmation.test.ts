@@ -18,7 +18,7 @@ import {
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
-  postConfirmation,
+  postUsersConfirmation,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -69,7 +69,7 @@ describe('/users', () => {
             email: userEmail,
             confirmTokenVersion,
           } = user;
-          const { status } = await postConfirmation(app, {
+          const { status } = await postUsersConfirmation(app, {
             email: userEmail,
           });
           await user.reload();
@@ -77,7 +77,7 @@ describe('/users', () => {
           expect(user.confirmTokenVersion).toBe(confirmTokenVersion + 1);
         });
         it('sign a token and send an email', async () => {
-          const { status } = await postConfirmation(app, {
+          const { status } = await postUsersConfirmation(app, {
             email: user.email,
           });
           expect(status).toBe(204);
@@ -94,7 +94,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await postConfirmation(app, {
+          } = await postUsersConfirmation(app, {
             email: userEmail,
           });
           expect(body.errors).toBe(USER_SHOULD_NOT_BE_CONFIRMED);
@@ -105,7 +105,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postConfirmation(app, {});
+            } = await postUsersConfirmation(app, {});
             expect(body.errors).toEqual({
               email: FIELD_IS_REQUIRED,
             });
@@ -115,7 +115,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postConfirmation(app, {
+            } = await postUsersConfirmation(app, {
               email: 1234,
             });
             expect(body.errors).toEqual({
@@ -127,7 +127,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postConfirmation(app, {
+            } = await postUsersConfirmation(app, {
               email: '',
             });
             expect(body.errors).toEqual({
@@ -139,7 +139,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postConfirmation(app, {
+            } = await postUsersConfirmation(app, {
               email: 'not an email',
             });
             expect(body.errors).toEqual({
@@ -154,7 +154,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await postConfirmation(app, {
+          } = await postUsersConfirmation(app, {
             email: 'unexistedEmail@email.com',
           });
           expect(body.errors).toEqual({

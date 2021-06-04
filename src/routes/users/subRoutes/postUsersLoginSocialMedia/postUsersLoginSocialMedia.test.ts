@@ -13,7 +13,7 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  postLoginSocialMedia,
+  postUsersLoginSocialMedia,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -65,7 +65,7 @@ describe('/users', () => {
                 token: loginToken,
               },
               status,
-            } = await postLoginSocialMedia(app, {
+            } = await postUsersLoginSocialMedia(app, {
               id: facebookId,
               type: 'Facebook',
               userName,
@@ -101,7 +101,7 @@ describe('/users', () => {
                 expiresIn,
                 token: loginToken,
               },
-            } = await postLoginSocialMedia(app, {
+            } = await postUsersLoginSocialMedia(app, {
               id: googleId,
               userName,
               type: 'Google',
@@ -128,12 +128,12 @@ describe('/users', () => {
           it('update default profile picture if Google/Facebook\'s profile picture has changed', async () => {
             const facebookId = '1';
             const newProfilePicture = 'http://profilePicture';
-            await postLoginSocialMedia(app, {
+            await postUsersLoginSocialMedia(app, {
               id: facebookId,
               userName: 'user',
               type: 'Facebook',
             });
-            await postLoginSocialMedia(app, {
+            await postUsersLoginSocialMedia(app, {
               id: facebookId,
               profilePicture: newProfilePicture,
               type: 'Facebook',
@@ -148,12 +148,12 @@ describe('/users', () => {
           it('update email if Google/Facebook\'s email has changed', async () => {
             const facebookId = '1';
             const newEmail = 'user@email.com';
-            await postLoginSocialMedia(app, {
+            await postUsersLoginSocialMedia(app, {
               id: facebookId,
               userName: 'user',
               type: 'Facebook',
             });
-            await postLoginSocialMedia(app, {
+            await postUsersLoginSocialMedia(app, {
               id: facebookId,
               email: newEmail,
               type: 'Facebook',
@@ -171,7 +171,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postLoginSocialMedia(app, {
+            } = await postUsersLoginSocialMedia(app, {
               userName: 'user',
             });
             expect(body.errors).toBe('id not found');
@@ -181,7 +181,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postLoginSocialMedia(app, {
+            } = await postUsersLoginSocialMedia(app, {
               id: '1',
               type: 'Facebook',
             });
@@ -190,7 +190,7 @@ describe('/users', () => {
           });
           it('type is Facebook and email is already used for a Google account', async () => {
             const email = 'user@email.com';
-            await postLoginSocialMedia(app, {
+            await postUsersLoginSocialMedia(app, {
               id: '1',
               userName: 'user',
               email,
@@ -199,7 +199,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postLoginSocialMedia(app, {
+            } = await postUsersLoginSocialMedia(app, {
               id: '1',
               userName: 'user',
               email,
@@ -216,7 +216,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postLoginSocialMedia(app, {
+            } = await postUsersLoginSocialMedia(app, {
               id: '1',
               userName: 'user',
               email,
@@ -227,7 +227,7 @@ describe('/users', () => {
           });
           it('type is Google and email is already used for a Facebook account', async () => {
             const email = 'user@email.com';
-            await postLoginSocialMedia(app, {
+            await postUsersLoginSocialMedia(app, {
               email,
               id: '1',
               type: 'Facebook',
@@ -236,7 +236,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postLoginSocialMedia(app, {
+            } = await postUsersLoginSocialMedia(app, {
               email,
               id: '1',
               type: 'Google',
@@ -253,7 +253,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postLoginSocialMedia(app, {
+            } = await postUsersLoginSocialMedia(app, {
               id: '1',
               userName: 'user',
               email,
@@ -267,7 +267,7 @@ describe('/users', () => {
             const { id: adminId } = await createUser({
               role: 'admin',
             });
-            await postLoginSocialMedia(app, {
+            await postUsersLoginSocialMedia(app, {
               id: facebookId,
               userName: 'user',
               email: 'user2@email.com',
@@ -286,7 +286,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postLoginSocialMedia(app, {
+            } = await postUsersLoginSocialMedia(app, {
               id: facebookId,
               type: 'Facebook',
             });

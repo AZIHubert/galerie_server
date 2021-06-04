@@ -17,9 +17,9 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  login,
-  postProfilePicture,
-  putProfilePicture,
+  postProfilePictures,
+  postUsersLogin,
+  putProfilePicturesId,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -42,7 +42,12 @@ describe('/profilePictures', () => {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -74,7 +79,7 @@ describe('/profilePictures', () => {
                 },
               },
             },
-          } = await postProfilePicture(app, token);
+          } = await postProfilePictures(app, token);
           const {
             body: {
               action,
@@ -84,7 +89,7 @@ describe('/profilePictures', () => {
               },
             },
             status,
-          } = await putProfilePicture(app, token, profilePictureId);
+          } = await putProfilePicturesId(app, token, profilePictureId);
           const profilePicture = await ProfilePicture.findByPk(profilePictureId) as ProfilePicture;
           expect(action).toBe('PUT');
           expect(current).toBeFalsy();
@@ -101,7 +106,7 @@ describe('/profilePictures', () => {
                 },
               },
             },
-          } = await postProfilePicture(app, token);
+          } = await postProfilePictures(app, token);
           const {
             body: {
               data: {
@@ -110,14 +115,14 @@ describe('/profilePictures', () => {
                 },
               },
             },
-          } = await postProfilePicture(app, token);
+          } = await postProfilePictures(app, token);
           const {
             body: {
               data: {
                 current,
               },
             },
-          } = await putProfilePicture(app, token, profilePictureId);
+          } = await putProfilePicturesId(app, token, profilePictureId);
           const profilePicture = await ProfilePicture.findByPk(profilePictureId) as ProfilePicture;
           const previousCurrentProfilePicture = await ProfilePicture
             .findByPk(previousCurrentId) as ProfilePicture;
@@ -131,7 +136,7 @@ describe('/profilePictures', () => {
           const {
             body,
             status,
-          } = await putProfilePicture(app, token, '100');
+          } = await putProfilePicturesId(app, token, '100');
           expect(body.errors).toBe(INVALID_UUID('profile picture'));
           expect(status).toBe(400);
         });
@@ -141,7 +146,7 @@ describe('/profilePictures', () => {
           const {
             body,
             status,
-          } = await putProfilePicture(app, token, uuidv4());
+          } = await putProfilePicturesId(app, token, uuidv4());
           expect(body.errors).toBe(MODEL_NOT_FOUND('profile picture'));
           expect(status).toBe(404);
         });

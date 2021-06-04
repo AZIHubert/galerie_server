@@ -22,7 +22,7 @@ import {
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
-  postResetPassword,
+  postUsersPassword,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -68,7 +68,7 @@ describe('/users', () => {
         it('send an email with and sign a token', async () => {
           const {
             status,
-          } = await postResetPassword(app, {
+          } = await postUsersPassword(app, {
             email: user.email,
           });
           expect(status).toBe(204);
@@ -80,7 +80,7 @@ describe('/users', () => {
             .toHaveBeenCalledTimes(1);
         });
         it('increment resetPasswordTokenVersion', async () => {
-          await postResetPassword(app, {
+          await postUsersPassword(app, {
             email: user.email,
           });
           const { resetPasswordTokenVersion } = user;
@@ -89,14 +89,14 @@ describe('/users', () => {
             .toBe(resetPasswordTokenVersion + 1);
         });
         it('trim request.body.email', async () => {
-          await postResetPassword(app, {
+          await postUsersPassword(app, {
             email: ` ${user.email} `,
           });
           expect(emailMocked)
             .toBeCalledWith(user.email, expect.any(String));
         });
         it('should convert email to lowercase', async () => {
-          await postResetPassword(app, {
+          await postUsersPassword(app, {
             email: user.email.toUpperCase(),
           });
           expect(emailMocked)
@@ -108,7 +108,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postResetPassword(app, {});
+              } = await postUsersPassword(app, {});
               expect(body.errors).toEqual({
                 email: FIELD_IS_REQUIRED,
               });
@@ -118,7 +118,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postResetPassword(app, {
+              } = await postUsersPassword(app, {
                 email: '',
               });
               expect(body.errors).toEqual({
@@ -130,7 +130,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postResetPassword(app, {
+              } = await postUsersPassword(app, {
                 email: 1234,
               });
               expect(body.errors).toEqual({
@@ -142,7 +142,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postResetPassword(app, {
+              } = await postUsersPassword(app, {
                 email: 'notAnEmail',
               });
               expect(body.errors).toEqual({
@@ -162,7 +162,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postResetPassword(app, {
+            } = await postUsersPassword(app, {
               email: notConfirmedUserEmail,
             });
             expect(body.errors).toBe(USER_SHOULD_BE_CONFIRED);
@@ -184,7 +184,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postResetPassword(app, {
+            } = await postUsersPassword(app, {
               email: blackListedUserEmail,
             });
             expect(body.errors).toBe(USER_SHOULD_NOT_BE_BLACK_LISTED);
@@ -196,7 +196,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postResetPassword(app, {
+            } = await postUsersPassword(app, {
               email: 'user2@email.com',
             });
             expect(body.errors).toEqual({
@@ -213,7 +213,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postResetPassword(app, {
+            } = await postUsersPassword(app, {
               email: facebookUserEmail,
             });
             expect(body.errors).toEqual({
@@ -230,7 +230,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postResetPassword(app, {
+            } = await postUsersPassword(app, {
               email: googleUserEmail,
             });
             expect(body.errors).toEqual({

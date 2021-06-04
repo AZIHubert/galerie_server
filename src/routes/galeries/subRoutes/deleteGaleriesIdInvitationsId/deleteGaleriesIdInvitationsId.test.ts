@@ -17,11 +17,11 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  deleteGalerieIdInvitationId,
-  login,
-  postGalerie,
+  deleteGaleriesIdInvitationId,
+  postGaleries,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -47,7 +47,12 @@ describe('/galeries', () => {
       user = await createUser({
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
       const {
         body: {
@@ -57,7 +62,7 @@ describe('/galeries', () => {
             },
           },
         },
-      } = await postGalerie(app, token, {
+      } = await postGaleries(app, token, {
         name: 'galerie\'s name',
       });
       galerieId = id;
@@ -103,7 +108,7 @@ describe('/galeries', () => {
                   },
                 },
                 status,
-              } = await deleteGalerieIdInvitationId(app, token, galerieId, invitationId);
+              } = await deleteGaleriesIdInvitationId(app, token, galerieId, invitationId);
               const invitation = await Invitation.findByPk(invitationId);
               expect(action).toBe('DELETE');
               expect(invitation).toBeNull();
@@ -117,7 +122,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGalerieIdInvitationId(app, token, '100', uuidv4());
+              } = await deleteGaleriesIdInvitationId(app, token, '100', uuidv4());
               expect(body.errors).toBe(INVALID_UUID('galerie'));
               expect(status).toBe(400);
             });
@@ -125,7 +130,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGalerieIdInvitationId(app, token, uuidv4(), '100');
+              } = await deleteGaleriesIdInvitationId(app, token, uuidv4(), '100');
               expect(body.errors).toBe(INVALID_UUID('invitation'));
               expect(status).toBe(400);
             });
@@ -138,7 +143,12 @@ describe('/galeries', () => {
                 body: {
                   token: tokenTwo,
                 },
-              } = await login(app, userTwo.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userTwo.email,
+                },
+              });
               const {
                 body: {
                   data: {
@@ -153,7 +163,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGalerieIdInvitationId(app, tokenTwo, galerieId, invitationId);
+              } = await deleteGaleriesIdInvitationId(app, tokenTwo, galerieId, invitationId);
               expect(body.errors).toBe('your not allow to delete invitations');
               expect(status).toBe(400);
             });
@@ -163,7 +173,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGalerieIdInvitationId(app, token, uuidv4(), uuidv4());
+              } = await deleteGaleriesIdInvitationId(app, token, uuidv4(), uuidv4());
               expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
               expect(status).toBe(404);
             });
@@ -176,7 +186,12 @@ describe('/galeries', () => {
                 body: {
                   token: tokenTwo,
                 },
-              } = await login(app, userTwo.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userTwo.email,
+                },
+              });
               const {
                 body: {
                   data: {
@@ -185,13 +200,13 @@ describe('/galeries', () => {
                     },
                   },
                 },
-              } = await postGalerie(app, tokenTwo, {
+              } = await postGaleries(app, tokenTwo, {
                 name: 'galeries\'name',
               });
               const {
                 body,
                 status,
-              } = await deleteGalerieIdInvitationId(app, token, id, uuidv4());
+              } = await deleteGaleriesIdInvitationId(app, token, id, uuidv4());
               expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
               expect(status).toBe(404);
             });
@@ -199,7 +214,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGalerieIdInvitationId(app, token, galerieId, uuidv4());
+              } = await deleteGaleriesIdInvitationId(app, token, galerieId, uuidv4());
               expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
               expect(status).toBe(404);
             });
@@ -210,7 +225,7 @@ describe('/galeries', () => {
                     galerie,
                   },
                 },
-              } = await postGalerie(app, token, {
+              } = await postGaleries(app, token, {
                 name: 'galerie\'s name',
               });
               const {
@@ -223,7 +238,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGalerieIdInvitationId(app, token, galerieId, invitation.id);
+              } = await deleteGaleriesIdInvitationId(app, token, galerieId, invitation.id);
               expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
               expect(status).toBe(404);
             });

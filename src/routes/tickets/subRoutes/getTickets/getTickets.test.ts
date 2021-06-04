@@ -12,11 +12,11 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  deleteUser,
+  deleteUsersMe,
   getTickets,
-  postTicket,
-  postProfilePicture,
-  login,
+  postProfilePictures,
+  postTickets,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -45,8 +45,18 @@ describe('/tickets', () => {
         userName: 'user2',
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
-      const { body: adminLoginBody } = await login(app, admin.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
+      const { body: adminLoginBody } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: admin.email,
+        },
+      });
       token = body.token;
       adminToken = adminLoginBody.token;
     } catch (err) {
@@ -78,12 +88,12 @@ describe('/tickets', () => {
               profilePicture,
             },
           },
-        } = await postProfilePicture(app, token);
-        await postTicket(app, token, {
+        } = await postProfilePictures(app, token);
+        await postTickets(app, token, {
           body,
           header,
         });
-        await postTicket(app, token, {
+        await postTickets(app, token, {
           body: 'ticket\'s body',
           header: 'ticket\'s header',
         });
@@ -192,11 +202,11 @@ describe('/tickets', () => {
         expect(secondPack.length).toBe(1);
       });
       it('return ticket even if it\'s user has delete his account', async () => {
-        await postTicket(app, token, {
+        await postTickets(app, token, {
           body: 'ticket\'s body',
           header: 'ticket\'s header',
         });
-        await deleteUser(app, token, {
+        await deleteUsersMe(app, token, {
           deleteAccountSentence: 'delete my account',
           password: userPassword,
           userNameOrEmail: user.email,

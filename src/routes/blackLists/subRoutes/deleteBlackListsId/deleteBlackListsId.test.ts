@@ -17,8 +17,8 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
   deleteBlackListsId,
-  login,
-  postBlackListUser,
+  postBlackListUserId,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -43,7 +43,12 @@ describe('/blackLists', () => {
         role: 'superAdmin',
       });
 
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -78,7 +83,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list reason',
           });
           const {

@@ -20,10 +20,10 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  login,
-  postGalerie,
+  postGaleries,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -53,11 +53,21 @@ describe('/galeries', () => {
         email: 'user2@email.com',
         userName: 'user2',
       });
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
       const {
         body: bodyTwo,
-      } = await login(app, userTwo.email, userPassword);
+      } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: userTwo.email,
+        },
+      });
       tokenTwo = bodyTwo.token;
       const {
         body: {
@@ -67,7 +77,7 @@ describe('/galeries', () => {
             },
           },
         },
-      } = await postGalerie(app, tokenTwo, {
+      } = await postGaleries(app, tokenTwo, {
         name: 'galerie\'s name',
       });
       galerieId = id;

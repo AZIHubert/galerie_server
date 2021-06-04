@@ -14,14 +14,14 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  getGaleriesIdFramesFrameId,
-  login,
-  postGalerie,
+  getGaleriesIdFramesId,
+  postBlackListUserId,
+  postGaleries,
   postGaleriesIdFrames,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
-  postProfilePicture,
-  postBlackListUser,
+  postProfilePictures,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -47,7 +47,12 @@ describe('galeries', () => {
       user = await createUser({
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
       const {
         body: {
@@ -57,7 +62,7 @@ describe('galeries', () => {
             },
           },
         },
-      } = await postGalerie(app, token, {
+      } = await postGaleries(app, token, {
         name: 'galerie\'s name',
       });
       galerieId = id;
@@ -102,7 +107,7 @@ describe('galeries', () => {
                 },
               },
               status,
-            } = await getGaleriesIdFramesFrameId(app, token, galerieId, frame.id);
+            } = await getGaleriesIdFramesId(app, token, galerieId, frame.id);
             expect(action).toBe('GET');
             expect(returnedFrame.createdAt).toBe(frame.createdAt);
             expect(returnedFrame.description).toBe(frame.description);
@@ -185,14 +190,14 @@ describe('galeries', () => {
                   profilePicture,
                 },
               },
-            } = await postProfilePicture(app, token);
+            } = await postProfilePictures(app, token);
             const {
               body: {
                 data: {
                   frame: returnedFrame,
                 },
               },
-            } = await getGaleriesIdFramesFrameId(app, token, galerieId, frame.id);
+            } = await getGaleriesIdFramesId(app, token, galerieId, frame.id);
             expect(returnedFrame.user.currentProfilePicture.createdAt).not.toBeUndefined();
             expect(returnedFrame.user.currentProfilePicture.cropedImageId).toBeUndefined();
             expect(returnedFrame.user.currentProfilePicture.cropedImage.bucketName).toBeUndefined();
@@ -253,7 +258,12 @@ describe('galeries', () => {
               body: {
                 token: tokenTwo,
               },
-            } = await login(app, userTwo.email, userPassword);
+            } = await postUsersLogin(app, {
+              body: {
+                password: userPassword,
+                userNameOrEmail: userTwo.email,
+              },
+            });
             const {
               body: {
                 data: {
@@ -273,7 +283,7 @@ describe('galeries', () => {
                 },
               },
             } = await postGaleriesIdFrames(app, tokenTwo, galerieId);
-            await postBlackListUser(app, token, userTwo.id, {
+            await postBlackListUserId(app, token, userTwo.id, {
               reason: 'black list reason',
             });
             const {
@@ -284,7 +294,7 @@ describe('galeries', () => {
                   },
                 },
               },
-            } = await getGaleriesIdFramesFrameId(app, token, galerieId, frameId);
+            } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
             expect(frameUser).toBeNull();
           });
         });
@@ -293,7 +303,7 @@ describe('galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdFramesFrameId(app, token, '100', uuidv4());
+            } = await getGaleriesIdFramesId(app, token, '100', uuidv4());
             expect(body.errors).toBe(INVALID_UUID('galerie'));
             expect(status).toBe(400);
           });
@@ -301,7 +311,7 @@ describe('galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdFramesFrameId(app, token, uuidv4(), '100');
+            } = await getGaleriesIdFramesId(app, token, uuidv4(), '100');
             expect(body.errors).toBe(INVALID_UUID('frame'));
             expect(status).toBe(400);
           });
@@ -311,7 +321,7 @@ describe('galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdFramesFrameId(app, token, uuidv4(), uuidv4());
+            } = await getGaleriesIdFramesId(app, token, uuidv4(), uuidv4());
             expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
@@ -319,7 +329,7 @@ describe('galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdFramesFrameId(app, token, galerieId, uuidv4());
+            } = await getGaleriesIdFramesId(app, token, galerieId, uuidv4());
             expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
             expect(status).toBe(404);
           });
@@ -332,11 +342,16 @@ describe('galeries', () => {
               body: {
                 token: tokenTwo,
               },
-            } = await login(app, userTwo.email, userPassword);
+            } = await postUsersLogin(app, {
+              body: {
+                password: userPassword,
+                userNameOrEmail: userTwo.email,
+              },
+            });
             const {
               body,
               status,
-            } = await getGaleriesIdFramesFrameId(app, tokenTwo, uuidv4(), uuidv4());
+            } = await getGaleriesIdFramesId(app, tokenTwo, uuidv4(), uuidv4());
             expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
@@ -349,7 +364,7 @@ describe('galeries', () => {
                   },
                 },
               },
-            } = await postGalerie(app, token, {
+            } = await postGaleries(app, token, {
               name: 'galerie\'s name',
             });
             const {
@@ -364,7 +379,7 @@ describe('galeries', () => {
             const {
               body,
               status,
-            } = await getGaleriesIdFramesFrameId(app, token, galerieId, frameId);
+            } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
             expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
             expect(status).toBe(404);
           });

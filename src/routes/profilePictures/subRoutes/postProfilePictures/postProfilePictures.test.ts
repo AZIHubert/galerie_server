@@ -13,8 +13,8 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  login,
-  postProfilePicture,
+  postProfilePictures,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -38,7 +38,12 @@ describe('/profilePicture', () => {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -69,7 +74,7 @@ describe('/profilePicture', () => {
             },
           },
           status,
-        } = await postProfilePicture(app, token);
+        } = await postProfilePictures(app, token);
         const images = await Image.findAll();
         expect(action).toBe('POST');
         expect(status).toBe(200);
@@ -122,8 +127,8 @@ describe('/profilePicture', () => {
               },
             },
           },
-        } = await postProfilePicture(app, token);
-        await postProfilePicture(app, token);
+        } = await postProfilePictures(app, token);
+        await postProfilePictures(app, token);
         const profilePicture = await ProfilePicture
           .findByPk(profilePictureId) as ProfilePicture;
         expect(profilePicture.current).toBe(false);

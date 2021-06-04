@@ -30,7 +30,7 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 import {
   createUser,
-  putResetPassword,
+  putUsersPassword,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -84,7 +84,7 @@ describe('/users', () => {
           const newPassword = 'NewPassword0!';
           const {
             status,
-          } = await putResetPassword(app, 'Bearer token', {
+          } = await putUsersPassword(app, 'Bearer token', {
             confirmPassword: newPassword,
             password: newPassword,
           });
@@ -97,7 +97,7 @@ describe('/users', () => {
         });
         it('increment authToken and resetPasswordTokenVersion version', async () => {
           const newPassword = 'NewPassword0!';
-          await putResetPassword(app, 'Bearer token', {
+          await putUsersPassword(app, 'Bearer token', {
             confirmPassword: newPassword,
             password: newPassword,
           });
@@ -130,7 +130,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putResetPassword(app, 'Bearer token', {
+          } = await putUsersPassword(app, 'Bearer token', {
             password: newPassword,
             confirmPassword: newPassword,
           });
@@ -160,7 +160,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putResetPassword(app, 'Bearer token', {
+          } = await putUsersPassword(app, 'Bearer token', {
             password: newPassword,
             confirmPassword: newPassword,
           });
@@ -180,7 +180,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               password: 'NewPassword0!',
             });
             expect(body.errors).toEqual({
@@ -192,7 +192,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               confirmPassword: '',
               password: 'NewPassword0!',
             });
@@ -205,7 +205,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               confirmPassword: 1234,
               password: 'NewPassword0!',
             });
@@ -218,7 +218,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               confirmPassword: 'wrongPassword',
               password: 'NewPassword0!',
             });
@@ -241,7 +241,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               confirmPassword: 'NewPassword0!',
             });
             expect(body.errors).toEqual({
@@ -255,7 +255,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               password: newPassword,
               confirmPassword: newPassword,
             });
@@ -269,7 +269,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               password: newPassword,
               confirmPassword: newPassword,
             });
@@ -283,7 +283,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               password: newPassword,
               confirmPassword: newPassword,
             });
@@ -297,7 +297,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               password: newPassword,
               confirmPassword: newPassword,
             });
@@ -311,7 +311,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               password: newPassword,
               confirmPassword: newPassword,
             });
@@ -325,7 +325,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               password: newPassword,
               confirmPassword: newPassword,
             });
@@ -339,7 +339,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               password: newPassword,
               confirmPassword: newPassword,
             });
@@ -353,7 +353,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               password: newPassword,
               confirmPassword: newPassword,
             });
@@ -367,7 +367,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'Bearer token', {
+            } = await putUsersPassword(app, 'Bearer token', {
               password: newPassword,
               confirmPassword: newPassword,
             });
@@ -385,7 +385,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, undefined, {
+            } = await putUsersPassword(app, undefined, {
               password: newPassword,
               confirmPassword: newPassword,
             });
@@ -397,7 +397,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'token', {
+            } = await putUsersPassword(app, 'token', {
               password: newPassword,
               confirmPassword: newPassword,
             });
@@ -415,7 +415,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putResetPassword(app, 'token', {
+            } = await putUsersPassword(app, 'token', {
               password: newPassword,
               confirmPassword: newPassword,
             });
@@ -436,7 +436,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putResetPassword(app, 'Bearer token', {
+          } = await putUsersPassword(app, 'Bearer token', {
             password: newPassword,
             confirmPassword: newPassword,
           });
@@ -462,7 +462,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putResetPassword(app, 'Bearer token', {
+          } = await putUsersPassword(app, 'Bearer token', {
             password: newPassword,
             confirmPassword: newPassword,
           });
@@ -488,7 +488,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putResetPassword(app, 'Bearer token', {
+          } = await putUsersPassword(app, 'Bearer token', {
             password: newPassword,
             confirmPassword: newPassword,
           });

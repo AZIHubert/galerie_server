@@ -11,9 +11,9 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  getMe,
-  login,
-  postProfilePicture,
+  getUsersMe,
+  postProfilePictures,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -36,7 +36,12 @@ describe('/users', () => {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -68,7 +73,7 @@ describe('/users', () => {
               },
             },
             status,
-          } = await getMe(app, token);
+          } = await getUsersMe(app, token);
           expect(action).toBe('GET');
           expect(status).toBe(200);
           expect(returnedUser.authTokenVersion).toBeUndefined();
@@ -90,7 +95,7 @@ describe('/users', () => {
           expect(returnedUser.userName).toEqual(user.userName);
         });
         it('return current profile picture', async () => {
-          await postProfilePicture(app, token);
+          await postProfilePictures(app, token);
           const {
             body: {
               data: {
@@ -99,7 +104,7 @@ describe('/users', () => {
                 },
               },
             },
-          } = await getMe(app, token);
+          } = await getUsersMe(app, token);
           expect(currentProfilePicture.createdAt).not.toBeUndefined();
           expect(currentProfilePicture.cropedImageId).toBeUndefined();
           expect(currentProfilePicture.cropedImage.bucketName).toBeUndefined();

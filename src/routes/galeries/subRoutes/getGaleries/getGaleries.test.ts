@@ -14,11 +14,11 @@ import {
   cleanGoogleBuckets,
   createUser,
   getGaleries,
-  login,
-  postGalerie,
+  postGaleries,
   postGaleriesIdFrames,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
+  postUsersLogin,
   putGaleriesIdFramesIdGaleriePicturesId,
 } from '@src/helpers/test';
 
@@ -42,7 +42,12 @@ describe('/galeries', () => {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -71,7 +76,7 @@ describe('/galeries', () => {
               galerie,
             },
           },
-        } = await postGalerie(app, token, {
+        } = await postGaleries(app, token, {
           name: 'galerie\'s name',
         });
         const {
@@ -140,7 +145,12 @@ describe('/galeries', () => {
           body: {
             token: tokenTwo,
           },
-        } = await login(app, userTwo.email, userPassword);
+        } = await postUsersLogin(app, {
+          body: {
+            password: userPassword,
+            userNameOrEmail: userTwo.email,
+          },
+        });
         const {
           body: {
             data: {
@@ -149,7 +159,7 @@ describe('/galeries', () => {
               },
             },
           },
-        } = await postGalerie(app, token, {
+        } = await postGaleries(app, token, {
           name: 'galerie\'s name',
         });
         const {
@@ -181,11 +191,16 @@ describe('/galeries', () => {
           body: {
             token: tokenTwo,
           },
-        } = await login(app, userTwo.email, userPassword);
-        await postGalerie(app, tokenTwo, {
+        } = await postUsersLogin(app, {
+          body: {
+            password: userPassword,
+            userNameOrEmail: userTwo.email,
+          },
+        });
+        await postGaleries(app, tokenTwo, {
           name: 'galerie\'s name',
         });
-        await postGalerie(app, token, {
+        await postGaleries(app, token, {
           name: 'galerie\'s name',
         });
         const {
@@ -206,7 +221,7 @@ describe('/galeries', () => {
               },
             },
           },
-        } = await postGalerie(app, token, {
+        } = await postGaleries(app, token, {
           name: 'galerie\'s name',
         });
         const {

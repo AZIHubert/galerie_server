@@ -26,12 +26,12 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  deleteUser,
-  login,
+  deleteUsersMe,
   postGaleriesIdFrames,
-  postGalerie,
-  postInvitation,
-  postProfilePicture,
+  postGaleries,
+  postGaleriesIdInvitations,
+  postProfilePictures,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -58,7 +58,12 @@ describe('/users', () => {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -94,7 +99,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await deleteUser(app, token, {
+          } = await deleteUsersMe(app, token, {
             deleteAccountSentence: 'delete my account',
             password: userPassword,
             userNameOrEmail: user.email,
@@ -108,8 +113,8 @@ describe('/users', () => {
         });
 
         it('destroy all profile pictures profile picture\'s image and images from Google buckets', async () => {
-          await postProfilePicture(app, token);
-          await deleteUser(app, token, {
+          await postProfilePictures(app, token);
+          await deleteUsersMe(app, token, {
             deleteAccountSentence: 'delete my account',
             password: userPassword,
             userNameOrEmail: user.email,
@@ -141,12 +146,12 @@ describe('/users', () => {
                 },
               },
             },
-          } = await postGalerie(app, token, {
+          } = await postGaleries(app, token, {
             name: 'galerie\'s name',
           });
           await postGaleriesIdFrames(app, token, galerieId);
-          await postInvitation(app, token, galerieId);
-          await deleteUser(app, token, {
+          await postGaleriesIdInvitations(app, token, galerieId, {});
+          await deleteUsersMe(app, token, {
             deleteAccountSentence: 'delete my account',
             password: userPassword,
             userNameOrEmail: user.email,
@@ -186,9 +191,14 @@ describe('/users', () => {
             body: {
               token: tokenTwo,
             },
-          } = await login(app, email, userPassword);
-          await postProfilePicture(app, tokenTwo);
-          await deleteUser(app, token, {
+          } = await postUsersLogin(app, {
+            body: {
+              password: userPassword,
+              userNameOrEmail: email,
+            },
+          });
+          await postProfilePictures(app, tokenTwo);
+          await deleteUsersMe(app, token, {
             deleteAccountSentence: 'delete my account',
             password: userPassword,
             userNameOrEmail: user.email,
@@ -220,7 +230,7 @@ describe('/users', () => {
                 },
               },
             },
-          } = await postGalerie(app, token, {
+          } = await postGaleries(app, token, {
             name: 'galerie\'s name',
           });
           const userTwo = await createUser({
@@ -232,7 +242,7 @@ describe('/users', () => {
             role: 'user',
             userId: userTwo.id,
           });
-          await deleteUser(app, token, {
+          await deleteUsersMe(app, token, {
             deleteAccountSentence: 'delete my account',
             password: userPassword,
             userNameOrEmail: user.email,
@@ -252,7 +262,7 @@ describe('/users', () => {
                 },
               },
             },
-          } = await postGalerie(app, token, {
+          } = await postGaleries(app, token, {
             name: 'galeries\'s name',
           });
           const userTwo = await createUser({
@@ -268,9 +278,14 @@ describe('/users', () => {
             body: {
               token: tokenTwo,
             },
-          } = await login(app, userTwo.email, userPassword);
-          await postInvitation(app, tokenTwo, galerieId);
-          await deleteUser(app, token, {
+          } = await postUsersLogin(app, {
+            body: {
+              password: userPassword,
+              userNameOrEmail: userTwo.email,
+            },
+          });
+          await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+          await deleteUsersMe(app, token, {
             deleteAccountSentence: 'delete my account',
             password: userPassword,
             userNameOrEmail: user.email,
@@ -282,7 +297,7 @@ describe('/users', () => {
       describe('should return status 400 if', () => {
         describe('deleteAccountSentence', () => {
           it('is not send', async () => {
-            const { body, status } = await deleteUser(app, token, {
+            const { body, status } = await deleteUsersMe(app, token, {
               password: userPassword,
               userNameOrEmail: user.email,
             });
@@ -294,7 +309,7 @@ describe('/users', () => {
             });
           });
           it('is not a string', async () => {
-            const { body, status } = await deleteUser(app, token, {
+            const { body, status } = await deleteUsersMe(app, token, {
               deleteAccountSentence: 1234,
               password: userPassword,
               userNameOrEmail: user.email,
@@ -307,7 +322,7 @@ describe('/users', () => {
             });
           });
           it('is an empty string', async () => {
-            const { body, status } = await deleteUser(app, token, {
+            const { body, status } = await deleteUsersMe(app, token, {
               deleteAccountSentence: '',
               password: userPassword,
               userNameOrEmail: user.email,
@@ -320,7 +335,7 @@ describe('/users', () => {
             });
           });
           it('not match', async () => {
-            const { body, status } = await deleteUser(app, token, {
+            const { body, status } = await deleteUsersMe(app, token, {
               deleteAccountSentence: 'wrong sentence',
               password: userPassword,
               userNameOrEmail: user.email,
@@ -336,7 +351,7 @@ describe('/users', () => {
 
         describe('password', () => {
           it('is not send', async () => {
-            const { body, status } = await deleteUser(app, token, {
+            const { body, status } = await deleteUsersMe(app, token, {
               deleteAccountSentence: 'delete my account',
               userNameOrEmail: user.email,
             });
@@ -348,7 +363,7 @@ describe('/users', () => {
             });
           });
           it('is not a string', async () => {
-            const { body, status } = await deleteUser(app, token, {
+            const { body, status } = await deleteUsersMe(app, token, {
               deleteAccountSentence: 'delete my account',
               password: 1234,
               userNameOrEmail: user.email,
@@ -361,7 +376,7 @@ describe('/users', () => {
             });
           });
           it('is an empty string', async () => {
-            const { body, status } = await deleteUser(app, token, {
+            const { body, status } = await deleteUsersMe(app, token, {
               deleteAccountSentence: 'delete my account',
               password: '',
               userNameOrEmail: user.email,
@@ -374,7 +389,7 @@ describe('/users', () => {
             });
           });
           it('not match', async () => {
-            const { body, status } = await deleteUser(app, token, {
+            const { body, status } = await deleteUsersMe(app, token, {
               deleteAccountSentence: 'delete my account',
               password: 'wrong password',
               userNameOrEmail: user.email,
@@ -390,7 +405,7 @@ describe('/users', () => {
 
         describe('userNameOrEmail', () => {
           it('is not send', async () => {
-            const { body, status } = await deleteUser(app, token, {
+            const { body, status } = await deleteUsersMe(app, token, {
               deleteAccountSentence: 'delete my account',
               password: userPassword,
             });
@@ -402,7 +417,7 @@ describe('/users', () => {
             });
           });
           it('is not a string', async () => {
-            const { body, status } = await deleteUser(app, token, {
+            const { body, status } = await deleteUsersMe(app, token, {
               deleteAccountSentence: 'delete my account',
               password: userPassword,
               userNameOrEmail: 1234,
@@ -415,7 +430,7 @@ describe('/users', () => {
             });
           });
           it('is an empty string', async () => {
-            const { body, status } = await deleteUser(app, token, {
+            const { body, status } = await deleteUsersMe(app, token, {
               deleteAccountSentence: 'delete my account',
               password: userPassword,
               userNameOrEmail: '',
@@ -428,7 +443,7 @@ describe('/users', () => {
             });
           });
           it('not match', async () => {
-            const { body, status } = await deleteUser(app, token, {
+            const { body, status } = await deleteUsersMe(app, token, {
               deleteAccountSentence: 'delete my account',
               password: userPassword,
               userNameOrEmail: 'wrong email',

@@ -6,7 +6,7 @@ export default async (
   token: string,
   blackListId: string,
   option: {
-    body?: {
+    body: {
       time?: any;
     }
   } = {

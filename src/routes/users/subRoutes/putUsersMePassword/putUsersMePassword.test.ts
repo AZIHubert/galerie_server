@@ -20,8 +20,8 @@ import {
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
-  login,
-  putPassword,
+  postUsersLogin,
+  putUsersMePassword,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -44,7 +44,12 @@ describe('/users', () => {
     try {
       await sequelize.sync({ force: true });
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -72,7 +77,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putPassword(app, token, {
+          } = await putUsersMePassword(app, token, {
             confirmNewPassword: newPassword,
             currentPassword: userPassword,
             newPassword,
@@ -83,7 +88,7 @@ describe('/users', () => {
         });
         it('should hash password and update user\'s password', async () => {
           const newPassword = 'NewPassword0!';
-          await putPassword(app, token, {
+          await putUsersMePassword(app, token, {
             confirmNewPassword: newPassword,
             currentPassword: userPassword,
             newPassword,
@@ -96,7 +101,7 @@ describe('/users', () => {
         });
         it('should increment authTokenVersion', async () => {
           const newPassword = 'NewPassword0!';
-          await putPassword(app, token, {
+          await putUsersMePassword(app, token, {
             confirmNewPassword: newPassword,
             currentPassword: userPassword,
             newPassword,
@@ -112,7 +117,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               currentPassword: userPassword,
               newPassword: 'NewPassword0!',
             });
@@ -125,7 +130,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: '',
               currentPassword: userPassword,
               newPassword: 'NewPassword0!',
@@ -139,7 +144,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: 1234,
               currentPassword: userPassword,
               newPassword: 'NewPassword0!',
@@ -153,7 +158,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: 'wrongPassword',
               currentPassword: userPassword,
               newPassword: 'NewPassword0!',
@@ -170,7 +175,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: newPassword,
               newPassword,
             });
@@ -184,7 +189,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: newPassword,
               currentPassword: '',
               newPassword,
@@ -199,7 +204,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: newPassword,
               currentPassword: 1234,
               newPassword,
@@ -214,7 +219,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: newPassword,
               currentPassword: 'wrongPassword',
               newPassword,
@@ -230,7 +235,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: 'NewPassword0!',
               currentPassword: userPassword,
             });
@@ -244,7 +249,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: '',
               currentPassword: userPassword,
               newPassword: '',
@@ -258,7 +263,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: 1234,
               currentPassword: userPassword,
               newPassword: 1234,
@@ -273,7 +278,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: newPassword,
               currentPassword: userPassword,
               newPassword,
@@ -288,7 +293,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: newPassword,
               currentPassword: userPassword,
               newPassword,
@@ -303,7 +308,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: newPassword,
               currentPassword: userPassword,
               newPassword,
@@ -318,7 +323,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: newPassword,
               currentPassword: userPassword,
               newPassword,
@@ -333,7 +338,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: newPassword,
               currentPassword: userPassword,
               newPassword,
@@ -348,7 +353,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: newPassword,
               currentPassword: userPassword,
               newPassword,
@@ -363,7 +368,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putPassword(app, token, {
+            } = await putUsersMePassword(app, token, {
               confirmNewPassword: newPassword,
               currentPassword: userPassword,
               newPassword,

@@ -11,9 +11,9 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  getUsersUserName,
-  login,
-  postProfilePicture,
+  getUsersUserNameUserName,
+  postProfilePictures,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -36,7 +36,12 @@ describe('/users', () => {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -69,7 +74,7 @@ describe('/users', () => {
                 },
               },
               status,
-            } = await getUsersUserName(app, token, user.userName);
+            } = await getUsersUserNameUserName(app, token, user.userName);
             expect(action).toBe('GET');
             expect(status).toBe(200);
             expect(users.length).toBe(0);
@@ -86,7 +91,7 @@ describe('/users', () => {
                   users,
                 },
               },
-            } = await getUsersUserName(app, token, userName);
+            } = await getUsersUserNameUserName(app, token, userName);
             expect(users.length).toBe(0);
           });
           it('should not return black listed users', async () => {
@@ -108,7 +113,7 @@ describe('/users', () => {
                   users,
                 },
               },
-            } = await getUsersUserName(app, token, userName);
+            } = await getUsersUserNameUserName(app, token, userName);
             expect(users.length).toBe(0);
           });
           it('should return users with relevent attributes', async () => {
@@ -128,7 +133,7 @@ describe('/users', () => {
                   users: [returnedUser],
                 },
               },
-            } = await getUsersUserName(app, token, userName);
+            } = await getUsersUserNameUserName(app, token, userName);
             expect(returnedUser.authTokenVersion).toBeUndefined();
             expect(returnedUser.blackList).toBeUndefined();
             expect(returnedUser.confirmed).toBeUndefined();
@@ -166,14 +171,14 @@ describe('/users', () => {
                   users: firstPack,
                 },
               },
-            } = await getUsersUserName(app, token, userName, 1);
+            } = await getUsersUserNameUserName(app, token, userName, 1);
             const {
               body: {
                 data: {
                   users: secondPack,
                 },
               },
-            } = await getUsersUserName(app, token, userName, 2);
+            } = await getUsersUserNameUserName(app, token, userName, 2);
             expect(firstPack.length).toBe(20);
             expect(secondPack.length).toBe(1);
           });
@@ -190,7 +195,7 @@ describe('/users', () => {
                   users,
                 },
               },
-            } = await getUsersUserName(app, token, userName.toUpperCase());
+            } = await getUsersUserNameUserName(app, token, userName.toUpperCase());
             expect(users.length).toBe(1);
           });
           it('should return current profile picture with relevent attributes', async () => {
@@ -205,8 +210,13 @@ describe('/users', () => {
               body: {
                 token: tokenTwo,
               },
-            } = await login(app, email, userPassword);
-            await postProfilePicture(app, tokenTwo);
+            } = await postUsersLogin(app, {
+              body: {
+                password: userPassword,
+                userNameOrEmail: email,
+              },
+            });
+            await postProfilePictures(app, tokenTwo);
             const {
               body: {
                 data: {
@@ -215,7 +225,7 @@ describe('/users', () => {
                   }],
                 },
               },
-            } = await getUsersUserName(app, token, userName);
+            } = await getUsersUserNameUserName(app, token, userName);
             expect(currentProfilePicture.createdAt).not.toBeUndefined();
             expect(currentProfilePicture.cropedImageId).toBeUndefined();
             expect(currentProfilePicture.cropedImage.bucketName).toBeUndefined();
