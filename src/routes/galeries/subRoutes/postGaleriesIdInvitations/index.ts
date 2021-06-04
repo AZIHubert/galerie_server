@@ -1,3 +1,5 @@
+// POST /galeries/:galerieId/invitations/
+
 import {
   Request,
   Response,
@@ -10,7 +12,10 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import {
   invitationExcluder,
   userExcluder,
@@ -56,7 +61,7 @@ export default async (req: Request, res: Response) => {
   // Check if galerie exist.
   if (!galerie) {
     return res.status(404).send({
-      errors: 'galerie not found',
+      errors: MODEL_NOT_FOUND('galerie'),
     });
   }
 

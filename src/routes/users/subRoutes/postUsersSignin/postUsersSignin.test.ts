@@ -7,17 +7,16 @@ import '@src/helpers/initEnv';
 import { User } from '@src/db/models';
 
 import {
-  ALREADY_TAKEN,
-  FIELD_HAS_SPACES,
-  FIELD_IS_CONFIRM_PASSWORD,
-  FIELD_IS_EMAIL,
-  FIELD_IS_EMPTY,
-  FIELD_IS_PASSWORD,
+  FIELD_CANNOT_CONTAIN_SPACES,
+  FIELD_CANNOT_BE_EMPTY,
+  FIELD_SHOULD_BE_A_PASSWORD,
+  FIELD_IS_ALREADY_TAKEN,
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH_THRITY,
-  FIELD_MIN_LENGTH_OF_HEIGH,
-  FIELD_MIN_LENGTH_OF_THREE,
-  FIELD_NOT_A_STRING,
+  FIELD_MAX_LENGTH,
+  FIELD_MIN_LENGTH,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_BE_AN_EMAIL,
+  FIELD_SHOULD_MATCH,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -168,7 +167,7 @@ describe('/users', () => {
               userName: '',
             });
             expect(body.errors).toEqual({
-              userName: FIELD_IS_EMPTY,
+              userName: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -184,7 +183,7 @@ describe('/users', () => {
               userName: 1234,
             });
             expect(body.errors).toEqual({
-              userName: FIELD_NOT_A_STRING,
+              userName: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -200,7 +199,7 @@ describe('/users', () => {
               userName: 'userName with spaces',
             });
             expect(body.errors).toEqual({
-              userName: FIELD_HAS_SPACES,
+              userName: FIELD_CANNOT_CONTAIN_SPACES,
             });
             expect(status).toBe(400);
           });
@@ -216,7 +215,7 @@ describe('/users', () => {
               userName: 'a'.repeat(2),
             });
             expect(body.errors).toEqual({
-              userName: FIELD_MIN_LENGTH_OF_THREE,
+              userName: FIELD_MIN_LENGTH(3),
             });
             expect(status).toBe(400);
           });
@@ -232,7 +231,7 @@ describe('/users', () => {
               userName: 'a'.repeat(31),
             });
             expect(body.errors).toEqual({
-              userName: FIELD_MAX_LENGTH_THRITY,
+              userName: FIELD_MAX_LENGTH(30),
             });
             expect(status).toBe(400);
           });
@@ -252,7 +251,7 @@ describe('/users', () => {
               userName,
             });
             expect(body.errors).toEqual({
-              userName: ALREADY_TAKEN,
+              userName: FIELD_IS_ALREADY_TAKEN,
             });
             expect(status).toBe(400);
           });
@@ -285,7 +284,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              email: FIELD_IS_EMPTY,
+              email: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -301,7 +300,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              email: FIELD_NOT_A_STRING,
+              email: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -317,7 +316,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              email: FIELD_IS_EMAIL,
+              email: FIELD_SHOULD_BE_AN_EMAIL,
             });
             expect(status).toBe(400);
           });
@@ -337,7 +336,7 @@ describe('/users', () => {
               userName: 'user2',
             });
             expect(body.errors).toEqual({
-              email: ALREADY_TAKEN,
+              email: FIELD_IS_ALREADY_TAKEN,
             });
             expect(status).toBe(400);
           });
@@ -353,7 +352,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              confirmPassword: FIELD_IS_CONFIRM_PASSWORD,
+              confirmPassword: FIELD_SHOULD_MATCH('password'),
               password: FIELD_IS_REQUIRED,
             });
             expect(status).toBe(400);
@@ -370,7 +369,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              password: FIELD_IS_EMPTY,
+              password: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -385,8 +384,8 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              confirmPassword: FIELD_IS_CONFIRM_PASSWORD,
-              password: FIELD_NOT_A_STRING,
+              confirmPassword: FIELD_SHOULD_MATCH('password'),
+              password: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -402,7 +401,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              password: FIELD_HAS_SPACES,
+              password: FIELD_CANNOT_CONTAIN_SPACES,
             });
             expect(status).toBe(400);
           });
@@ -418,7 +417,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              password: FIELD_MIN_LENGTH_OF_HEIGH,
+              password: FIELD_MIN_LENGTH(8),
             });
             expect(status).toBe(400);
           });
@@ -434,7 +433,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              password: FIELD_MAX_LENGTH_THRITY,
+              password: FIELD_MAX_LENGTH(30),
             });
             expect(status).toBe(400);
           });
@@ -450,7 +449,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              password: FIELD_IS_PASSWORD,
+              password: FIELD_SHOULD_BE_A_PASSWORD,
             });
             expect(status).toBe(400);
           });
@@ -466,7 +465,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              password: FIELD_IS_PASSWORD,
+              password: FIELD_SHOULD_BE_A_PASSWORD,
             });
             expect(status).toBe(400);
           });
@@ -482,7 +481,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              password: FIELD_IS_PASSWORD,
+              password: FIELD_SHOULD_BE_A_PASSWORD,
             });
             expect(status).toBe(400);
           });
@@ -498,7 +497,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              password: FIELD_IS_PASSWORD,
+              password: FIELD_SHOULD_BE_A_PASSWORD,
             });
             expect(status).toBe(400);
           });
@@ -529,7 +528,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              confirmPassword: FIELD_IS_EMPTY,
+              confirmPassword: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -544,7 +543,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              confirmPassword: FIELD_NOT_A_STRING,
+              confirmPassword: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -559,7 +558,7 @@ describe('/users', () => {
               userName: 'user',
             });
             expect(body.errors).toEqual({
-              confirmPassword: FIELD_IS_CONFIRM_PASSWORD,
+              confirmPassword: FIELD_SHOULD_MATCH('password'),
             });
             expect(status).toBe(400);
           });

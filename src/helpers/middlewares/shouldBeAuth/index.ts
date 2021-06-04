@@ -8,8 +8,8 @@ import { User } from '@src/db/models';
 
 import checkBlackList from '@src/helpers/checkBlackList';
 import {
-  NOT_AUTHENTICATED,
-  USER_IS_BLACK_LISTED,
+  USER_SHOULD_NOT_BE_BLACK_LISTED,
+  USER_SHOULD_BE_AUTHENTICATED,
 } from '@src/helpers/errorMessages';
 
 export default async (
@@ -21,7 +21,7 @@ export default async (
   let isBlackListed: boolean;
   if (!req.isAuthenticated()) {
     return res.status(401).send({
-      errors: NOT_AUTHENTICATED,
+      errors: USER_SHOULD_BE_AUTHENTICATED,
     });
   }
   try {
@@ -32,7 +32,7 @@ export default async (
   if (isBlackListed) {
     req.logOut();
     return res.status(401).send({
-      errors: USER_IS_BLACK_LISTED,
+      errors: USER_SHOULD_NOT_BE_BLACK_LISTED,
     });
   }
   return next();

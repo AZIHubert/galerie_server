@@ -1,7 +1,7 @@
 import { ValidationError } from 'joi';
 import {
-  FIELD_HAS_SPACES,
-  FIELD_IS_PASSWORD,
+  FIELD_CANNOT_CONTAIN_SPACES,
+  FIELD_SHOULD_BE_A_PASSWORD,
 } from '@src/helpers/errorMessages';
 
 export default (errors: ValidationError) => {
@@ -10,9 +10,9 @@ export default (errors: ValidationError) => {
   errors.details.forEach((error) => {
     if (error.message.includes('pattern')) {
       if (error.message.includes('passwordError')) {
-        normalizeErrors[error.path[0]] = FIELD_IS_PASSWORD;
+        normalizeErrors[error.path[0]] = FIELD_SHOULD_BE_A_PASSWORD;
       } else if (error.message.includes('spacesError')) {
-        normalizeErrors[error.path[0]] = FIELD_HAS_SPACES;
+        normalizeErrors[error.path[0]] = FIELD_CANNOT_CONTAIN_SPACES;
       } else {
         normalizeErrors[error.path[0]] = error.message;
       }

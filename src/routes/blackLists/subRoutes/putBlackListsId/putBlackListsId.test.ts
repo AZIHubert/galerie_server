@@ -10,8 +10,9 @@ import {
 } from '@src/db/models';
 
 import {
-  FIELD_NOT_A_NUMBER,
+  FIELD_SHOULD_BE_A_NUMBER,
   INVALID_UUID,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -234,7 +235,7 @@ describe('/blackLists', () => {
               },
             });
             expect(body.errors).toEqual({
-              time: FIELD_NOT_A_NUMBER,
+              time: FIELD_SHOULD_BE_A_NUMBER,
             });
             expect(status).toBe(400);
           });
@@ -274,7 +275,7 @@ describe('/blackLists', () => {
             body,
             status,
           } = await putBlackListsId(app, token, uuidv4());
-          expect(body.errors).toBe('black list not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('black list'));
           expect(status).toBe(404);
         });
       });

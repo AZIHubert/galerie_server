@@ -9,13 +9,11 @@ import {
 } from '@src/db/models';
 
 import {
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH_THRITY,
-  FIELD_MAX_LENGTH_TWO_HUNDRER,
-  FIELD_MIN_LENGTH_OF_FIVE,
-  FIELD_MIN_LENGTH_OF_TEN,
-  FIELD_NOT_A_STRING,
+  FIELD_MAX_LENGTH,
+  FIELD_MIN_LENGTH,
+  FIELD_SHOULD_BE_A_STRING,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -120,7 +118,7 @@ describe('/tickets', () => {
           header: 'ticket header',
         });
         expect(body.errors).toEqual({
-          body: FIELD_IS_EMPTY,
+          body: FIELD_CANNOT_BE_EMPTY,
         });
         expect(status).toBe(400);
       });
@@ -133,7 +131,7 @@ describe('/tickets', () => {
           header: 'ticket header',
         });
         expect(body.errors).toEqual({
-          body: FIELD_NOT_A_STRING,
+          body: FIELD_SHOULD_BE_A_STRING,
         });
         expect(status).toBe(400);
       });
@@ -146,7 +144,7 @@ describe('/tickets', () => {
           header: 'ticket header',
         });
         expect(body.errors).toEqual({
-          body: FIELD_MIN_LENGTH_OF_TEN,
+          body: FIELD_MIN_LENGTH(10),
         });
         expect(status).toBe(400);
       });
@@ -159,7 +157,7 @@ describe('/tickets', () => {
           header: 'ticket header',
         });
         expect(body.errors).toEqual({
-          body: FIELD_MAX_LENGTH_TWO_HUNDRER,
+          body: FIELD_MAX_LENGTH(200),
         });
         expect(status).toBe(400);
       });
@@ -186,7 +184,7 @@ describe('/tickets', () => {
           header: '',
         });
         expect(body.errors).toEqual({
-          header: FIELD_IS_EMPTY,
+          header: FIELD_CANNOT_BE_EMPTY,
         });
         expect(status).toBe(400);
       });
@@ -199,7 +197,7 @@ describe('/tickets', () => {
           header: 1234,
         });
         expect(body.errors).toEqual({
-          header: FIELD_NOT_A_STRING,
+          header: FIELD_SHOULD_BE_A_STRING,
         });
         expect(status).toBe(400);
       });
@@ -212,7 +210,7 @@ describe('/tickets', () => {
           header: 'a'.repeat(4),
         });
         expect(body.errors).toEqual({
-          header: FIELD_MIN_LENGTH_OF_FIVE,
+          header: FIELD_MIN_LENGTH(5),
         });
         expect(status).toBe(400);
       });
@@ -225,7 +223,7 @@ describe('/tickets', () => {
           header: 'a'.repeat(31),
         });
         expect(body.errors).toEqual({
-          header: FIELD_MAX_LENGTH_THRITY,
+          header: FIELD_MAX_LENGTH(30),
         });
         expect(status).toBe(400);
       });

@@ -2,22 +2,24 @@ import Joi from 'joi';
 
 import {
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH_TWO_HUNDRER,
-  FIELD_NOT_A_STRING,
+  FIELD_MAX_LENGTH,
+  FIELD_SHOULD_BE_A_STRING,
 } from '@src/helpers/errorMessages';
 
 import options from '../options';
+
+const DESCRIPTION_MAX_LENGTH = 200;
 
 const galerieSchema = Joi.object({
   description: Joi.string()
     .required()
     .allow('')
     .trim()
-    .max(200)
+    .max(DESCRIPTION_MAX_LENGTH)
     .messages({
       'any.required': FIELD_IS_REQUIRED,
-      'string.base': FIELD_NOT_A_STRING,
-      'string.max': FIELD_MAX_LENGTH_TWO_HUNDRER,
+      'string.base': FIELD_SHOULD_BE_A_STRING,
+      'string.max': FIELD_MAX_LENGTH(DESCRIPTION_MAX_LENGTH),
     }),
 });
 

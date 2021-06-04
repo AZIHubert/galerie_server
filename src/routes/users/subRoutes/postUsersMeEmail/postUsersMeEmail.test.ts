@@ -9,8 +9,8 @@ import { User } from '@src/db/models';
 import * as email from '@src/helpers/email';
 import {
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
-  FIELD_IS_EMPTY,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_CANNOT_BE_EMPTY,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -103,7 +103,7 @@ describe('/users', () => {
                 password: 1234,
               });
               expect(body.errors).toEqual({
-                password: FIELD_NOT_A_STRING,
+                password: FIELD_SHOULD_BE_A_STRING,
               });
               expect(status).toBe(400);
             });
@@ -115,7 +115,7 @@ describe('/users', () => {
                 password: '',
               });
               expect(body.errors).toEqual({
-                password: FIELD_IS_EMPTY,
+                password: FIELD_CANNOT_BE_EMPTY,
               });
               expect(status).toBe(400);
             });

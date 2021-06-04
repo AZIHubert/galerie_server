@@ -1,4 +1,9 @@
-import { Request, Response } from 'express';
+// GET /galeries/:galerieId/frames/:frameId/
+
+import {
+  Request,
+  Response,
+} from 'express';
 
 import {
   Frame,
@@ -9,7 +14,10 @@ import {
 } from '@src/db/models';
 
 import checkBlackList from '@src/helpers/checkBlackList';
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import {
   frameExcluder,
   galeriePictureExcluder,
@@ -63,7 +71,7 @@ export default async (req: Request, res: Response) => {
   // Check if galerie exist.
   if (!galerie) {
     return res.status(404).send({
-      errors: 'galerie not found',
+      errors: MODEL_NOT_FOUND('galerie'),
     });
   }
 
@@ -122,7 +130,7 @@ export default async (req: Request, res: Response) => {
   // Check if frame exist.
   if (!frame) {
     return res.status(404).send({
-      errors: 'frame not found',
+      errors: MODEL_NOT_FOUND('frame'),
     });
   }
 
@@ -272,7 +280,7 @@ export default async (req: Request, res: Response) => {
     } else {
       await frame.destroy();
       return res.status(404).send({
-        errors: 'frame not found',
+        errors: MODEL_NOT_FOUND('frame'),
       });
     }
   } catch (err) {

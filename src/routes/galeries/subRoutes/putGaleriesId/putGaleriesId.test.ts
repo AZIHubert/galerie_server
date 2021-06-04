@@ -10,12 +10,12 @@ import {
 } from '@src/db/models';
 
 import {
-  FIELD_IS_EMPTY,
-  FIELD_MAX_LENGTH_THRITY,
-  FIELD_MAX_LENGTH_TWO_HUNDRER,
-  FIELD_MIN_LENGTH_OF_THREE,
-  FIELD_NOT_A_STRING,
+  FIELD_CANNOT_BE_EMPTY,
+  FIELD_MAX_LENGTH,
+  FIELD_MIN_LENGTH,
+  FIELD_SHOULD_BE_A_STRING,
   INVALID_UUID,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -332,7 +332,7 @@ describe('/galeries', () => {
               description: 1234,
             });
             expect(body.errors).toEqual({
-              description: FIELD_NOT_A_STRING,
+              description: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -344,7 +344,7 @@ describe('/galeries', () => {
               description: 'a'.repeat(201),
             });
             expect(body.errors).toEqual({
-              description: FIELD_MAX_LENGTH_TWO_HUNDRER,
+              description: FIELD_MAX_LENGTH(200),
             });
             expect(status).toBe(400);
           });
@@ -380,7 +380,7 @@ describe('/galeries', () => {
               name: '',
             });
             expect(body.errors).toEqual({
-              name: FIELD_IS_EMPTY,
+              name: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -392,7 +392,7 @@ describe('/galeries', () => {
               name: 1234,
             });
             expect(body.errors).toEqual({
-              name: FIELD_NOT_A_STRING,
+              name: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -404,7 +404,7 @@ describe('/galeries', () => {
               name: 'a'.repeat(2),
             });
             expect(body.errors).toEqual({
-              name: FIELD_MIN_LENGTH_OF_THREE,
+              name: FIELD_MIN_LENGTH(3),
             });
             expect(status).toBe(400);
           });
@@ -416,7 +416,7 @@ describe('/galeries', () => {
               name: 'a'.repeat(31),
             });
             expect(body.errors).toEqual({
-              name: FIELD_MAX_LENGTH_THRITY,
+              name: FIELD_MAX_LENGTH(30),
             });
             expect(status).toBe(400);
           });
@@ -430,7 +430,7 @@ describe('/galeries', () => {
           } = await putGalerieId(app, token, uuidv4(), {
             name: 'new galerie\'s name',
           });
-          expect(body.errors).toBe('galerie not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
           expect(status).toBe(404);
         });
         it('galerie exist but user is not subscribe to it', async () => {
@@ -460,7 +460,7 @@ describe('/galeries', () => {
           } = await putGalerieId(app, token, id, {
             name: 'new galerie\'s name',
           });
-          expect(body.errors).toBe('galerie not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
           expect(status).toBe(404);
         });
       });

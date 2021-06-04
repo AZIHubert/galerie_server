@@ -4,7 +4,7 @@ import {
   Response,
 } from 'express';
 
-import { USER_IS_LOGGED_IN } from '@src/helpers/errorMessages';
+import { USER_SHOULD_NOT_BE_AUTHENTICATED } from '@src/helpers/errorMessages';
 
 export default (
   req: Request,
@@ -13,7 +13,7 @@ export default (
 ) => {
   if (req.isAuthenticated()) {
     return res.status(401).send({
-      errors: USER_IS_LOGGED_IN,
+      errors: USER_SHOULD_NOT_BE_AUTHENTICATED,
     });
   }
   return next();

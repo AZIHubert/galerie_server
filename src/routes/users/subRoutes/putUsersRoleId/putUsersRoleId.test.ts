@@ -8,7 +8,7 @@ import { User } from '@src/db/models';
 import {
   FIELD_IS_REQUIRED,
   INVALID_UUID,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -201,7 +201,7 @@ describe('/users', () => {
             } = await putUsersRoleId(app, token, uuidv4(), {
               role: 'superAdmin',
             });
-            expect(body.errors).toBe(USER_NOT_FOUND);
+            expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
             expect(status).toBe(404);
           });
           it('user :id is not confirmed', async () => {
@@ -216,7 +216,7 @@ describe('/users', () => {
             } = await putUsersRoleId(app, token, id, {
               role: 'superAdmin',
             });
-            expect(body.errors).toBe(USER_NOT_FOUND);
+            expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
             expect(status).toBe(404);
           });
         });

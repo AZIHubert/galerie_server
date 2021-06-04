@@ -11,7 +11,10 @@ import {
 } from '@src/db/models';
 
 import accEnv from '@src/helpers/accEnv';
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -124,7 +127,7 @@ describe('/profilePictures', () => {
             body,
             status,
           } = await deleteProfilePicture(app, token, uuidv4());
-          expect(body.errors).toBe('profile picture not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('profile picture'));
           expect(status).toBe(404);
         });
       });

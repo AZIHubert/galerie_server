@@ -16,9 +16,9 @@ import {
 
 import accEnv from '@src/helpers/accEnv';
 import {
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
+  FIELD_SHOULD_BE_A_STRING,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
@@ -302,7 +302,7 @@ describe('/users', () => {
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: {
-                deleteAccountSentence: FIELD_NOT_A_STRING,
+                deleteAccountSentence: FIELD_SHOULD_BE_A_STRING,
               },
             });
           });
@@ -315,7 +315,7 @@ describe('/users', () => {
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: {
-                deleteAccountSentence: FIELD_IS_EMPTY,
+                deleteAccountSentence: FIELD_CANNOT_BE_EMPTY,
               },
             });
           });
@@ -356,7 +356,7 @@ describe('/users', () => {
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: {
-                password: FIELD_NOT_A_STRING,
+                password: FIELD_SHOULD_BE_A_STRING,
               },
             });
           });
@@ -369,7 +369,7 @@ describe('/users', () => {
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: {
-                password: FIELD_IS_EMPTY,
+                password: FIELD_CANNOT_BE_EMPTY,
               },
             });
           });
@@ -410,7 +410,7 @@ describe('/users', () => {
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: {
-                userNameOrEmail: FIELD_NOT_A_STRING,
+                userNameOrEmail: FIELD_SHOULD_BE_A_STRING,
               },
             });
           });
@@ -423,7 +423,7 @@ describe('/users', () => {
             expect(status).toBe(400);
             expect(body).toStrictEqual({
               errors: {
-                userNameOrEmail: FIELD_IS_EMPTY,
+                userNameOrEmail: FIELD_CANNOT_BE_EMPTY,
               },
             });
           });

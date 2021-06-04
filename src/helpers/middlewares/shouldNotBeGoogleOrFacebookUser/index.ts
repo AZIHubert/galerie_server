@@ -6,6 +6,8 @@ import {
 
 import User from '@src/db/models/user';
 
+import { USER_SHOULD_NOT_BE_REGISTERED_WITH_A_SOCIAL_MEDIA } from '@src/helpers/errorMessages';
+
 export default async (
   req: Request,
   res: Response,
@@ -17,9 +19,7 @@ export default async (
   } = req.user as User;
   if (googleId || facebookId) {
     return res.status(401).send({
-      // TODO:
-      // Better error message.
-      errors: 'you can\'t modify your account if you are register with Facebook or Google',
+      errors: USER_SHOULD_NOT_BE_REGISTERED_WITH_A_SOCIAL_MEDIA,
     });
   }
   return next();

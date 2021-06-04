@@ -1,3 +1,5 @@
+// GET /galeries/:galerieId/frames/
+
 import {
   Request,
   Response,
@@ -12,7 +14,10 @@ import {
 } from '@src/db/models';
 
 import checkBlackList from '@src/helpers/checkBlackList';
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import {
   frameExcluder,
   galeriePictureExcluder,
@@ -63,7 +68,7 @@ export default async (req: Request, res: Response) => {
   }
   if (!galerie) {
     return res.status(404).send({
-      errors: 'galerie not found',
+      errors: MODEL_NOT_FOUND('galerie'),
     });
   }
 

@@ -7,14 +7,14 @@ import '@src/helpers/initEnv';
 import { User } from '@src/db/models';
 
 import {
-  FIELD_HAS_SPACES,
-  FIELD_IS_EMPTY,
-  FIELD_IS_CONFIRM_PASSWORD,
-  FIELD_IS_PASSWORD,
+  FIELD_CANNOT_CONTAIN_SPACES,
+  FIELD_CANNOT_BE_EMPTY,
+  FIELD_SHOULD_BE_A_PASSWORD,
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH_THRITY,
-  FIELD_MIN_LENGTH_OF_HEIGH,
-  FIELD_NOT_A_STRING,
+  FIELD_MAX_LENGTH,
+  FIELD_MIN_LENGTH,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_MATCH,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -131,7 +131,7 @@ describe('/users', () => {
               newPassword: 'NewPassword0!',
             });
             expect(body.errors).toEqual({
-              confirmNewPassword: FIELD_IS_EMPTY,
+              confirmNewPassword: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -145,7 +145,7 @@ describe('/users', () => {
               newPassword: 'NewPassword0!',
             });
             expect(body.errors).toEqual({
-              confirmNewPassword: FIELD_NOT_A_STRING,
+              confirmNewPassword: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -159,7 +159,7 @@ describe('/users', () => {
               newPassword: 'NewPassword0!',
             });
             expect(body.errors).toEqual({
-              confirmNewPassword: FIELD_IS_CONFIRM_PASSWORD,
+              confirmNewPassword: FIELD_SHOULD_MATCH('password'),
             });
             expect(status).toBe(400);
           });
@@ -190,7 +190,7 @@ describe('/users', () => {
               newPassword,
             });
             expect(body.errors).toEqual({
-              currentPassword: FIELD_IS_EMPTY,
+              currentPassword: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -205,7 +205,7 @@ describe('/users', () => {
               newPassword,
             });
             expect(body.errors).toEqual({
-              currentPassword: FIELD_NOT_A_STRING,
+              currentPassword: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -235,7 +235,7 @@ describe('/users', () => {
               currentPassword: userPassword,
             });
             expect(body.errors).toEqual({
-              confirmNewPassword: FIELD_IS_CONFIRM_PASSWORD,
+              confirmNewPassword: FIELD_SHOULD_MATCH('password'),
               newPassword: FIELD_IS_REQUIRED,
             });
             expect(status).toBe(400);
@@ -250,7 +250,7 @@ describe('/users', () => {
               newPassword: '',
             });
             expect(body.errors).toEqual({
-              newPassword: FIELD_IS_EMPTY,
+              newPassword: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -264,7 +264,7 @@ describe('/users', () => {
               newPassword: 1234,
             });
             expect(body.errors).toEqual({
-              newPassword: FIELD_NOT_A_STRING,
+              newPassword: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -279,7 +279,7 @@ describe('/users', () => {
               newPassword,
             });
             expect(body.errors).toEqual({
-              newPassword: FIELD_HAS_SPACES,
+              newPassword: FIELD_CANNOT_CONTAIN_SPACES,
             });
             expect(status).toBe(400);
           });
@@ -294,7 +294,7 @@ describe('/users', () => {
               newPassword,
             });
             expect(body.errors).toEqual({
-              newPassword: FIELD_MIN_LENGTH_OF_HEIGH,
+              newPassword: FIELD_MIN_LENGTH(8),
             });
             expect(status).toBe(400);
           });
@@ -309,7 +309,7 @@ describe('/users', () => {
               newPassword,
             });
             expect(body.errors).toEqual({
-              newPassword: FIELD_MAX_LENGTH_THRITY,
+              newPassword: FIELD_MAX_LENGTH(30),
             });
             expect(status).toBe(400);
           });
@@ -324,7 +324,7 @@ describe('/users', () => {
               newPassword,
             });
             expect(body.errors).toEqual({
-              newPassword: FIELD_IS_PASSWORD,
+              newPassword: FIELD_SHOULD_BE_A_PASSWORD,
             });
             expect(status).toBe(400);
           });
@@ -339,7 +339,7 @@ describe('/users', () => {
               newPassword,
             });
             expect(body.errors).toEqual({
-              newPassword: FIELD_IS_PASSWORD,
+              newPassword: FIELD_SHOULD_BE_A_PASSWORD,
             });
             expect(status).toBe(400);
           });
@@ -354,7 +354,7 @@ describe('/users', () => {
               newPassword,
             });
             expect(body.errors).toEqual({
-              newPassword: FIELD_IS_PASSWORD,
+              newPassword: FIELD_SHOULD_BE_A_PASSWORD,
             });
             expect(status).toBe(400);
           });
@@ -369,7 +369,7 @@ describe('/users', () => {
               newPassword,
             });
             expect(body.errors).toEqual({
-              newPassword: FIELD_IS_PASSWORD,
+              newPassword: FIELD_SHOULD_BE_A_PASSWORD,
             });
             expect(status).toBe(400);
           });

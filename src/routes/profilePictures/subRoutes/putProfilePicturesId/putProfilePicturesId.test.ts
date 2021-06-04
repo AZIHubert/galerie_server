@@ -9,7 +9,10 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -139,7 +142,7 @@ describe('/profilePictures', () => {
             body,
             status,
           } = await putProfilePicture(app, token, uuidv4());
-          expect(body.errors).toBe('profile picture not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('profile picture'));
           expect(status).toBe(404);
         });
       });

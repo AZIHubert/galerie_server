@@ -9,7 +9,10 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -330,7 +333,7 @@ describe('/galeries', () => {
                     uuidv4(),
                     uuidv4(),
                   );
-                  expect(body.errors).toBe('galerie not found');
+                  expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
                   expect(status).toBe(404);
                 });
                 it('galerie exist but user is not subscribe to it', async () => {
@@ -362,7 +365,7 @@ describe('/galeries', () => {
                     uuidv4(),
                     uuidv4(),
                   );
-                  expect(body.errors).toBe('galerie not found');
+                  expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
                   expect(status).toBe(404);
                 });
                 it('frame doesn\'t exist', async () => {
@@ -376,7 +379,7 @@ describe('/galeries', () => {
                     uuidv4(),
                     uuidv4(),
                   );
-                  expect(body.errors).toBe('frame not found');
+                  expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
                   expect(status).toBe(404);
                 });
                 it('frame exist but not below to galerie with :id', async () => {
@@ -415,7 +418,7 @@ describe('/galeries', () => {
                     frame.id,
                     uuidv4(),
                   );
-                  expect(body.errors).toBe('frame not found');
+                  expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
                   expect(status).toBe(404);
                 });
                 it('galerie picture doesn\'t exist', async () => {
@@ -436,7 +439,7 @@ describe('/galeries', () => {
                     frame.id,
                     uuidv4(),
                   );
-                  expect(body.errors).toBe('galerie picture not found');
+                  expect(body.errors).toBe(MODEL_NOT_FOUND('galerie picture'));
                   expect(status).toBe(404);
                 });
                 it('galerie picture exist but not below to frame with :frameId', async () => {
@@ -464,7 +467,7 @@ describe('/galeries', () => {
                     frameOne.id,
                     frameTwo.galeriePictures[0].id,
                   );
-                  expect(body.errors).toBe('galerie picture not found');
+                  expect(body.errors).toBe(MODEL_NOT_FOUND('galerie picture'));
                   expect(status).toBe(404);
                 });
               });

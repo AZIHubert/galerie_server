@@ -1,3 +1,5 @@
+// GET /users/refreshToken/
+
 import {
   Request,
   Response,
@@ -9,6 +11,8 @@ import path from 'path';
 import { User } from '@src/db/models';
 
 import {
+  MODEL_NOT_FOUND,
+  TOKEN_NOT_FOUND,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import { signAuthToken } from '@src/helpers/issueJWT';
@@ -16,27 +20,27 @@ import setRefreshToken from '@src/helpers/setRefreshToken';
 
 export default async (req: Request, res: Response) => {
   const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.refreshToken.pem'));
+  const { refreshToken } = req.session;
   let authTokenVersion: number;
   let id: string;
-  const { refreshToken } = req.session;
   let user: User | null;
 
   // Check if refreshToken exist in session.
   if (!refreshToken) {
     return res.status(401).send({
-      errors: 'refresh token not found',
+      errors: TOKEN_NOT_FOUND,
     });
   }
 
   // Decrypt refreshToken.
   try {
     const verifyToken = verify(refreshToken, PUB_KEY) as {
-      sub: string;
       authTokenVersion: number;
       iat: number;
+      sub: string;
     };
-    id = verifyToken.sub;
     authTokenVersion = verifyToken.authTokenVersion;
+    id = verifyToken.sub;
   } catch (err) {
     req
       .session
@@ -48,6 +52,9 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  // TODO:
+  // check if id is a uuid.
+
   // Fetch user corresponding to decrypted token.id.
   try {
     user = await User.findByPk(id);
@@ -56,7 +63,7 @@ export default async (req: Request, res: Response) => {
   }
   if (!user) {
     return res.status(404).send({
-      errors: 'user not found',
+      errors: MODEL_NOT_FOUND('user'),
     });
   }
 

@@ -13,10 +13,11 @@ import {
 
 import accEnv from '@src/helpers/accEnv';
 import {
-  FIELD_MAX_LENGTH_TWO_HUNDRER,
+  FIELD_MAX_LENGTH,
   FILES_ARE_REQUIRED,
-  FILE_IS_IMAGE,
+  FILE_SHOULD_BE_AN_IMAGE,
   INVALID_UUID,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -668,7 +669,7 @@ describe('/galeries', () => {
             } = await postGaleriesIdFrames(app, token, galerieId, {
               notAnImage: true,
             });
-            expect(body.errors).toBe(FILE_IS_IMAGE);
+            expect(body.errors).toBe(FILE_SHOULD_BE_AN_IMAGE);
             expect(status).toBe(400);
           });
           it('galerie is archived', async () => {
@@ -712,7 +713,7 @@ describe('/galeries', () => {
                 description: 'a'.repeat(201),
               });
               expect(body.errors).toEqual({
-                description: FIELD_MAX_LENGTH_TWO_HUNDRER,
+                description: FIELD_MAX_LENGTH(200),
               });
               expect(status).toBe(400);
             });
@@ -724,7 +725,7 @@ describe('/galeries', () => {
               body,
               status,
             } = await postGaleriesIdFrames(app, token, uuidv4());
-            expect(body.errors).toBe('galerie not found');
+            expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
           it('user not subscribe to requested galerie', async () => {
@@ -752,7 +753,7 @@ describe('/galeries', () => {
               body,
               status,
             } = await postGaleriesIdFrames(app, token, id);
-            expect(body.errors).toBe('galerie not found');
+            expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
         });

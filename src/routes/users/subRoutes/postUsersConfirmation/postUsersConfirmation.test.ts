@@ -8,12 +8,12 @@ import { User } from '@src/db/models';
 
 import * as email from '@src/helpers/email';
 import {
-  ALREADY_CONFIRMED,
-  FIELD_IS_EMAIL,
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
-  USER_NOT_FOUND,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_BE_AN_EMAIL,
+  MODEL_NOT_FOUND,
+  USER_SHOULD_NOT_BE_CONFIRMED,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -97,7 +97,7 @@ describe('/users', () => {
           } = await postConfirmation(app, {
             email: userEmail,
           });
-          expect(body.errors).toBe(ALREADY_CONFIRMED);
+          expect(body.errors).toBe(USER_SHOULD_NOT_BE_CONFIRMED);
           expect(status).toBe(400);
         });
         describe('email', () => {
@@ -119,7 +119,7 @@ describe('/users', () => {
               email: 1234,
             });
             expect(body.errors).toEqual({
-              email: FIELD_NOT_A_STRING,
+              email: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -131,7 +131,7 @@ describe('/users', () => {
               email: '',
             });
             expect(body.errors).toEqual({
-              email: FIELD_IS_EMPTY,
+              email: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -143,7 +143,7 @@ describe('/users', () => {
               email: 'not an email',
             });
             expect(body.errors).toEqual({
-              email: FIELD_IS_EMAIL,
+              email: FIELD_SHOULD_BE_AN_EMAIL,
             });
             expect(status).toBe(400);
           });
@@ -158,7 +158,7 @@ describe('/users', () => {
             email: 'unexistedEmail@email.com',
           });
           expect(body.errors).toEqual({
-            email: USER_NOT_FOUND,
+            email: MODEL_NOT_FOUND('user'),
           });
           expect(status).toBe(404);
         });

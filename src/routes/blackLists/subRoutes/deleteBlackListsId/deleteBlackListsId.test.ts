@@ -9,7 +9,10 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
@@ -110,7 +113,7 @@ describe('/blackLists', () => {
             body,
             status,
           } = await deleteBlackListsId(app, token, uuidv4());
-          expect(body.errors).toBe('black list not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('black list'));
           expect(status).toBe(404);
         });
       });

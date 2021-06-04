@@ -19,6 +19,7 @@ import {
 import {
   WRONG_PASSWORD,
   INVALID_UUID,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import {
@@ -69,7 +70,7 @@ export default async (req: Request, res: Response) => {
   // Check if galerie exist.
   if (!galerie) {
     return res.status(404).send({
-      errors: 'galerie not found',
+      errors: MODEL_NOT_FOUND('galerie'),
     });
   }
 

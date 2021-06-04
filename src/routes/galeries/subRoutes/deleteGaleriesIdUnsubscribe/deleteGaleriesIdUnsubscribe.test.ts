@@ -15,7 +15,10 @@ import {
 } from '@src/db/models';
 
 import accEnv from '@src/helpers/accEnv';
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -253,7 +256,7 @@ describe('/galeries', () => {
             body,
             status,
           } = await deleteGaleriesUnsubscribe(app, tokenTwo, uuidv4());
-          expect(body.errors).toBe('galerie not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
           expect(status).toBe(404);
         });
         it('galerie exist but user is not subscribe to it', async () => {
@@ -270,7 +273,7 @@ describe('/galeries', () => {
             body,
             status,
           } = await deleteGaleriesUnsubscribe(app, token, galerie.id);
-          expect(body.errors).toBe('galerie not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
           expect(status).toBe(404);
         });
       });

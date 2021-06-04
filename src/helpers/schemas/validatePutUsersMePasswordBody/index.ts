@@ -1,16 +1,19 @@
 import Joi from 'joi';
 
 import {
-  FIELD_IS_CONFIRM_PASSWORD,
-  FIELD_IS_EMPTY,
-  FIELD_IS_PASSWORD,
+  FIELD_CANNOT_BE_EMPTY,
+  FIELD_SHOULD_BE_A_PASSWORD,
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH_THRITY,
-  FIELD_MIN_LENGTH_OF_HEIGH,
-  FIELD_NOT_A_STRING,
+  FIELD_MAX_LENGTH,
+  FIELD_MIN_LENGTH,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_MATCH,
 } from '@src/helpers/errorMessages';
 
 import options from '../options';
+
+const NEW_PASSWORD_MAX_LENGTH = 30;
+const NEW_PASSWORD_MIN_LENGTH = 8;
 
 const sendUpdatePassword = Joi.object({
   confirmNewPassword: Joi.string()
@@ -19,17 +22,17 @@ const sendUpdatePassword = Joi.object({
     .valid(Joi.ref('newPassword'))
     .messages({
       'any.required': FIELD_IS_REQUIRED,
-      'any.only': FIELD_IS_CONFIRM_PASSWORD,
-      'string.base': FIELD_NOT_A_STRING,
-      'string.empty': FIELD_IS_EMPTY,
+      'any.only': FIELD_SHOULD_MATCH('password'),
+      'string.base': FIELD_SHOULD_BE_A_STRING,
+      'string.empty': FIELD_CANNOT_BE_EMPTY,
     }),
   currentPassword: Joi.string()
     .required()
     .empty()
     .messages({
       'any.required': FIELD_IS_REQUIRED,
-      'string.base': FIELD_NOT_A_STRING,
-      'string.empty': FIELD_IS_EMPTY,
+      'string.base': FIELD_SHOULD_BE_A_STRING,
+      'string.empty': FIELD_CANNOT_BE_EMPTY,
     }),
   newPassword: Joi.string()
     .required()
@@ -42,15 +45,15 @@ const sendUpdatePassword = Joi.object({
       new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,30}$'),
       { name: 'passwordError' },
     )
-    .max(30)
-    .min(8)
+    .max(NEW_PASSWORD_MAX_LENGTH)
+    .min(NEW_PASSWORD_MIN_LENGTH)
     .messages({
       'any.required': FIELD_IS_REQUIRED,
-      'string.base': FIELD_NOT_A_STRING,
-      'string.empty': FIELD_IS_EMPTY,
-      'string.max': FIELD_MAX_LENGTH_THRITY,
-      'string.min': FIELD_MIN_LENGTH_OF_HEIGH,
-      'string.pattern.base': FIELD_IS_PASSWORD,
+      'string.base': FIELD_SHOULD_BE_A_STRING,
+      'string.empty': FIELD_CANNOT_BE_EMPTY,
+      'string.max': FIELD_MAX_LENGTH(NEW_PASSWORD_MAX_LENGTH),
+      'string.min': FIELD_MIN_LENGTH(NEW_PASSWORD_MIN_LENGTH),
+      'string.pattern.base': FIELD_SHOULD_BE_A_PASSWORD,
     }),
 });
 

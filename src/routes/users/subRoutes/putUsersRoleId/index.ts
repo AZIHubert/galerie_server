@@ -4,7 +4,7 @@ import { User } from '@src/db/models';
 import {
   FIELD_IS_REQUIRED,
   INVALID_UUID,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
@@ -65,7 +65,7 @@ export default async (req: Request, res: Response) => {
   // Check if user exist.
   if (!user) {
     return res.status(404).send({
-      errors: USER_NOT_FOUND,
+      errors: MODEL_NOT_FOUND('user'),
     });
   }
 

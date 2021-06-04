@@ -1,3 +1,5 @@
+// PUT /profilePictures/:profilePictureId/
+
 import {
   Request,
   Response,
@@ -9,7 +11,10 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import {
   profilePictureExcluder,
   imageExcluder,
@@ -70,7 +75,7 @@ export default async (req: Request, res: Response) => {
   // Check if profile picture exist.
   if (!profilePicture) {
     return res.status(404).send({
-      errors: 'profile picture not found',
+      errors: MODEL_NOT_FOUND('profile picture'),
     });
   }
 

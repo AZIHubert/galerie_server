@@ -11,9 +11,10 @@ import {
 
 import {
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH_TWO_HUNDRER,
-  FIELD_NOT_A_STRING,
+  FIELD_MAX_LENGTH,
+  FIELD_SHOULD_BE_A_STRING,
   INVALID_UUID,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -296,7 +297,7 @@ describe('/galeries', () => {
                   },
                 });
                 expect(body.errors).toEqual({
-                  description: FIELD_NOT_A_STRING,
+                  description: FIELD_SHOULD_BE_A_STRING,
                 });
                 expect(status).toBe(400);
               });
@@ -310,7 +311,7 @@ describe('/galeries', () => {
                   },
                 });
                 expect(body.errors).toEqual({
-                  description: FIELD_MAX_LENGTH_TWO_HUNDRER,
+                  description: FIELD_MAX_LENGTH(200),
                 });
                 expect(status).toBe(400);
               });
@@ -322,7 +323,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await putGaleriesIdFramesId(app, token, uuidv4(), uuidv4());
-              expect(body.errors).toBe('galerie not found');
+              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
               expect(status).toBe(404);
             });
             it('galerie exist but user is not subscribe to it', async () => {
@@ -350,7 +351,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await putGaleriesIdFramesId(app, token, galerieId, uuidv4());
-              expect(body.errors).toBe('galerie not found');
+              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
               expect(status).toBe(404);
             });
             it('frame does not exist', async () => {
@@ -369,7 +370,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await putGaleriesIdFramesId(app, token, galerieId, uuidv4());
-              expect(body.errors).toBe('frame not found');
+              expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
               expect(status).toBe(404);
             });
             it('frame exist but was not post on this galerie', async () => {
@@ -408,7 +409,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await putGaleriesIdFramesId(app, token, galerieTwoId, frameId);
-              expect(body.errors).toBe('frame not found');
+              expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
               expect(status).toBe(404);
             });
           });

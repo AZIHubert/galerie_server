@@ -13,7 +13,10 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
@@ -58,7 +61,7 @@ export default async (req: Request, res: Response) => {
   // Check if galerie exist.
   if (!galerie) {
     return res.status(404).send({
-      errors: 'galerie not found',
+      errors: MODEL_NOT_FOUND('galerie'),
     });
   }
 
@@ -83,7 +86,7 @@ export default async (req: Request, res: Response) => {
   // Check if frame exist.
   if (!frame) {
     return res.status(404).send({
-      errors: 'frame not found',
+      errors: MODEL_NOT_FOUND('frame'),
     });
   }
 

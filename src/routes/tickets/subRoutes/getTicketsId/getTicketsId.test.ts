@@ -9,7 +9,10 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -217,7 +220,7 @@ describe('/tickets', () => {
             body,
             status,
           } = await getTicketId(app, adminToken, uuidv4());
-          expect(body.errors).toBe('ticket not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('ticket'));
           expect(status).toBe(404);
         });
       });

@@ -11,18 +11,18 @@ import {
 } from '@src/db/models';
 
 import {
-  FIELD_HAS_SPACES,
-  FIELD_IS_CONFIRM_PASSWORD,
-  FIELD_IS_EMPTY,
-  FIELD_IS_PASSWORD,
+  FIELD_CANNOT_CONTAIN_SPACES,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH_THRITY,
-  FIELD_MIN_LENGTH_OF_HEIGH,
-  FIELD_NOT_A_STRING,
-  NOT_CONFIRMED,
+  FIELD_MAX_LENGTH,
+  FIELD_MIN_LENGTH,
+  FIELD_SHOULD_BE_A_PASSWORD,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_MATCH,
+  MODEL_NOT_FOUND,
   TOKEN_NOT_FOUND,
-  USER_IS_BLACK_LISTED,
-  USER_NOT_FOUND,
+  USER_SHOULD_BE_CONFIRED,
+  USER_SHOULD_NOT_BE_BLACK_LISTED,
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
@@ -134,7 +134,7 @@ describe('/users', () => {
             password: newPassword,
             confirmPassword: newPassword,
           });
-          expect(body.errors).toBe(NOT_CONFIRMED);
+          expect(body.errors).toBe(USER_SHOULD_BE_CONFIRED);
           expect(status).toBe(400);
         });
         it('user is black listed', async () => {
@@ -164,7 +164,7 @@ describe('/users', () => {
             password: newPassword,
             confirmPassword: newPassword,
           });
-          expect(body.errors).toBe(USER_IS_BLACK_LISTED);
+          expect(body.errors).toBe(USER_SHOULD_NOT_BE_BLACK_LISTED);
           expect(status).toBe(400);
         });
         describe('confirmPassword', () => {
@@ -197,7 +197,7 @@ describe('/users', () => {
               password: 'NewPassword0!',
             });
             expect(body.errors).toEqual({
-              confirmPassword: FIELD_IS_EMPTY,
+              confirmPassword: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -210,7 +210,7 @@ describe('/users', () => {
               password: 'NewPassword0!',
             });
             expect(body.errors).toEqual({
-              confirmPassword: FIELD_NOT_A_STRING,
+              confirmPassword: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -223,7 +223,7 @@ describe('/users', () => {
               password: 'NewPassword0!',
             });
             expect(body.errors).toEqual({
-              confirmPassword: FIELD_IS_CONFIRM_PASSWORD,
+              confirmPassword: FIELD_SHOULD_MATCH('password'),
             });
             expect(status).toBe(400);
           });
@@ -245,7 +245,7 @@ describe('/users', () => {
               confirmPassword: 'NewPassword0!',
             });
             expect(body.errors).toEqual({
-              confirmPassword: FIELD_IS_CONFIRM_PASSWORD,
+              confirmPassword: FIELD_SHOULD_MATCH('password'),
               password: FIELD_IS_REQUIRED,
             });
             expect(status).toBe(400);
@@ -260,7 +260,7 @@ describe('/users', () => {
               confirmPassword: newPassword,
             });
             expect(body.errors).toEqual({
-              password: FIELD_IS_EMPTY,
+              password: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -274,7 +274,7 @@ describe('/users', () => {
               confirmPassword: newPassword,
             });
             expect(body.errors).toEqual({
-              password: FIELD_NOT_A_STRING,
+              password: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -288,7 +288,7 @@ describe('/users', () => {
               confirmPassword: newPassword,
             });
             expect(body.errors).toEqual({
-              password: FIELD_HAS_SPACES,
+              password: FIELD_CANNOT_CONTAIN_SPACES,
             });
             expect(status).toBe(400);
           });
@@ -302,7 +302,7 @@ describe('/users', () => {
               confirmPassword: newPassword,
             });
             expect(body.errors).toEqual({
-              password: FIELD_MIN_LENGTH_OF_HEIGH,
+              password: FIELD_MIN_LENGTH(8),
             });
             expect(status).toBe(400);
           });
@@ -316,7 +316,7 @@ describe('/users', () => {
               confirmPassword: newPassword,
             });
             expect(body.errors).toEqual({
-              password: FIELD_MAX_LENGTH_THRITY,
+              password: FIELD_MAX_LENGTH(30),
             });
             expect(status).toBe(400);
           });
@@ -330,7 +330,7 @@ describe('/users', () => {
               confirmPassword: newPassword,
             });
             expect(body.errors).toEqual({
-              password: FIELD_IS_PASSWORD,
+              password: FIELD_SHOULD_BE_A_PASSWORD,
             });
             expect(status).toBe(400);
           });
@@ -344,7 +344,7 @@ describe('/users', () => {
               confirmPassword: newPassword,
             });
             expect(body.errors).toEqual({
-              password: FIELD_IS_PASSWORD,
+              password: FIELD_SHOULD_BE_A_PASSWORD,
             });
             expect(status).toBe(400);
           });
@@ -358,7 +358,7 @@ describe('/users', () => {
               confirmPassword: newPassword,
             });
             expect(body.errors).toEqual({
-              password: FIELD_IS_PASSWORD,
+              password: FIELD_SHOULD_BE_A_PASSWORD,
             });
             expect(status).toBe(400);
           });
@@ -372,7 +372,7 @@ describe('/users', () => {
               confirmPassword: newPassword,
             });
             expect(body.errors).toEqual({
-              password: FIELD_IS_PASSWORD,
+              password: FIELD_SHOULD_BE_A_PASSWORD,
             });
             expect(status).toBe(400);
           });
@@ -440,7 +440,7 @@ describe('/users', () => {
             password: newPassword,
             confirmPassword: newPassword,
           });
-          expect(body.errors).toBe(USER_NOT_FOUND);
+          expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });
         it('user is register with Facebook', async () => {
@@ -466,7 +466,7 @@ describe('/users', () => {
             password: newPassword,
             confirmPassword: newPassword,
           });
-          expect(body.errors).toBe(USER_NOT_FOUND);
+          expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });
         it('user is register with Google', async () => {
@@ -492,7 +492,7 @@ describe('/users', () => {
             password: newPassword,
             confirmPassword: newPassword,
           });
-          expect(body.errors).toBe(USER_NOT_FOUND);
+          expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });
       });

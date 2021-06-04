@@ -8,11 +8,11 @@ import {
 } from '@src/db/models';
 
 import {
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH_THRITY,
-  FIELD_MIN_LENGTH_OF_THREE,
-  FIELD_NOT_A_STRING,
+  FIELD_MAX_LENGTH,
+  FIELD_MIN_LENGTH,
+  FIELD_SHOULD_BE_A_STRING,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -118,7 +118,7 @@ describe('/users', () => {
                 pseudonym: '',
               });
               expect(body.errors).toEqual({
-                pseudonym: FIELD_IS_EMPTY,
+                pseudonym: FIELD_CANNOT_BE_EMPTY,
               });
               expect(status).toBe(400);
             });
@@ -130,7 +130,7 @@ describe('/users', () => {
                 pseudonym: 1234,
               });
               expect(body.errors).toEqual({
-                pseudonym: FIELD_NOT_A_STRING,
+                pseudonym: FIELD_SHOULD_BE_A_STRING,
               });
               expect(status).toBe(400);
             });
@@ -142,7 +142,7 @@ describe('/users', () => {
                 pseudonym: 'a'.repeat(2),
               });
               expect(body.errors).toEqual({
-                pseudonym: FIELD_MIN_LENGTH_OF_THREE,
+                pseudonym: FIELD_MIN_LENGTH(3),
               });
               expect(status).toBe(400);
             });
@@ -154,7 +154,7 @@ describe('/users', () => {
                 pseudonym: 'a'.repeat(31),
               });
               expect(body.errors).toEqual({
-                pseudonym: FIELD_MAX_LENGTH_THRITY,
+                pseudonym: FIELD_MAX_LENGTH(30),
               });
               expect(status).toBe(400);
             });

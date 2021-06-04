@@ -1,3 +1,5 @@
+// POST /users/password/
+
 import {
   Request,
   Response,
@@ -10,9 +12,9 @@ import accEnv from '@src/helpers/accEnv';
 import { sendResetPassword } from '@src/helpers/email';
 import checkBlackList from '@src/helpers/checkBlackList';
 import {
-  NOT_CONFIRMED,
-  USER_IS_BLACK_LISTED,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
+  USER_SHOULD_BE_CONFIRED,
+  USER_SHOULD_NOT_BE_BLACK_LISTED,
 } from '@src/helpers/errorMessages';
 import {
   normalizeJoiErrors,
@@ -52,7 +54,7 @@ export default async (req: Request, res: Response) => {
   if (!user) {
     return res.status(404).send({
       errors: {
-        email: USER_NOT_FOUND,
+        email: MODEL_NOT_FOUND('user'),
       },
     });
   }
@@ -61,7 +63,7 @@ export default async (req: Request, res: Response) => {
   // their password.
   if (!user.confirmed) {
     return res.status(401).send({
-      errors: NOT_CONFIRMED,
+      errors: USER_SHOULD_BE_CONFIRED,
     });
   }
 
@@ -70,7 +72,7 @@ export default async (req: Request, res: Response) => {
   const isBlackListed = await checkBlackList(user);
   if (isBlackListed) {
     return res.status(401).send({
-      errors: USER_IS_BLACK_LISTED,
+      errors: USER_SHOULD_NOT_BE_BLACK_LISTED,
     });
   }
 

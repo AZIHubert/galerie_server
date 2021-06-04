@@ -8,9 +8,7 @@ import {
   User,
 } from '@src/db/models';
 
-import {
-  USER_IS_BLACK_LISTED,
-} from '@src/helpers/errorMessages';
+import { USER_SHOULD_NOT_BE_BLACK_LISTED } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -292,7 +290,7 @@ describe('/users', () => {
               id: facebookId,
               type: 'Facebook',
             });
-            expect(body.errors).toBe(USER_IS_BLACK_LISTED);
+            expect(body.errors).toBe(USER_SHOULD_NOT_BE_BLACK_LISTED);
             expect(status).toBe(400);
           });
         });

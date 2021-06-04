@@ -7,9 +7,9 @@ import '@src/helpers/initEnv';
 import { User } from '@src/db/models';
 
 import {
-  ALREADY_CONFIRMED,
   TOKEN_NOT_FOUND,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
+  USER_SHOULD_NOT_BE_CONFIRMED,
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
@@ -109,7 +109,7 @@ describe('/users', () => {
             body,
             status,
           } = await putConfirmation(app, 'Bearer token');
-          expect(body.errors).toBe(ALREADY_CONFIRMED);
+          expect(body.errors).toBe(USER_SHOULD_NOT_BE_CONFIRMED);
           expect(status).toBe(401);
         });
         describe('confirmation token', () => {
@@ -157,7 +157,7 @@ describe('/users', () => {
             body,
             status,
           } = await putConfirmation(app, 'Bearer token');
-          expect(body.errors).toBe(USER_NOT_FOUND);
+          expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });
       });

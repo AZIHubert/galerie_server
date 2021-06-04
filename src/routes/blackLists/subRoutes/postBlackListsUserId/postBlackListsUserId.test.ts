@@ -10,13 +10,14 @@ import {
 } from '@src/db/models';
 
 import {
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH_TWO_HUNDRER,
-  FIELD_MIN_LENGTH_OF_TEN,
-  FIELD_NOT_A_STRING,
-  FIELD_NOT_A_NUMBER,
+  FIELD_MAX_LENGTH,
+  FIELD_MIN_LENGTH,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_BE_A_NUMBER,
   INVALID_UUID,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -402,7 +403,7 @@ describe('/blackLists', () => {
               reason: 1234,
             });
             expect(body.errors).toEqual({
-              reason: FIELD_NOT_A_STRING,
+              reason: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -414,7 +415,7 @@ describe('/blackLists', () => {
               reason: '',
             });
             expect(body.errors).toEqual({
-              reason: FIELD_IS_EMPTY,
+              reason: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -426,7 +427,7 @@ describe('/blackLists', () => {
               reason: 'a'.repeat(9),
             });
             expect(body.errors).toEqual({
-              reason: FIELD_MIN_LENGTH_OF_TEN,
+              reason: FIELD_MIN_LENGTH(10),
             });
             expect(status).toBe(400);
           });
@@ -438,7 +439,7 @@ describe('/blackLists', () => {
               reason: 'a'.repeat(201),
             });
             expect(body.errors).toEqual({
-              reason: FIELD_MAX_LENGTH_TWO_HUNDRER,
+              reason: FIELD_MAX_LENGTH(200),
             });
             expect(status).toBe(400);
           });
@@ -467,7 +468,7 @@ describe('/blackLists', () => {
               time: 'not a number',
             });
             expect(body.errors).toEqual({
-              time: FIELD_NOT_A_NUMBER,
+              time: FIELD_SHOULD_BE_A_NUMBER,
             });
             expect(status).toBe(400);
           });
@@ -505,7 +506,7 @@ describe('/blackLists', () => {
             body,
             status,
           } = await postBlackListUser(app, token, uuidv4(), {});
-          expect(body.errors).toBe('user not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });
         it('user is not confirmed', async () => {
@@ -518,7 +519,7 @@ describe('/blackLists', () => {
             body,
             status,
           } = await postBlackListUser(app, token, userTwo.id, {});
-          expect(body.errors).toBe('user not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });
       });

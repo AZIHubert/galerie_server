@@ -11,7 +11,7 @@ import {
 
 import {
   INVALID_UUID,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -203,7 +203,7 @@ describe('/users', () => {
           } = await getUserId(app, token, uuidv4());
           expect(status).toBe(404);
           expect(body).toEqual({
-            errors: USER_NOT_FOUND,
+            errors: MODEL_NOT_FOUND('user'),
           });
         });
         it('user is not confirmed', async () => {
@@ -220,7 +220,7 @@ describe('/users', () => {
           } = await getUserId(app, token, id);
           expect(status).toBe(404);
           expect(body).toEqual({
-            errors: USER_NOT_FOUND,
+            errors: MODEL_NOT_FOUND('user'),
           });
         });
         it('user is black listed', async () => {

@@ -1,3 +1,5 @@
+// PUT /galeries/:galerieId/frames/:frameId/galeriePictures/:galeriePictureId/
+
 import {
   Request,
   Response,
@@ -11,7 +13,10 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import {
   galeriePictureExcluder,
   imageExcluder,
@@ -100,7 +105,7 @@ export default async (req: Request, res: Response) => {
   // Check if galerie exist
   if (!galerie) {
     return res.status(404).send({
-      errors: 'galerie not found',
+      errors: MODEL_NOT_FOUND('galerie'),
     });
   }
 
@@ -128,7 +133,7 @@ export default async (req: Request, res: Response) => {
     .filter((f) => String(f.id) === frameId)[0];
   if (!frame) {
     return res.status(404).send({
-      errors: 'frame not found',
+      errors: MODEL_NOT_FOUND('frame'),
     });
   }
 
@@ -137,7 +142,7 @@ export default async (req: Request, res: Response) => {
     .filter((gp) => gp.id === galeriePictureId)[0];
   if (!galeriePicture) {
     return res.status(404).send({
-      errors: 'galerie picture not found',
+      errors: MODEL_NOT_FOUND('galerie picture'),
     });
   }
 

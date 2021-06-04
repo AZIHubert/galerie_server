@@ -6,8 +6,8 @@ import '@src/helpers/initEnv';
 import { User } from '@src/db/models';
 
 import {
-  FIELD_IS_EMPTY,
-  FIELD_NOT_A_STRING,
+  FIELD_CANNOT_BE_EMPTY,
+  FIELD_SHOULD_BE_A_STRING,
   FIELD_IS_REQUIRED,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
@@ -89,7 +89,7 @@ describe('/users', () => {
               userPassword,
             );
             expect(body.errors).toEqual({
-              userNameOrEmail: FIELD_IS_EMPTY,
+              userNameOrEmail: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -103,7 +103,7 @@ describe('/users', () => {
               userPassword,
             );
             expect(body.errors).toEqual({
-              userNameOrEmail: FIELD_NOT_A_STRING,
+              userNameOrEmail: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -134,7 +134,7 @@ describe('/users', () => {
             '',
           );
           expect(body.errors).toEqual({
-            password: FIELD_IS_EMPTY,
+            password: FIELD_CANNOT_BE_EMPTY,
           });
           expect(status).toBe(400);
         });
@@ -148,7 +148,7 @@ describe('/users', () => {
             123,
           );
           expect(body.errors).toEqual({
-            password: FIELD_NOT_A_STRING,
+            password: FIELD_SHOULD_BE_A_STRING,
           });
           expect(status).toBe(400);
         });

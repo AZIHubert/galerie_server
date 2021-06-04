@@ -6,10 +6,10 @@ import '@src/helpers/initEnv';
 import { User } from '@src/db/models';
 
 import {
-  FIELD_IS_EMAIL,
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_BE_AN_EMAIL,
   TOKEN_NOT_FOUND,
   WRONG_PASSWORD,
   WRONG_TOKEN,
@@ -163,7 +163,7 @@ describe('/users', () => {
                 password: '',
               });
               expect(body.errors).toEqual({
-                password: FIELD_IS_EMPTY,
+                password: FIELD_CANNOT_BE_EMPTY,
               });
               expect(status).toBe(400);
             });
@@ -175,7 +175,7 @@ describe('/users', () => {
                 password: 1234,
               });
               expect(body.errors).toEqual({
-                password: FIELD_NOT_A_STRING,
+                password: FIELD_SHOULD_BE_A_STRING,
               });
               expect(status).toBe(400);
             });
@@ -280,7 +280,7 @@ describe('/users', () => {
                 } = await putUserEmail(app, token, 'Bearer token', {
                   password: userPassword,
                 });
-                expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_IS_EMPTY}`);
+                expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_CANNOT_BE_EMPTY}`);
                 expect(status).toBe(401);
               });
               it('is not a string', async () => {
@@ -297,7 +297,7 @@ describe('/users', () => {
                 } = await putUserEmail(app, token, 'Bearer token', {
                   password: userPassword,
                 });
-                expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_NOT_A_STRING}`);
+                expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_SHOULD_BE_A_STRING}`);
                 expect(status).toBe(401);
               });
               it('is not an email', async () => {
@@ -314,7 +314,7 @@ describe('/users', () => {
                 } = await putUserEmail(app, token, 'Bearer token', {
                   password: userPassword,
                 });
-                expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_IS_EMAIL}`);
+                expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_SHOULD_BE_AN_EMAIL}`);
                 expect(status).toBe(401);
               });
               it('is the same has the old one', async () => {

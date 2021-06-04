@@ -9,7 +9,10 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
@@ -312,7 +315,7 @@ describe('/galeries', () => {
               body,
               status,
             } = await getGaleriesIdInvitations(app, token, uuidv4());
-            expect(body.errors).toBe('galerie not found');
+            expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
           it('galerie exist but user is not subscribe to it', async () => {
@@ -340,7 +343,7 @@ describe('/galeries', () => {
               body,
               status,
             } = await getGaleriesIdInvitations(app, token, id);
-            expect(body.errors).toBe('galerie not found');
+            expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
         });

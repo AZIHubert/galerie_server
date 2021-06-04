@@ -1,10 +1,10 @@
 import Joi from 'joi';
 
 import {
-  FIELD_IS_EMAIL,
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_BE_AN_EMAIL,
 } from '@src/helpers/errorMessages';
 
 import options from '../options';
@@ -18,9 +18,9 @@ const userSignInSchema = Joi.object({
     .lowercase()
     .messages({
       'any.required': FIELD_IS_REQUIRED,
-      'string.base': FIELD_NOT_A_STRING,
-      'string.email': FIELD_IS_EMAIL,
-      'string.empty': FIELD_IS_EMPTY,
+      'string.base': FIELD_SHOULD_BE_A_STRING,
+      'string.email': FIELD_SHOULD_BE_AN_EMAIL,
+      'string.empty': FIELD_CANNOT_BE_EMPTY,
     }),
 });
 

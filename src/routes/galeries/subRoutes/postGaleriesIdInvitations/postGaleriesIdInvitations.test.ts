@@ -5,8 +5,9 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
-  FIELD_NOT_A_NUMBER,
+  FIELD_SHOULD_BE_A_NUMBER,
   INVALID_UUID,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import {
   Invitation,
@@ -301,7 +302,7 @@ describe('/galeries', () => {
                 numOfInvits: 'wrong field',
               });
               expect(body.errors).toEqual({
-                numOfInvits: FIELD_NOT_A_NUMBER,
+                numOfInvits: FIELD_SHOULD_BE_A_NUMBER,
               });
               expect(status).toBe(400);
             });
@@ -339,7 +340,7 @@ describe('/galeries', () => {
                 time: 'wrong field',
               });
               expect(body.errors).toEqual({
-                time: FIELD_NOT_A_NUMBER,
+                time: FIELD_SHOULD_BE_A_NUMBER,
               });
               expect(status).toBe(400);
             });
@@ -375,7 +376,7 @@ describe('/galeries', () => {
               body,
               status,
             } = await postGaleriesIdInvitations(app, token, uuidv4(), {});
-            expect(body.errors).toBe('galerie not found');
+            expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
           it('galerie exist but user is not subscribe to it', async () => {
@@ -403,7 +404,7 @@ describe('/galeries', () => {
               body,
               status,
             } = await postGaleriesIdInvitations(app, token, id, {});
-            expect(body.errors).toBe('galerie not found');
+            expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
         });

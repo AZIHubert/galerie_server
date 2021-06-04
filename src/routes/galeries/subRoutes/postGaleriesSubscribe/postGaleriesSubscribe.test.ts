@@ -11,9 +11,10 @@ import {
 } from '@src/db/models';
 
 import {
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
+  FIELD_SHOULD_BE_A_STRING,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -278,7 +279,7 @@ describe('/galeries', () => {
             code: 1234,
           });
           expect(body.errors).toEqual({
-            code: FIELD_NOT_A_STRING,
+            code: FIELD_SHOULD_BE_A_STRING,
           });
           expect(status).toBe(400);
         });
@@ -290,7 +291,7 @@ describe('/galeries', () => {
             code: '',
           });
           expect(body.errors).toEqual({
-            code: FIELD_IS_EMPTY,
+            code: FIELD_CANNOT_BE_EMPTY,
           });
           expect(status).toBe(400);
         });
@@ -304,7 +305,7 @@ describe('/galeries', () => {
         } = await postGaleriesSubscribe(app, token, {
           code: 'wrong code',
         });
-        expect(body.errors).toBe('invitation not found');
+        expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
         expect(status).toBe(404);
       });
     });

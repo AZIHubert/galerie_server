@@ -8,10 +8,10 @@ import User from '@src/db/models/user';
 
 import * as email from '@src/helpers/email';
 import {
-  FIELD_IS_EMAIL,
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
+  FIELD_SHOULD_BE_AN_EMAIL,
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
+  FIELD_SHOULD_BE_A_STRING,
   TOKEN_NOT_FOUND,
   WRONG_PASSWORD,
   WRONG_TOKEN,
@@ -189,7 +189,7 @@ describe('/users', () => {
                   },
                 );
                 expect(errors).toEqual({
-                  email: FIELD_IS_EMPTY,
+                  email: FIELD_CANNOT_BE_EMPTY,
                 });
                 expect(status).toBe(400);
               });
@@ -209,7 +209,7 @@ describe('/users', () => {
                   },
                 );
                 expect(errors).toEqual({
-                  email: FIELD_NOT_A_STRING,
+                  email: FIELD_SHOULD_BE_A_STRING,
                 });
                 expect(status).toBe(400);
               });
@@ -229,7 +229,7 @@ describe('/users', () => {
                   },
                 );
                 expect(errors).toEqual({
-                  email: FIELD_IS_EMAIL,
+                  email: FIELD_SHOULD_BE_AN_EMAIL,
                 });
                 expect(status).toBe(400);
               });

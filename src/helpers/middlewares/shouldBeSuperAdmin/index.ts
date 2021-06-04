@@ -6,9 +6,7 @@ import {
 
 import User from '@src/db/models/user';
 
-import {
-  NOT_SUPER_ADMIN,
-} from '@src/helpers/errorMessages';
+import { USER_SHOULD_BE_A_SUPER_ADMIN } from '@src/helpers/errorMessages';
 
 export default async (
   req: Request,
@@ -18,7 +16,7 @@ export default async (
   const { role } = req.user as User;
   if (role !== 'superAdmin') {
     return res.status(401).send({
-      errors: NOT_SUPER_ADMIN,
+      errors: USER_SHOULD_BE_A_SUPER_ADMIN,
     });
   }
   return next();

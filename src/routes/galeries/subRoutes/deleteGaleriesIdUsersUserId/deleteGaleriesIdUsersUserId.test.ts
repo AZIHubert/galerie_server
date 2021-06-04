@@ -14,7 +14,10 @@ import {
 } from '@src/db/models';
 
 import accEnv from '@src/helpers/accEnv';
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
@@ -333,7 +336,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await deleteGaleriesIdUsersId(app, token, uuidv4(), uuidv4());
-              expect(body.errors).toBe('galerie not found');
+              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
               expect(status).toBe(404);
             });
             it('galerie exist but current user is not subscribe to this galerie', async () => {
@@ -359,7 +362,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await deleteGaleriesIdUsersId(app, token, galerie.id, uuidv4());
-              expect(body.errors).toBe('galerie not found');
+              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
               expect(status).toBe(404);
             });
             it('user not found', async () => {
@@ -367,7 +370,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await deleteGaleriesIdUsersId(app, token, galerieId, uuidv4());
-              expect(body.errors).toBe('user not found');
+              expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
               expect(status).toBe(404);
             });
             it('user with id === :userId is not subscribe to this galerie', async () => {
@@ -379,7 +382,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
-              expect(body.errors).toBe('user not found');
+              expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
               expect(status).toBe(404);
             });
           });

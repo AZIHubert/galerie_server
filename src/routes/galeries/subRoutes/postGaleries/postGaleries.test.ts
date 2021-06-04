@@ -17,12 +17,11 @@ import {
 import initApp from '@src/server';
 
 import {
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH_THRITY,
-  FIELD_MAX_LENGTH_TWO_HUNDRER,
-  FIELD_MIN_LENGTH_OF_THREE,
-  FIELD_NOT_A_STRING,
+  FIELD_MAX_LENGTH,
+  FIELD_MIN_LENGTH,
+  FIELD_SHOULD_BE_A_STRING,
 } from '@src/helpers/errorMessages';
 
 const userPassword = 'Password0!';
@@ -147,7 +146,7 @@ describe('/galerie', () => {
             name: 'galerie\'s name',
           });
           expect(body.errors).toEqual({
-            description: FIELD_NOT_A_STRING,
+            description: FIELD_SHOULD_BE_A_STRING,
           });
           expect(status).toBe(400);
         });
@@ -160,7 +159,7 @@ describe('/galerie', () => {
             name: 'galerie\'s name',
           });
           expect(body.errors).toEqual({
-            description: FIELD_MAX_LENGTH_TWO_HUNDRER,
+            description: FIELD_MAX_LENGTH(200),
           });
           expect(status).toBe(400);
         });
@@ -182,7 +181,7 @@ describe('/galerie', () => {
             status,
           } = await postGalerie(app, token, { name: '' });
           expect(body.errors).toEqual({
-            name: FIELD_IS_EMPTY,
+            name: FIELD_CANNOT_BE_EMPTY,
           });
           expect(status).toBe(400);
         });
@@ -192,7 +191,7 @@ describe('/galerie', () => {
             status,
           } = await postGalerie(app, token, { name: 1234 });
           expect(body.errors).toEqual({
-            name: FIELD_NOT_A_STRING,
+            name: FIELD_SHOULD_BE_A_STRING,
           });
           expect(status).toBe(400);
         });
@@ -202,7 +201,7 @@ describe('/galerie', () => {
             status,
           } = await postGalerie(app, token, { name: 'a'.repeat(2) });
           expect(body.errors).toEqual({
-            name: FIELD_MIN_LENGTH_OF_THREE,
+            name: FIELD_MIN_LENGTH(3),
           });
           expect(status).toBe(400);
         });
@@ -212,7 +211,7 @@ describe('/galerie', () => {
             status,
           } = await postGalerie(app, token, { name: 'a'.repeat(31) });
           expect(body.errors).toEqual({
-            name: FIELD_MAX_LENGTH_THRITY,
+            name: FIELD_MAX_LENGTH(30),
           });
           expect(status).toBe(400);
         });
