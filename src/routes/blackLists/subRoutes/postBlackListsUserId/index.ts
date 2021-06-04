@@ -20,7 +20,7 @@ import {
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 import {
   normalizeJoiErrors,
-  validatePostUsersBlacklistIdBody,
+  validatePostBlackListsUserIdBody,
 } from '@src/helpers/schemas';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
@@ -100,7 +100,7 @@ export default async (req: Request, res: Response) => {
   const {
     error,
     value,
-  } = validatePostUsersBlacklistIdBody(req.body);
+  } = validatePostBlackListsUserIdBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
