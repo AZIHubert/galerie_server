@@ -9,15 +9,15 @@ import { User } from '@src/db/models';
 import * as email from '@src/helpers/email';
 import {
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
-  FIELD_IS_EMPTY,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_CANNOT_BE_EMPTY,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
-  login,
-  postUpdateEmail,
+  postUsersMeEmail,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -41,7 +41,12 @@ describe('/users', () => {
     try {
       await sequelize.sync({ force: true });
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -66,7 +71,7 @@ describe('/users', () => {
       describe('POST', () => {
         describe('should return status 204 and', () => {
           it('create a token and send an email', async (done) => {
-            const { status } = await postUpdateEmail(app, token, {
+            const { status } = await postUsersMeEmail(app, token, {
               password: userPassword,
             });
             expect(status).toBe(204);
@@ -75,7 +80,7 @@ describe('/users', () => {
             done();
           });
           it('increment emailTokenVersion if resend is true', async () => {
-            await postUpdateEmail(app, token, {
+            await postUsersMeEmail(app, token, {
               password: userPassword,
             });
             const { emailTokenVersion } = user;
@@ -89,7 +94,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postUpdateEmail(app, token, {});
+              } = await postUsersMeEmail(app, token, {});
               expect(body.errors).toEqual({
                 password: FIELD_IS_REQUIRED,
               });
@@ -99,11 +104,11 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postUpdateEmail(app, token, {
+              } = await postUsersMeEmail(app, token, {
                 password: 1234,
               });
               expect(body.errors).toEqual({
-                password: FIELD_NOT_A_STRING,
+                password: FIELD_SHOULD_BE_A_STRING,
               });
               expect(status).toBe(400);
             });
@@ -111,11 +116,11 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postUpdateEmail(app, token, {
+              } = await postUsersMeEmail(app, token, {
                 password: '',
               });
               expect(body.errors).toEqual({
-                password: FIELD_IS_EMPTY,
+                password: FIELD_CANNOT_BE_EMPTY,
               });
               expect(status).toBe(400);
             });
@@ -123,7 +128,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postUpdateEmail(app, token, {
+              } = await postUsersMeEmail(app, token, {
                 password: 'wrong password',
               });
               expect(body.errors).toEqual({

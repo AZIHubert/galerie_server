@@ -1,3 +1,5 @@
+// POST /users/login/
+
 import { compare } from 'bcrypt';
 import {
   Request,
@@ -9,10 +11,10 @@ import { User } from '@src/db/models';
 
 import checkBlackList from '@src/helpers/checkBlackList';
 import {
-  NOT_CONFIRMED,
-  USER_IS_BLACK_LISTED,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
   WRONG_PASSWORD,
+  USER_SHOULD_BE_CONFIRED,
+  USER_SHOULD_NOT_BE_BLACK_LISTED,
 } from '@src/helpers/errorMessages';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import setRefreshToken from '@src/helpers/setRefreshToken';
@@ -72,7 +74,7 @@ export default async (req: Request, res: Response) => {
   if (!user) {
     return res.status(404).send({
       errors: {
-        userNameOrEmail: USER_NOT_FOUND,
+        userNameOrEmail: MODEL_NOT_FOUND('user'),
       },
     });
   }
@@ -81,7 +83,7 @@ export default async (req: Request, res: Response) => {
   // it cannot logged in.
   if (!user.confirmed) {
     return res.status(401).send({
-      errors: NOT_CONFIRMED,
+      errors: USER_SHOULD_BE_CONFIRED,
     });
   }
 
@@ -93,7 +95,7 @@ export default async (req: Request, res: Response) => {
   }
   if (userIsBlackListed) {
     return res.status(400).send({
-      errors: USER_IS_BLACK_LISTED,
+      errors: USER_SHOULD_NOT_BE_BLACK_LISTED,
     });
   }
 

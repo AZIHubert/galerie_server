@@ -1,8 +1,6 @@
 import Joi from 'joi';
 
-import {
-  FIELD_NOT_A_NUMBER,
-} from '@src/helpers/errorMessages';
+import { FIELD_SHOULD_BE_A_NUMBER } from '@src/helpers/errorMessages';
 
 import options from '../options';
 
@@ -14,7 +12,7 @@ const BlackListUserSchema = Joi.object({
     .min(MIN)
     .max(MAX)
     .messages({
-      'number.base': FIELD_NOT_A_NUMBER,
+      'number.base': FIELD_SHOULD_BE_A_NUMBER,
       'number.max': 'should be ban at most 1 year',
       'number.min': 'should be ban at least 10 minutes',
     }),

@@ -3,8 +3,8 @@ import { Request, Response } from 'express';
 import { User } from '@src/db/models';
 
 import {
-  ALREADY_CONFIRMED,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
+  USER_SHOULD_NOT_BE_CONFIRMED,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import { signAuthToken } from '@src/helpers/issueJWT';
@@ -34,7 +34,7 @@ export default async (req: Request, res: Response) => {
   }
   if (!user) {
     return res.status(404).send({
-      errors: USER_NOT_FOUND,
+      errors: MODEL_NOT_FOUND('user'),
     });
   }
   if (user.confirmTokenVersion !== verify.confirmTokenVersion) {
@@ -46,7 +46,7 @@ export default async (req: Request, res: Response) => {
   // Check if user is not already confirmed.
   if (user.confirmed) {
     return res.status(401).send({
-      errors: ALREADY_CONFIRMED,
+      errors: USER_SHOULD_NOT_BE_CONFIRMED,
     });
   }
 

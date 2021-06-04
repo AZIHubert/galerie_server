@@ -11,7 +11,7 @@ import {
 import checkBlackList from '@src/helpers/checkBlackList';
 import {
   INVALID_UUID,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import {
   blackListExcluder,
@@ -20,7 +20,7 @@ import {
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 import {
   normalizeJoiErrors,
-  validatePostUsersBlacklistIdBody,
+  validatePostBlackListsUserIdBody,
 } from '@src/helpers/schemas';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
@@ -68,7 +68,7 @@ export default async (req: Request, res: Response) => {
   // Check if user exist.
   if (!user) {
     return res.status(404).send({
-      errors: USER_NOT_FOUND,
+      errors: MODEL_NOT_FOUND('user'),
     });
   }
 
@@ -100,7 +100,7 @@ export default async (req: Request, res: Response) => {
   const {
     error,
     value,
-  } = validatePostUsersBlacklistIdBody(req.body);
+  } = validatePostBlackListsUserIdBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

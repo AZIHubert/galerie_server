@@ -14,7 +14,7 @@ import {
 import accEnv from '@src/helpers/accEnv';
 import checkExtension from '@src/helpers/checkExtension';
 import {
-  FILE_IS_IMAGE,
+  FILE_SHOULD_BE_AN_IMAGE,
   FILE_IS_REQUIRED,
 } from '@src/helpers/errorMessages';
 import {
@@ -46,7 +46,7 @@ export default async (req: Request, res: Response) => {
   const isImage = checkExtension(file);
   if (!isImage) {
     return res.status(400).send({
-      errors: FILE_IS_IMAGE,
+      errors: FILE_SHOULD_BE_AN_IMAGE,
     });
   }
   const { buffer } = file;

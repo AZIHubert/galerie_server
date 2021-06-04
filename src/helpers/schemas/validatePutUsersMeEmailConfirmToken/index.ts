@@ -1,10 +1,10 @@
 import Joi from 'joi';
 
 import {
-  FIELD_IS_EMAIL,
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_BE_AN_EMAIL,
   WRONG_TOKEN,
 } from '@src/helpers/errorMessages';
 
@@ -19,9 +19,9 @@ const userLogInSchema = Joi.object({
     .lowercase()
     .messages({
       'any.required': `${WRONG_TOKEN}: email ${FIELD_IS_REQUIRED}`,
-      'string.base': `${WRONG_TOKEN}: email ${FIELD_NOT_A_STRING}`,
-      'string.email': `${WRONG_TOKEN}: email ${FIELD_IS_EMAIL}`,
-      'string.empty': `${WRONG_TOKEN}: email ${FIELD_IS_EMPTY}`,
+      'string.base': `${WRONG_TOKEN}: email ${FIELD_SHOULD_BE_A_STRING}`,
+      'string.email': `${WRONG_TOKEN}: email ${FIELD_SHOULD_BE_AN_EMAIL}`,
+      'string.empty': `${WRONG_TOKEN}: email ${FIELD_CANNOT_BE_EMPTY}`,
     }),
 });
 

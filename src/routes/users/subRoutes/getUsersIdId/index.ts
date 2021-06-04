@@ -8,7 +8,7 @@ import { User } from '@src/db/models';
 import checkBlackList from '@src/helpers/checkBlackList';
 import {
   INVALID_UUID,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import { userExcluder } from '@src/helpers/excluders';
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
@@ -55,7 +55,7 @@ export default async (req: Request, res: Response) => {
   // Check if user exist.
   if (!user) {
     return res.status(404).send({
-      errors: USER_NOT_FOUND,
+      errors: MODEL_NOT_FOUND('user'),
     });
   }
 

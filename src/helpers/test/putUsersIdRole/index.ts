@@ -10,7 +10,7 @@ export default async (
   },
 ) => {
   const response = await request(app)
-    .put(`/users/role/${userId}`)
+    .put(`/users/${userId}/role/`)
     .set('authorization', token)
     .send(body);
   return response;

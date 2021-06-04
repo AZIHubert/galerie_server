@@ -8,18 +8,21 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
   getGaleriesIdInvitationsId,
-  login,
-  postGalerie,
+  postBlackListUserId,
+  postGaleries,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
-  postProfilePicture,
-  postBlackListUser,
+  postProfilePictures,
+  postUsersLogin,
   putGaleriesIdUsersId,
 } from '@src/helpers/test';
 
@@ -46,7 +49,12 @@ describe('/galeries', () => {
       user = await createUser({
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
       const {
         body: {
@@ -56,7 +64,7 @@ describe('/galeries', () => {
             },
           },
         },
-      } = await postGalerie(app, token, {
+      } = await postGaleries(app, token, {
         name: 'galerie\'s name',
       });
       galerieId = id;
@@ -135,7 +143,7 @@ describe('/galeries', () => {
             expect(status).toBe(200);
           });
           it('return user\'s profile picture', async () => {
-            await postProfilePicture(app, token);
+            await postProfilePictures(app, token);
             const {
               body: {
                 data: {
@@ -219,7 +227,12 @@ describe('/galeries', () => {
               body: {
                 token: tokenTwo,
               },
-            } = await login(app, userTwo.email, userPassword);
+            } = await postUsersLogin(app, {
+              body: {
+                password: userPassword,
+                userNameOrEmail: userTwo.email,
+              },
+            });
             const {
               body: {
                 data: {
@@ -240,7 +253,7 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
-            await postBlackListUser(app, token, userTwo.id, {
+            await postBlackListUserId(app, token, userTwo.id, {
               reason: 'black list reason',
             });
             const {
@@ -265,7 +278,12 @@ describe('/galeries', () => {
               body: {
                 token: tokenTwo,
               },
-            } = await login(app, userTwo.email, userPassword);
+            } = await postUsersLogin(app, {
+              body: {
+                password: userPassword,
+                userNameOrEmail: userTwo.email,
+              },
+            });
             const {
               body: {
                 data: {
@@ -309,7 +327,7 @@ describe('/galeries', () => {
               body,
               status,
             } = await getGaleriesIdInvitationsId(app, token, uuidv4(), uuidv4());
-            expect(body.errors).toBe('galerie not found');
+            expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
           it('galerie exist but user is not subscribe to it', async () => {
@@ -321,7 +339,12 @@ describe('/galeries', () => {
               body: {
                 token: tokenTwo,
               },
-            } = await login(app, userTwo.email, userPassword);
+            } = await postUsersLogin(app, {
+              body: {
+                password: userPassword,
+                userNameOrEmail: userTwo.email,
+              },
+            });
             const {
               body: {
                 data: {
@@ -330,14 +353,14 @@ describe('/galeries', () => {
                   },
                 },
               },
-            } = await postGalerie(app, tokenTwo, {
+            } = await postGaleries(app, tokenTwo, {
               name: 'galeries\'name',
             });
             const {
               body,
               status,
             } = await getGaleriesIdInvitationsId(app, token, id, uuidv4());
-            expect(body.errors).toBe('galerie not found');
+            expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
           it('invitation doesn\'t exist', async () => {
@@ -345,7 +368,7 @@ describe('/galeries', () => {
               body,
               status,
             } = await getGaleriesIdInvitationsId(app, token, galerieId, uuidv4());
-            expect(body.errors).toBe('invitation not found');
+            expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
             expect(status).toBe(404);
           });
           it('invitation exist but does not belong to galerie', async () => {
@@ -355,7 +378,7 @@ describe('/galeries', () => {
                   galerie,
                 },
               },
-            } = await postGalerie(app, token, {
+            } = await postGaleries(app, token, {
               name: 'galerie\'s name',
             });
             const {
@@ -369,7 +392,7 @@ describe('/galeries', () => {
               body,
               status,
             } = await getGaleriesIdInvitationsId(app, token, galerieId, invitation.id);
-            expect(body.errors).toBe('invitation not found');
+            expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
             expect(status).toBe(404);
           });
         });

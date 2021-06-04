@@ -3,12 +3,17 @@ import request from 'supertest';
 
 export default async (
   app: Server,
-  token: string,
-  galerieId: string,
+  option: {
+    body: {
+      password?: any;
+      userNameOrEmail?: any
+    }
+  } = {
+    body: {},
+  },
 ) => {
   const response = await request(app)
-    .post(`/galeries/${galerieId}/invitations`)
-    .set('authorization', token)
-    .send({});
+    .post('/users/login')
+    .send(option.body);
   return response;
 };

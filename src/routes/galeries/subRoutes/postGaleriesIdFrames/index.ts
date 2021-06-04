@@ -16,9 +16,10 @@ import {
 import accEnv from '@src/helpers/accEnv';
 import checkExtension from '@src/helpers/checkExtension';
 import {
-  FILE_IS_IMAGE,
+  FILE_SHOULD_BE_AN_IMAGE,
   FILES_ARE_REQUIRED,
   INVALID_UUID,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import {
   frameExcluder,
@@ -90,7 +91,7 @@ export default async (req: Request, res: Response) => {
   // Check if galerie exist.
   if (!galerie) {
     return res.status(404).send({
-      errors: 'galerie not found',
+      errors: MODEL_NOT_FOUND('galerie'),
     });
   }
 
@@ -112,7 +113,7 @@ export default async (req: Request, res: Response) => {
   convertToArray().forEach((file) => {
     const isImage = checkExtension(file);
     if (!isImage) {
-      errors = FILE_IS_IMAGE;
+      errors = FILE_SHOULD_BE_AN_IMAGE;
     }
   });
   if (errors) {

@@ -26,11 +26,11 @@ import {
   postUsersSignin,
 
   putUsersConfirmation,
+  putUsersIdRole,
   putUsersMeEmail,
   putUsersMePseudonym,
   putUsersMePassword,
   putUsersPassword,
-  putUsersRoleId,
 } from './subRoutes';
 
 const router = Router();
@@ -56,12 +56,12 @@ const usersRoutes: () => Router = () => {
   // POST /signin/beta/
   // same as Signin but with a beta key code required
 
+  router.put('/:userId/role/', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, putUsersIdRole);
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.put('/me/email/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMeEmail);
   router.put('/me/password/', passport.authenticate('jwt', { session: false }), shouldNotBeGoogleOrFacebookUser, putUsersMePassword);
   router.put('/me/pseudonym/', passport.authenticate('jwt', { session: false }), putUsersMePseudonym);
   router.put('/password/', shouldNotBeAuth, putUsersPassword);
-  router.put('/role/:userId/', passport.authenticate('jwt', { session: false }), shouldBeSuperAdmin, putUsersRoleId);
 
   return router;
 };

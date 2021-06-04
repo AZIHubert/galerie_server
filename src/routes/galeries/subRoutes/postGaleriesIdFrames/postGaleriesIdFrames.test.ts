@@ -13,23 +13,24 @@ import {
 
 import accEnv from '@src/helpers/accEnv';
 import {
-  FIELD_MAX_LENGTH_TWO_HUNDRER,
+  FIELD_MAX_LENGTH,
   FILES_ARE_REQUIRED,
-  FILE_IS_IMAGE,
+  FILE_SHOULD_BE_AN_IMAGE,
   INVALID_UUID,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  deleteUser,
-  login,
-  postGalerie,
+  deleteUsersMe,
+  postGaleries,
   postGaleriesIdFrames,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
-  postProfilePicture,
+  postProfilePictures,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -58,7 +59,12 @@ describe('/galeries', () => {
       user = await createUser({
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
       const {
         body: {
@@ -68,7 +74,7 @@ describe('/galeries', () => {
             },
           },
         },
-      } = await postGalerie(app, token, {
+      } = await postGaleries(app, token, {
         name: 'galerie\'s name',
       });
       galerieId = id;
@@ -565,7 +571,7 @@ describe('/galeries', () => {
             expect(createdPendingImageThird).not.toBeNull();
           });
           it('fetch the current profile picture', async () => {
-            await postProfilePicture(app, token);
+            await postProfilePictures(app, token);
             const {
               body: {
                 data: {
@@ -668,7 +674,7 @@ describe('/galeries', () => {
             } = await postGaleriesIdFrames(app, token, galerieId, {
               notAnImage: true,
             });
-            expect(body.errors).toBe(FILE_IS_IMAGE);
+            expect(body.errors).toBe(FILE_SHOULD_BE_AN_IMAGE);
             expect(status).toBe(400);
           });
           it('galerie is archived', async () => {
@@ -680,7 +686,12 @@ describe('/galeries', () => {
               body: {
                 token: tokenTwo,
               },
-            } = await login(app, userTwo.email, userPassword);
+            } = await postUsersLogin(app, {
+              body: {
+                password: userPassword,
+                userNameOrEmail: userTwo.email,
+              },
+            });
             const {
               body: {
                 data: {
@@ -691,7 +702,7 @@ describe('/galeries', () => {
               },
             } = await postGaleriesIdInvitations(app, token, galerieId, {});
             await postGaleriesSubscribe(app, tokenTwo, { code });
-            await deleteUser(app, token, {
+            await deleteUsersMe(app, token, {
               deleteAccountSentence: 'delete my account',
               password: userPassword,
               userNameOrEmail: user.email,
@@ -712,7 +723,7 @@ describe('/galeries', () => {
                 description: 'a'.repeat(201),
               });
               expect(body.errors).toEqual({
-                description: FIELD_MAX_LENGTH_TWO_HUNDRER,
+                description: FIELD_MAX_LENGTH(200),
               });
               expect(status).toBe(400);
             });
@@ -724,7 +735,7 @@ describe('/galeries', () => {
               body,
               status,
             } = await postGaleriesIdFrames(app, token, uuidv4());
-            expect(body.errors).toBe('galerie not found');
+            expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
           it('user not subscribe to requested galerie', async () => {
@@ -736,7 +747,12 @@ describe('/galeries', () => {
               body: {
                 token: tokenTwo,
               },
-            } = await login(app, userTwo.email, userPassword);
+            } = await postUsersLogin(app, {
+              body: {
+                password: userPassword,
+                userNameOrEmail: userTwo.email,
+              },
+            });
             const {
               body: {
                 data: {
@@ -745,14 +761,14 @@ describe('/galeries', () => {
                   },
                 },
               },
-            } = await postGalerie(app, tokenTwo, {
+            } = await postGaleries(app, tokenTwo, {
               name: 'galerie\'s name',
             });
             const {
               body,
               status,
             } = await postGaleriesIdFrames(app, token, id);
-            expect(body.errors).toBe('galerie not found');
+            expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
         });

@@ -6,15 +6,15 @@ import '@src/helpers/initEnv';
 import { User } from '@src/db/models';
 
 import {
-  FIELD_IS_EMPTY,
-  FIELD_NOT_A_STRING,
+  FIELD_CANNOT_BE_EMPTY,
+  FIELD_SHOULD_BE_A_STRING,
   FIELD_IS_REQUIRED,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
-  login,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -59,21 +59,23 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await login(
-            app,
-            user.email,
-            userPassword,
-          );
+          } = await postUsersLogin(app, {
+            body: {
+              password: userPassword,
+              userNameOrEmail: user.email,
+            },
+          });
           expect(body.expiresIn).toBe(1800);
           expect(body.token).not.toBeUndefined();
           expect(status).toBe(200);
         });
         it('trim request body.userNameOrEmail', async () => {
-          const { status } = await login(
-            app,
-            ` ${user.email} `,
-            userPassword,
-          );
+          const { status } = await postUsersLogin(app, {
+            body: {
+              password: userPassword,
+              userNameOrEmail: ` ${user.email} `,
+            },
+          });
           expect(status).toBe(200);
         });
       });
@@ -83,13 +85,14 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await login(
-              app,
-              '',
-              userPassword,
-            );
+            } = await postUsersLogin(app, {
+              body: {
+                password: userPassword,
+                userNameOrEmail: '',
+              },
+            });
             expect(body.errors).toEqual({
-              userNameOrEmail: FIELD_IS_EMPTY,
+              userNameOrEmail: FIELD_CANNOT_BE_EMPTY,
             });
             expect(status).toBe(400);
           });
@@ -97,13 +100,14 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await login(
-              app,
-              123,
-              userPassword,
-            );
+            } = await postUsersLogin(app, {
+              body: {
+                password: userPassword,
+                userNameOrEmail: 1234,
+              },
+            });
             expect(body.errors).toEqual({
-              userNameOrEmail: FIELD_NOT_A_STRING,
+              userNameOrEmail: FIELD_SHOULD_BE_A_STRING,
             });
             expect(status).toBe(400);
           });
@@ -112,11 +116,11 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await login(
-            app,
-            undefined,
-            userPassword,
-          );
+          } = await postUsersLogin(app, {
+            body: {
+              password: userPassword,
+            },
+          });
           expect(body.errors).toEqual({
             userNameOrEmail: FIELD_IS_REQUIRED,
           });
@@ -128,13 +132,14 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await login(
-            app,
-            user.email,
-            '',
-          );
+          } = await postUsersLogin(app, {
+            body: {
+              password: '',
+              userNameOrEmail: user.email,
+            },
+          });
           expect(body.errors).toEqual({
-            password: FIELD_IS_EMPTY,
+            password: FIELD_CANNOT_BE_EMPTY,
           });
           expect(status).toBe(400);
         });
@@ -142,13 +147,14 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await login(
-            app,
-            user.email,
-            123,
-          );
+          } = await postUsersLogin(app, {
+            body: {
+              password: 1234,
+              userNameOrEmail: user.email,
+            },
+          });
           expect(body.errors).toEqual({
-            password: FIELD_NOT_A_STRING,
+            password: FIELD_SHOULD_BE_A_STRING,
           });
           expect(status).toBe(400);
         });
@@ -156,10 +162,11 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await login(
-            app,
-            user.email,
-          );
+          } = await postUsersLogin(app, {
+            body: {
+              userNameOrEmail: user.email,
+            },
+          });
           expect(body.errors).toStrictEqual({
             password: FIELD_IS_REQUIRED,
           });
@@ -169,11 +176,12 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await login(
-            app,
-            user.email,
-            'wrong password',
-          );
+          } = await postUsersLogin(app, {
+            body: {
+              password: 'wrong password',
+              userNameOrEmail: user.email,
+            },
+          });
           expect(body.errors).toEqual({
             password: WRONG_PASSWORD,
           });

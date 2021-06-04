@@ -1,3 +1,5 @@
+// POST /users/login/socialMedia/
+
 import {
   Request,
   Response,
@@ -7,9 +9,7 @@ import { User } from '@src/db/models';
 
 import accEnv from '@src/helpers/accEnv';
 import checkBlackList from '@src/helpers/checkBlackList';
-import {
-  USER_IS_BLACK_LISTED,
-} from '@src/helpers/errorMessages';
+import { USER_SHOULD_NOT_BE_BLACK_LISTED } from '@src/helpers/errorMessages';
 import {
   signAuthToken,
 } from '@src/helpers/issueJWT';
@@ -158,7 +158,7 @@ export default async (req: Request, res: Response) => {
     }
     if (userIsBlackListed) {
       return res.status(400).send({
-        errors: USER_IS_BLACK_LISTED,
+        errors: USER_SHOULD_NOT_BE_BLACK_LISTED,
       });
     }
 

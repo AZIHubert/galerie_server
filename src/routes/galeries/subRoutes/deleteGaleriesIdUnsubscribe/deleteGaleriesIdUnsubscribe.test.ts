@@ -15,20 +15,23 @@ import {
 } from '@src/db/models';
 
 import accEnv from '@src/helpers/accEnv';
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
   deleteGaleriesUnsubscribe,
-  deleteUser,
-  login,
-  postGalerie,
+  deleteUsersMe,
+  postGaleries,
   postGaleriesIdFrames,
   postGaleriesIdFramesIdLikes,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -63,8 +66,18 @@ describe('/galeries', () => {
         userName: 'user2',
       });
 
-      const { body } = await login(app, user.email, userPassword);
-      const { body: bodyTwo } = await login(app, userTwo.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
+      const { body: bodyTwo } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: userTwo.email,
+        },
+      });
       token = body.token;
       tokenTwo = bodyTwo.token;
 
@@ -76,7 +89,7 @@ describe('/galeries', () => {
             },
           },
         },
-      } = await postGalerie(app, tokenTwo, {
+      } = await postGaleries(app, tokenTwo, {
         name: 'galerie\'s name',
       });
       galerieId = id;
@@ -195,7 +208,7 @@ describe('/galeries', () => {
           expect(like).toBeNull();
         });
         it('and delete galerie if they\'re no user left', async () => {
-          await deleteUser(app, tokenTwo, {
+          await deleteUsersMe(app, tokenTwo, {
             deleteAccountSentence: 'delete my account',
             password: userPassword,
             userNameOrEmail: userTwo.email,
@@ -253,7 +266,7 @@ describe('/galeries', () => {
             body,
             status,
           } = await deleteGaleriesUnsubscribe(app, tokenTwo, uuidv4());
-          expect(body.errors).toBe('galerie not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
           expect(status).toBe(404);
         });
         it('galerie exist but user is not subscribe to it', async () => {
@@ -263,14 +276,14 @@ describe('/galeries', () => {
                 galerie,
               },
             },
-          } = await postGalerie(app, tokenTwo, {
+          } = await postGaleries(app, tokenTwo, {
             name: 'galerie\'s name',
           });
           const {
             body,
             status,
           } = await deleteGaleriesUnsubscribe(app, token, galerie.id);
-          expect(body.errors).toBe('galerie not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
           expect(status).toBe(404);
         });
       });

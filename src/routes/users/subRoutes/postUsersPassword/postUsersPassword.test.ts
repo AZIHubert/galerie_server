@@ -1,4 +1,3 @@
-// import { hash } from 'bcrypt';
 import { Server } from 'http';
 import jwt from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
@@ -12,18 +11,18 @@ import {
 
 import * as email from '@src/helpers/email';
 import {
-  FIELD_NOT_A_STRING,
-  FIELD_IS_EMAIL,
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  NOT_CONFIRMED,
-  USER_IS_BLACK_LISTED,
-  USER_NOT_FOUND,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_BE_AN_EMAIL,
+  MODEL_NOT_FOUND,
+  USER_SHOULD_BE_CONFIRED,
+  USER_SHOULD_NOT_BE_BLACK_LISTED,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
-  postResetPassword,
+  postUsersPassword,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -69,7 +68,7 @@ describe('/users', () => {
         it('send an email with and sign a token', async () => {
           const {
             status,
-          } = await postResetPassword(app, {
+          } = await postUsersPassword(app, {
             email: user.email,
           });
           expect(status).toBe(204);
@@ -81,7 +80,7 @@ describe('/users', () => {
             .toHaveBeenCalledTimes(1);
         });
         it('increment resetPasswordTokenVersion', async () => {
-          await postResetPassword(app, {
+          await postUsersPassword(app, {
             email: user.email,
           });
           const { resetPasswordTokenVersion } = user;
@@ -90,14 +89,14 @@ describe('/users', () => {
             .toBe(resetPasswordTokenVersion + 1);
         });
         it('trim request.body.email', async () => {
-          await postResetPassword(app, {
+          await postUsersPassword(app, {
             email: ` ${user.email} `,
           });
           expect(emailMocked)
             .toBeCalledWith(user.email, expect.any(String));
         });
         it('should convert email to lowercase', async () => {
-          await postResetPassword(app, {
+          await postUsersPassword(app, {
             email: user.email.toUpperCase(),
           });
           expect(emailMocked)
@@ -109,7 +108,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postResetPassword(app, {});
+              } = await postUsersPassword(app, {});
               expect(body.errors).toEqual({
                 email: FIELD_IS_REQUIRED,
               });
@@ -119,11 +118,11 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postResetPassword(app, {
+              } = await postUsersPassword(app, {
                 email: '',
               });
               expect(body.errors).toEqual({
-                email: FIELD_IS_EMPTY,
+                email: FIELD_CANNOT_BE_EMPTY,
               });
               expect(status).toBe(400);
             });
@@ -131,11 +130,11 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postResetPassword(app, {
+              } = await postUsersPassword(app, {
                 email: 1234,
               });
               expect(body.errors).toEqual({
-                email: FIELD_NOT_A_STRING,
+                email: FIELD_SHOULD_BE_A_STRING,
               });
               expect(status).toBe(400);
             });
@@ -143,11 +142,11 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postResetPassword(app, {
+              } = await postUsersPassword(app, {
                 email: 'notAnEmail',
               });
               expect(body.errors).toEqual({
-                email: FIELD_IS_EMAIL,
+                email: FIELD_SHOULD_BE_AN_EMAIL,
               });
               expect(status).toBe(400);
             });
@@ -163,10 +162,10 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postResetPassword(app, {
+            } = await postUsersPassword(app, {
               email: notConfirmedUserEmail,
             });
-            expect(body.errors).toBe(NOT_CONFIRMED);
+            expect(body.errors).toBe(USER_SHOULD_BE_CONFIRED);
             expect(status).toBe(401);
           });
           it('user is black listed', async () => {
@@ -185,10 +184,10 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postResetPassword(app, {
+            } = await postUsersPassword(app, {
               email: blackListedUserEmail,
             });
-            expect(body.errors).toBe(USER_IS_BLACK_LISTED);
+            expect(body.errors).toBe(USER_SHOULD_NOT_BE_BLACK_LISTED);
             expect(status).toBe(401);
           });
         });
@@ -197,11 +196,11 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postResetPassword(app, {
+            } = await postUsersPassword(app, {
               email: 'user2@email.com',
             });
             expect(body.errors).toEqual({
-              email: USER_NOT_FOUND,
+              email: MODEL_NOT_FOUND('user'),
             });
             expect(status).toBe(404);
           });
@@ -214,11 +213,11 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postResetPassword(app, {
+            } = await postUsersPassword(app, {
               email: facebookUserEmail,
             });
             expect(body.errors).toEqual({
-              email: USER_NOT_FOUND,
+              email: MODEL_NOT_FOUND('user'),
             });
             expect(status).toBe(404);
           });
@@ -231,11 +230,11 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postResetPassword(app, {
+            } = await postUsersPassword(app, {
               email: googleUserEmail,
             });
             expect(body.errors).toEqual({
-              email: USER_NOT_FOUND,
+              email: MODEL_NOT_FOUND('user'),
             });
             expect(status).toBe(404);
           });

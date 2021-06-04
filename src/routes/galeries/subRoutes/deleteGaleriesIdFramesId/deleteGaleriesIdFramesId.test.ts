@@ -13,19 +13,22 @@ import {
 } from '@src/db/models';
 
 import accEnv from '@src/helpers/accEnv';
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  deleteGaleriesIdFrameId,
-  login,
-  postGalerie,
+  deleteGaleriesIdFramesId,
+  postGaleries,
   postGaleriesIdFrames,
   postGaleriesIdFramesIdLikes,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
+  postUsersLogin,
   putGaleriesIdUsersId,
 } from '@src/helpers/test';
 
@@ -53,7 +56,12 @@ describe('/galeries', () => {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
       const {
         body: {
@@ -61,7 +69,7 @@ describe('/galeries', () => {
             galerie,
           },
         },
-      } = await postGalerie(app, token, {
+      } = await postGaleries(app, token, {
         name: 'galerie\'s name',
       });
       galerieId = galerie.id;
@@ -104,7 +112,7 @@ describe('/galeries', () => {
                   data,
                 },
                 status,
-              } = await deleteGaleriesIdFrameId(app, token, galerieId, frameId);
+              } = await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
               const [bucketCropedImages] = await gc
                 .bucket(GALERIES_BUCKET_PP_CROP)
                 .getFiles();
@@ -143,7 +151,7 @@ describe('/galeries', () => {
                 },
               } = await postGaleriesIdFrames(app, token, galerieId);
               await postGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-              await deleteGaleriesIdFrameId(app, token, galerieId, frameId);
+              await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
               const like = await Like.findOne({
                 where: {
                   frameId,
@@ -160,7 +168,12 @@ describe('/galeries', () => {
                 body: {
                   token: tokenTwo,
                 },
-              } = await login(app, userTwo.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userTwo.email,
+                },
+              });
               const {
                 body: {
                   data: {
@@ -180,7 +193,7 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleriesIdFrames(app, tokenTwo, galerieId);
-              await deleteGaleriesIdFrameId(app, token, galerieId, frameId);
+              await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
               const frame = await Frame.findByPk(galerieId);
               expect(frame).toBeNull();
             });
@@ -197,12 +210,22 @@ describe('/galeries', () => {
                 body: {
                   token: tokenTwo,
                 },
-              } = await login(app, userTwo.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userTwo.email,
+                },
+              });
               const {
                 body: {
                   token: tokenThree,
                 },
-              } = await login(app, userThree.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userThree.email,
+                },
+              });
               const {
                 body: {
                   data: {
@@ -224,7 +247,7 @@ describe('/galeries', () => {
                 },
               } = await postGaleriesIdFrames(app, tokenTwo, galerieId);
               await putGaleriesIdUsersId(app, token, galerieId, userThree.id);
-              await deleteGaleriesIdFrameId(app, tokenThree, galerieId, frameId);
+              await deleteGaleriesIdFramesId(app, tokenThree, galerieId, frameId);
               const frame = await Frame.findByPk(galerieId);
               expect(frame).toBeNull();
             });
@@ -234,7 +257,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdFrameId(app, token, '100', uuidv4());
+              } = await deleteGaleriesIdFramesId(app, token, '100', uuidv4());
               expect(body.errors).toBe(INVALID_UUID('galerie'));
               expect(status).toBe(400);
             });
@@ -242,7 +265,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdFrameId(app, token, uuidv4(), '100');
+              } = await deleteGaleriesIdFramesId(app, token, uuidv4(), '100');
               expect(body.errors).toBe(INVALID_UUID('frame'));
               expect(status).toBe(400);
             });
@@ -259,12 +282,22 @@ describe('/galeries', () => {
                 body: {
                   token: tokenTwo,
                 },
-              } = await login(app, userTwo.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userTwo.email,
+                },
+              });
               const {
                 body: {
                   token: tokenThree,
                 },
-              } = await login(app, userThree.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userThree.email,
+                },
+              });
               const {
                 body: {
                   data: {
@@ -288,7 +321,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdFrameId(app, tokenThree, galerieId, frameId);
+              } = await deleteGaleriesIdFramesId(app, tokenThree, galerieId, frameId);
               expect(body.errors).toBe('your not allow to delete this frame');
               expect(status).toBe(400);
             });
@@ -298,16 +331,16 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdFrameId(app, token, uuidv4(), uuidv4());
-              expect(body.errors).toBe('galerie not found');
+              } = await deleteGaleriesIdFramesId(app, token, uuidv4(), uuidv4());
+              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
               expect(status).toBe(404);
             });
             it('frame not found', async () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdFrameId(app, token, galerieId, uuidv4());
-              expect(body.errors).toBe('frame not found');
+              } = await deleteGaleriesIdFramesId(app, token, galerieId, uuidv4());
+              expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
               expect(status).toBe(404);
             });
             it('galerie exist but user is not subscribe to it', async () => {
@@ -319,21 +352,26 @@ describe('/galeries', () => {
                 body: {
                   token: tokenTwo,
                 },
-              } = await login(app, userTwo.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userTwo.email,
+                },
+              });
               const {
                 body: {
                   data: {
                     galerie,
                   },
                 },
-              } = await postGalerie(app, tokenTwo, {
+              } = await postGaleries(app, tokenTwo, {
                 name: 'galerie\'s name',
               });
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdFrameId(app, token, galerie.id, uuidv4());
-              expect(body.errors).toBe('galerie not found');
+              } = await deleteGaleriesIdFramesId(app, token, galerie.id, uuidv4());
+              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
               expect(status).toBe(404);
             });
             it('frame exist but not belong to the galerie', async () => {
@@ -343,7 +381,7 @@ describe('/galeries', () => {
                     galerie,
                   },
                 },
-              } = await postGalerie(app, token, {
+              } = await postGaleries(app, token, {
                 name: 'galerie\'s name',
               });
               const {
@@ -356,8 +394,8 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdFrameId(app, token, galerieId, frame.id);
-              expect(body.errors).toBe('frame not found');
+              } = await deleteGaleriesIdFramesId(app, token, galerieId, frame.id);
+              expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
               expect(status).toBe(404);
             });
           });

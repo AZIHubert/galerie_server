@@ -1,3 +1,5 @@
+// GET /galeries/:galerieId/user/
+
 import {
   Request,
   Response,
@@ -10,7 +12,10 @@ import {
 } from '@src/db/models';
 
 import checkBlackList from '@src/helpers/checkBlackList';
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import { userExcluder } from '@src/helpers/excluders';
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
@@ -77,7 +82,7 @@ export default async (req: Request, res: Response) => {
   // Check if galerie exist.
   if (!galerie) {
     return res.status(404).send({
-      errors: 'galerie not found',
+      errors: MODEL_NOT_FOUND('galerie'),
     });
   }
 

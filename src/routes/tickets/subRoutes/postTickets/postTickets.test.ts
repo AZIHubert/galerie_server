@@ -9,19 +9,17 @@ import {
 } from '@src/db/models';
 
 import {
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH_THRITY,
-  FIELD_MAX_LENGTH_TWO_HUNDRER,
-  FIELD_MIN_LENGTH_OF_FIVE,
-  FIELD_MIN_LENGTH_OF_TEN,
-  FIELD_NOT_A_STRING,
+  FIELD_MAX_LENGTH,
+  FIELD_MIN_LENGTH,
+  FIELD_SHOULD_BE_A_STRING,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
-  login,
-  postTicket,
+  postTickets,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -43,7 +41,12 @@ describe('/tickets', () => {
     try {
       await sequelize.sync({ force: true });
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -72,7 +75,7 @@ describe('/tickets', () => {
             action,
           },
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body,
           header,
         });
@@ -87,7 +90,7 @@ describe('/tickets', () => {
       it('should trim request.body', async () => {
         const body = 'ticket body';
         const header = 'header body';
-        await postTicket(app, token, {
+        await postTickets(app, token, {
           body: ` ${body} `,
           header: ` ${header} `,
         });
@@ -103,7 +106,7 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           header: 'ticket header',
         });
         expect(body.errors).toEqual({
@@ -115,12 +118,12 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: '',
           header: 'ticket header',
         });
         expect(body.errors).toEqual({
-          body: FIELD_IS_EMPTY,
+          body: FIELD_CANNOT_BE_EMPTY,
         });
         expect(status).toBe(400);
       });
@@ -128,12 +131,12 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 1234,
           header: 'ticket header',
         });
         expect(body.errors).toEqual({
-          body: FIELD_NOT_A_STRING,
+          body: FIELD_SHOULD_BE_A_STRING,
         });
         expect(status).toBe(400);
       });
@@ -141,12 +144,12 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'a'.repeat(9),
           header: 'ticket header',
         });
         expect(body.errors).toEqual({
-          body: FIELD_MIN_LENGTH_OF_TEN,
+          body: FIELD_MIN_LENGTH(10),
         });
         expect(status).toBe(400);
       });
@@ -154,12 +157,12 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'a'.repeat(201),
           header: 'ticket header',
         });
         expect(body.errors).toEqual({
-          body: FIELD_MAX_LENGTH_TWO_HUNDRER,
+          body: FIELD_MAX_LENGTH(200),
         });
         expect(status).toBe(400);
       });
@@ -169,7 +172,7 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'ticket body',
         });
         expect(body.errors).toEqual({
@@ -181,12 +184,12 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'ticket body',
           header: '',
         });
         expect(body.errors).toEqual({
-          header: FIELD_IS_EMPTY,
+          header: FIELD_CANNOT_BE_EMPTY,
         });
         expect(status).toBe(400);
       });
@@ -194,12 +197,12 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'ticket body',
           header: 1234,
         });
         expect(body.errors).toEqual({
-          header: FIELD_NOT_A_STRING,
+          header: FIELD_SHOULD_BE_A_STRING,
         });
         expect(status).toBe(400);
       });
@@ -207,12 +210,12 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'ticket body',
           header: 'a'.repeat(4),
         });
         expect(body.errors).toEqual({
-          header: FIELD_MIN_LENGTH_OF_FIVE,
+          header: FIELD_MIN_LENGTH(5),
         });
         expect(status).toBe(400);
       });
@@ -220,12 +223,12 @@ describe('/tickets', () => {
         const {
           body,
           status,
-        } = await postTicket(app, token, {
+        } = await postTickets(app, token, {
           body: 'ticket body',
           header: 'a'.repeat(31),
         });
         expect(body.errors).toEqual({
-          header: FIELD_MAX_LENGTH_THRITY,
+          header: FIELD_MAX_LENGTH(30),
         });
         expect(status).toBe(400);
       });

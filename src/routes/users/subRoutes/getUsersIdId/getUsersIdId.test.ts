@@ -11,15 +11,15 @@ import {
 
 import {
   INVALID_UUID,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  getUserId,
-  login,
-  postProfilePicture,
+  getUsersIdId,
+  postProfilePictures,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -42,7 +42,12 @@ describe('/users', () => {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -84,7 +89,7 @@ describe('/users', () => {
               },
             },
             status,
-          } = await getUserId(app, token, id);
+          } = await getUsersIdId(app, token, id);
           expect(action).toBe('GET');
           expect(status).toBe(200);
           expect(returnedUser.authTokenVersion).toBeUndefined();
@@ -118,7 +123,12 @@ describe('/users', () => {
             body: {
               token: tokenTwo,
             },
-          } = await login(app, email, userPassword);
+          } = await postUsersLogin(app, {
+            body: {
+              password: userPassword,
+              userNameOrEmail: email,
+            },
+          });
           const {
             body: {
               data: {
@@ -127,7 +137,7 @@ describe('/users', () => {
                 },
               },
             },
-          } = await postProfilePicture(app, tokenTwo);
+          } = await postProfilePictures(app, tokenTwo);
           const {
             body: {
               data: {
@@ -136,7 +146,7 @@ describe('/users', () => {
                 },
               },
             },
-          } = await getUserId(app, token, id);
+          } = await getUsersIdId(app, token, id);
           expect(currentProfilePicture.createdAt).not.toBeUndefined();
           expect(currentProfilePicture.cropedImage.bucketName).toBeUndefined();
           expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
@@ -182,7 +192,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await getUserId(app, token, '100');
+          } = await getUsersIdId(app, token, '100');
           expect(body.errors).toEqual(INVALID_UUID('user'));
           expect(status).toBe(400);
         });
@@ -190,7 +200,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await getUserId(app, token, user.id);
+          } = await getUsersIdId(app, token, user.id);
           expect(body.errors).toEqual('params.id cannot be the same as your current one');
           expect(status).toBe(400);
         });
@@ -200,10 +210,10 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await getUserId(app, token, uuidv4());
+          } = await getUsersIdId(app, token, uuidv4());
           expect(status).toBe(404);
           expect(body).toEqual({
-            errors: USER_NOT_FOUND,
+            errors: MODEL_NOT_FOUND('user'),
           });
         });
         it('user is not confirmed', async () => {
@@ -217,10 +227,10 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await getUserId(app, token, id);
+          } = await getUsersIdId(app, token, id);
           expect(status).toBe(404);
           expect(body).toEqual({
-            errors: USER_NOT_FOUND,
+            errors: MODEL_NOT_FOUND('user'),
           });
         });
         it('user is black listed', async () => {
@@ -238,7 +248,7 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await getUserId(app, token, id);
+          } = await getUsersIdId(app, token, id);
           expect(status).toBe(404);
           expect(body).toEqual({
             errors: 'user is black listed',

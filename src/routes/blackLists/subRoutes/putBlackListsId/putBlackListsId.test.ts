@@ -10,15 +10,16 @@ import {
 } from '@src/db/models';
 
 import {
-  FIELD_NOT_A_NUMBER,
+  FIELD_SHOULD_BE_A_NUMBER,
   INVALID_UUID,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  login,
-  postBlackListUser,
+  postBlackListUserId,
+  postUsersLogin,
   putBlackListsId,
 } from '@src/helpers/test';
 
@@ -45,7 +46,12 @@ describe('/blackLists', () => {
         role: 'superAdmin',
       });
 
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -82,7 +88,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list reason',
           });
           const {
@@ -122,7 +128,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list reason',
             time: (1000 * 60 * 10),
           });
@@ -161,7 +167,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list reason',
             time,
           });
@@ -189,7 +195,7 @@ describe('/blackLists', () => {
                 },
               },
             },
-          } = await postBlackListUser(app, token, userTwo.id, {
+          } = await postBlackListUserId(app, token, userTwo.id, {
             reason: 'black list reason',
           });
           const {
@@ -214,7 +220,7 @@ describe('/blackLists', () => {
                     blackList,
                   },
                 },
-              } = await postBlackListUser(app, token, userTwo.id, {
+              } = await postBlackListUserId(app, token, userTwo.id, {
                 reason: 'black list reason',
               });
               blackListId = blackList.id;
@@ -234,7 +240,7 @@ describe('/blackLists', () => {
               },
             });
             expect(body.errors).toEqual({
-              time: FIELD_NOT_A_NUMBER,
+              time: FIELD_SHOULD_BE_A_NUMBER,
             });
             expect(status).toBe(400);
           });
@@ -274,7 +280,7 @@ describe('/blackLists', () => {
             body,
             status,
           } = await putBlackListsId(app, token, uuidv4());
-          expect(body.errors).toBe('black list not found');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('black list'));
           expect(status).toBe(404);
         });
       });

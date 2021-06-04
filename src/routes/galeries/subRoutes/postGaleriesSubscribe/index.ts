@@ -1,3 +1,5 @@
+// POST /galeries/subscribe/
+
 import {
   Request,
   Response,
@@ -10,6 +12,9 @@ import {
   User,
 } from '@src/db/models';
 
+import {
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import {
   normalizeJoiErrors,
   validatePostGaleriesSubscribeBody,
@@ -46,7 +51,7 @@ export default async (req: Request, res: Response) => {
   // Check if invitation exist.
   if (!invitation) {
     return res.status(404).send({
-      errors: 'invitation not found',
+      errors: MODEL_NOT_FOUND('invitation'),
     });
   }
 

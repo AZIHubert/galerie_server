@@ -8,7 +8,10 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import {
   blackListExcluder,
   userExcluder,
@@ -69,7 +72,7 @@ export default async (req: Request, res: Response) => {
   // Check if black list exist.
   if (!blackList) {
     return res.status(404).send({
-      errors: 'black list not found',
+      errors: MODEL_NOT_FOUND('black list'),
     });
   }
 
@@ -81,7 +84,7 @@ export default async (req: Request, res: Response) => {
       return res.status(500).send(err);
     }
     return res.status(404).send({
-      errors: 'black list not found',
+      errors: MODEL_NOT_FOUND('black list'),
     });
   }
 
@@ -99,7 +102,7 @@ export default async (req: Request, res: Response) => {
       return res.status(500).send(err);
     }
     return res.status(404).send({
-      errors: 'black list not found',
+      errors: MODEL_NOT_FOUND('black list'),
     });
   }
 

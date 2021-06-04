@@ -10,15 +10,18 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  login,
-  postGalerie,
+  postGaleries,
   postGaleriesIdFrames,
   postGaleriesIdFramesIdLikes,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -44,7 +47,12 @@ describe('/galerie', () => {
       user = await createUser({
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
       const {
         body: {
@@ -54,7 +62,7 @@ describe('/galerie', () => {
             },
           },
         },
-      } = await postGalerie(app, token, {
+      } = await postGaleries(app, token, {
         name: 'galerie\'s name',
       });
       galerieId = id;
@@ -193,7 +201,7 @@ describe('/galerie', () => {
                   body,
                   status,
                 } = await postGaleriesIdFramesIdLikes(app, token, uuidv4(), uuidv4());
-                expect(body.errors).toBe('galerie not found');
+                expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
                 expect(status).toBe(404);
               });
               it('galerie exist by current user is not subscribe to it', async () => {
@@ -205,21 +213,26 @@ describe('/galerie', () => {
                   body: {
                     token: tokenTwo,
                   },
-                } = await login(app, userTwo.email, userPassword);
+                } = await postUsersLogin(app, {
+                  body: {
+                    password: userPassword,
+                    userNameOrEmail: userTwo.email,
+                  },
+                });
                 const {
                   body: {
                     data: {
                       galerie,
                     },
                   },
-                } = await postGalerie(app, tokenTwo, {
+                } = await postGaleries(app, tokenTwo, {
                   name: 'galerie\'s name',
                 });
                 const {
                   body,
                   status,
                 } = await postGaleriesIdFramesIdLikes(app, token, galerie.id, uuidv4());
-                expect(body.errors).toBe('galerie not found');
+                expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
                 expect(status).toBe(404);
               });
               it('frame not found', async () => {
@@ -227,7 +240,7 @@ describe('/galerie', () => {
                   body,
                   status,
                 } = await postGaleriesIdFramesIdLikes(app, token, galerieId, uuidv4());
-                expect(body.errors).toBe('frame not found');
+                expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
                 expect(status).toBe(404);
               });
               it('frame exist but it not post on this galerie', async () => {
@@ -237,7 +250,7 @@ describe('/galerie', () => {
                       galerie,
                     },
                   },
-                } = await postGalerie(app, token, {
+                } = await postGaleries(app, token, {
                   name: 'galerie\'s name',
                 });
                 const {
@@ -251,7 +264,7 @@ describe('/galerie', () => {
                   body,
                   status,
                 } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
-                expect(body.errors).toBe('frame not found');
+                expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
                 expect(status).toBe(404);
               });
             });

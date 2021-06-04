@@ -8,10 +8,10 @@ import User from '@src/db/models/user';
 
 import * as email from '@src/helpers/email';
 import {
-  FIELD_IS_EMAIL,
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
+  FIELD_SHOULD_BE_AN_EMAIL,
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
+  FIELD_SHOULD_BE_A_STRING,
   TOKEN_NOT_FOUND,
   WRONG_PASSWORD,
   WRONG_TOKEN,
@@ -22,8 +22,8 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 import {
   createUser,
-  login,
-  postUpdateEmailConfirm,
+  postUsersMeEmailConfirm,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -47,7 +47,12 @@ describe('/users', () => {
     try {
       await sequelize.sync({ force: true });
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -80,7 +85,7 @@ describe('/users', () => {
                   emailTokenVersion: user.emailTokenVersion,
                   id: user.id,
                 }));
-              const { status } = await postUpdateEmailConfirm(
+              const { status } = await postUsersMeEmailConfirm(
                 app,
                 token,
                 'Bearer token',
@@ -104,7 +109,7 @@ describe('/users', () => {
                   emailTokenVersion: user.emailTokenVersion,
                   id: user.id,
                 }));
-              await postUpdateEmailConfirm(
+              await postUsersMeEmailConfirm(
                 app,
                 token,
                 'Bearer token',
@@ -131,7 +136,7 @@ describe('/users', () => {
                   id: user.id,
                   emailTokenVersion: user.emailTokenVersion,
                 }));
-              await postUpdateEmailConfirm(
+              await postUsersMeEmailConfirm(
                 app,
                 token,
                 'Bearer token',
@@ -160,7 +165,7 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUpdateEmailConfirm(
+                } = await postUsersMeEmailConfirm(
                   app,
                   token,
                   'Bearer token',
@@ -179,7 +184,7 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUpdateEmailConfirm(
+                } = await postUsersMeEmailConfirm(
                   app,
                   token,
                   'Bearer token',
@@ -189,7 +194,7 @@ describe('/users', () => {
                   },
                 );
                 expect(errors).toEqual({
-                  email: FIELD_IS_EMPTY,
+                  email: FIELD_CANNOT_BE_EMPTY,
                 });
                 expect(status).toBe(400);
               });
@@ -199,7 +204,7 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUpdateEmailConfirm(
+                } = await postUsersMeEmailConfirm(
                   app,
                   token,
                   'Bearer token',
@@ -209,7 +214,7 @@ describe('/users', () => {
                   },
                 );
                 expect(errors).toEqual({
-                  email: FIELD_NOT_A_STRING,
+                  email: FIELD_SHOULD_BE_A_STRING,
                 });
                 expect(status).toBe(400);
               });
@@ -219,7 +224,7 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUpdateEmailConfirm(
+                } = await postUsersMeEmailConfirm(
                   app,
                   token,
                   'Bearer token',
@@ -229,7 +234,7 @@ describe('/users', () => {
                   },
                 );
                 expect(errors).toEqual({
-                  email: FIELD_IS_EMAIL,
+                  email: FIELD_SHOULD_BE_AN_EMAIL,
                 });
                 expect(status).toBe(400);
               });
@@ -239,7 +244,7 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUpdateEmailConfirm(
+                } = await postUsersMeEmailConfirm(
                   app,
                   token,
                   'Bearer token',
@@ -261,7 +266,7 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUpdateEmailConfirm(
+                } = await postUsersMeEmailConfirm(
                   app,
                   token,
                   'Bearer token',
@@ -280,7 +285,7 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUpdateEmailConfirm(
+                } = await postUsersMeEmailConfirm(
                   app,
                   token,
                   'Bearer token',
@@ -304,7 +309,7 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUpdateEmailConfirm(
+                } = await postUsersMeEmailConfirm(
                   app,
                   token,
                   undefined,
@@ -322,7 +327,7 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUpdateEmailConfirm(
+                } = await postUsersMeEmailConfirm(
                   app,
                   token,
                   'confirmToken',
@@ -346,7 +351,7 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUpdateEmailConfirm(
+                } = await postUsersMeEmailConfirm(
                   app,
                   token,
                   'Bearer token',
@@ -370,7 +375,7 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUpdateEmailConfirm(
+                } = await postUsersMeEmailConfirm(
                   app,
                   token,
                   'Bearer token',

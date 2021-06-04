@@ -13,8 +13,8 @@ import {
   cleanGoogleBuckets,
   createUser,
   getUsers,
-  login,
-  postProfilePicture,
+  postProfilePictures,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -37,7 +37,12 @@ describe('/users', () => {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -181,7 +186,12 @@ describe('/users', () => {
             body: {
               token: tokenTwo,
             },
-          } = await login(app, email, userPassword);
+          } = await postUsersLogin(app, {
+            body: {
+              password: userPassword,
+              userNameOrEmail: email,
+            },
+          });
           const {
             body: {
               data: {
@@ -190,7 +200,7 @@ describe('/users', () => {
                 },
               },
             },
-          } = await postProfilePicture(app, tokenTwo);
+          } = await postProfilePictures(app, tokenTwo);
           const {
             body: {
               data: {

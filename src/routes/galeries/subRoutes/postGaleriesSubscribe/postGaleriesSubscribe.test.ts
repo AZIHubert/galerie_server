@@ -11,18 +11,19 @@ import {
 } from '@src/db/models';
 
 import {
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
+  FIELD_SHOULD_BE_A_STRING,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  login,
-  postGalerie,
+  postGaleries,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -52,11 +53,21 @@ describe('/galeries', () => {
         email: 'user2@email.com',
         userName: 'user2',
       });
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
       const {
         body: bodyTwo,
-      } = await login(app, userTwo.email, userPassword);
+      } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: userTwo.email,
+        },
+      });
       tokenTwo = bodyTwo.token;
       const {
         body: {
@@ -66,7 +77,7 @@ describe('/galeries', () => {
             },
           },
         },
-      } = await postGalerie(app, tokenTwo, {
+      } = await postGaleries(app, tokenTwo, {
         name: 'galerie\'s name',
       });
       galerieId = id;
@@ -278,7 +289,7 @@ describe('/galeries', () => {
             code: 1234,
           });
           expect(body.errors).toEqual({
-            code: FIELD_NOT_A_STRING,
+            code: FIELD_SHOULD_BE_A_STRING,
           });
           expect(status).toBe(400);
         });
@@ -290,7 +301,7 @@ describe('/galeries', () => {
             code: '',
           });
           expect(body.errors).toEqual({
-            code: FIELD_IS_EMPTY,
+            code: FIELD_CANNOT_BE_EMPTY,
           });
           expect(status).toBe(400);
         });
@@ -304,7 +315,7 @@ describe('/galeries', () => {
         } = await postGaleriesSubscribe(app, token, {
           code: 'wrong code',
         });
-        expect(body.errors).toBe('invitation not found');
+        expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
         expect(status).toBe(404);
       });
     });

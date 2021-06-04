@@ -1,15 +1,18 @@
 import Joi from 'joi';
 
 import {
-  FIELD_IS_CONFIRM_PASSWORD,
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_MAX_LENGTH_THRITY,
-  FIELD_MIN_LENGTH_OF_HEIGH,
-  FIELD_NOT_A_STRING,
+  FIELD_MAX_LENGTH,
+  FIELD_MIN_LENGTH,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_MATCH,
 } from '@src/helpers/errorMessages';
 
 import options from '../options';
+
+const PASSWORD_MAX_LENGTH = 30;
+const PASSWORD_MIN_LENGTH = 8;
 
 const modifyPasswordSchema = Joi.object({
   confirmPassword: Joi.string()
@@ -17,10 +20,10 @@ const modifyPasswordSchema = Joi.object({
     .empty()
     .valid(Joi.ref('password'))
     .messages({
-      'any.only': FIELD_IS_CONFIRM_PASSWORD,
+      'any.only': FIELD_SHOULD_MATCH('password'),
       'any.required': FIELD_IS_REQUIRED,
-      'string.base': FIELD_NOT_A_STRING,
-      'string.empty': FIELD_IS_EMPTY,
+      'string.base': FIELD_SHOULD_BE_A_STRING,
+      'string.empty': FIELD_CANNOT_BE_EMPTY,
     }),
   password: Joi.string()
     .required()
@@ -33,8 +36,8 @@ const modifyPasswordSchema = Joi.object({
       new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,30}$'),
       { name: 'passwordError' },
     )
-    .min(8)
-    .max(30)
+    .max(PASSWORD_MAX_LENGTH)
+    .min(PASSWORD_MIN_LENGTH)
     // Minimum 9 chars.
     // Maximum 30 chars.
     // At least one uppercase letter.
@@ -43,10 +46,10 @@ const modifyPasswordSchema = Joi.object({
     // At least one special char.
     .messages({
       'any.required': FIELD_IS_REQUIRED,
-      'string.base': FIELD_NOT_A_STRING,
-      'string.empty': FIELD_IS_EMPTY,
-      'string.max': FIELD_MAX_LENGTH_THRITY,
-      'string.min': FIELD_MIN_LENGTH_OF_HEIGH,
+      'string.base': FIELD_SHOULD_BE_A_STRING,
+      'string.empty': FIELD_CANNOT_BE_EMPTY,
+      'string.max': FIELD_MAX_LENGTH(PASSWORD_MAX_LENGTH),
+      'string.min': FIELD_MIN_LENGTH(PASSWORD_MIN_LENGTH),
     }),
 });
 

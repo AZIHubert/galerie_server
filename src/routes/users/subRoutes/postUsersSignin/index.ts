@@ -7,9 +7,7 @@ import {
 import { User } from '@src/db/models';
 
 import accEnv from '@src/helpers/accEnv';
-import {
-  ALREADY_TAKEN,
-} from '@src/helpers/errorMessages';
+import { FIELD_IS_ALREADY_TAKEN } from '@src/helpers/errorMessages';
 import { userExcluder } from '@src/helpers/excluders';
 import saltRounds from '@src/helpers/saltRounds';
 import {
@@ -25,11 +23,11 @@ const normalizeSequelizeErrors = async (email: string, userName: string) => {
   const normalizeErrors: any = {};
   const emailAlreadyUse = await User.findOne({ where: { email } });
   if (emailAlreadyUse) {
-    normalizeErrors.email = ALREADY_TAKEN;
+    normalizeErrors.email = FIELD_IS_ALREADY_TAKEN;
   }
   const userNameAlreadyUse = await User.findOne({ where: { userName } });
   if (userNameAlreadyUse) {
-    normalizeErrors.userName = ALREADY_TAKEN;
+    normalizeErrors.userName = FIELD_IS_ALREADY_TAKEN;
   }
   return normalizeErrors;
 };

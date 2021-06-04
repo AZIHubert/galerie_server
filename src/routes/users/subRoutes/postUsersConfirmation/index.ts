@@ -6,8 +6,8 @@ import { User } from '@src/db/models';
 import accEnv from '@src/helpers/accEnv';
 import { sendConfirmAccount } from '@src/helpers/email';
 import {
-  ALREADY_CONFIRMED,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
+  USER_SHOULD_NOT_BE_CONFIRMED,
 } from '@src/helpers/errorMessages';
 import {
   normalizeJoiErrors,
@@ -46,7 +46,7 @@ export default async (req: Request, res: Response) => {
   if (!user) {
     return res.status(404).send({
       errors: {
-        email: USER_NOT_FOUND,
+        email: MODEL_NOT_FOUND('user'),
       },
     });
   }
@@ -54,7 +54,7 @@ export default async (req: Request, res: Response) => {
   // Check if user is not already confirmed.
   if (user.confirmed) {
     return res.status(400).send({
-      errors: ALREADY_CONFIRMED,
+      errors: USER_SHOULD_NOT_BE_CONFIRMED,
     });
   }
 

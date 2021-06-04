@@ -9,16 +9,19 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  getTicketId,
-  deleteUser,
-  postTicket,
-  postProfilePicture,
-  login,
+  getTicketsId,
+  deleteUsersMe,
+  postProfilePictures,
+  postTickets,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -47,8 +50,18 @@ describe('/tickets', () => {
         userName: 'user2',
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
-      const { body: adminLoginBody } = await login(app, admin.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
+      const { body: adminLoginBody } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: admin.email,
+        },
+      });
       token = body.token;
       adminToken = adminLoginBody.token;
     } catch (err) {
@@ -75,7 +88,7 @@ describe('/tickets', () => {
         it('return a ticket', async () => {
           const body = 'ticket\'s body';
           const header = 'ticket\'s header';
-          await postTicket(app, token, {
+          await postTickets(app, token, {
             body,
             header,
           });
@@ -88,7 +101,7 @@ describe('/tickets', () => {
               },
             },
             status,
-          } = await getTicketId(app, adminToken, ticket.id);
+          } = await getTicketsId(app, adminToken, ticket.id);
           expect(action).toBe('GET');
           expect(status).toBe(200);
           expect(returnedTicket.body).toBe(body);
@@ -118,7 +131,7 @@ describe('/tickets', () => {
           expect(returnedTicket.userId).toBeUndefined();
         });
         it('and return ticket with user\'s profile picture', async () => {
-          await postTicket(app, token, {
+          await postTickets(app, token, {
             body: 'ticket\'s body',
             header: 'ticket\'s header',
           });
@@ -128,7 +141,7 @@ describe('/tickets', () => {
                 profilePicture,
               },
             },
-          } = await postProfilePicture(app, token);
+          } = await postProfilePictures(app, token);
           const [ticket] = await Ticket.findAll();
           const {
             body: {
@@ -140,7 +153,7 @@ describe('/tickets', () => {
                 },
               },
             },
-          } = await getTicketId(app, adminToken, ticket.id);
+          } = await getTicketsId(app, adminToken, ticket.id);
           expect(currentProfilePicture.createdAt).not.toBeUndefined();
           expect(currentProfilePicture.cropedImage.bucketName).toBeUndefined();
           expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
@@ -181,11 +194,11 @@ describe('/tickets', () => {
           expect(currentProfilePicture.userId).toBeUndefined();
         });
         it('return ticket event if his user has deleted his account', async () => {
-          await postTicket(app, token, {
+          await postTickets(app, token, {
             body: 'ticket\'s body',
             header: 'ticket\'s header',
           });
-          await deleteUser(app, token, {
+          await deleteUsersMe(app, token, {
             deleteAccountSentence: 'delete my account',
             password: userPassword,
             userNameOrEmail: user.email,
@@ -197,7 +210,7 @@ describe('/tickets', () => {
                 ticket: returnedTicket,
               },
             },
-          } = await getTicketId(app, adminToken, ticket.id);
+          } = await getTicketsId(app, adminToken, ticket.id);
           expect(returnedTicket.user).toBeNull();
         });
       });
@@ -206,7 +219,7 @@ describe('/tickets', () => {
           const {
             body,
             status,
-          } = await getTicketId(app, adminToken, '100');
+          } = await getTicketsId(app, adminToken, '100');
           expect(body.errors).toBe(INVALID_UUID('ticket'));
           expect(status).toBe(400);
         });
@@ -216,8 +229,8 @@ describe('/tickets', () => {
           const {
             body,
             status,
-          } = await getTicketId(app, adminToken, uuidv4());
-          expect(body.errors).toBe('ticket not found');
+          } = await getTicketsId(app, adminToken, uuidv4());
+          expect(body.errors).toBe(MODEL_NOT_FOUND('ticket'));
           expect(status).toBe(404);
         });
       });

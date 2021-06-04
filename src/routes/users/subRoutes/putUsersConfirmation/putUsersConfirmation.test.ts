@@ -7,16 +7,16 @@ import '@src/helpers/initEnv';
 import { User } from '@src/db/models';
 
 import {
-  ALREADY_CONFIRMED,
   TOKEN_NOT_FOUND,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
+  USER_SHOULD_NOT_BE_CONFIRMED,
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
-  putConfirmation,
+  putUsersConfirmation,
 } from '@src/helpers/test';
 import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 
@@ -71,7 +71,7 @@ describe('/users', () => {
               token,
             },
             status,
-          } = await putConfirmation(app, 'Bearer token');
+          } = await putUsersConfirmation(app, 'Bearer token');
           expect(expiresIn).toBe(1800);
           expect(status).toBe(200);
           expect(typeof token).toBe('string');
@@ -83,7 +83,7 @@ describe('/users', () => {
               confirmTokenVersion: user.confirmTokenVersion,
               id: user.id,
             }));
-          await putConfirmation(app, 'Bearer token');
+          await putUsersConfirmation(app, 'Bearer token');
           const { confirmTokenVersion } = user;
           const { confirmed } = await user.reload();
           expect(confirmed).toBeTruthy();
@@ -108,8 +108,8 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putConfirmation(app, 'Bearer token');
-          expect(body.errors).toBe(ALREADY_CONFIRMED);
+          } = await putUsersConfirmation(app, 'Bearer token');
+          expect(body.errors).toBe(USER_SHOULD_NOT_BE_CONFIRMED);
           expect(status).toBe(401);
         });
         describe('confirmation token', () => {
@@ -117,7 +117,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putConfirmation(app);
+            } = await putUsersConfirmation(app);
             expect(body.errors).toBe(TOKEN_NOT_FOUND);
             expect(status).toBe(401);
           });
@@ -125,7 +125,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putConfirmation(app, 'token');
+            } = await putUsersConfirmation(app, 'token');
             expect(body.errors).toBe(WRONG_TOKEN);
             expect(status).toBe(401);
           });
@@ -139,7 +139,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putConfirmation(app, 'Bearer token');
+            } = await putUsersConfirmation(app, 'Bearer token');
             expect(body.errors).toBe(WRONG_TOKEN_VERSION);
             expect(status).toBe(401);
           });
@@ -156,8 +156,8 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putConfirmation(app, 'Bearer token');
-          expect(body.errors).toBe(USER_NOT_FOUND);
+          } = await putUsersConfirmation(app, 'Bearer token');
+          expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });
       });

@@ -6,10 +6,10 @@ import '@src/helpers/initEnv';
 import { User } from '@src/db/models';
 
 import {
-  FIELD_IS_EMAIL,
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_BE_AN_EMAIL,
   TOKEN_NOT_FOUND,
   WRONG_PASSWORD,
   WRONG_TOKEN,
@@ -20,8 +20,8 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 import {
   createUser,
-  login,
-  putUserEmail,
+  putUsersMeEmail,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -43,7 +43,12 @@ describe('/users', () => {
     try {
       await sequelize.sync({ force: true });
       user = await createUser({});
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -79,7 +84,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUserEmail(app, token, 'Bearer token', {
+            } = await putUsersMeEmail(app, token, 'Bearer token', {
               password: userPassword,
             });
             expect(body.expiresIn).toBe(1800);
@@ -94,7 +99,7 @@ describe('/users', () => {
                 updatedEmailTokenVersion: user.updatedEmailTokenVersion,
                 updatedEmail,
               }));
-            await putUserEmail(app, token, 'Bearer token', {
+            await putUsersMeEmail(app, token, 'Bearer token', {
               password: userPassword,
             });
             const {
@@ -113,7 +118,7 @@ describe('/users', () => {
                 updatedEmailTokenVersion: user.updatedEmailTokenVersion,
                 updatedEmail,
               }));
-            await putUserEmail(app, token, 'Bearer token', {
+            await putUsersMeEmail(app, token, 'Bearer token', {
               password: userPassword,
             });
             const { email } = await user.reload();
@@ -127,7 +132,7 @@ describe('/users', () => {
                 updatedEmailTokenVersion: user.updatedEmailTokenVersion,
                 updatedEmail: ` ${updatedEmail} `,
               }));
-            await putUserEmail(app, token, 'Bearer token', {
+            await putUsersMeEmail(app, token, 'Bearer token', {
               password: userPassword,
             });
             const { email } = await user.reload();
@@ -149,7 +154,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await putUserEmail(app, token, 'Bearer token', {});
+              } = await putUsersMeEmail(app, token, 'Bearer token', {});
               expect(body.errors).toEqual({
                 password: FIELD_IS_REQUIRED,
               });
@@ -159,11 +164,11 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await putUserEmail(app, token, 'Bearer token', {
+              } = await putUsersMeEmail(app, token, 'Bearer token', {
                 password: '',
               });
               expect(body.errors).toEqual({
-                password: FIELD_IS_EMPTY,
+                password: FIELD_CANNOT_BE_EMPTY,
               });
               expect(status).toBe(400);
             });
@@ -171,11 +176,11 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await putUserEmail(app, token, 'Bearer token', {
+              } = await putUsersMeEmail(app, token, 'Bearer token', {
                 password: 1234,
               });
               expect(body.errors).toEqual({
-                password: FIELD_NOT_A_STRING,
+                password: FIELD_SHOULD_BE_A_STRING,
               });
               expect(status).toBe(400);
             });
@@ -183,7 +188,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await putUserEmail(app, token, 'Bearer token', {
+              } = await putUsersMeEmail(app, token, 'Bearer token', {
                 password: 'wrong password',
               });
               expect(body.errors).toEqual({
@@ -199,7 +204,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await putUserEmail(app, token, undefined, {
+              } = await putUsersMeEmail(app, token, undefined, {
                 password: userPassword,
               });
               expect(body.errors).toBe(TOKEN_NOT_FOUND);
@@ -209,7 +214,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await putUserEmail(app, token, 'token', {
+              } = await putUsersMeEmail(app, token, 'token', {
                 password: userPassword,
               });
               expect(body.errors).toBe(WRONG_TOKEN);
@@ -226,7 +231,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await putUserEmail(app, token, 'Bearer token', {
+              } = await putUsersMeEmail(app, token, 'Bearer token', {
                 password: userPassword,
               });
               expect(body.errors).toBe(WRONG_TOKEN_VERSION);
@@ -243,7 +248,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await putUserEmail(app, token, 'Bearer token', {
+              } = await putUsersMeEmail(app, token, 'Bearer token', {
                 password: userPassword,
               });
               expect(body.errors).toBe(WRONG_TOKEN_USER_ID);
@@ -260,7 +265,7 @@ describe('/users', () => {
                 const {
                   body,
                   status,
-                } = await putUserEmail(app, token, 'Bearer token', {
+                } = await putUsersMeEmail(app, token, 'Bearer token', {
                   password: userPassword,
                 });
                 expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_IS_REQUIRED}`);
@@ -277,10 +282,10 @@ describe('/users', () => {
                 const {
                   body,
                   status,
-                } = await putUserEmail(app, token, 'Bearer token', {
+                } = await putUsersMeEmail(app, token, 'Bearer token', {
                   password: userPassword,
                 });
-                expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_IS_EMPTY}`);
+                expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_CANNOT_BE_EMPTY}`);
                 expect(status).toBe(401);
               });
               it('is not a string', async () => {
@@ -294,10 +299,10 @@ describe('/users', () => {
                 const {
                   body,
                   status,
-                } = await putUserEmail(app, token, 'Bearer token', {
+                } = await putUsersMeEmail(app, token, 'Bearer token', {
                   password: userPassword,
                 });
-                expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_NOT_A_STRING}`);
+                expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_SHOULD_BE_A_STRING}`);
                 expect(status).toBe(401);
               });
               it('is not an email', async () => {
@@ -311,10 +316,10 @@ describe('/users', () => {
                 const {
                   body,
                   status,
-                } = await putUserEmail(app, token, 'Bearer token', {
+                } = await putUsersMeEmail(app, token, 'Bearer token', {
                   password: userPassword,
                 });
-                expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_IS_EMAIL}`);
+                expect(body.errors).toBe(`${WRONG_TOKEN}: email ${FIELD_SHOULD_BE_AN_EMAIL}`);
                 expect(status).toBe(401);
               });
               it('is the same has the old one', async () => {
@@ -328,7 +333,7 @@ describe('/users', () => {
                 const {
                   body,
                   status,
-                } = await putUserEmail(app, token, 'Bearer token', {
+                } = await putUsersMeEmail(app, token, 'Bearer token', {
                   password: userPassword,
                 });
                 expect(body.errors).toBe(`${WRONG_TOKEN}: email should be different`);

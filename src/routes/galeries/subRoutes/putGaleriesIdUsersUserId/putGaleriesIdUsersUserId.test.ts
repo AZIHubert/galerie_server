@@ -6,15 +6,18 @@ import '@src/helpers/initEnv';
 
 import { User } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
   createUser,
-  login,
-  postGalerie,
+  postGaleries,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
+  postUsersLogin,
   putGaleriesIdUsersId,
 } from '@src/helpers/test';
 
@@ -41,7 +44,12 @@ describe('/galeries', () => {
       user = await createUser({
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
       const {
         body: {
@@ -51,7 +59,7 @@ describe('/galeries', () => {
             },
           },
         },
-      } = await postGalerie(app, token, {
+      } = await postGaleries(app, token, {
         name: 'galerie\'s name',
       });
       galerieId = id;
@@ -97,7 +105,12 @@ describe('/galeries', () => {
                 });
                 const {
                   body,
-                } = await login(app, userTwo.email, userPassword);
+                } = await postUsersLogin(app, {
+                  body: {
+                    password: userPassword,
+                    userNameOrEmail: userTwo.email,
+                  },
+                });
                 tokenTwo = body.token;
                 await postGaleriesSubscribe(app, tokenTwo, { code });
               } catch (err) {
@@ -178,7 +191,12 @@ describe('/galeries', () => {
                 body: {
                   token: tokenTwo,
                 },
-              } = await login(app, userTwo.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userTwo.email,
+                },
+              });
               await postGaleriesSubscribe(app, tokenTwo, { code });
               const {
                 body,
@@ -205,7 +223,12 @@ describe('/galeries', () => {
                 body: {
                   token: tokenTwo,
                 },
-              } = await login(app, userTwo.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userTwo.email,
+                },
+              });
               await postGaleriesSubscribe(app, tokenTwo, { code });
               await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               const {
@@ -237,12 +260,22 @@ describe('/galeries', () => {
                 body: {
                   token: tokenTwo,
                 },
-              } = await login(app, userTwo.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userTwo.email,
+                },
+              });
               const {
                 body: {
                   token: tokenThree,
                 },
-              } = await login(app, userThree.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userThree.email,
+                },
+              });
               await postGaleriesSubscribe(app, tokenTwo, { code });
               await postGaleriesSubscribe(app, tokenThree, { code });
               await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
@@ -261,7 +294,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await putGaleriesIdUsersId(app, token, uuidv4(), uuidv4());
-              expect(body.errors).toBe('galerie not found');
+              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
               expect(status).toBe(404);
             });
             it('galerie exist but current user is not subscribe to it', async () => {
@@ -273,21 +306,26 @@ describe('/galeries', () => {
                 body: {
                   token: tokenTwo,
                 },
-              } = await login(app, userTwo.email, userPassword);
+              } = await postUsersLogin(app, {
+                body: {
+                  password: userPassword,
+                  userNameOrEmail: userTwo.email,
+                },
+              });
               const {
                 body: {
                   data: {
                     galerie,
                   },
                 },
-              } = await postGalerie(app, tokenTwo, {
+              } = await postGaleries(app, tokenTwo, {
                 name: 'galerie\'s name',
               });
               const {
                 body,
                 status,
               } = await putGaleriesIdUsersId(app, token, galerie.id, uuidv4());
-              expect(body.errors).toBe('galerie not found');
+              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
               expect(status).toBe(404);
             });
             it('user not found', async () => {
@@ -295,7 +333,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await putGaleriesIdUsersId(app, token, galerieId, uuidv4());
-              expect(body.errors).toBe('user not found');
+              expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
               expect(status).toBe(404);
             });
             it('user exist but is not subscribe to this galerie', async () => {
@@ -307,7 +345,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
-              expect(body.errors).toBe('user not found');
+              expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
               expect(status).toBe(404);
             });
           });

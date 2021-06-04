@@ -8,13 +8,13 @@ import { User } from '@src/db/models';
 import {
   FIELD_IS_REQUIRED,
   INVALID_UUID,
-  USER_NOT_FOUND,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
-  login,
-  putUsersRoleId,
+  postUsersLogin,
+  putUsersIdRole,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -38,7 +38,12 @@ describe('/users', () => {
       user = await createUser({
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
       token = body.token;
     } catch (err) {
       done(err);
@@ -76,7 +81,7 @@ describe('/users', () => {
                 },
               },
               status,
-            } = await putUsersRoleId(app, token, userTwo.id, {
+            } = await putUsersIdRole(app, token, userTwo.id, {
               role,
             });
             await userTwo.reload();
@@ -92,7 +97,7 @@ describe('/users', () => {
               email: 'user2@email.com',
               userName: 'user2',
             });
-            await putUsersRoleId(app, token, userTwo.id, {
+            await putUsersIdRole(app, token, userTwo.id, {
               role,
             });
             await userTwo.reload();
@@ -105,7 +110,7 @@ describe('/users', () => {
               role: 'admin',
               userName: 'user2',
             });
-            await putUsersRoleId(app, token, userTwo.id, {
+            await putUsersIdRole(app, token, userTwo.id, {
               role,
             });
             await userTwo.reload();
@@ -117,7 +122,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersRoleId(app, token, '100', {});
+            } = await putUsersIdRole(app, token, '100', {});
             expect(body.errors).toBe(INVALID_UUID('user'));
             expect(status).toBe(400);
           });
@@ -125,7 +130,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersRoleId(app, token, user.id, {});
+            } = await putUsersIdRole(app, token, user.id, {});
             expect(body.errors).toBe('you can\'t modify your role yourself');
             expect(status).toBe(400);
           });
@@ -138,7 +143,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersRoleId(app, token, id, {
+            } = await putUsersIdRole(app, token, id, {
               role: 'user',
             });
             expect(body.errors).toBe('you can\'t modify the role of a super admin');
@@ -154,7 +159,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersRoleId(app, token, id, {
+            } = await putUsersIdRole(app, token, id, {
               role,
             });
             expect(body.errors).toBe(`user's role is already ${role}`);
@@ -169,7 +174,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await putUsersRoleId(app, token, id, {});
+              } = await putUsersIdRole(app, token, id, {});
               expect(body.errors).toEqual({
                 role: FIELD_IS_REQUIRED,
               });
@@ -183,7 +188,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await putUsersRoleId(app, token, id, {
+              } = await putUsersIdRole(app, token, id, {
                 role: 'wrongRole',
               });
               expect(body.errors).toEqual({
@@ -198,10 +203,10 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersRoleId(app, token, uuidv4(), {
+            } = await putUsersIdRole(app, token, uuidv4(), {
               role: 'superAdmin',
             });
-            expect(body.errors).toBe(USER_NOT_FOUND);
+            expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
             expect(status).toBe(404);
           });
           it('user :id is not confirmed', async () => {
@@ -213,10 +218,10 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersRoleId(app, token, id, {
+            } = await putUsersIdRole(app, token, id, {
               role: 'superAdmin',
             });
-            expect(body.errors).toBe(USER_NOT_FOUND);
+            expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
             expect(status).toBe(404);
           });
         });

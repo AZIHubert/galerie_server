@@ -1,9 +1,9 @@
 import Joi from 'joi';
 
 import {
-  FIELD_IS_EMPTY,
+  FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
-  FIELD_NOT_A_STRING,
+  FIELD_SHOULD_BE_A_STRING,
 } from '@src/helpers/errorMessages';
 
 import options from '../options';
@@ -15,16 +15,16 @@ const deleteGalerieIdSchema = Joi.object({
     .empty()
     .messages({
       'any.required': FIELD_IS_REQUIRED,
-      'string.base': FIELD_NOT_A_STRING,
-      'string.empty': FIELD_IS_EMPTY,
+      'string.base': FIELD_SHOULD_BE_A_STRING,
+      'string.empty': FIELD_CANNOT_BE_EMPTY,
     }),
   password: Joi.string()
     .required()
     .empty()
     .messages({
       'any.required': FIELD_IS_REQUIRED,
-      'string.base': FIELD_NOT_A_STRING,
-      'string.empty': FIELD_IS_EMPTY,
+      'string.base': FIELD_SHOULD_BE_A_STRING,
+      'string.empty': FIELD_CANNOT_BE_EMPTY,
     }),
 });
 

@@ -9,13 +9,16 @@ import {
   User,
 } from '@src/db/models';
 
-import { INVALID_UUID } from '@src/helpers/errorMessages';
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
-  deleteTicketId,
-  postTicket,
-  login,
+  deleteTicketsId,
+  postTickets,
+  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -43,8 +46,18 @@ describe('/tickets', () => {
         userName: 'user2',
         role: 'superAdmin',
       });
-      const { body } = await login(app, user.email, userPassword);
-      const { body: adminLoginBody } = await login(app, admin.email, userPassword);
+      const { body } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: user.email,
+        },
+      });
+      const { body: adminLoginBody } = await postUsersLogin(app, {
+        body: {
+          password: userPassword,
+          userNameOrEmail: admin.email,
+        },
+      });
       token = body.token;
       adminToken = adminLoginBody.token;
     } catch (err) {
@@ -68,7 +81,7 @@ describe('/tickets', () => {
     describe('DELETE', () => {
       describe('should return status 200 and', () => {
         it('delete ticket', async () => {
-          await postTicket(app, token, {
+          await postTickets(app, token, {
             body: 'ticket\'s body',
             header: 'ticket\'s header',
           });
@@ -81,7 +94,7 @@ describe('/tickets', () => {
               },
             },
             status,
-          } = await deleteTicketId(app, adminToken, ticket.id);
+          } = await deleteTicketsId(app, adminToken, ticket.id);
           expect(action).toBe('DELETE');
           expect(ticketId).toEqual(ticket.id);
           expect(status).toBe(200);
@@ -92,7 +105,7 @@ describe('/tickets', () => {
           const {
             body,
             status,
-          } = await deleteTicketId(app, adminToken, '100');
+          } = await deleteTicketsId(app, adminToken, '100');
           expect(body.errors).toBe(INVALID_UUID('ticket'));
           expect(status).toBe(400);
         });
@@ -102,8 +115,8 @@ describe('/tickets', () => {
           const {
             body,
             status,
-          } = await deleteTicketId(app, adminToken, uuidv4());
-          expect(body.errors).toBe('ticket not found');
+          } = await deleteTicketsId(app, adminToken, uuidv4());
+          expect(body.errors).toBe(MODEL_NOT_FOUND('ticket'));
           expect(status).toBe(404);
         });
       });
