@@ -53,7 +53,7 @@ export default async (req: Request, res: Response) => {
   }
 
   // TODO:
-  // check if id is a uuid.
+  // check if id is a uuidv4.
 
   // Fetch user corresponding to decrypted token.id.
   try {

@@ -31,7 +31,3 @@ const profilePicturesRoutes: () => Router = () => {
   return router;
 };
 export default profilePicturesRoutes;
-
-// TODO:
-// update validators name validatePostUsersBlackLists... -> validatePostBlackLists...
-// update check black list time
