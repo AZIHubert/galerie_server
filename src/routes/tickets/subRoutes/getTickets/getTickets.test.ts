@@ -216,9 +216,11 @@ describe('/tickets', () => {
           header: 'ticket\'s header',
         });
         await deleteUsersMe(app, token, {
-          deleteAccountSentence: 'delete my account',
-          password,
-          userNameOrEmail: user.email,
+          body: {
+            deleteAccountSentence: 'delete my account',
+            password,
+            userNameOrEmail: user.email,
+          },
         });
         const {
           body: {

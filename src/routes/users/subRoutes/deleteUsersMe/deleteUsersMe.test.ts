@@ -106,9 +106,11 @@ describe('/users', () => {
             body,
             status,
           } = await deleteUsersMe(app, token, {
-            deleteAccountSentence: 'delete my account',
-            password,
-            userNameOrEmail: user.email,
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
           });
           const users = await User.findAll();
           expect(body).toEqual({
@@ -121,9 +123,11 @@ describe('/users', () => {
         it('destroy all profile pictures profile picture\'s image and images from Google buckets', async () => {
           await postProfilePictures(app, token);
           await deleteUsersMe(app, token, {
-            deleteAccountSentence: 'delete my account',
-            password,
-            userNameOrEmail: user.email,
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
           });
           const [bucketCropedImages] = await gc
             .bucket(GALERIES_BUCKET_PP_CROP)
@@ -158,9 +162,11 @@ describe('/users', () => {
           await postGaleriesIdFrames(app, token, galerieId);
           await postGaleriesIdInvitations(app, token, galerieId, {});
           await deleteUsersMe(app, token, {
-            deleteAccountSentence: 'delete my account',
-            password,
-            userNameOrEmail: user.email,
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
           });
           const [bucketCropedImages] = await gc
             .bucket(GALERIES_BUCKET_PP_CROP)
@@ -210,9 +216,11 @@ describe('/users', () => {
           });
           await postProfilePictures(app, tokenTwo);
           await deleteUsersMe(app, token, {
-            deleteAccountSentence: 'delete my account',
-            password,
-            userNameOrEmail: user.email,
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
           });
           const [bucketCropedImages] = await gc
             .bucket(GALERIES_BUCKET_PP_CROP)
@@ -254,9 +262,11 @@ describe('/users', () => {
             userId: userTwo.id,
           });
           await deleteUsersMe(app, token, {
-            deleteAccountSentence: 'delete my account',
-            password,
-            userNameOrEmail: user.email,
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
           });
           const galerie = await Galerie.findByPk(galerieId) as Galerie;
           const galerieUsers = await GalerieUser.findAll();
@@ -300,9 +310,11 @@ describe('/users', () => {
           });
           await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
           await deleteUsersMe(app, token, {
-            deleteAccountSentence: 'delete my account',
-            password,
-            userNameOrEmail: user.email,
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
           });
           const invitations = await Invitation.findAll();
           expect(invitations.length).toEqual(0);
@@ -312,8 +324,10 @@ describe('/users', () => {
         describe('deleteAccountSentence', () => {
           it('is not send', async () => {
             const { body, status } = await deleteUsersMe(app, token, {
-              password,
-              userNameOrEmail: user.email,
+              body: {
+                password,
+                userNameOrEmail: user.email,
+              },
             });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -324,9 +338,11 @@ describe('/users', () => {
           });
           it('is not a string', async () => {
             const { body, status } = await deleteUsersMe(app, token, {
-              deleteAccountSentence: 1234,
-              password,
-              userNameOrEmail: user.email,
+              body: {
+                deleteAccountSentence: 1234,
+                password,
+                userNameOrEmail: user.email,
+              },
             });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -337,9 +353,11 @@ describe('/users', () => {
           });
           it('is an empty string', async () => {
             const { body, status } = await deleteUsersMe(app, token, {
-              deleteAccountSentence: '',
-              password,
-              userNameOrEmail: user.email,
+              body: {
+                deleteAccountSentence: '',
+                password,
+                userNameOrEmail: user.email,
+              },
             });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -350,9 +368,11 @@ describe('/users', () => {
           });
           it('not match', async () => {
             const { body, status } = await deleteUsersMe(app, token, {
-              deleteAccountSentence: 'wrong sentence',
-              password,
-              userNameOrEmail: user.email,
+              body: {
+                deleteAccountSentence: 'wrong sentence',
+                password,
+                userNameOrEmail: user.email,
+              },
             });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -366,8 +386,10 @@ describe('/users', () => {
         describe('password', () => {
           it('is not send', async () => {
             const { body, status } = await deleteUsersMe(app, token, {
-              deleteAccountSentence: 'delete my account',
-              userNameOrEmail: user.email,
+              body: {
+                deleteAccountSentence: 'delete my account',
+                userNameOrEmail: user.email,
+              },
             });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -378,9 +400,11 @@ describe('/users', () => {
           });
           it('is not a string', async () => {
             const { body, status } = await deleteUsersMe(app, token, {
-              deleteAccountSentence: 'delete my account',
-              password: 1234,
-              userNameOrEmail: user.email,
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password: 1234,
+                userNameOrEmail: user.email,
+              },
             });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -391,9 +415,11 @@ describe('/users', () => {
           });
           it('is an empty string', async () => {
             const { body, status } = await deleteUsersMe(app, token, {
-              deleteAccountSentence: 'delete my account',
-              password: '',
-              userNameOrEmail: user.email,
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password: '',
+                userNameOrEmail: user.email,
+              },
             });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -404,9 +430,11 @@ describe('/users', () => {
           });
           it('not match', async () => {
             const { body, status } = await deleteUsersMe(app, token, {
-              deleteAccountSentence: 'delete my account',
-              password: 'wrong password',
-              userNameOrEmail: user.email,
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password: 'wrong password',
+                userNameOrEmail: user.email,
+              },
             });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -420,8 +448,10 @@ describe('/users', () => {
         describe('userNameOrEmail', () => {
           it('is not send', async () => {
             const { body, status } = await deleteUsersMe(app, token, {
-              deleteAccountSentence: 'delete my account',
-              password,
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+              },
             });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -432,9 +462,11 @@ describe('/users', () => {
           });
           it('is not a string', async () => {
             const { body, status } = await deleteUsersMe(app, token, {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: 1234,
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: 1234,
+              },
             });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -445,9 +477,11 @@ describe('/users', () => {
           });
           it('is an empty string', async () => {
             const { body, status } = await deleteUsersMe(app, token, {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: '',
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: '',
+              },
             });
             expect(status).toBe(400);
             expect(body).toStrictEqual({
@@ -458,9 +492,11 @@ describe('/users', () => {
           });
           it('not match', async () => {
             const { body, status } = await deleteUsersMe(app, token, {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: 'wrong email',
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: 'wrong email',
+              },
             });
             expect(status).toBe(400);
             expect(body).toStrictEqual({

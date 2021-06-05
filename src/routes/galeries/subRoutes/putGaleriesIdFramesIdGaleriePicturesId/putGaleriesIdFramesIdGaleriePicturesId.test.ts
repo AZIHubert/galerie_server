@@ -330,9 +330,11 @@ describe('/galeries', () => {
                   } = await postGaleriesIdFrames(app, token, galerieId);
                   await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
                   await deleteUsersMe(app, token, {
-                    deleteAccountSentence: 'delete my account',
-                    password,
-                    userNameOrEmail: user.email,
+                    body: {
+                      deleteAccountSentence: 'delete my account',
+                      password,
+                      userNameOrEmail: user.email,
+                    },
                   });
                   const {
                     body,

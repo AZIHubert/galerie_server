@@ -355,9 +355,11 @@ describe('/blackLists', () => {
           reason: 'black list reason',
         });
         await deleteUsersMe(app, tokenTwo, {
-          deleteAccountSentence: 'delete my account',
-          password,
-          userNameOrEmail: userTwo.email,
+          body: {
+            deleteAccountSentence: 'delete my account',
+            password,
+            userNameOrEmail: userTwo.email,
+          },
         });
         const {
           body: {
@@ -523,9 +525,11 @@ describe('/blackLists', () => {
           },
         });
         await deleteUsersMe(app, tokenThree, {
-          deleteAccountSentence: 'delete my account',
-          password,
-          userNameOrEmail: userThree.email,
+          body: {
+            deleteAccountSentence: 'delete my account',
+            password,
+            userNameOrEmail: userThree.email,
+          },
         });
         const {
           body: {

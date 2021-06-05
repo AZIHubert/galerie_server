@@ -713,9 +713,11 @@ describe('/galeries', () => {
             } = await postGaleriesIdInvitations(app, token, galerieId, {});
             await postGaleriesSubscribe(app, tokenTwo, { code });
             await deleteUsersMe(app, token, {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: user.email,
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
             });
             const {
               body,

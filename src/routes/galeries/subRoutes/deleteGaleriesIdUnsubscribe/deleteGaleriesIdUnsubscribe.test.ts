@@ -219,9 +219,11 @@ describe('/galeries', () => {
         });
         it('and delete galerie if they\'re no user left', async () => {
           await deleteUsersMe(app, tokenTwo, {
-            deleteAccountSentence: 'delete my account',
-            password: passwordTwo,
-            userNameOrEmail: userTwo.email,
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password: passwordTwo,
+              userNameOrEmail: userTwo.email,
+            },
           });
           await postGaleriesIdFrames(app, token, galerieId);
           await deleteGaleriesUnsubscribe(app, token, galerieId);
