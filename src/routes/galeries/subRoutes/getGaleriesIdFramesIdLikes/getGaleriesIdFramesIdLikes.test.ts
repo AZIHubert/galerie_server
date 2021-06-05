@@ -303,9 +303,9 @@ describe('/galeries', () => {
                       users: secondPack,
                     },
                   },
-                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId, 1);
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId, { page: 2 });
                 expect(firstPack.length).toBe(20);
-                expect(secondPack.length).toBe(20);
+                expect(secondPack.length).toBe(1);
               });
             });
             describe('should return status 400 if', () => {

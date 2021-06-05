@@ -6,10 +6,14 @@ export default async (
   token: string,
   galerieId: string,
   frameId: string,
-  page = 1,
+  option: {
+    page: number;
+  } = {
+    page: 1,
+  },
 ) => {
   const response = await request(app)
-    .get(`/galeries/${galerieId}/frames/${frameId}/likes/?page=${page}`)
+    .get(`/galeries/${galerieId}/frames/${frameId}/likes/?page=${option.page}`)
     .set('authorization', token);
   return response;
 };
