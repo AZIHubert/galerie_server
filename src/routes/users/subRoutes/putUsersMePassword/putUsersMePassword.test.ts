@@ -43,7 +43,10 @@ describe('/users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({});
+      const { user: createdUser } = await createUser({});
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
           password: userPassword,

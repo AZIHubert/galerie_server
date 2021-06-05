@@ -40,9 +40,13 @@ describe('/users', () => {
     jest.clearAllMocks();
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({
+      const {
+        user: createdUser,
+      } = await createUser({
         confirmed: false,
       });
+
+      user = createdUser;
     } catch (err) {
       done(err);
     }
@@ -87,7 +91,11 @@ describe('/users', () => {
       });
       describe('should return status 400 if', () => {
         it('user is already confirmed', async () => {
-          const { email: userEmail } = await createUser({
+          const {
+            user: {
+              email: userEmail,
+            },
+          } = await createUser({
             userName: 'user2',
             email: 'user2@email.com',
           });

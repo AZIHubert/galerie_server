@@ -32,13 +32,19 @@ export default async ({
     role,
     userName: userName === undefined ? '@userName' : `@${userName}`,
   };
+  const userPassword = password === undefined ? 'Password0!' : password;
+
   const hashPassword = await hash(
-    password === undefined ? 'Password0!' : password,
+    userPassword,
     saltRounds,
   );
   const user = await User.create({
     ...newUser,
     password: hashPassword,
   });
-  return user;
+
+  return {
+    password: userPassword,
+    user,
+  };
 };

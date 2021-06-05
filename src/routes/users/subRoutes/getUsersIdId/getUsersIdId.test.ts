@@ -24,8 +24,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
@@ -41,10 +39,16 @@ describe('/users', () => {
     try {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
-      user = await createUser({});
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({});
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -72,11 +76,13 @@ describe('/users', () => {
       describe('shouls return status 200 and', () => {
         it('return user', async () => {
           const {
-            createdAt,
-            id,
-            pseudonym,
-            role,
-            userName,
+            user: {
+              createdAt,
+              id,
+              pseudonym,
+              role,
+              userName,
+            },
           } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
@@ -113,8 +119,11 @@ describe('/users', () => {
         });
         it('include current profile picture', async () => {
           const {
-            email,
-            id,
+            password,
+            user: {
+              email,
+              id,
+            },
           } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
@@ -125,7 +134,7 @@ describe('/users', () => {
             },
           } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password,
               userNameOrEmail: email,
             },
           });
@@ -218,7 +227,9 @@ describe('/users', () => {
         });
         it('user is not confirmed', async () => {
           const {
-            id,
+            user: {
+              id,
+            },
           } = await createUser({
             confirmed: false,
             email: 'user2@email.com',
@@ -235,7 +246,9 @@ describe('/users', () => {
         });
         it('user is black listed', async () => {
           const {
-            id,
+            user: {
+              id,
+            },
           } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',

@@ -28,8 +28,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/galeries', () => {
   let app: Server;
   let galerieId: string;
@@ -48,14 +46,24 @@ describe('/galeries', () => {
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
-      user = await createUser({});
-      userTwo = await createUser({
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({});
+      const {
+        password: passwordTwo,
+        user: createdUserTwo,
+      } = await createUser({
         email: 'user2@email.com',
         userName: 'user2',
       });
+
+      user = createdUser;
+      userTwo = createdUserTwo;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -64,7 +72,7 @@ describe('/galeries', () => {
         body: bodyTwo,
       } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password: passwordTwo,
           userNameOrEmail: userTwo.email,
         },
       });

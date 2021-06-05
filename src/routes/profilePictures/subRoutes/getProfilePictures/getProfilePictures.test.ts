@@ -20,8 +20,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 describe('/profilePictures', () => {
@@ -44,10 +42,16 @@ describe('/profilePictures', () => {
     try {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
-      user = await createUser({});
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({});
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });

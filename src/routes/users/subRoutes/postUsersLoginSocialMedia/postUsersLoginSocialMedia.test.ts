@@ -264,7 +264,11 @@ describe('/users', () => {
           });
           it('user exist and is black listed', async () => {
             const facebookId = '1';
-            const { id: adminId } = await createUser({
+            const {
+              user: {
+                id: adminId,
+              },
+            } = await createUser({
               role: 'admin',
             });
             await postUsersLoginSocialMedia(app, {

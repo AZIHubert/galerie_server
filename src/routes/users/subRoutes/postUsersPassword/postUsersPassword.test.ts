@@ -43,7 +43,9 @@ describe('/users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({});
+      const { user: createdUser } = await createUser({});
+
+      user = createdUser;
     } catch (err) {
       done(err);
     }
@@ -154,7 +156,11 @@ describe('/users', () => {
         });
         describe('should return status 401 if', () => {
           it('user is not confirmed', async () => {
-            const { email: notConfirmedUserEmail } = await createUser({
+            const {
+              user: {
+                email: notConfirmedUserEmail,
+              },
+            } = await createUser({
               email: 'user2@email.com',
               confirmed: false,
               userName: 'user2',
@@ -170,8 +176,10 @@ describe('/users', () => {
           });
           it('user is black listed', async () => {
             const {
-              email: blackListedUserEmail,
-              id,
+              user: {
+                email: blackListedUserEmail,
+                id,
+              },
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
@@ -205,7 +213,11 @@ describe('/users', () => {
             expect(status).toBe(404);
           });
           it('user is registered through Facebook', async () => {
-            const { email: facebookUserEmail } = await createUser({
+            const {
+              user: {
+                email: facebookUserEmail,
+              },
+            } = await createUser({
               email: 'user2@email.com',
               facebookId: '1',
               userName: 'user2',
@@ -222,7 +234,11 @@ describe('/users', () => {
             expect(status).toBe(404);
           });
           it('user is registered through Google', async () => {
-            const { email: googleUserEmail } = await createUser({
+            const {
+              user: {
+                email: googleUserEmail,
+              },
+            } = await createUser({
               email: 'user2@email.com',
               googleId: '1',
               userName: 'user2',

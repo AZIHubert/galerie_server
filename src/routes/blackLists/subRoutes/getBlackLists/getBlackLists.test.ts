@@ -22,10 +22,9 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/blackLists', () => {
   let app: Server;
+  let password: string;
   let sequelize: Sequelize;
   let token: string;
   let user: User;
@@ -39,13 +38,18 @@ describe('/blackLists', () => {
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
-      user = await createUser({
+      const {
+        password: createdPassword,
+        user: createdUser,
+      } = await createUser({
         role: 'superAdmin',
       });
+      password = createdPassword;
+      user = createdUser;
 
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -85,7 +89,7 @@ describe('/blackLists', () => {
         expect(status).toBe(200);
       });
       it('return one black list', async () => {
-        const userTwo = await createUser({
+        const { user: userTwo } = await createUser({
           email: 'user2@email.com',
           userName: 'user2',
         });
@@ -148,11 +152,11 @@ describe('/blackLists', () => {
         expect(blackLists[0].userId).toBeUndefined();
       });
       it('return two black lists', async () => {
-        const userTwo = await createUser({
+        const { user: userTwo } = await createUser({
           email: 'user2@email.com',
           userName: 'user2',
         });
-        const userThree = await createUser({
+        const { user: userThree } = await createUser({
           email: 'user3@email.com',
           userName: 'user3',
         });
@@ -176,7 +180,7 @@ describe('/blackLists', () => {
         const numOfBlackLists = Array(NUM).fill(0);
         await Promise.all(
           numOfBlackLists.map(async (_, index) => {
-            const newUser = await createUser({
+            const { user: newUser } = await createUser({
               email: `user${index + 2}@email.com`,
               userName: `user${index + 2}`,
             });
@@ -206,7 +210,10 @@ describe('/blackLists', () => {
         expect(secondPack.length).toBe(1);
       });
       it('include black listed user current profile picture', async () => {
-        const userTwo = await createUser({
+        const {
+          password: passwordTwo,
+          user: userTwo,
+        } = await createUser({
           email: 'user2@email.com',
           userName: 'user2',
         });
@@ -216,7 +223,7 @@ describe('/blackLists', () => {
           },
         } = await postUsersLogin(app, {
           body: {
-            password: userPassword,
+            password: passwordTwo,
             userNameOrEmail: userTwo.email,
           },
         });
@@ -269,7 +276,7 @@ describe('/blackLists', () => {
         expect(currentProfilePicture.userId).toBeUndefined();
       });
       it('include admin current profile picture', async () => {
-        const userTwo = await createUser({
+        const { user: userTwo } = await createUser({
           email: 'user2@email.com',
           userName: 'user2',
         });
@@ -322,12 +329,15 @@ describe('/blackLists', () => {
         expect(currentProfilePicture.userId).toBeUndefined();
       });
       it('should not include admin if he have deleted his account', async () => {
-        const userTwo = await createUser({
+        const {
+          password: passwordTwo,
+          user: userTwo,
+        } = await createUser({
           email: 'user2@email.com',
           role: 'admin',
           userName: 'user2',
         });
-        const userThree = await createUser({
+        const { user: userThree } = await createUser({
           email: 'user3@email.com',
           userName: 'user3',
         });
@@ -337,7 +347,7 @@ describe('/blackLists', () => {
           },
         } = await postUsersLogin(app, {
           body: {
-            password: userPassword,
+            password: passwordTwo,
             userNameOrEmail: userTwo.email,
           },
         });
@@ -346,7 +356,7 @@ describe('/blackLists', () => {
         });
         await deleteUsersMe(app, tokenTwo, {
           deleteAccountSentence: 'delete my account',
-          password: userPassword,
+          password,
           userNameOrEmail: userTwo.email,
         });
         const {
@@ -361,7 +371,7 @@ describe('/blackLists', () => {
         expect(admin).toBeNull();
       });
       it('include updatedBy', async () => {
-        const userTwo = await createUser({
+        const { user: userTwo } = await createUser({
           email: 'user2@email.com',
           userName: 'user2',
         });
@@ -411,7 +421,7 @@ describe('/blackLists', () => {
         expect(updatedBy.id).not.toBeUndefined();
       });
       it('include updatedBy current profile picture', async () => {
-        const userTwo = await createUser({
+        const { user: userTwo } = await createUser({
           email: 'user2@email.com',
           userName: 'user2',
         });
@@ -477,11 +487,11 @@ describe('/blackLists', () => {
         expect(currentProfilePicture.userId).toBeUndefined();
       });
       it('do not include updatedBy current profile picture if he had deleted his account', async () => {
-        const userTwo = await createUser({
+        const { user: userTwo } = await createUser({
           email: 'user2@email.com',
           userName: 'user2',
         });
-        const userThree = await createUser({
+        const { user: userThree } = await createUser({
           email: 'user3@email.com',
           role: 'superAdmin',
           userName: 'user3',
@@ -492,7 +502,7 @@ describe('/blackLists', () => {
           },
         } = await postUsersLogin(app, {
           body: {
-            password: userPassword,
+            password,
             userNameOrEmail: userThree.email,
           },
         });
@@ -514,7 +524,7 @@ describe('/blackLists', () => {
         });
         await deleteUsersMe(app, tokenThree, {
           deleteAccountSentence: 'delete my account',
-          password: userPassword,
+          password,
           userNameOrEmail: userThree.email,
         });
         const {

@@ -41,13 +41,13 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
 const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
 describe('/galeries', () => {
   let app: Server;
+  let password: string;
   let sequelize: Sequelize;
   let token: string;
   let user: User;
@@ -61,10 +61,17 @@ describe('/galeries', () => {
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
-      user = await createUser({});
+      const {
+        password: createdPassword,
+        user: createdUser,
+      } = await createUser({});
+
+      password = createdPassword;
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -120,7 +127,7 @@ describe('/galeries', () => {
             status,
           } = await deleteGaleriesId(app, token, galerieId, {
             name,
-            password: userPassword,
+            password,
           });
           const galerie = await Galerie.findByPk(galerieId);
           expect(action).toBe('DELETE');
@@ -142,7 +149,7 @@ describe('/galeries', () => {
           } = await postGaleriesIdFrames(app, token, galerieId);
           await deleteGaleriesId(app, token, galerieId, {
             name,
-            password: userPassword,
+            password,
           });
           const [bucketCropedImages] = await gc
             .bucket(GALERIES_BUCKET_PP_CROP)
@@ -175,7 +182,7 @@ describe('/galeries', () => {
           await postGaleriesIdInvitations(app, token, galerieId, {});
           await deleteGaleriesId(app, token, galerieId, {
             name,
-            password: userPassword,
+            password,
           });
           const invitations = await Invitation.findAll({
             where: {
@@ -195,13 +202,16 @@ describe('/galeries', () => {
           await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
           await deleteGaleriesId(app, token, galerieId, {
             name,
-            password: userPassword,
+            password,
           });
           const likes = await Like.findAll();
           expect(likes.length).toBe(0);
         });
         it('destroy GalerieUser models', async () => {
-          const userTwo = await createUser({
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
           });
@@ -211,7 +221,7 @@ describe('/galeries', () => {
             },
           } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password: passwordTwo,
               userNameOrEmail: userTwo.email,
             },
           });
@@ -227,7 +237,7 @@ describe('/galeries', () => {
           await postGaleriesSubscribe(app, tokenTwo, { code });
           await deleteGaleriesId(app, token, galerieId, {
             name,
-            password: userPassword,
+            password,
           });
           const galerieUsers = await GalerieUser.findAll();
           expect(galerieUsers.length).toBe(0);
@@ -253,7 +263,10 @@ describe('/galeries', () => {
           } = await postGaleries(app, token, {
             name,
           });
-          const userTwo = await createUser({
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
           });
@@ -263,7 +276,7 @@ describe('/galeries', () => {
             },
           } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password: passwordTwo,
               userNameOrEmail: userTwo.email,
             },
           });
@@ -282,7 +295,7 @@ describe('/galeries', () => {
             status,
           } = await deleteGaleriesId(app, tokenTwo, galerie.id, {
             name,
-            password: userPassword,
+            password: passwordTwo,
           });
           expect(body.errors).toBe('not allow to delete this galerie');
           expect(status).toBe(400);
@@ -298,7 +311,10 @@ describe('/galeries', () => {
           } = await postGaleries(app, token, {
             name,
           });
-          const userTwo = await createUser({
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
           });
@@ -308,7 +324,7 @@ describe('/galeries', () => {
             },
           } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password: passwordTwo,
               userNameOrEmail: userTwo.email,
             },
           });
@@ -328,7 +344,7 @@ describe('/galeries', () => {
             status,
           } = await deleteGaleriesId(app, tokenTwo, galerie.id, {
             name,
-            password: userPassword,
+            password: passwordTwo,
           });
           expect(body.errors).toBe('not allow to delete this galerie');
           expect(status).toBe(400);
@@ -359,9 +375,7 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await deleteGaleriesId(app, token, galerieId, {
-              password: userPassword,
-            });
+            } = await deleteGaleriesId(app, token, galerieId, { password });
             expect(body.errors).toEqual({
               name: FIELD_IS_REQUIRED,
             });
@@ -373,7 +387,7 @@ describe('/galeries', () => {
               status,
             } = await deleteGaleriesId(app, token, galerieId, {
               name: 1234,
-              password: userPassword,
+              password,
             });
             expect(body.errors).toEqual({
               name: FIELD_SHOULD_BE_A_STRING,
@@ -386,7 +400,7 @@ describe('/galeries', () => {
               status,
             } = await deleteGaleriesId(app, token, galerieId, {
               name: '',
-              password: userPassword,
+              password,
             });
             expect(body.errors).toEqual({
               name: FIELD_CANNOT_BE_EMPTY,
@@ -399,7 +413,7 @@ describe('/galeries', () => {
               status,
             } = await deleteGaleriesId(app, token, galerieId, {
               name: `wrong${name}`,
-              password: userPassword,
+              password,
             });
             expect(body.errors).toEqual({
               name: 'wrong galerie\'s name',
@@ -489,7 +503,7 @@ describe('/galeries', () => {
             status,
           } = await deleteGaleriesId(app, token, uuidv4(), {
             name: 'galerie\'s name',
-            password: userPassword,
+            password,
           });
           expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
           expect(status).toBe(404);

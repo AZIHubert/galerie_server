@@ -19,8 +19,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
@@ -35,12 +33,18 @@ describe('/users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({
         role: 'superAdmin',
       });
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -68,7 +72,7 @@ describe('/users', () => {
         describe('should return status 200 and', () => {
           it('set role to \'admin\'', async () => {
             const role = 'admin';
-            const userTwo = await createUser({
+            const { user: userTwo } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
@@ -93,7 +97,7 @@ describe('/users', () => {
           });
           it('set role to \'superAdmin\'', async () => {
             const role = 'superAdmin';
-            const userTwo = await createUser({
+            const { user: userTwo } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
@@ -105,7 +109,7 @@ describe('/users', () => {
           });
           it('set role to \'user\'', async () => {
             const role = 'user';
-            const userTwo = await createUser({
+            const { user: userTwo } = await createUser({
               email: 'user2@email.com',
               role: 'admin',
               userName: 'user2',
@@ -135,7 +139,11 @@ describe('/users', () => {
             expect(status).toBe(400);
           });
           it('user is already a superAdmin', async () => {
-            const { id } = await createUser({
+            const {
+              user: {
+                id,
+              },
+            } = await createUser({
               email: 'user2@email.com',
               role: 'superAdmin',
               userName: 'user2',
@@ -151,7 +159,11 @@ describe('/users', () => {
           });
           it('user.role === request.body.role', async () => {
             const role = 'user';
-            const { id } = await createUser({
+            const {
+              user: {
+                id,
+              },
+            } = await createUser({
               email: 'user2@email.com',
               role,
               userName: 'user2',
@@ -167,7 +179,11 @@ describe('/users', () => {
           });
           describe('role', () => {
             it('role is not set', async () => {
-              const { id } = await createUser({
+              const {
+                user: {
+                  id,
+                },
+              } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
@@ -181,7 +197,11 @@ describe('/users', () => {
               expect(status).toBe(400);
             });
             it('is admin/superAdmin/user', async () => {
-              const { id } = await createUser({
+              const {
+                user: {
+                  id,
+                },
+              } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
@@ -210,7 +230,11 @@ describe('/users', () => {
             expect(status).toBe(404);
           });
           it('user :id is not confirmed', async () => {
-            const { id } = await createUser({
+            const {
+              user: {
+                id,
+              },
+            } = await createUser({
               confirmed: false,
               email: 'user2@email.com',
               userName: 'user2',

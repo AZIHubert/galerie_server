@@ -24,10 +24,10 @@ import initApp from '@src/server';
 
 const emailMock = jest.spyOn(email, 'sendUpdateEmailMessage');
 const signMock = jest.spyOn(jwt, 'sign');
-const userPassword = 'Password0!';
 
 describe('/users', () => {
   let app: Server;
+  let password: string;
   let sequelize: Sequelize;
   let token: string;
   let user: User;
@@ -40,10 +40,17 @@ describe('/users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({});
+      const {
+        password: createdPassword,
+        user: createdUser,
+      } = await createUser({});
+
+      password = createdPassword;
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -72,7 +79,7 @@ describe('/users', () => {
         describe('should return status 204 and', () => {
           it('create a token and send an email', async (done) => {
             const { status } = await postUsersMeEmail(app, token, {
-              password: userPassword,
+              password,
             });
             expect(status).toBe(204);
             expect(emailMock).toHaveBeenCalledTimes(1);
@@ -81,7 +88,7 @@ describe('/users', () => {
           });
           it('increment emailTokenVersion if resend is true', async () => {
             await postUsersMeEmail(app, token, {
-              password: userPassword,
+              password,
             });
             const { emailTokenVersion } = user;
             await user.reload();

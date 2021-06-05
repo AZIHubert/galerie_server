@@ -29,8 +29,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/galeries', () => {
   let app: Server;
   let galerieId: string;
@@ -47,12 +45,18 @@ describe('/galeries', () => {
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
-      user = await createUser({
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({
         role: 'superAdmin',
       });
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -241,7 +245,10 @@ describe('/galeries', () => {
             expect(invitations[0].user.currentProfilePicture.userId).toBeUndefined();
           });
           it('return invitation.user === null if user is black listed', async () => {
-            const userTwo = await createUser({
+            const {
+              password: passwordTwo,
+              user: userTwo,
+            } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
@@ -251,7 +258,7 @@ describe('/galeries', () => {
               },
             } = await postUsersLogin(app, {
               body: {
-                password: userPassword,
+                password: passwordTwo,
                 userNameOrEmail: userTwo.email,
               },
             });
@@ -292,7 +299,10 @@ describe('/galeries', () => {
             expect(status).toBe(400);
           });
           it('user\'s role for this galerie is \'user\'', async () => {
-            const userTwo = await createUser({
+            const {
+              password: passwordTwo,
+              user: userTwo,
+            } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
@@ -302,7 +312,7 @@ describe('/galeries', () => {
               },
             } = await postUsersLogin(app, {
               body: {
-                password: userPassword,
+                password: passwordTwo,
                 userNameOrEmail: userTwo.email,
               },
             });
@@ -334,7 +344,10 @@ describe('/galeries', () => {
             expect(status).toBe(404);
           });
           it('galerie exist but user is not subscribe to it', async () => {
-            const userTwo = await createUser({
+            const {
+              password: passwordTwo,
+              user: userTwo,
+            } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
@@ -344,7 +357,7 @@ describe('/galeries', () => {
               },
             } = await postUsersLogin(app, {
               body: {
-                password: userPassword,
+                password: passwordTwo,
                 userNameOrEmail: userTwo.email,
               },
             });

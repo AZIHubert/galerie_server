@@ -18,8 +18,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
@@ -35,10 +33,16 @@ describe('/users', () => {
     try {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
-      user = await createUser({});
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({});
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -80,7 +84,11 @@ describe('/users', () => {
             expect(users.length).toBe(0);
           });
           it('should not return not confirmed users', async () => {
-            const { userName } = await createUser({
+            const {
+              user: {
+                userName,
+              },
+            } = await createUser({
               confirmed: false,
               email: 'user2@email.com',
               userName: 'user2',
@@ -96,8 +104,10 @@ describe('/users', () => {
           });
           it('should not return black listed users', async () => {
             const {
-              id,
-              userName,
+              user: {
+                id,
+                userName,
+              },
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
@@ -118,11 +128,13 @@ describe('/users', () => {
           });
           it('should return users with relevent attributes', async () => {
             const {
-              createdAt,
-              id,
-              pseudonym,
-              role,
-              userName,
+              user: {
+                createdAt,
+                id,
+                pseudonym,
+                role,
+                userName,
+              },
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
@@ -184,7 +196,9 @@ describe('/users', () => {
           });
           it('should be case insensitive', async () => {
             const {
-              userName,
+              user: {
+                userName,
+              },
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
@@ -200,8 +214,11 @@ describe('/users', () => {
           });
           it('should return current profile picture with relevent attributes', async () => {
             const {
-              email,
-              userName,
+              password,
+              user: {
+                email,
+                userName,
+              },
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
@@ -212,7 +229,7 @@ describe('/users', () => {
               },
             } = await postUsersLogin(app, {
               body: {
-                password: userPassword,
+                password,
                 userNameOrEmail: email,
               },
             });

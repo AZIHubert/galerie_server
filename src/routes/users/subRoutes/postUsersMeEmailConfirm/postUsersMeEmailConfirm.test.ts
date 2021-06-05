@@ -30,10 +30,10 @@ import initApp from '@src/server';
 
 const emailMocked = jest.spyOn(email, 'sendValidateEmailMessage');
 const signMocked = jest.spyOn(jwt, 'sign');
-const userPassword = 'Password0!';
 
 describe('/users', () => {
   let app: Server;
+  let password: string;
   let sequelize: Sequelize;
   let token: string;
   let user: User;
@@ -46,10 +46,17 @@ describe('/users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({});
+      const {
+        password: createdPassword,
+        user: createdUser,
+      } = await createUser({});
+
+      password = createdPassword;
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -91,7 +98,7 @@ describe('/users', () => {
                 'Bearer token',
                 {
                   email: newEmail,
-                  password: userPassword,
+                  password,
                 },
               );
               expect(status).toBe(204);
@@ -115,7 +122,7 @@ describe('/users', () => {
                 'Bearer token',
                 {
                   email: 'user2@email.com',
-                  password: userPassword,
+                  password,
                 },
               );
               const {
@@ -142,7 +149,7 @@ describe('/users', () => {
                 'Bearer token',
                 {
                   email: ` ${newEmail} `,
-                  password: userPassword,
+                  password,
                 },
               );
               expect(emailMocked)
@@ -169,9 +176,7 @@ describe('/users', () => {
                   app,
                   token,
                   'Bearer token',
-                  {
-                    password: userPassword,
-                  },
+                  { password },
                 );
                 expect(errors).toEqual({
                   email: FIELD_IS_REQUIRED,
@@ -190,7 +195,7 @@ describe('/users', () => {
                   'Bearer token',
                   {
                     email: '',
-                    password: userPassword,
+                    password,
                   },
                 );
                 expect(errors).toEqual({
@@ -210,7 +215,7 @@ describe('/users', () => {
                   'Bearer token',
                   {
                     email: 1234,
-                    password: userPassword,
+                    password,
                   },
                 );
                 expect(errors).toEqual({
@@ -230,7 +235,7 @@ describe('/users', () => {
                   'Bearer token',
                   {
                     email: 'not an email',
-                    password: userPassword,
+                    password,
                   },
                 );
                 expect(errors).toEqual({
@@ -250,7 +255,7 @@ describe('/users', () => {
                   'Bearer token',
                   {
                     email: user.email,
-                    password: userPassword,
+                    password,
                   },
                 );
                 expect(errors).toEqual({
@@ -315,7 +320,7 @@ describe('/users', () => {
                   undefined,
                   {
                     email: 'user2@email.com',
-                    password: userPassword,
+                    password,
                   },
                 );
                 expect(errors).toBe(TOKEN_NOT_FOUND);
@@ -333,7 +338,7 @@ describe('/users', () => {
                   'confirmToken',
                   {
                     email: 'user2@email.com',
-                    password: userPassword,
+                    password,
                   },
                 );
                 expect(errors).toBe(WRONG_TOKEN);
@@ -357,7 +362,7 @@ describe('/users', () => {
                   'Bearer token',
                   {
                     email: 'user2@email.com',
-                    password: userPassword,
+                    password,
                   },
                 );
                 expect(errors).toBe(WRONG_TOKEN_USER_ID);
@@ -381,7 +386,7 @@ describe('/users', () => {
                   'Bearer token',
                   {
                     email: 'user2@email.com',
-                    password: userPassword,
+                    password,
                   },
                 );
                 expect(errors).toBe(WRONG_TOKEN_VERSION);

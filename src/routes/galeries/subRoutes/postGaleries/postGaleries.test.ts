@@ -24,8 +24,6 @@ import {
   FIELD_SHOULD_BE_A_STRING,
 } from '@src/helpers/errorMessages';
 
-const userPassword = 'Password0!';
-
 describe('/galerie', () => {
   let app: Server;
   let sequelize: Sequelize;
@@ -40,12 +38,18 @@ describe('/galerie', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({
         role: 'superAdmin',
       });
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });

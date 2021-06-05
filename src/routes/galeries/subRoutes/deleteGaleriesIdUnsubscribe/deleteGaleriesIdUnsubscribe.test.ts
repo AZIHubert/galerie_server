@@ -39,11 +39,11 @@ import initApp from '@src/server';
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
 const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
-const userPassword = 'Password0!';
 
 describe('/galeries', () => {
   let app: Server;
   let galerieId: string;
+  let passwordTwo: string;
   let sequelize: Sequelize;
   let token: string;
   let tokenTwo: string;
@@ -60,21 +60,31 @@ describe('/galeries', () => {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
 
-      user = await createUser({});
-      userTwo = await createUser({
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({});
+      const {
+        password: createdPasswordTwo,
+        user: createdUserTwo,
+      } = await createUser({
         email: 'user2@email.com',
         userName: 'user2',
       });
 
+      passwordTwo = createdPasswordTwo;
+      user = createdUser;
+      userTwo = createdUserTwo;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
       const { body: bodyTwo } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password: passwordTwo,
           userNameOrEmail: userTwo.email,
         },
       });
@@ -210,7 +220,7 @@ describe('/galeries', () => {
         it('and delete galerie if they\'re no user left', async () => {
           await deleteUsersMe(app, tokenTwo, {
             deleteAccountSentence: 'delete my account',
-            password: userPassword,
+            password: passwordTwo,
             userNameOrEmail: userTwo.email,
           });
           await postGaleriesIdFrames(app, token, galerieId);

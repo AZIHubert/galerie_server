@@ -26,8 +26,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/blackLists', () => {
   let app: Server;
   let sequelize: Sequelize;
@@ -43,12 +41,16 @@ describe('/blackLists', () => {
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
-      user = await createUser({
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({
         role: 'superAdmin',
       });
+      user = createdUser;
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -74,14 +76,20 @@ describe('/blackLists', () => {
   describe('/:blackListId', () => {
     describe('GET', () => {
       describe('should return status 200 and', () => {
+        let passwordTwo: string;
         let userTwo: User;
 
         beforeEach(async (done) => {
           try {
-            userTwo = await createUser({
+            const {
+              password: createdPassword,
+              user: createdUser,
+            } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
+            passwordTwo = createdPassword;
+            userTwo = createdUser;
           } catch (err) {
             done(err);
           }
@@ -164,7 +172,7 @@ describe('/blackLists', () => {
             },
           } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password: passwordTwo,
               userNameOrEmail: userTwo.email,
             },
           });
@@ -282,7 +290,10 @@ describe('/blackLists', () => {
           expect(currentProfilePicture.userId).toBeUndefined();
         });
         it('do not include admin if he have delete his account', async () => {
-          const userThree = await createUser({
+          const {
+            password: passwordThree,
+            user: userThree,
+          } = await createUser({
             email: 'user3@email.com',
             role: 'admin',
             userName: 'user3',
@@ -293,7 +304,7 @@ describe('/blackLists', () => {
             },
           } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password: passwordThree,
               userNameOrEmail: userThree.email,
             },
           });
@@ -310,7 +321,7 @@ describe('/blackLists', () => {
           });
           await deleteUsersMe(app, tokenTwo, {
             deleteAccountSentence: 'delete my account',
-            password: userPassword,
+            password: passwordThree,
             userNameOrEmail: userThree.email,
           });
           const {
@@ -433,7 +444,10 @@ describe('/blackLists', () => {
           expect(currentProfilePicture.userId).toBeUndefined();
         });
         it('do not updatedBy if a had deleted his account', async () => {
-          const userThree = await createUser({
+          const {
+            password: passwordThree,
+            user: userThree,
+          } = await createUser({
             email: 'use3@email.com',
             role: 'superAdmin',
             userName: 'user3',
@@ -444,7 +458,7 @@ describe('/blackLists', () => {
             },
           } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password: passwordThree,
               userNameOrEmail: userThree.email,
             },
           });
@@ -466,7 +480,7 @@ describe('/blackLists', () => {
           });
           await deleteUsersMe(app, tokenThree, {
             deleteAccountSentence: 'delete my account',
-            password: userPassword,
+            password: passwordThree,
             userNameOrEmail: userThree.email,
           });
           const {

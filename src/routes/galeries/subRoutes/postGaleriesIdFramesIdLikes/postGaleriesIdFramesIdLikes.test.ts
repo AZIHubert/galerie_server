@@ -26,8 +26,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/galerie', () => {
   let app: Server;
   let galerieId: string;
@@ -44,12 +42,18 @@ describe('/galerie', () => {
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
-      user = await createUser({
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({
         role: 'superAdmin',
       });
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -205,7 +209,10 @@ describe('/galerie', () => {
                 expect(status).toBe(404);
               });
               it('galerie exist by current user is not subscribe to it', async () => {
-                const userTwo = await createUser({
+                const {
+                  password: passwordTwo,
+                  user: userTwo,
+                } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
                 });
@@ -215,7 +222,7 @@ describe('/galerie', () => {
                   },
                 } = await postUsersLogin(app, {
                   body: {
-                    password: userPassword,
+                    password: passwordTwo,
                     userNameOrEmail: userTwo.email,
                   },
                 });
