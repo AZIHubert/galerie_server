@@ -5,10 +5,14 @@ export default async (
   app: Server,
   token: string,
   galerieId: string,
-  page = 1,
+  option: {
+    page: number;
+  } = {
+    page: 1,
+  },
 ) => {
   const response = await request(app)
-    .get(`/galeries/${galerieId}/invitations/?page=${page}`)
+    .get(`/galeries/${galerieId}/invitations/?page=${option.page}`)
     .set('authorization', token);
   return response;
 };
