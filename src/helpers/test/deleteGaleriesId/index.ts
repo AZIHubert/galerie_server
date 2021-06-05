@@ -5,14 +5,18 @@ export default async (
   app: Server,
   token: string,
   galerieId: string,
-  body: {
-    name?: any;
-    password?: any;
+  option: {
+    body: {
+      name?: any;
+      password?: any;
+    },
+  } = {
+    body: {},
   },
 ) => {
   const response = await request(app)
     .delete(`/galeries/${galerieId}`)
     .set('authorization', token)
-    .send(body);
+    .send(option.body);
   return response;
 };

@@ -126,8 +126,10 @@ describe('/galeries', () => {
             },
             status,
           } = await deleteGaleriesId(app, token, galerieId, {
-            name,
-            password,
+            body: {
+              name,
+              password,
+            },
           });
           const galerie = await Galerie.findByPk(galerieId);
           expect(action).toBe('DELETE');
@@ -148,8 +150,10 @@ describe('/galeries', () => {
             },
           } = await postGaleriesIdFrames(app, token, galerieId);
           await deleteGaleriesId(app, token, galerieId, {
-            name,
-            password,
+            body: {
+              name,
+              password,
+            },
           });
           const [bucketCropedImages] = await gc
             .bucket(GALERIES_BUCKET_PP_CROP)
@@ -181,8 +185,10 @@ describe('/galeries', () => {
         it('destroy invitations', async () => {
           await postGaleriesIdInvitations(app, token, galerieId, {});
           await deleteGaleriesId(app, token, galerieId, {
-            name,
-            password,
+            body: {
+              name,
+              password,
+            },
           });
           const invitations = await Invitation.findAll({
             where: {
@@ -201,8 +207,10 @@ describe('/galeries', () => {
           } = await postGaleriesIdFrames(app, token, galerieId);
           await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
           await deleteGaleriesId(app, token, galerieId, {
-            name,
-            password,
+            body: {
+              name,
+              password,
+            },
           });
           const likes = await Like.findAll();
           expect(likes.length).toBe(0);
@@ -236,8 +244,10 @@ describe('/galeries', () => {
           } = await postGaleriesIdInvitations(app, token, galerieId, {});
           await postGaleriesSubscribe(app, tokenTwo, { code });
           await deleteGaleriesId(app, token, galerieId, {
-            name,
-            password,
+            body: {
+              name,
+              password,
+            },
           });
           const galerieUsers = await GalerieUser.findAll();
           expect(galerieUsers.length).toBe(0);
@@ -248,7 +258,7 @@ describe('/galeries', () => {
           const {
             body,
             status,
-          } = await deleteGaleriesId(app, token, '100', {});
+          } = await deleteGaleriesId(app, token, '100');
           expect(body.errors).toBe(INVALID_UUID('galerie'));
           expect(status).toBe(400);
         });
@@ -294,8 +304,10 @@ describe('/galeries', () => {
             body,
             status,
           } = await deleteGaleriesId(app, tokenTwo, galerie.id, {
-            name,
-            password: passwordTwo,
+            body: {
+              name,
+              password: passwordTwo,
+            },
           });
           expect(body.errors).toBe('not allow to delete this galerie');
           expect(status).toBe(400);
@@ -343,8 +355,10 @@ describe('/galeries', () => {
             body,
             status,
           } = await deleteGaleriesId(app, tokenTwo, galerie.id, {
-            name,
-            password: passwordTwo,
+            body: {
+              name,
+              password: passwordTwo,
+            },
           });
           expect(body.errors).toBe('not allow to delete this galerie');
           expect(status).toBe(400);
@@ -375,7 +389,9 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await deleteGaleriesId(app, token, galerieId, { password });
+            } = await deleteGaleriesId(app, token, galerieId, {
+              body: { password },
+            });
             expect(body.errors).toEqual({
               name: FIELD_IS_REQUIRED,
             });
@@ -386,8 +402,10 @@ describe('/galeries', () => {
               body,
               status,
             } = await deleteGaleriesId(app, token, galerieId, {
-              name: 1234,
-              password,
+              body: {
+                name: 1234,
+                password,
+              },
             });
             expect(body.errors).toEqual({
               name: FIELD_SHOULD_BE_A_STRING,
@@ -399,8 +417,10 @@ describe('/galeries', () => {
               body,
               status,
             } = await deleteGaleriesId(app, token, galerieId, {
-              name: '',
-              password,
+              body: {
+                name: '',
+                password,
+              },
             });
             expect(body.errors).toEqual({
               name: FIELD_CANNOT_BE_EMPTY,
@@ -412,8 +432,10 @@ describe('/galeries', () => {
               body,
               status,
             } = await deleteGaleriesId(app, token, galerieId, {
-              name: `wrong${name}`,
-              password,
+              body: {
+                name: `wrong${name}`,
+                password,
+              },
             });
             expect(body.errors).toEqual({
               name: 'wrong galerie\'s name',
@@ -448,7 +470,7 @@ describe('/galeries', () => {
               body,
               status,
             } = await deleteGaleriesId(app, token, galerieId, {
-              name,
+              body: { name },
             });
             expect(body.errors).toEqual({
               password: FIELD_IS_REQUIRED,
@@ -460,8 +482,10 @@ describe('/galeries', () => {
               body,
               status,
             } = await deleteGaleriesId(app, token, galerieId, {
-              name,
-              password: 1234,
+              body: {
+                name,
+                password: 1234,
+              },
             });
             expect(body.errors).toEqual({
               password: FIELD_SHOULD_BE_A_STRING,
@@ -473,8 +497,10 @@ describe('/galeries', () => {
               body,
               status,
             } = await deleteGaleriesId(app, token, galerieId, {
-              name,
-              password: '',
+              body: {
+                name,
+                password: '',
+              },
             });
             expect(body.errors).toEqual({
               password: FIELD_CANNOT_BE_EMPTY,
@@ -486,8 +512,10 @@ describe('/galeries', () => {
               body,
               status,
             } = await deleteGaleriesId(app, token, galerieId, {
-              name,
-              password: 'wrongPassword',
+              body: {
+                name,
+                password: 'wrongPassword',
+              },
             });
             expect(body.errors).toEqual({
               password: WRONG_PASSWORD,
@@ -502,8 +530,10 @@ describe('/galeries', () => {
             body,
             status,
           } = await deleteGaleriesId(app, token, uuidv4(), {
-            name: 'galerie\'s name',
-            password,
+            body: {
+              name: 'galerie\'s name',
+              password,
+            },
           });
           expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
           expect(status).toBe(404);
