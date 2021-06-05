@@ -136,7 +136,7 @@ describe('/galeries', () => {
               galeries: secondPack,
             },
           },
-        } = await getGaleries(app, token, 2);
+        } = await getGaleries(app, token, { page: 2 });
         expect(firstPack.length).toBe(20);
         expect(secondPack.length).toBe(1);
       });
