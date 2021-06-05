@@ -205,7 +205,7 @@ describe('/blackLists', () => {
               blackLists: secondPack,
             },
           },
-        } = await getBlackLists(app, token, 2);
+        } = await getBlackLists(app, token, { page: 2 });
         expect(firstPack.length).toBe(20);
         expect(secondPack.length).toBe(1);
       });
