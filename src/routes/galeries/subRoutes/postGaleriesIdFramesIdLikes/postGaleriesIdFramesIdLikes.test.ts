@@ -67,7 +67,9 @@ describe('/galerie', () => {
           },
         },
       } = await postGaleries(app, token, {
-        name: 'galerie\'s name',
+        body: {
+          name: 'galerie\'s name',
+        },
       });
       galerieId = id;
     } catch (err) {
@@ -233,7 +235,9 @@ describe('/galerie', () => {
                     },
                   },
                 } = await postGaleries(app, tokenTwo, {
-                  name: 'galerie\'s name',
+                  body: {
+                    name: 'galerie\'s name',
+                  },
                 });
                 const {
                   body,
@@ -258,7 +262,9 @@ describe('/galerie', () => {
                     },
                   },
                 } = await postGaleries(app, token, {
-                  name: 'galerie\'s name',
+                  body: {
+                    name: 'galerie\'s name',
+                  },
                 });
                 const {
                   body: {

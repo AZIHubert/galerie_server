@@ -145,7 +145,7 @@ describe('/users', () => {
                 users: secondPack,
               },
             },
-          } = await getUsers(app, token, 2);
+          } = await getUsers(app, token, { page: 2 });
           expect(firstPack.length).toBe(20);
           expect(secondPack.length).toBe(1);
         });

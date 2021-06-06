@@ -183,14 +183,14 @@ describe('/users', () => {
                   users: firstPack,
                 },
               },
-            } = await getUsersUserNameUserName(app, token, userName, 1);
+            } = await getUsersUserNameUserName(app, token, userName);
             const {
               body: {
                 data: {
                   users: secondPack,
                 },
               },
-            } = await getUsersUserNameUserName(app, token, userName, 2);
+            } = await getUsersUserNameUserName(app, token, userName, { page: 2 });
             expect(firstPack.length).toBe(20);
             expect(secondPack.length).toBe(1);
           });

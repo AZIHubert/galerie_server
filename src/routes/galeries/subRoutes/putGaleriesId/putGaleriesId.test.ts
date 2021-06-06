@@ -94,7 +94,9 @@ describe('/galeries', () => {
               },
             },
           } = await postGaleries(app, token, {
-            name: 'galeries\'s name',
+            body: {
+              name: 'galeries\'s name',
+            },
           });
           const {
             body: {
@@ -103,8 +105,10 @@ describe('/galeries', () => {
             },
             status,
           } = await putGaleriesId(app, token, galerieId, {
-            description,
-            name,
+            body: {
+              description,
+              name,
+            },
           });
           const galerie = await Galerie.findByPk(galerieId) as Galerie;
           expect(action).toBe('PUT');
@@ -126,8 +130,10 @@ describe('/galeries', () => {
               },
             },
           } = await postGaleries(app, token, {
-            description: 'galerie\'s description',
-            name: 'galeries\'s name',
+            body: {
+              description: 'galerie\'s description',
+              name: 'galeries\'s name',
+            },
           });
           const {
             body: {
@@ -136,7 +142,9 @@ describe('/galeries', () => {
             },
             status,
           } = await putGaleriesId(app, token, returnedGalerie.id, {
-            name,
+            body: {
+              name,
+            },
           });
           const galerie = await Galerie.findByPk(returnedGalerie.id) as Galerie;
           expect(action).toBe('PUT');
@@ -158,8 +166,10 @@ describe('/galeries', () => {
               },
             },
           } = await postGaleries(app, token, {
-            description: 'galerie\'s description',
-            name: 'galeries\'s name',
+            body: {
+              description: 'galerie\'s description',
+              name: 'galeries\'s name',
+            },
           });
           const {
             body: {
@@ -168,7 +178,9 @@ describe('/galeries', () => {
             },
             status,
           } = await putGaleriesId(app, token, returnedGalerie.id, {
-            description,
+            body: {
+              description,
+            },
           });
           const galerie = await Galerie.findByPk(returnedGalerie.id) as Galerie;
           expect(action).toBe('PUT');
@@ -187,7 +199,7 @@ describe('/galeries', () => {
           const {
             body,
             status,
-          } = await putGaleriesId(app, token, uuidv4(), {});
+          } = await putGaleriesId(app, token, uuidv4());
           expect(body.errors).toBe('no change submited');
           expect(status).toBe(400);
         });
@@ -203,15 +215,19 @@ describe('/galeries', () => {
               },
             },
           } = await postGaleries(app, token, {
-            description: 'galerie\'s description',
-            name: 'galeries\'s name',
+            body: {
+              description: 'galerie\'s description',
+              name: 'galeries\'s name',
+            },
           });
           const {
             body,
             status,
           } = await putGaleriesId(app, token, galerieId, {
-            description,
-            name,
+            body: {
+              description,
+              name,
+            },
           });
           expect(body.errors).toBe('no change submited');
           expect(status).toBe(400);
@@ -221,7 +237,9 @@ describe('/galeries', () => {
             body,
             status,
           } = await putGaleriesId(app, token, '100', {
-            name: '',
+            body: {
+              name: '',
+            },
           });
           expect(body.errors).toBe(INVALID_UUID('galerie'));
           expect(status).toBe(400);
@@ -236,7 +254,9 @@ describe('/galeries', () => {
               },
             },
           } = await postGaleries(app, token, {
-            name: 'galeries\'s name',
+            body: {
+              name: 'galeries\'s name',
+            },
           });
           const {
             password: passwordTwo,
@@ -263,13 +283,19 @@ describe('/galeries', () => {
                 },
               },
             },
-          } = await postGaleriesIdInvitations(app, token, galerieId, {});
-          await postGaleriesSubscribe(app, tokenTwo, { code });
+          } = await postGaleriesIdInvitations(app, token, galerieId);
+          await postGaleriesSubscribe(app, tokenTwo, {
+            body: {
+              code,
+            },
+          });
           const {
             body,
             status,
           } = await putGaleriesId(app, tokenTwo, galerieId, {
-            name: 'new galerie\'s name',
+            body: {
+              name: 'new galerie\'s name',
+            },
           });
           expect(body.errors).toBe('you\'re not allow to update this galerie');
           expect(status).toBe(400);
@@ -284,7 +310,9 @@ describe('/galeries', () => {
               },
             },
           } = await postGaleries(app, token, {
-            name: 'galeries\'s name',
+            body: {
+              name: 'galeries\'s name',
+            },
           });
           const {
             password: passwordTwo,
@@ -311,8 +339,12 @@ describe('/galeries', () => {
                 },
               },
             },
-          } = await postGaleriesIdInvitations(app, token, galerieId, {});
-          await postGaleriesSubscribe(app, tokenTwo, { code });
+          } = await postGaleriesIdInvitations(app, token, galerieId);
+          await postGaleriesSubscribe(app, tokenTwo, {
+            body: {
+              code,
+            },
+          });
           await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
           await deleteUsersMe(app, token, {
             body: {
@@ -325,7 +357,9 @@ describe('/galeries', () => {
             body,
             status,
           } = await putGaleriesId(app, tokenTwo, galerieId, {
-            name: 'new galerie\'s name',
+            body: {
+              name: 'new galerie\'s name',
+            },
           });
           expect(body.errors).toBe('you cannot update an archived galerie');
           expect(status).toBe(400);
@@ -344,7 +378,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, token, {
-                name: 'galeries\'s name',
+                body: {
+                  name: 'galeries\'s name',
+                },
               });
               galerieId = id;
             } catch (err) {
@@ -358,7 +394,9 @@ describe('/galeries', () => {
               body,
               status,
             } = await putGaleriesId(app, token, galerieId, {
-              description: 1234,
+              body: {
+                description: 1234,
+              },
             });
             expect(body.errors).toEqual({
               description: FIELD_SHOULD_BE_A_STRING,
@@ -370,7 +408,9 @@ describe('/galeries', () => {
               body,
               status,
             } = await putGaleriesId(app, token, galerieId, {
-              description: 'a'.repeat(201),
+              body: {
+                description: 'a'.repeat(201),
+              },
             });
             expect(body.errors).toEqual({
               description: FIELD_MAX_LENGTH(200),
@@ -392,7 +432,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, token, {
-                name: 'galeries\'s name',
+                body: {
+                  name: 'galeries\'s name',
+                },
               });
               galerieId = id;
             } catch (err) {
@@ -406,7 +448,9 @@ describe('/galeries', () => {
               body,
               status,
             } = await putGaleriesId(app, token, galerieId, {
-              name: '',
+              body: {
+                name: '',
+              },
             });
             expect(body.errors).toEqual({
               name: FIELD_CANNOT_BE_EMPTY,
@@ -418,7 +462,9 @@ describe('/galeries', () => {
               body,
               status,
             } = await putGaleriesId(app, token, galerieId, {
-              name: 1234,
+              body: {
+                name: 1234,
+              },
             });
             expect(body.errors).toEqual({
               name: FIELD_SHOULD_BE_A_STRING,
@@ -430,7 +476,9 @@ describe('/galeries', () => {
               body,
               status,
             } = await putGaleriesId(app, token, galerieId, {
-              name: 'a'.repeat(2),
+              body: {
+                name: 'a'.repeat(2),
+              },
             });
             expect(body.errors).toEqual({
               name: FIELD_MIN_LENGTH(3),
@@ -442,7 +490,9 @@ describe('/galeries', () => {
               body,
               status,
             } = await putGaleriesId(app, token, galerieId, {
-              name: 'a'.repeat(31),
+              body: {
+                name: 'a'.repeat(31),
+              },
             });
             expect(body.errors).toEqual({
               name: FIELD_MAX_LENGTH(30),
@@ -457,7 +507,9 @@ describe('/galeries', () => {
             body,
             status,
           } = await putGaleriesId(app, token, uuidv4(), {
-            name: 'new galerie\'s name',
+            body: {
+              name: 'new galerie\'s name',
+            },
           });
           expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
           expect(status).toBe(404);
@@ -489,13 +541,17 @@ describe('/galeries', () => {
               },
             },
           } = await postGaleries(app, tokenTwo, {
-            name: 'galeries\'s name',
+            body: {
+              name: 'galeries\'s name',
+            },
           });
           const {
             body,
             status,
           } = await putGaleriesId(app, token, id, {
-            name: 'new galerie\'s name',
+            body: {
+              name: 'new galerie\'s name',
+            },
           });
           expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
           expect(status).toBe(404);

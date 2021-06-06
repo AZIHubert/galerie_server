@@ -98,8 +98,10 @@ describe('/tickets', () => {
           const body = 'ticket\'s body';
           const header = 'ticket\'s header';
           await postTickets(app, token, {
-            body,
-            header,
+            body: {
+              body,
+              header,
+            },
           });
           const [ticket] = await Ticket.findAll();
           const {
@@ -141,8 +143,10 @@ describe('/tickets', () => {
         });
         it('and return ticket with user\'s profile picture', async () => {
           await postTickets(app, token, {
-            body: 'ticket\'s body',
-            header: 'ticket\'s header',
+            body: {
+              body: 'ticket\'s body',
+              header: 'ticket\'s header',
+            },
           });
           const {
             body: {
@@ -204,8 +208,10 @@ describe('/tickets', () => {
         });
         it('return ticket event if his user has deleted his account', async () => {
           await postTickets(app, token, {
-            body: 'ticket\'s body',
-            header: 'ticket\'s header',
+            body: {
+              body: 'ticket\'s body',
+              header: 'ticket\'s header',
+            },
           });
           await deleteUsersMe(app, token, {
             body: {

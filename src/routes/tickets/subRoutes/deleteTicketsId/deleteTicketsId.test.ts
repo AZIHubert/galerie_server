@@ -89,8 +89,10 @@ describe('/tickets', () => {
       describe('should return status 200 and', () => {
         it('delete ticket', async () => {
           await postTickets(app, token, {
-            body: 'ticket\'s body',
-            header: 'ticket\'s header',
+            body: {
+              body: 'ticket\'s body',
+              header: 'ticket\'s header',
+            },
           });
           const [ticket] = await Ticket.findAll();
           const {

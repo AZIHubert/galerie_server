@@ -74,7 +74,9 @@ describe('/users', () => {
             confirmTokenVersion,
           } = user;
           const { status } = await postUsersConfirmation(app, {
-            email: userEmail,
+            body: {
+              email: userEmail,
+            },
           });
           await user.reload();
           expect(status).toBe(204);
@@ -82,7 +84,9 @@ describe('/users', () => {
         });
         it('sign a token and send an email', async () => {
           const { status } = await postUsersConfirmation(app, {
-            email: user.email,
+            body: {
+              email: user.email,
+            },
           });
           expect(status).toBe(204);
           expect(signMocked).toHaveBeenCalledTimes(1);
@@ -103,7 +107,9 @@ describe('/users', () => {
             body,
             status,
           } = await postUsersConfirmation(app, {
-            email: userEmail,
+            body: {
+              email: userEmail,
+            },
           });
           expect(body.errors).toBe(USER_SHOULD_NOT_BE_CONFIRMED);
           expect(status).toBe(400);
@@ -113,7 +119,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await postUsersConfirmation(app, {});
+            } = await postUsersConfirmation(app);
             expect(body.errors).toEqual({
               email: FIELD_IS_REQUIRED,
             });
@@ -124,7 +130,9 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersConfirmation(app, {
-              email: 1234,
+              body: {
+                email: 1234,
+              },
             });
             expect(body.errors).toEqual({
               email: FIELD_SHOULD_BE_A_STRING,
@@ -136,7 +144,9 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersConfirmation(app, {
-              email: '',
+              body: {
+                email: '',
+              },
             });
             expect(body.errors).toEqual({
               email: FIELD_CANNOT_BE_EMPTY,
@@ -148,7 +158,9 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersConfirmation(app, {
-              email: 'not an email',
+              body: {
+                email: 'not an email',
+              },
             });
             expect(body.errors).toEqual({
               email: FIELD_SHOULD_BE_AN_EMAIL,
@@ -163,7 +175,9 @@ describe('/users', () => {
             body,
             status,
           } = await postUsersConfirmation(app, {
-            email: 'unexistedEmail@email.com',
+            body: {
+              email: 'unexistedEmail@email.com',
+            },
           });
           expect(body.errors).toEqual({
             email: MODEL_NOT_FOUND('user'),

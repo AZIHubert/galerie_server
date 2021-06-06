@@ -99,12 +99,16 @@ describe('/tickets', () => {
           },
         } = await postProfilePictures(app, token);
         await postTickets(app, token, {
-          body,
-          header,
+          body: {
+            body,
+            header,
+          },
         });
         await postTickets(app, token, {
-          body: 'ticket\'s body',
-          header: 'ticket\'s header',
+          body: {
+            body: 'ticket\'s body',
+            header: 'ticket\'s header',
+          },
         });
         const {
           body: {
@@ -206,14 +210,16 @@ describe('/tickets', () => {
               tickets: secondPack,
             },
           },
-        } = await getTickets(app, adminToken, 2);
+        } = await getTickets(app, adminToken, { page: 2 });
         expect(firstPack.length).toBe(20);
         expect(secondPack.length).toBe(1);
       });
       it('return ticket even if it\'s user has delete his account', async () => {
         await postTickets(app, token, {
-          body: 'ticket\'s body',
-          header: 'ticket\'s header',
+          body: {
+            body: 'ticket\'s body',
+            header: 'ticket\'s header',
+          },
         });
         await deleteUsersMe(app, token, {
           body: {

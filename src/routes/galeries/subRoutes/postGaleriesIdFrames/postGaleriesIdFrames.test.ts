@@ -82,7 +82,9 @@ describe('/galeries', () => {
           },
         },
       } = await postGaleries(app, token, {
-        name: 'galerie\'s name',
+        body: {
+          name: 'galerie\'s name',
+        },
       });
       galerieId = id;
     } catch (err) {
@@ -710,8 +712,12 @@ describe('/galeries', () => {
                   },
                 },
               },
-            } = await postGaleriesIdInvitations(app, token, galerieId, {});
-            await postGaleriesSubscribe(app, tokenTwo, { code });
+            } = await postGaleriesIdInvitations(app, token, galerieId);
+            await postGaleriesSubscribe(app, tokenTwo, {
+              body: {
+                code,
+              },
+            });
             await deleteUsersMe(app, token, {
               body: {
                 deleteAccountSentence: 'delete my account',
@@ -777,7 +783,9 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleries(app, tokenTwo, {
-              name: 'galerie\'s name',
+              body: {
+                name: 'galerie\'s name',
+              },
             });
             const {
               body,

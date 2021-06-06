@@ -64,7 +64,9 @@ describe('/galeries', () => {
           },
         },
       } = await postGaleries(app, token, {
-        name: 'galerie\'s name',
+        body: {
+          name: 'galerie\'s name',
+        },
       });
       galerieId = id;
     } catch (err) {
@@ -103,7 +105,7 @@ describe('/galeries', () => {
                       },
                     },
                   },
-                } = await postGaleriesIdInvitations(app, token, galerieId, {});
+                } = await postGaleriesIdInvitations(app, token, galerieId);
                 const {
                   password: passwordTwo,
                   user: createdUser,
@@ -123,7 +125,11 @@ describe('/galeries', () => {
                   },
                 });
                 tokenTwo = body.token;
-                await postGaleriesSubscribe(app, tokenTwo, { code });
+                await postGaleriesSubscribe(app, tokenTwo, {
+                  body: {
+                    code,
+                  },
+                });
               } catch (err) {
                 done(err);
               }
@@ -194,7 +200,7 @@ describe('/galeries', () => {
                     },
                   },
                 },
-              } = await postGaleriesIdInvitations(app, token, galerieId, {});
+              } = await postGaleriesIdInvitations(app, token, galerieId);
               const {
                 password: passwordTwo,
                 user: userTwo,
@@ -212,7 +218,11 @@ describe('/galeries', () => {
                   userNameOrEmail: userTwo.email,
                 },
               });
-              await postGaleriesSubscribe(app, tokenTwo, { code });
+              await postGaleriesSubscribe(app, tokenTwo, {
+                body: {
+                  code,
+                },
+              });
               const {
                 body,
                 status,
@@ -229,7 +239,7 @@ describe('/galeries', () => {
                     },
                   },
                 },
-              } = await postGaleriesIdInvitations(app, token, galerieId, {});
+              } = await postGaleriesIdInvitations(app, token, galerieId);
               const {
                 password: passwordTwo,
                 user: userTwo,
@@ -247,7 +257,11 @@ describe('/galeries', () => {
                   userNameOrEmail: userTwo.email,
                 },
               });
-              await postGaleriesSubscribe(app, tokenTwo, { code });
+              await postGaleriesSubscribe(app, tokenTwo, {
+                body: {
+                  code,
+                },
+              });
               await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               const {
                 body,
@@ -265,7 +279,7 @@ describe('/galeries', () => {
                     },
                   },
                 },
-              } = await postGaleriesIdInvitations(app, token, galerieId, {});
+              } = await postGaleriesIdInvitations(app, token, galerieId);
               const {
                 password: passwordTwo,
                 user: userTwo,
@@ -300,8 +314,16 @@ describe('/galeries', () => {
                   userNameOrEmail: userThree.email,
                 },
               });
-              await postGaleriesSubscribe(app, tokenTwo, { code });
-              await postGaleriesSubscribe(app, tokenThree, { code });
+              await postGaleriesSubscribe(app, tokenTwo, {
+                body: {
+                  code,
+                },
+              });
+              await postGaleriesSubscribe(app, tokenThree, {
+                body: {
+                  code,
+                },
+              });
               await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               await putGaleriesIdUsersId(app, token, galerieId, userThree.id);
               const {
@@ -346,7 +368,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, tokenTwo, {
-                name: 'galerie\'s name',
+                body: {
+                  name: 'galerie\'s name',
+                },
               });
               const {
                 body,

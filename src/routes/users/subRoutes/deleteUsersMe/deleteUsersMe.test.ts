@@ -157,10 +157,12 @@ describe('/users', () => {
               },
             },
           } = await postGaleries(app, token, {
-            name: 'galerie\'s name',
+            body: {
+              name: 'galerie\'s name',
+            },
           });
           await postGaleriesIdFrames(app, token, galerieId);
-          await postGaleriesIdInvitations(app, token, galerieId, {});
+          await postGaleriesIdInvitations(app, token, galerieId);
           await deleteUsersMe(app, token, {
             body: {
               deleteAccountSentence: 'delete my account',
@@ -250,7 +252,9 @@ describe('/users', () => {
               },
             },
           } = await postGaleries(app, token, {
-            name: 'galerie\'s name',
+            body: {
+              name: 'galerie\'s name',
+            },
           });
           const { user: userTwo } = await createUser({
             email: 'user2@email.com',
@@ -284,7 +288,9 @@ describe('/users', () => {
               },
             },
           } = await postGaleries(app, token, {
-            name: 'galeries\'s name',
+            body: {
+              name: 'galeries\'s name',
+            },
           });
           const {
             password: passwordTwo,
@@ -308,7 +314,7 @@ describe('/users', () => {
               userNameOrEmail: userTwo.email,
             },
           });
-          await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+          await postGaleriesIdInvitations(app, tokenTwo, galerieId);
           await deleteUsersMe(app, token, {
             body: {
               deleteAccountSentence: 'delete my account',

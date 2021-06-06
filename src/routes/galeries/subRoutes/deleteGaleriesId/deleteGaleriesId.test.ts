@@ -110,7 +110,9 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleries(app, token, {
-              name,
+              body: {
+                name,
+              },
             });
             galerieId = id;
           } catch (err) {
@@ -183,7 +185,7 @@ describe('/galeries', () => {
           expect(images.length).toBe(0);
         });
         it('destroy invitations', async () => {
-          await postGaleriesIdInvitations(app, token, galerieId, {});
+          await postGaleriesIdInvitations(app, token, galerieId);
           await deleteGaleriesId(app, token, galerieId, {
             body: {
               name,
@@ -241,8 +243,12 @@ describe('/galeries', () => {
                 },
               },
             },
-          } = await postGaleriesIdInvitations(app, token, galerieId, {});
-          await postGaleriesSubscribe(app, tokenTwo, { code });
+          } = await postGaleriesIdInvitations(app, token, galerieId);
+          await postGaleriesSubscribe(app, tokenTwo, {
+            body: {
+              code,
+            },
+          });
           await deleteGaleriesId(app, token, galerieId, {
             body: {
               name,
@@ -271,7 +277,9 @@ describe('/galeries', () => {
               },
             },
           } = await postGaleries(app, token, {
-            name,
+            body: {
+              name,
+            },
           });
           const {
             password: passwordTwo,
@@ -298,8 +306,12 @@ describe('/galeries', () => {
                 },
               },
             },
-          } = await postGaleriesIdInvitations(app, token, galerie.id, {});
-          await postGaleriesSubscribe(app, tokenTwo, { code });
+          } = await postGaleriesIdInvitations(app, token, galerie.id);
+          await postGaleriesSubscribe(app, tokenTwo, {
+            body: {
+              code,
+            },
+          });
           const {
             body,
             status,
@@ -321,7 +333,9 @@ describe('/galeries', () => {
               },
             },
           } = await postGaleries(app, token, {
-            name,
+            body: {
+              name,
+            },
           });
           const {
             password: passwordTwo,
@@ -348,8 +362,12 @@ describe('/galeries', () => {
                 },
               },
             },
-          } = await postGaleriesIdInvitations(app, token, galerie.id, {});
-          await postGaleriesSubscribe(app, tokenTwo, { code });
+          } = await postGaleriesIdInvitations(app, token, galerie.id);
+          await postGaleriesSubscribe(app, tokenTwo, {
+            body: {
+              code,
+            },
+          });
           await putGaleriesIdUsersId(app, token, galerie.id, userTwo.id);
           const {
             body,
@@ -377,7 +395,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, token, {
-                name,
+                body: {
+                  name,
+                },
               });
               galerieId = id;
             } catch (err) {
@@ -457,7 +477,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, token, {
-                name,
+                body: {
+                  name,
+                },
               });
               galerieId = id;
             } catch (err) {

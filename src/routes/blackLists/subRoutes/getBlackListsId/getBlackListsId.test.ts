@@ -106,7 +106,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list user',
+            body: {
+              reason: 'black list user',
+            },
           });
           const {
             body: {
@@ -186,7 +188,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list user',
+            body: {
+              reason: 'black list user',
+            },
           });
           const {
             body: {
@@ -243,7 +247,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list user',
+            body: {
+              reason: 'black list user',
+            },
           });
           const {
             body: {
@@ -317,7 +323,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, tokenTwo, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           await deleteUsersMe(app, tokenTwo, {
             body: {
@@ -347,7 +355,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           await putBlackListsId(app, token, blackListId, {
             body: {
@@ -393,7 +403,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           await putBlackListsId(app, token, blackListId, {
             body: {
@@ -473,7 +485,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           await putBlackListsId(app, tokenThree, blackListId, {
             body: {

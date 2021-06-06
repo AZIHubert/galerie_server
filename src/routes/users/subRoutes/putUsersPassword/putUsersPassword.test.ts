@@ -86,9 +86,12 @@ describe('/users', () => {
           const newPassword = 'NewPassword0!';
           const {
             status,
-          } = await putUsersPassword(app, 'Bearer token', {
-            confirmPassword: newPassword,
-            password: newPassword,
+          } = await putUsersPassword(app, {
+            body: {
+              confirmPassword: newPassword,
+              password: newPassword,
+            },
+            confirmToken: 'Bearer token',
           });
           await user.reload();
           const passwordMatch = await bcrypt
@@ -99,9 +102,12 @@ describe('/users', () => {
         });
         it('increment authToken and resetPasswordTokenVersion version', async () => {
           const newPassword = 'NewPassword0!';
-          await putUsersPassword(app, 'Bearer token', {
-            confirmPassword: newPassword,
-            password: newPassword,
+          await putUsersPassword(app, {
+            body: {
+              confirmPassword: newPassword,
+              password: newPassword,
+            },
+            confirmToken: 'Bearer token',
           });
           const {
             authTokenVersion,
@@ -134,9 +140,12 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putUsersPassword(app, 'Bearer token', {
-            password: newPassword,
-            confirmPassword: newPassword,
+          } = await putUsersPassword(app, {
+            body: {
+              password: newPassword,
+              confirmPassword: newPassword,
+            },
+            confirmToken: 'Bearer token',
           });
           expect(body.errors).toBe(USER_SHOULD_BE_CONFIRED);
           expect(status).toBe(400);
@@ -166,9 +175,12 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putUsersPassword(app, 'Bearer token', {
-            password: newPassword,
-            confirmPassword: newPassword,
+          } = await putUsersPassword(app, {
+            body: {
+              confirmPassword: newPassword,
+              password: newPassword,
+            },
+            confirmToken: 'Bearer token',
           });
           expect(body.errors).toBe(USER_SHOULD_NOT_BE_BLACK_LISTED);
           expect(status).toBe(400);
@@ -186,8 +198,11 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              password: 'NewPassword0!',
+            } = await putUsersPassword(app, {
+              body: {
+                password: 'NewPassword0!',
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               confirmPassword: FIELD_IS_REQUIRED,
@@ -198,9 +213,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              confirmPassword: '',
-              password: 'NewPassword0!',
+            } = await putUsersPassword(app, {
+              body: {
+                confirmPassword: '',
+                password: 'NewPassword0!',
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               confirmPassword: FIELD_CANNOT_BE_EMPTY,
@@ -211,9 +229,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              confirmPassword: 1234,
-              password: 'NewPassword0!',
+            } = await putUsersPassword(app, {
+              body: {
+                confirmPassword: 1234,
+                password: 'NewPassword0!',
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               confirmPassword: FIELD_SHOULD_BE_A_STRING,
@@ -224,9 +245,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              confirmPassword: 'wrongPassword',
-              password: 'NewPassword0!',
+            } = await putUsersPassword(app, {
+              body: {
+                confirmPassword: 'wrongPassword',
+                password: 'NewPassword0!',
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               confirmPassword: FIELD_SHOULD_MATCH('password'),
@@ -247,8 +271,11 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              confirmPassword: 'NewPassword0!',
+            } = await putUsersPassword(app, {
+              body: {
+                confirmPassword: 'NewPassword0!',
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               confirmPassword: FIELD_SHOULD_MATCH('password'),
@@ -261,9 +288,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              password: newPassword,
-              confirmPassword: newPassword,
+            } = await putUsersPassword(app, {
+              body: {
+                password: newPassword,
+                confirmPassword: newPassword,
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               password: FIELD_CANNOT_BE_EMPTY,
@@ -275,9 +305,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              password: newPassword,
-              confirmPassword: newPassword,
+            } = await putUsersPassword(app, {
+              body: {
+                password: newPassword,
+                confirmPassword: newPassword,
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               password: FIELD_SHOULD_BE_A_STRING,
@@ -289,9 +322,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              password: newPassword,
-              confirmPassword: newPassword,
+            } = await putUsersPassword(app, {
+              body: {
+                password: newPassword,
+                confirmPassword: newPassword,
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               password: FIELD_CANNOT_CONTAIN_SPACES,
@@ -303,9 +339,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              password: newPassword,
-              confirmPassword: newPassword,
+            } = await putUsersPassword(app, {
+              body: {
+                password: newPassword,
+                confirmPassword: newPassword,
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               password: FIELD_MIN_LENGTH(8),
@@ -317,9 +356,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              password: newPassword,
-              confirmPassword: newPassword,
+            } = await putUsersPassword(app, {
+              body: {
+                password: newPassword,
+                confirmPassword: newPassword,
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               password: FIELD_MAX_LENGTH(30),
@@ -331,9 +373,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              password: newPassword,
-              confirmPassword: newPassword,
+            } = await putUsersPassword(app, {
+              body: {
+                password: newPassword,
+                confirmPassword: newPassword,
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               password: FIELD_SHOULD_BE_A_PASSWORD,
@@ -345,9 +390,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              password: newPassword,
-              confirmPassword: newPassword,
+            } = await putUsersPassword(app, {
+              body: {
+                confirmPassword: newPassword,
+                password: newPassword,
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               password: FIELD_SHOULD_BE_A_PASSWORD,
@@ -359,9 +407,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              password: newPassword,
-              confirmPassword: newPassword,
+            } = await putUsersPassword(app, {
+              body: {
+                confirmPassword: newPassword,
+                password: newPassword,
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               password: FIELD_SHOULD_BE_A_PASSWORD,
@@ -373,9 +424,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'Bearer token', {
-              password: newPassword,
-              confirmPassword: newPassword,
+            } = await putUsersPassword(app, {
+              body: {
+                confirmPassword: newPassword,
+                password: newPassword,
+              },
+              confirmToken: 'Bearer token',
             });
             expect(body.errors).toEqual({
               password: FIELD_SHOULD_BE_A_PASSWORD,
@@ -391,9 +445,11 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, undefined, {
-              password: newPassword,
-              confirmPassword: newPassword,
+            } = await putUsersPassword(app, {
+              body: {
+                confirmPassword: newPassword,
+                password: newPassword,
+              },
             });
             expect(body.errors).toBe(TOKEN_NOT_FOUND);
             expect(status).toBe(401);
@@ -403,9 +459,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'token', {
-              password: newPassword,
-              confirmPassword: newPassword,
+            } = await putUsersPassword(app, {
+              body: {
+                confirmPassword: newPassword,
+                password: newPassword,
+              },
+              confirmToken: 'token',
             });
             expect(body.errors).toBe(WRONG_TOKEN);
             expect(status).toBe(401);
@@ -421,9 +480,12 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersPassword(app, 'token', {
-              password: newPassword,
-              confirmPassword: newPassword,
+            } = await putUsersPassword(app, {
+              body: {
+                confirmPassword: newPassword,
+                password: newPassword,
+              },
+              confirmToken: 'token',
             });
             expect(body.errors).toBe(WRONG_TOKEN_VERSION);
             expect(status).toBe(401);
@@ -442,9 +504,12 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putUsersPassword(app, 'Bearer token', {
-            password: newPassword,
-            confirmPassword: newPassword,
+          } = await putUsersPassword(app, {
+            body: {
+              confirmPassword: newPassword,
+              password: newPassword,
+            },
+            confirmToken: 'Bearer token',
           });
           expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
@@ -470,9 +535,12 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putUsersPassword(app, 'Bearer token', {
-            password: newPassword,
-            confirmPassword: newPassword,
+          } = await putUsersPassword(app, {
+            body: {
+              confirmPassword: newPassword,
+              password: newPassword,
+            },
+            confirmToken: 'Bearer token',
           });
           expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
@@ -498,9 +566,12 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putUsersPassword(app, 'Bearer token', {
-            password: newPassword,
-            confirmPassword: newPassword,
+          } = await putUsersPassword(app, {
+            body: {
+              confirmPassword: newPassword,
+              password: newPassword,
+            },
+            confirmToken: 'Bearer token',
           });
           expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);

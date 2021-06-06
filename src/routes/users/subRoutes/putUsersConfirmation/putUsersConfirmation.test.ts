@@ -73,7 +73,9 @@ describe('/users', () => {
               token,
             },
             status,
-          } = await putUsersConfirmation(app, 'Bearer token');
+          } = await putUsersConfirmation(app, {
+            confirmToken: 'Bearer token',
+          });
           expect(expiresIn).toBe(1800);
           expect(status).toBe(200);
           expect(typeof token).toBe('string');
@@ -85,7 +87,9 @@ describe('/users', () => {
               confirmTokenVersion: user.confirmTokenVersion,
               id: user.id,
             }));
-          await putUsersConfirmation(app, 'Bearer token');
+          await putUsersConfirmation(app, {
+            confirmToken: 'Bearer token',
+          });
           const { confirmTokenVersion } = user;
           const { confirmed } = await user.reload();
           expect(confirmed).toBeTruthy();
@@ -112,7 +116,9 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putUsersConfirmation(app, 'Bearer token');
+          } = await putUsersConfirmation(app, {
+            confirmToken: 'Bearer token',
+          });
           expect(body.errors).toBe(USER_SHOULD_NOT_BE_CONFIRMED);
           expect(status).toBe(401);
         });
@@ -129,7 +135,9 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersConfirmation(app, 'token');
+            } = await putUsersConfirmation(app, {
+              confirmToken: 'token',
+            });
             expect(body.errors).toBe(WRONG_TOKEN);
             expect(status).toBe(401);
           });
@@ -143,7 +151,9 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersConfirmation(app, 'Bearer token');
+            } = await putUsersConfirmation(app, {
+              confirmToken: 'Bearer token',
+            });
             expect(body.errors).toBe(WRONG_TOKEN_VERSION);
             expect(status).toBe(401);
           });
@@ -160,7 +170,9 @@ describe('/users', () => {
           const {
             body,
             status,
-          } = await putUsersConfirmation(app, 'Bearer token');
+          } = await putUsersConfirmation(app, {
+            confirmToken: 'Bearer token',
+          });
           expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });

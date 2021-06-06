@@ -70,7 +70,9 @@ describe('/galeries', () => {
           },
         },
       } = await postGaleries(app, token, {
-        name: 'galerie\'s name',
+        body: {
+          name: 'galerie\'s name',
+        },
       });
       galerieId = id;
     } catch (err) {
@@ -112,7 +114,7 @@ describe('/galeries', () => {
             expect(status).toBe(200);
           });
           it('should return 1 invitation', async () => {
-            await postGaleriesIdInvitations(app, token, galerieId, {});
+            await postGaleriesIdInvitations(app, token, galerieId);
             const {
               body: {
                 data: {
@@ -176,7 +178,7 @@ describe('/galeries', () => {
             expect(secondPack.length).toBe(1);
           });
           it('return user\'s profile picture', async () => {
-            await postGaleriesIdInvitations(app, token, galerieId, {});
+            await postGaleriesIdInvitations(app, token, galerieId);
             await postProfilePictures(app, token);
             const {
               body: {
@@ -270,12 +272,18 @@ describe('/galeries', () => {
                   },
                 },
               },
-            } = await postGaleriesIdInvitations(app, token, galerieId, {});
-            await postGaleriesSubscribe(app, tokenTwo, { code });
+            } = await postGaleriesIdInvitations(app, token, galerieId);
+            await postGaleriesSubscribe(app, tokenTwo, {
+              body: {
+                code,
+              },
+            });
             await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
-            await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+            await postGaleriesIdInvitations(app, tokenTwo, galerieId);
             await postBlackListUserId(app, token, userTwo.id, {
-              reason: 'black list reason',
+              body: {
+                reason: 'black list reason',
+              },
             });
             const {
               body: {
@@ -324,8 +332,12 @@ describe('/galeries', () => {
                   },
                 },
               },
-            } = await postGaleriesIdInvitations(app, token, galerieId, {});
-            await postGaleriesSubscribe(app, tokenTwo, { code });
+            } = await postGaleriesIdInvitations(app, token, galerieId);
+            await postGaleriesSubscribe(app, tokenTwo, {
+              body: {
+                code,
+              },
+            });
             const {
               body,
               status,
@@ -370,7 +382,9 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleries(app, tokenTwo, {
-              name: 'galeries\'name',
+              body: {
+                name: 'galeries\'name',
+              },
             });
             const {
               body,

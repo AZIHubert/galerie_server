@@ -178,7 +178,7 @@ describe('/profilePictures', () => {
               profilePictures: secondPack,
             },
           },
-        } = await getProfilePictures(app, token, 2);
+        } = await getProfilePictures(app, token, { page: 2 });
         expect(firstPack.length).toEqual(20);
         expect(secondPack.length).toEqual(1);
       });

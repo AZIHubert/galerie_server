@@ -3,12 +3,16 @@ import request from 'supertest';
 
 export default async (
   app: Server,
-  body: {
-    email?: any;
+  option: {
+    body: {
+      email?: any;
+    },
+  } = {
+    body: {},
   },
 ) => {
   const response = await request(app)
     .post('/users/confirmation')
-    .send(body);
+    .send(option.body);
   return response;
 };

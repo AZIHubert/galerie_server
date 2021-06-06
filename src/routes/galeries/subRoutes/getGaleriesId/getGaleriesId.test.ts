@@ -86,8 +86,10 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleries(app, token, {
-              description: 'galerie\'s description',
-              name: 'galerie\'s name',
+              body: {
+                description: 'galerie\'s description',
+                name: 'galerie\'s name',
+              },
             });
             returnedGalerie = galerie;
           } catch (err) {
@@ -145,8 +147,12 @@ describe('/galeries', () => {
                 },
               },
             },
-          } = await postGaleriesIdInvitations(app, token, returnedGalerie.id, {});
-          await postGaleriesSubscribe(app, tokenTwo, { code });
+          } = await postGaleriesIdInvitations(app, token, returnedGalerie.id);
+          await postGaleriesSubscribe(app, tokenTwo, {
+            body: {
+              code,
+            },
+          });
           const { status } = await getGaleriesId(app, tokenTwo, returnedGalerie.id);
           expect(status).toBe(200);
         });
@@ -266,7 +272,9 @@ describe('/galeries', () => {
               },
             },
           } = await postGaleries(app, tokenTwo, {
-            name: 'galerie\'s name',
+            body: {
+              name: 'galerie\'s name',
+            },
           });
           const {
             body,

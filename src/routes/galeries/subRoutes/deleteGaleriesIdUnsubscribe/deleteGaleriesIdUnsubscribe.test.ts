@@ -100,7 +100,9 @@ describe('/galeries', () => {
           },
         },
       } = await postGaleries(app, tokenTwo, {
-        name: 'galerie\'s name',
+        body: {
+          name: 'galerie\'s name',
+        },
       });
       galerieId = id;
       const {
@@ -111,9 +113,11 @@ describe('/galeries', () => {
             },
           },
         },
-      } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+      } = await postGaleriesIdInvitations(app, tokenTwo, galerieId);
       await postGaleriesSubscribe(app, token, {
-        code,
+        body: {
+          code,
+        },
       });
     } catch (err) {
       done(err);
@@ -289,7 +293,9 @@ describe('/galeries', () => {
               },
             },
           } = await postGaleries(app, tokenTwo, {
-            name: 'galerie\'s name',
+            body: {
+              name: 'galerie\'s name',
+            },
           });
           const {
             body,

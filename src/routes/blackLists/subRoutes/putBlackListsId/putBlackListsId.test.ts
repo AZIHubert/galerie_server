@@ -92,7 +92,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           const {
             body: {
@@ -132,8 +134,10 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
-            time: (1000 * 60 * 10),
+            body: {
+              reason: 'black list reason',
+              time: (1000 * 60 * 10),
+            },
           });
           const {
             body: {
@@ -171,8 +175,10 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
-            time,
+            body: {
+              reason: 'black list reason',
+              time,
+            },
           });
           const {
             body,
@@ -199,7 +205,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           const {
             body,
@@ -224,7 +232,9 @@ describe('/blackLists', () => {
                   },
                 },
               } = await postBlackListUserId(app, token, userTwo.id, {
-                reason: 'black list reason',
+                body: {
+                  reason: 'black list reason',
+                },
               });
               blackListId = blackList.id;
             } catch (err) {

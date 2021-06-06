@@ -79,7 +79,9 @@ describe('/users', () => {
         describe('should return status 204 and', () => {
           it('create a token and send an email', async (done) => {
             const { status } = await postUsersMeEmail(app, token, {
-              password,
+              body: {
+                password,
+              },
             });
             expect(status).toBe(204);
             expect(emailMock).toHaveBeenCalledTimes(1);
@@ -88,7 +90,9 @@ describe('/users', () => {
           });
           it('increment emailTokenVersion if resend is true', async () => {
             await postUsersMeEmail(app, token, {
-              password,
+              body: {
+                password,
+              },
             });
             const { emailTokenVersion } = user;
             await user.reload();
@@ -101,7 +105,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postUsersMeEmail(app, token, {});
+              } = await postUsersMeEmail(app, token);
               expect(body.errors).toEqual({
                 password: FIELD_IS_REQUIRED,
               });
@@ -112,7 +116,9 @@ describe('/users', () => {
                 body,
                 status,
               } = await postUsersMeEmail(app, token, {
-                password: 1234,
+                body: {
+                  password: 1234,
+                },
               });
               expect(body.errors).toEqual({
                 password: FIELD_SHOULD_BE_A_STRING,
@@ -124,7 +130,9 @@ describe('/users', () => {
                 body,
                 status,
               } = await postUsersMeEmail(app, token, {
-                password: '',
+                body: {
+                  password: '',
+                },
               });
               expect(body.errors).toEqual({
                 password: FIELD_CANNOT_BE_EMPTY,
@@ -136,7 +144,9 @@ describe('/users', () => {
                 body,
                 status,
               } = await postUsersMeEmail(app, token, {
-                password: 'wrong password',
+                body: {
+                  password: 'wrong password',
+                },
               });
               expect(body.errors).toEqual({
                 password: WRONG_PASSWORD,

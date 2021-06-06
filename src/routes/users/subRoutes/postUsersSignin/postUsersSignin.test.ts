@@ -74,10 +74,12 @@ describe('/users', () => {
             },
             status,
           } = await postUsersSignin(app, {
-            confirmPassword: password,
-            email,
-            password,
-            userName,
+            body: {
+              confirmPassword: password,
+              email,
+              password,
+              userName,
+            },
           });
           const storeUser = await User.findByPk(user.id) as User;
           const passwordMatch = await bcrypt.compare(
@@ -127,10 +129,12 @@ describe('/users', () => {
               },
             },
           } = await postUsersSignin(app, {
-            confirmPassword: password,
-            email: ` ${email} `,
-            password,
-            userName: ` ${userName} `,
+            body: {
+              confirmPassword: password,
+              email: ` ${email} `,
+              password,
+              userName: ` ${userName} `,
+            },
           });
           const user = await User.findByPk(userId) as User;
           expect(user.email).toBe(email);
@@ -146,9 +150,11 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+              },
             });
             expect(body.errors).toEqual({
               userName: FIELD_IS_REQUIRED,
@@ -161,10 +167,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: '',
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: '',
+              },
             });
             expect(body.errors).toEqual({
               userName: FIELD_CANNOT_BE_EMPTY,
@@ -177,10 +185,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: 1234,
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 1234,
+              },
             });
             expect(body.errors).toEqual({
               userName: FIELD_SHOULD_BE_A_STRING,
@@ -193,10 +203,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: 'userName with spaces',
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 'userName with spaces',
+              },
             });
             expect(body.errors).toEqual({
               userName: FIELD_CANNOT_CONTAIN_SPACES,
@@ -209,10 +221,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: 'a'.repeat(2),
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 'a'.repeat(2),
+              },
             });
             expect(body.errors).toEqual({
               userName: FIELD_MIN_LENGTH(3),
@@ -225,10 +239,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: 'a'.repeat(31),
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 'a'.repeat(31),
+              },
             });
             expect(body.errors).toEqual({
               userName: FIELD_MAX_LENGTH(30),
@@ -245,10 +261,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user2@email.com',
-              password,
-              userName,
+              body: {
+                confirmPassword: password,
+                email: 'user2@email.com',
+                password,
+                userName,
+              },
             });
             expect(body.errors).toEqual({
               userName: FIELD_IS_ALREADY_TAKEN,
@@ -263,9 +281,11 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              password,
-              userName: 'user',
+              body: {
+                confirmPassword: password,
+                password,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               email: FIELD_IS_REQUIRED,
@@ -278,10 +298,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: '',
-              password,
-              userName: 'user',
+              body: {
+                confirmPassword: password,
+                email: '',
+                password,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               email: FIELD_CANNOT_BE_EMPTY,
@@ -294,10 +316,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 1234,
-              password,
-              userName: 'user',
+              body: {
+                confirmPassword: password,
+                email: 1234,
+                password,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               email: FIELD_SHOULD_BE_A_STRING,
@@ -310,10 +334,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'not an email',
-              password,
-              userName: 'user',
+              body: {
+                confirmPassword: password,
+                email: 'not an email',
+                password,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               email: FIELD_SHOULD_BE_AN_EMAIL,
@@ -330,10 +356,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email,
-              password,
-              userName: 'user2',
+              body: {
+                confirmPassword: password,
+                email,
+                password,
+                userName: 'user2',
+              },
             });
             expect(body.errors).toEqual({
               email: FIELD_IS_ALREADY_TAKEN,
@@ -347,9 +375,11 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: 'Password0!',
-              email: 'user@email.com',
-              userName: 'user',
+              body: {
+                confirmPassword: 'Password0!',
+                email: 'user@email.com',
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               confirmPassword: FIELD_SHOULD_MATCH('password'),
@@ -363,10 +393,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: 'user',
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               password: FIELD_CANNOT_BE_EMPTY,
@@ -378,10 +410,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: 'Password0!',
-              email: 'user@email.com',
-              password: 1234,
-              userName: 'user',
+              body: {
+                confirmPassword: 'Password0!',
+                email: 'user@email.com',
+                password: 1234,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               confirmPassword: FIELD_SHOULD_MATCH('password'),
@@ -395,10 +429,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: 'user',
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               password: FIELD_CANNOT_CONTAIN_SPACES,
@@ -411,10 +447,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: 'user',
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               password: FIELD_MIN_LENGTH(8),
@@ -427,10 +465,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: 'user',
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               password: FIELD_MAX_LENGTH(30),
@@ -443,10 +483,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: 'user',
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               password: FIELD_SHOULD_BE_A_PASSWORD,
@@ -459,10 +501,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: 'user',
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               password: FIELD_SHOULD_BE_A_PASSWORD,
@@ -475,10 +519,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: 'user',
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               password: FIELD_SHOULD_BE_A_PASSWORD,
@@ -491,10 +537,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: password,
-              email: 'user@email.com',
-              password,
-              userName: 'user',
+              body: {
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               password: FIELD_SHOULD_BE_A_PASSWORD,
@@ -508,9 +556,11 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              email: 'user@email.com',
-              password: 'Password0!',
-              userName: 'user',
+              body: {
+                email: 'user@email.com',
+                password: 'Password0!',
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               confirmPassword: FIELD_IS_REQUIRED,
@@ -522,10 +572,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: '',
-              email: 'user@email.com',
-              password: 'Password0!',
-              userName: 'user',
+              body: {
+                confirmPassword: '',
+                email: 'user@email.com',
+                password: 'Password0!',
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               confirmPassword: FIELD_CANNOT_BE_EMPTY,
@@ -537,10 +589,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: 1234,
-              email: 'user@email.com',
-              password: 'Password0!',
-              userName: 'user',
+              body: {
+                confirmPassword: 1234,
+                email: 'user@email.com',
+                password: 'Password0!',
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               confirmPassword: FIELD_SHOULD_BE_A_STRING,
@@ -552,10 +606,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersSignin(app, {
-              confirmPassword: 'wrongpassword',
-              email: 'user@email.com',
-              password: 'Password0!',
-              userName: 'user',
+              body: {
+                confirmPassword: 'wrongpassword',
+                email: 'user@email.com',
+                password: 'Password0!',
+                userName: 'user',
+              },
             });
             expect(body.errors).toEqual({
               confirmPassword: FIELD_SHOULD_MATCH('password'),

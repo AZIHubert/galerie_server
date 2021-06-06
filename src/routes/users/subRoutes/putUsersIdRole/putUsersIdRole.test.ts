@@ -86,7 +86,9 @@ describe('/users', () => {
               },
               status,
             } = await putUsersIdRole(app, token, userTwo.id, {
-              role,
+              body: {
+                role,
+              },
             });
             await userTwo.reload();
             expect(action).toBe('PUT');
@@ -102,7 +104,9 @@ describe('/users', () => {
               userName: 'user2',
             });
             await putUsersIdRole(app, token, userTwo.id, {
-              role,
+              body: {
+                role,
+              },
             });
             await userTwo.reload();
             expect(userTwo.role).toBe(role);
@@ -115,7 +119,9 @@ describe('/users', () => {
               userName: 'user2',
             });
             await putUsersIdRole(app, token, userTwo.id, {
-              role,
+              body: {
+                role,
+              },
             });
             await userTwo.reload();
             expect(userTwo.role).toBe(role);
@@ -126,7 +132,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersIdRole(app, token, '100', {});
+            } = await putUsersIdRole(app, token, '100');
             expect(body.errors).toBe(INVALID_UUID('user'));
             expect(status).toBe(400);
           });
@@ -134,7 +140,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await putUsersIdRole(app, token, user.id, {});
+            } = await putUsersIdRole(app, token, user.id);
             expect(body.errors).toBe('you can\'t modify your role yourself');
             expect(status).toBe(400);
           });
@@ -152,7 +158,9 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersIdRole(app, token, id, {
-              role: 'user',
+              body: {
+                role: 'user',
+              },
             });
             expect(body.errors).toBe('you can\'t modify the role of a super admin');
             expect(status).toBe(400);
@@ -172,7 +180,9 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersIdRole(app, token, id, {
-              role,
+              body: {
+                role,
+              },
             });
             expect(body.errors).toBe(`user's role is already ${role}`);
             expect(status).toBe(400);
@@ -190,7 +200,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await putUsersIdRole(app, token, id, {});
+              } = await putUsersIdRole(app, token, id);
               expect(body.errors).toEqual({
                 role: FIELD_IS_REQUIRED,
               });
@@ -209,7 +219,9 @@ describe('/users', () => {
                 body,
                 status,
               } = await putUsersIdRole(app, token, id, {
-                role: 'wrongRole',
+                body: {
+                  role: 'wrongRole',
+                },
               });
               expect(body.errors).toEqual({
                 role: 'role should only be admin, superAdmin or user',
@@ -224,7 +236,9 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersIdRole(app, token, uuidv4(), {
-              role: 'superAdmin',
+              body: {
+                role: 'superAdmin',
+              },
             });
             expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
             expect(status).toBe(404);
@@ -243,7 +257,9 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersIdRole(app, token, id, {
-              role: 'superAdmin',
+              body: {
+                role: 'superAdmin',
+              },
             });
             expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
             expect(status).toBe(404);

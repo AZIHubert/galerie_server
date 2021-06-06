@@ -67,7 +67,9 @@ describe('/galeries', () => {
           },
         },
       } = await postGaleries(app, token, {
-        name: 'galerie\'s name',
+        body: {
+          name: 'galerie\'s name',
+        },
       });
       galerieId = id;
     } catch (err) {
@@ -102,7 +104,7 @@ describe('/galeries', () => {
                     },
                   },
                 },
-              } = await postGaleriesIdInvitations(app, token, galerieId, {});
+              } = await postGaleriesIdInvitations(app, token, galerieId);
               const {
                 body: {
                   action,
@@ -165,8 +167,12 @@ describe('/galeries', () => {
                     },
                   },
                 },
-              } = await postGaleriesIdInvitations(app, token, galerieId, {});
-              await postGaleriesSubscribe(app, tokenTwo, { code });
+              } = await postGaleriesIdInvitations(app, token, galerieId);
+              await postGaleriesSubscribe(app, tokenTwo, {
+                body: {
+                  code,
+                },
+              });
               const {
                 body,
                 status,
@@ -211,7 +217,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, tokenTwo, {
-                name: 'galeries\'name',
+                body: {
+                  name: 'galeries\'name',
+                },
               });
               const {
                 body,
@@ -236,7 +244,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, token, {
-                name: 'galerie\'s name',
+                body: {
+                  name: 'galerie\'s name',
+                },
               });
               const {
                 body: {
@@ -244,7 +254,7 @@ describe('/galeries', () => {
                     invitation,
                   },
                 },
-              } = await postGaleriesIdInvitations(app, token, galerie.id, {});
+              } = await postGaleriesIdInvitations(app, token, galerie.id);
               const {
                 body,
                 status,

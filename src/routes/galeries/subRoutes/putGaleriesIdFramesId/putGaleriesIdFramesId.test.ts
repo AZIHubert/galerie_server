@@ -92,7 +92,9 @@ describe('/galeries', () => {
                     },
                   },
                 } = await postGaleries(app, token, {
-                  name: 'galerie\'s name',
+                  body: {
+                    name: 'galerie\'s name',
+                  },
                 });
                 const {
                   body: {
@@ -197,7 +199,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, token, {
-                name: 'galerie\'s name',
+                body: {
+                  name: 'galerie\'s name',
+                },
               });
               const {
                 body: {
@@ -207,8 +211,12 @@ describe('/galeries', () => {
                     },
                   },
                 },
-              } = await postGaleriesIdInvitations(app, token, galerieId, {});
-              await postGaleriesSubscribe(app, tokenTwo, { code });
+              } = await postGaleriesIdInvitations(app, token, galerieId);
+              await postGaleriesSubscribe(app, tokenTwo, {
+                body: {
+                  code,
+                },
+              });
               const {
                 body: {
                   data: {
@@ -240,7 +248,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, token, {
-                name: 'galerie\'s name',
+                body: {
+                  name: 'galerie\'s name',
+                },
               });
               const {
                 body: {
@@ -277,7 +287,9 @@ describe('/galeries', () => {
                       },
                     },
                   } = await postGaleries(app, token, {
-                    name: 'galerie\'s name',
+                    body: {
+                      name: 'galerie\'s name',
+                    },
                   });
                   const {
                     body: {
@@ -370,7 +382,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, tokenTwo, {
-                name: 'galerie\'s name',
+                body: {
+                  name: 'galerie\'s name',
+                },
               });
               const {
                 body,
@@ -389,7 +403,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, token, {
-                name: 'galerie\'s name',
+                body: {
+                  name: 'galerie\'s name',
+                },
               });
               const {
                 body,
@@ -408,7 +424,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, token, {
-                name: 'galerie\'s name',
+                body: {
+                  name: 'galerie\'s name',
+                },
               });
               const {
                 body: {
@@ -419,7 +437,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await postGaleries(app, token, {
-                name: 'galerie\'s name',
+                body: {
+                  name: 'galerie\'s name',
+                },
               });
               const {
                 body: {

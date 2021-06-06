@@ -112,7 +112,9 @@ describe('/blackLists', () => {
             },
             status,
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason,
+            body: {
+              reason,
+            },
           });
           const blackList = await BlackList.findOne({
             where: {
@@ -180,8 +182,10 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
-            time,
+            body: {
+              reason: 'black list reason',
+              time,
+            },
           });
           expect(blackList.time).toBe(time);
         });
@@ -196,7 +200,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: ` ${reason} `,
+            body: {
+              reason: ` ${reason} `,
+            },
           });
           expect(returnedReason).toBe(reason);
         });
@@ -209,7 +215,9 @@ describe('/blackLists', () => {
           const {
             status,
           } = await postBlackListUserId(app, token, userThree.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           expect(status).toBe(200);
         });
@@ -236,7 +244,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           expect(currentProfilePicture.createdAt).not.toBeUndefined();
           expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
@@ -284,7 +294,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           expect(currentProfilePicture.createdAt).not.toBeUndefined();
           expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
@@ -325,7 +337,7 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, '100', {});
+          } = await postBlackListUserId(app, token, '100');
           expect(body.errors).toBe(INVALID_UUID('user'));
           expect(status).toBe(400);
         });
@@ -333,7 +345,7 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, user.id, {});
+          } = await postBlackListUserId(app, token, user.id);
           expect(body.errors).toBe('you can\'t put your own account on the black list');
           expect(status).toBe(400);
         });
@@ -346,7 +358,7 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, userTwo.id, {});
+          } = await postBlackListUserId(app, token, userTwo.id);
           expect(body.errors).toBe('you can\'t black list a super admin');
           expect(status).toBe(400);
         });
@@ -377,7 +389,7 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUserId(app, tokenTwo, userThree.id, {});
+          } = await postBlackListUserId(app, tokenTwo, userThree.id);
           expect(body.errors).toBe('you can\'t black list an admin');
           expect(status).toBe(400);
         });
@@ -387,12 +399,14 @@ describe('/blackLists', () => {
             userName: 'user2',
           });
           await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, userTwo.id, {});
+          } = await postBlackListUserId(app, token, userTwo.id);
           expect(body.errors).toBe('user is already black listed');
           expect(status).toBe(400);
         });
@@ -416,7 +430,7 @@ describe('/blackLists', () => {
             const {
               body,
               status,
-            } = await postBlackListUserId(app, token, userTwo.id, {});
+            } = await postBlackListUserId(app, token, userTwo.id);
             expect(body.errors).toEqual({
               reason: FIELD_IS_REQUIRED,
             });
@@ -427,7 +441,9 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: 1234,
+              body: {
+                reason: 1234,
+              },
             });
             expect(body.errors).toEqual({
               reason: FIELD_SHOULD_BE_A_STRING,
@@ -439,7 +455,9 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: '',
+              body: {
+                reason: '',
+              },
             });
             expect(body.errors).toEqual({
               reason: FIELD_CANNOT_BE_EMPTY,
@@ -451,7 +469,9 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: 'a'.repeat(9),
+              body: {
+                reason: 'a'.repeat(9),
+              },
             });
             expect(body.errors).toEqual({
               reason: FIELD_MIN_LENGTH(10),
@@ -463,7 +483,9 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: 'a'.repeat(201),
+              body: {
+                reason: 'a'.repeat(201),
+              },
             });
             expect(body.errors).toEqual({
               reason: FIELD_MAX_LENGTH(200),
@@ -492,8 +514,10 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: 'black list reason',
-              time: 'not a number',
+              body: {
+                reason: 'black list reason',
+                time: 'not a number',
+              },
             });
             expect(body.errors).toEqual({
               time: FIELD_SHOULD_BE_A_NUMBER,
@@ -505,8 +529,10 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: 'black list reason',
-              time: (1000 * 60 * 10) - 1,
+              body: {
+                reason: 'black list reason',
+                time: (1000 * 60 * 10) - 1,
+              },
             });
             expect(body.errors).toEqual({
               time: 'should be ban at least 10 minutes',
@@ -518,8 +544,10 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: 'black list reason',
-              time: (1000 * 60 * 60 * 24 * 365) + 1,
+              body: {
+                reason: 'black list reason',
+                time: (1000 * 60 * 60 * 24 * 365) + 1,
+              },
             });
             expect(body.errors).toEqual({
               time: 'should be ban at most 1 year',
@@ -533,7 +561,7 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, uuidv4(), {});
+          } = await postBlackListUserId(app, token, uuidv4());
           expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });
@@ -546,7 +574,7 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, userTwo.id, {});
+          } = await postBlackListUserId(app, token, userTwo.id);
           expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });

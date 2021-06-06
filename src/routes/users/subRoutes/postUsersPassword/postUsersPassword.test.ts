@@ -71,7 +71,9 @@ describe('/users', () => {
           const {
             status,
           } = await postUsersPassword(app, {
-            email: user.email,
+            body: {
+              email: user.email,
+            },
           });
           expect(status).toBe(204);
           expect(emailMocked)
@@ -83,7 +85,9 @@ describe('/users', () => {
         });
         it('increment resetPasswordTokenVersion', async () => {
           await postUsersPassword(app, {
-            email: user.email,
+            body: {
+              email: user.email,
+            },
           });
           const { resetPasswordTokenVersion } = user;
           await user.reload();
@@ -92,14 +96,18 @@ describe('/users', () => {
         });
         it('trim request.body.email', async () => {
           await postUsersPassword(app, {
-            email: ` ${user.email} `,
+            body: {
+              email: ` ${user.email} `,
+            },
           });
           expect(emailMocked)
             .toBeCalledWith(user.email, expect.any(String));
         });
         it('should convert email to lowercase', async () => {
           await postUsersPassword(app, {
-            email: user.email.toUpperCase(),
+            body: {
+              email: user.email.toUpperCase(),
+            },
           });
           expect(emailMocked)
             .toBeCalledWith(user.email, expect.any(String));
@@ -110,7 +118,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await postUsersPassword(app, {});
+              } = await postUsersPassword(app);
               expect(body.errors).toEqual({
                 email: FIELD_IS_REQUIRED,
               });
@@ -121,7 +129,9 @@ describe('/users', () => {
                 body,
                 status,
               } = await postUsersPassword(app, {
-                email: '',
+                body: {
+                  email: '',
+                },
               });
               expect(body.errors).toEqual({
                 email: FIELD_CANNOT_BE_EMPTY,
@@ -133,7 +143,9 @@ describe('/users', () => {
                 body,
                 status,
               } = await postUsersPassword(app, {
-                email: 1234,
+                body: {
+                  email: 1234,
+                },
               });
               expect(body.errors).toEqual({
                 email: FIELD_SHOULD_BE_A_STRING,
@@ -145,7 +157,9 @@ describe('/users', () => {
                 body,
                 status,
               } = await postUsersPassword(app, {
-                email: 'notAnEmail',
+                body: {
+                  email: 'notAnEmail',
+                },
               });
               expect(body.errors).toEqual({
                 email: FIELD_SHOULD_BE_AN_EMAIL,
@@ -169,7 +183,9 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersPassword(app, {
-              email: notConfirmedUserEmail,
+              body: {
+                email: notConfirmedUserEmail,
+              },
             });
             expect(body.errors).toBe(USER_SHOULD_BE_CONFIRED);
             expect(status).toBe(401);
@@ -193,7 +209,9 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersPassword(app, {
-              email: blackListedUserEmail,
+              body: {
+                email: blackListedUserEmail,
+              },
             });
             expect(body.errors).toBe(USER_SHOULD_NOT_BE_BLACK_LISTED);
             expect(status).toBe(401);
@@ -205,7 +223,9 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersPassword(app, {
-              email: 'user2@email.com',
+              body: {
+                email: 'user2@email.com',
+              },
             });
             expect(body.errors).toEqual({
               email: MODEL_NOT_FOUND('user'),
@@ -226,7 +246,9 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersPassword(app, {
-              email: facebookUserEmail,
+              body: {
+                email: facebookUserEmail,
+              },
             });
             expect(body.errors).toEqual({
               email: MODEL_NOT_FOUND('user'),
@@ -247,7 +269,9 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersPassword(app, {
-              email: googleUserEmail,
+              body: {
+                email: googleUserEmail,
+              },
             });
             expect(body.errors).toEqual({
               email: MODEL_NOT_FOUND('user'),

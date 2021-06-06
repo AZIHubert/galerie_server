@@ -86,7 +86,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           const {
             body: {

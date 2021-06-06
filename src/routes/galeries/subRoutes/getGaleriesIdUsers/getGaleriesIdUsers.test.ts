@@ -65,7 +65,9 @@ describe('/galeries', () => {
           },
         },
       } = await postGaleries(app, token, {
-        name: 'galerie\'s name',
+        body: {
+          name: 'galerie\'s name',
+        },
       });
       galerieId = id;
     } catch (err) {
@@ -131,9 +133,11 @@ describe('/galeries', () => {
                 },
               },
             },
-          } = await postGaleriesIdInvitations(app, token, galerieId, {});
+          } = await postGaleriesIdInvitations(app, token, galerieId);
           await postGaleriesSubscribe(app, tokenTwo, {
-            code,
+            body: {
+              code,
+            },
           });
           const {
             body: {
@@ -191,9 +195,11 @@ describe('/galeries', () => {
                 },
               },
             },
-          } = await postGaleriesIdInvitations(app, token, galerieId, {});
+          } = await postGaleriesIdInvitations(app, token, galerieId);
           await postGaleriesSubscribe(app, tokenTwo, {
-            code,
+            body: {
+              code,
+            },
           });
           await postProfilePictures(app, tokenTwo);
           const {
@@ -256,6 +262,7 @@ describe('/galeries', () => {
           } = await getGaleriesIdUsers(app, token, galerieId);
           expect(users.length).toBe(0);
         });
+        it('TODO: return a pack of 20 users', async () => {});
         it('TODO: don\'t return user if he\'s black listed and current user role for this galerie is \'user\'', async () => {});
         it('TODO: return user if he\'s black listed and current user role for this galerie is \'admin\'', async () => {});
         it('TODO: return user if he\'s black listed and current user role for this galerie is \'creator\'', async () => {});
@@ -306,7 +313,9 @@ describe('/galeries', () => {
               },
             },
           } = await postGaleries(app, tokenTwo, {
-            name: 'galerie\'s name',
+            body: {
+              name: 'galerie\'s name',
+            },
           });
           const {
             body,
