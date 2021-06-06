@@ -28,8 +28,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/galeries', () => {
   let app: Server;
   let galerieId: string;
@@ -48,14 +46,24 @@ describe('/galeries', () => {
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
-      user = await createUser({});
-      userTwo = await createUser({
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({});
+      const {
+        password: passwordTwo,
+        user: createdUserTwo,
+      } = await createUser({
         email: 'user2@email.com',
         userName: 'user2',
       });
+
+      user = createdUser;
+      userTwo = createdUserTwo;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -64,7 +72,7 @@ describe('/galeries', () => {
         body: bodyTwo,
       } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password: passwordTwo,
           userNameOrEmail: userTwo.email,
         },
       });
@@ -78,7 +86,9 @@ describe('/galeries', () => {
           },
         },
       } = await postGaleries(app, tokenTwo, {
-        name: 'galerie\'s name',
+        body: {
+          name: 'galerie\'s name',
+        },
       });
       galerieId = id;
     } catch (err) {
@@ -110,7 +120,7 @@ describe('/galeries', () => {
               },
             },
           },
-        } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+        } = await postGaleriesIdInvitations(app, tokenTwo, galerieId);
         const {
           body: {
             action,
@@ -120,7 +130,9 @@ describe('/galeries', () => {
           },
           status,
         } = await postGaleriesSubscribe(app, token, {
-          code,
+          body: {
+            code,
+          },
         });
         const galerieUser = await GalerieUser.findOne({
           where: {
@@ -142,11 +154,13 @@ describe('/galeries', () => {
               },
             },
           },
-        } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+        } = await postGaleriesIdInvitations(app, tokenTwo, galerieId);
         const {
           status,
         } = await postGaleriesSubscribe(app, token, {
-          code: ` ${code} `,
+          body: {
+            code: ` ${code} `,
+          },
         });
         expect(status).toBe(200);
         const galerieUser = await GalerieUser.findOne({
@@ -166,11 +180,13 @@ describe('/galeries', () => {
               },
             },
           },
-        } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+        } = await postGaleriesIdInvitations(app, tokenTwo, galerieId);
         const {
           status,
         } = await postGaleriesSubscribe(app, token, {
-          code: code.toUpperCase(),
+          body: {
+            code: code.toUpperCase(),
+          },
         });
         expect(status).toBe(200);
         const galerieUser = await GalerieUser.findOne({
@@ -193,10 +209,14 @@ describe('/galeries', () => {
             },
           },
         } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {
-          numOfInvits: 2,
+          body: {
+            numOfInvits: 2,
+          },
         });
         await postGaleriesSubscribe(app, token, {
-          code,
+          body: {
+            code,
+          },
         });
         const invitation = await Invitation.findByPk(id) as Invitation;
         expect(invitation.numOfInvits).toBe(numOfInvits - 1);
@@ -212,10 +232,14 @@ describe('/galeries', () => {
             },
           },
         } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {
-          numOfInvits: 1,
+          body: {
+            numOfInvits: 1,
+          },
         });
         await postGaleriesSubscribe(app, token, {
-          code,
+          body: {
+            code,
+          },
         });
         const invitation = await Invitation.findByPk(id);
         expect(invitation).toBeNull();
@@ -231,15 +255,19 @@ describe('/galeries', () => {
               },
             },
           },
-        } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+        } = await postGaleriesIdInvitations(app, tokenTwo, galerieId);
         await postGaleriesSubscribe(app, token, {
-          code,
+          body: {
+            code,
+          },
         });
         const {
           body,
           status,
         } = await postGaleriesSubscribe(app, token, {
-          code,
+          body: {
+            code,
+          },
         });
         expect(body.errors).toBe('you are already subscribe to this galerie');
         expect(status).toBe(400);
@@ -253,7 +281,7 @@ describe('/galeries', () => {
               },
             },
           },
-        } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+        } = await postGaleriesIdInvitations(app, tokenTwo, galerieId);
         await Galerie.update({
           archived: true,
         }, {
@@ -265,7 +293,9 @@ describe('/galeries', () => {
           body,
           status,
         } = await postGaleriesSubscribe(app, token, {
-          code,
+          body: {
+            code,
+          },
         });
         expect(body.errors).toBe('this invitation is not valid');
         expect(status).toBe(400);
@@ -275,7 +305,7 @@ describe('/galeries', () => {
           const {
             body,
             status,
-          } = await postGaleriesSubscribe(app, token, {});
+          } = await postGaleriesSubscribe(app, token);
           expect(body.errors).toEqual({
             code: FIELD_IS_REQUIRED,
           });
@@ -286,7 +316,9 @@ describe('/galeries', () => {
             body,
             status,
           } = await postGaleriesSubscribe(app, token, {
-            code: 1234,
+            body: {
+              code: 1234,
+            },
           });
           expect(body.errors).toEqual({
             code: FIELD_SHOULD_BE_A_STRING,
@@ -298,7 +330,9 @@ describe('/galeries', () => {
             body,
             status,
           } = await postGaleriesSubscribe(app, token, {
-            code: '',
+            body: {
+              code: '',
+            },
           });
           expect(body.errors).toEqual({
             code: FIELD_CANNOT_BE_EMPTY,
@@ -313,7 +347,9 @@ describe('/galeries', () => {
           body,
           status,
         } = await postGaleriesSubscribe(app, token, {
-          code: 'wrong code',
+          body: {
+            code: 'wrong code',
+          },
         });
         expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
         expect(status).toBe(404);

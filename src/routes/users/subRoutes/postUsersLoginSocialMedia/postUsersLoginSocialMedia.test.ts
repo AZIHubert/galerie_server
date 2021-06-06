@@ -66,9 +66,11 @@ describe('/users', () => {
               },
               status,
             } = await postUsersLoginSocialMedia(app, {
-              id: facebookId,
-              type: 'Facebook',
-              userName,
+              body: {
+                id: facebookId,
+                type: 'Facebook',
+                userName,
+              },
             });
             const facebookUser = await User.findOne({
               where: {
@@ -102,9 +104,11 @@ describe('/users', () => {
                 token: loginToken,
               },
             } = await postUsersLoginSocialMedia(app, {
-              id: googleId,
-              userName,
-              type: 'Google',
+              body: {
+                id: googleId,
+                userName,
+                type: 'Google',
+              },
             });
             const googleUser = await User.findOne({
               where: {
@@ -129,14 +133,18 @@ describe('/users', () => {
             const facebookId = '1';
             const newProfilePicture = 'http://profilePicture';
             await postUsersLoginSocialMedia(app, {
-              id: facebookId,
-              userName: 'user',
-              type: 'Facebook',
+              body: {
+                id: facebookId,
+                userName: 'user',
+                type: 'Facebook',
+              },
             });
             await postUsersLoginSocialMedia(app, {
-              id: facebookId,
-              profilePicture: newProfilePicture,
-              type: 'Facebook',
+              body: {
+                id: facebookId,
+                profilePicture: newProfilePicture,
+                type: 'Facebook',
+              },
             });
             const user = await User.findOne({
               where: {
@@ -149,14 +157,18 @@ describe('/users', () => {
             const facebookId = '1';
             const newEmail = 'user@email.com';
             await postUsersLoginSocialMedia(app, {
-              id: facebookId,
-              userName: 'user',
-              type: 'Facebook',
+              body: {
+                id: facebookId,
+                userName: 'user',
+                type: 'Facebook',
+              },
             });
             await postUsersLoginSocialMedia(app, {
-              id: facebookId,
-              email: newEmail,
-              type: 'Facebook',
+              body: {
+                id: facebookId,
+                email: newEmail,
+                type: 'Facebook',
+              },
             });
             const user = await User.findOne({
               where: {
@@ -172,7 +184,9 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersLoginSocialMedia(app, {
-              userName: 'user',
+              body: {
+                userName: 'user',
+              },
             });
             expect(body.errors).toBe('id not found');
             expect(status).toBe(400);
@@ -182,8 +196,10 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersLoginSocialMedia(app, {
-              id: '1',
-              type: 'Facebook',
+              body: {
+                id: '1',
+                type: 'Facebook',
+              },
             });
             expect(body.errors).toBe('user name not found');
             expect(status).toBe(400);
@@ -191,19 +207,23 @@ describe('/users', () => {
           it('type is Facebook and email is already used for a Google account', async () => {
             const email = 'user@email.com';
             await postUsersLoginSocialMedia(app, {
-              id: '1',
-              userName: 'user',
-              email,
-              type: 'Google',
+              body: {
+                id: '1',
+                userName: 'user',
+                email,
+                type: 'Google',
+              },
             });
             const {
               body,
               status,
             } = await postUsersLoginSocialMedia(app, {
-              id: '1',
-              userName: 'user',
-              email,
-              type: 'Facebook',
+              body: {
+                id: '1',
+                userName: 'user',
+                email,
+                type: 'Facebook',
+              },
             });
             expect(body.errors).toBe('you\'re email is already used for a google account');
             expect(status).toBe(400);
@@ -217,10 +237,12 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersLoginSocialMedia(app, {
-              id: '1',
-              userName: 'user',
-              email,
-              type: 'Facebook',
+              body: {
+                id: '1',
+                userName: 'user',
+                email,
+                type: 'Facebook',
+              },
             });
             expect(body.errors).toBe('you\'re email is already used');
             expect(status).toBe(400);
@@ -228,19 +250,23 @@ describe('/users', () => {
           it('type is Google and email is already used for a Facebook account', async () => {
             const email = 'user@email.com';
             await postUsersLoginSocialMedia(app, {
-              email,
-              id: '1',
-              type: 'Facebook',
-              userName: 'user',
+              body: {
+                email,
+                id: '1',
+                type: 'Facebook',
+                userName: 'user',
+              },
             });
             const {
               body,
               status,
             } = await postUsersLoginSocialMedia(app, {
-              email,
-              id: '1',
-              type: 'Google',
-              userName: 'user',
+              body: {
+                email,
+                id: '1',
+                type: 'Google',
+                userName: 'user',
+              },
             });
             expect(body.errors).toBe('you\'re email is already used for a facebook account');
             expect(status).toBe(400);
@@ -254,24 +280,32 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersLoginSocialMedia(app, {
-              id: '1',
-              userName: 'user',
-              email,
-              type: 'Google',
+              body: {
+                id: '1',
+                userName: 'user',
+                email,
+                type: 'Google',
+              },
             });
             expect(body.errors).toBe('you\'re email is already used');
             expect(status).toBe(400);
           });
           it('user exist and is black listed', async () => {
             const facebookId = '1';
-            const { id: adminId } = await createUser({
+            const {
+              user: {
+                id: adminId,
+              },
+            } = await createUser({
               role: 'admin',
             });
             await postUsersLoginSocialMedia(app, {
-              id: facebookId,
-              userName: 'user',
-              email: 'user2@email.com',
-              type: 'Facebook',
+              body: {
+                id: facebookId,
+                userName: 'user',
+                email: 'user2@email.com',
+                type: 'Facebook',
+              },
             });
             const { id } = await User.findOne({
               where: {
@@ -287,8 +321,10 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersLoginSocialMedia(app, {
-              id: facebookId,
-              type: 'Facebook',
+              body: {
+                id: facebookId,
+                type: 'Facebook',
+              },
             });
             expect(body.errors).toBe(USER_SHOULD_NOT_BE_BLACK_LISTED);
             expect(status).toBe(400);

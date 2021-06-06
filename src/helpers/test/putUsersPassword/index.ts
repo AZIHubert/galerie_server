@@ -3,22 +3,26 @@ import request from 'supertest';
 
 export default async (
   app: Server,
-  confirmToken: string | undefined,
-  body: {
-    confirmPassword?: any;
-    password?: any;
+  option: {
+    body?: {
+      confirmPassword?: any;
+      password?: any;
+    },
+    confirmToken?: string,
+  } = {
+    body: {},
   },
 ) => {
   let response: request.Response;
-  if (confirmToken) {
+  if (option.confirmToken) {
     response = await request(app)
       .put('/users/password/')
-      .set('confirmation', confirmToken)
-      .send(body);
+      .set('confirmation', option.confirmToken)
+      .send(option.body ? option.body : {});
   } else {
     response = await request(app)
       .put('/users/password/')
-      .send(body);
+      .send(option.body ? option.body : {});
   }
   return response;
 };

@@ -18,8 +18,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
@@ -35,10 +33,16 @@ describe('/users', () => {
     try {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
-      user = await createUser({});
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({});
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });

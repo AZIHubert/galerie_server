@@ -30,7 +30,6 @@ import initApp from '@src/server';
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
 const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
-const userPassword = 'Password0!';
 
 describe('/profilePictures', () => {
   let app: Server;
@@ -47,10 +46,16 @@ describe('/profilePictures', () => {
     try {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
-      user = await createUser({});
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({});
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });

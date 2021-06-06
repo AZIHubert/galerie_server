@@ -23,8 +23,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
@@ -39,10 +37,16 @@ describe('/users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({});
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({});
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -77,7 +81,9 @@ describe('/users', () => {
               },
               status,
             } = await putUsersMePseudonym(app, token, {
-              pseudonym,
+              body: {
+                pseudonym,
+              },
             });
             expect(action).toBe('PUT');
             expect(data).toEqual({ pseudonym });
@@ -85,7 +91,9 @@ describe('/users', () => {
           });
           it('update user\'s pseudonym', async () => {
             await putUsersMePseudonym(app, token, {
-              pseudonym,
+              body: {
+                pseudonym,
+              },
             });
             const { pseudonym: newPseudonym } = await user.reload();
             expect(newPseudonym).toBe(pseudonym);
@@ -96,7 +104,9 @@ describe('/users', () => {
                 data,
               },
             } = await putUsersMePseudonym(app, token, {
-              pseudonym: ` ${pseudonym} `,
+              body: {
+                pseudonym: ` ${pseudonym} `,
+              },
             });
             const { pseudonym: newPseudonym } = await user.reload();
             expect(data).toEqual({ pseudonym });
@@ -109,7 +119,7 @@ describe('/users', () => {
               const {
                 body,
                 status,
-              } = await putUsersMePseudonym(app, token, {});
+              } = await putUsersMePseudonym(app, token);
               expect(body.errors).toEqual({
                 pseudonym: FIELD_IS_REQUIRED,
               });
@@ -120,7 +130,9 @@ describe('/users', () => {
                 body,
                 status,
               } = await putUsersMePseudonym(app, token, {
-                pseudonym: '',
+                body: {
+                  pseudonym: '',
+                },
               });
               expect(body.errors).toEqual({
                 pseudonym: FIELD_CANNOT_BE_EMPTY,
@@ -132,7 +144,9 @@ describe('/users', () => {
                 body,
                 status,
               } = await putUsersMePseudonym(app, token, {
-                pseudonym: 1234,
+                body: {
+                  pseudonym: 1234,
+                },
               });
               expect(body.errors).toEqual({
                 pseudonym: FIELD_SHOULD_BE_A_STRING,
@@ -144,7 +158,9 @@ describe('/users', () => {
                 body,
                 status,
               } = await putUsersMePseudonym(app, token, {
-                pseudonym: 'a'.repeat(2),
+                body: {
+                  pseudonym: 'a'.repeat(2),
+                },
               });
               expect(body.errors).toEqual({
                 pseudonym: FIELD_MIN_LENGTH(3),
@@ -156,7 +172,9 @@ describe('/users', () => {
                 body,
                 status,
               } = await putUsersMePseudonym(app, token, {
-                pseudonym: 'a'.repeat(31),
+                body: {
+                  pseudonym: 'a'.repeat(31),
+                },
               });
               expect(body.errors).toEqual({
                 pseudonym: FIELD_MAX_LENGTH(30),

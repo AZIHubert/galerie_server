@@ -24,8 +24,6 @@ import {
   FIELD_SHOULD_BE_A_STRING,
 } from '@src/helpers/errorMessages';
 
-const userPassword = 'Password0!';
-
 describe('/galerie', () => {
   let app: Server;
   let sequelize: Sequelize;
@@ -40,12 +38,18 @@ describe('/galerie', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({
         role: 'superAdmin',
       });
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -79,7 +83,11 @@ describe('/galerie', () => {
             },
           },
           status,
-        } = await postGaleries(app, token, { name });
+        } = await postGaleries(app, token, {
+          body: {
+            name,
+          },
+        });
         const galerie = await Galerie.findByPk(returnedGalerie.id);
         expect(action).toBe('POST');
         expect(galerie).not.toBeNull();
@@ -104,8 +112,10 @@ describe('/galerie', () => {
             },
           },
         } = await postGaleries(app, token, {
-          name: 'galerie\'s name',
-          description,
+          body: {
+            name: 'galerie\'s name',
+            description,
+          },
         });
         expect(galerie.description).toBe(description);
       });
@@ -118,8 +128,10 @@ describe('/galerie', () => {
             },
           },
         } = await postGaleries(app, token, {
-          name: 'galerie\'s name',
-          description,
+          body: {
+            name: 'galerie\'s name',
+            description,
+          },
         });
         expect(galerie.description).toBe(description);
       });
@@ -133,8 +145,10 @@ describe('/galerie', () => {
             },
           },
         } = await postGaleries(app, token, {
-          description: ` ${description} `,
-          name: ` ${name} `,
+          body: {
+            description: ` ${description} `,
+            name: ` ${name} `,
+          },
         });
         expect(galerie.description).toBe(description);
         expect(galerie.name).toBe(name);
@@ -147,8 +161,10 @@ describe('/galerie', () => {
             body,
             status,
           } = await postGaleries(app, token, {
-            description: 1234,
-            name: 'galerie\'s name',
+            body: {
+              description: 1234,
+              name: 'galerie\'s name',
+            },
           });
           expect(body.errors).toEqual({
             description: FIELD_SHOULD_BE_A_STRING,
@@ -160,8 +176,10 @@ describe('/galerie', () => {
             body,
             status,
           } = await postGaleries(app, token, {
-            description: 'a'.repeat(201),
-            name: 'galerie\'s name',
+            body: {
+              description: 'a'.repeat(201),
+              name: 'galerie\'s name',
+            },
           });
           expect(body.errors).toEqual({
             description: FIELD_MAX_LENGTH(200),
@@ -174,7 +192,7 @@ describe('/galerie', () => {
           const {
             body,
             status,
-          } = await postGaleries(app, token, {});
+          } = await postGaleries(app, token);
           expect(body.errors).toEqual({
             name: FIELD_IS_REQUIRED,
           });
@@ -184,7 +202,11 @@ describe('/galerie', () => {
           const {
             body,
             status,
-          } = await postGaleries(app, token, { name: '' });
+          } = await postGaleries(app, token, {
+            body: {
+              name: '',
+            },
+          });
           expect(body.errors).toEqual({
             name: FIELD_CANNOT_BE_EMPTY,
           });
@@ -194,7 +216,11 @@ describe('/galerie', () => {
           const {
             body,
             status,
-          } = await postGaleries(app, token, { name: 1234 });
+          } = await postGaleries(app, token, {
+            body: {
+              name: 1234,
+            },
+          });
           expect(body.errors).toEqual({
             name: FIELD_SHOULD_BE_A_STRING,
           });
@@ -204,7 +230,11 @@ describe('/galerie', () => {
           const {
             body,
             status,
-          } = await postGaleries(app, token, { name: 'a'.repeat(2) });
+          } = await postGaleries(app, token, {
+            body: {
+              name: 'a'.repeat(2),
+            },
+          });
           expect(body.errors).toEqual({
             name: FIELD_MIN_LENGTH(3),
           });
@@ -214,7 +244,11 @@ describe('/galerie', () => {
           const {
             body,
             status,
-          } = await postGaleries(app, token, { name: 'a'.repeat(31) });
+          } = await postGaleries(app, token, {
+            body: {
+              name: 'a'.repeat(31),
+            },
+          });
           expect(body.errors).toEqual({
             name: FIELD_MAX_LENGTH(30),
           });

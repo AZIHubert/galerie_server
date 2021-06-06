@@ -43,7 +43,10 @@ describe('/users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({});
+      const { user: createdUser } = await createUser({});
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
           password: userPassword,
@@ -78,9 +81,11 @@ describe('/users', () => {
             body,
             status,
           } = await putUsersMePassword(app, token, {
-            confirmNewPassword: newPassword,
-            currentPassword: userPassword,
-            newPassword,
+            body: {
+              confirmNewPassword: newPassword,
+              currentPassword: userPassword,
+              newPassword,
+            },
           });
           expect(body.expiresIn).toBe(1800);
           expect(typeof body.token).toBe('string');
@@ -89,9 +94,11 @@ describe('/users', () => {
         it('should hash password and update user\'s password', async () => {
           const newPassword = 'NewPassword0!';
           await putUsersMePassword(app, token, {
-            confirmNewPassword: newPassword,
-            currentPassword: userPassword,
-            newPassword,
+            body: {
+              confirmNewPassword: newPassword,
+              currentPassword: userPassword,
+              newPassword,
+            },
           });
           await user.reload();
           const passwordMatch = await bcrypt
@@ -102,9 +109,11 @@ describe('/users', () => {
         it('should increment authTokenVersion', async () => {
           const newPassword = 'NewPassword0!';
           await putUsersMePassword(app, token, {
-            confirmNewPassword: newPassword,
-            currentPassword: userPassword,
-            newPassword,
+            body: {
+              confirmNewPassword: newPassword,
+              currentPassword: userPassword,
+              newPassword,
+            },
           });
           const { authTokenVersion } = user;
           await user.reload();
@@ -118,8 +127,10 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              currentPassword: userPassword,
-              newPassword: 'NewPassword0!',
+              body: {
+                currentPassword: userPassword,
+                newPassword: 'NewPassword0!',
+              },
             });
             expect(body.errors).toEqual({
               confirmNewPassword: FIELD_IS_REQUIRED,
@@ -131,9 +142,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: '',
-              currentPassword: userPassword,
-              newPassword: 'NewPassword0!',
+              body: {
+                confirmNewPassword: '',
+                currentPassword: userPassword,
+                newPassword: 'NewPassword0!',
+              },
             });
             expect(body.errors).toEqual({
               confirmNewPassword: FIELD_CANNOT_BE_EMPTY,
@@ -145,9 +158,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: 1234,
-              currentPassword: userPassword,
-              newPassword: 'NewPassword0!',
+              body: {
+                confirmNewPassword: 1234,
+                currentPassword: userPassword,
+                newPassword: 'NewPassword0!',
+              },
             });
             expect(body.errors).toEqual({
               confirmNewPassword: FIELD_SHOULD_BE_A_STRING,
@@ -159,9 +174,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: 'wrongPassword',
-              currentPassword: userPassword,
-              newPassword: 'NewPassword0!',
+              body: {
+                confirmNewPassword: 'wrongPassword',
+                currentPassword: userPassword,
+                newPassword: 'NewPassword0!',
+              },
             });
             expect(body.errors).toEqual({
               confirmNewPassword: FIELD_SHOULD_MATCH('password'),
@@ -176,8 +193,10 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: newPassword,
-              newPassword,
+              body: {
+                confirmNewPassword: newPassword,
+                newPassword,
+              },
             });
             expect(body.errors).toEqual({
               currentPassword: FIELD_IS_REQUIRED,
@@ -190,9 +209,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: newPassword,
-              currentPassword: '',
-              newPassword,
+              body: {
+                confirmNewPassword: newPassword,
+                currentPassword: '',
+                newPassword,
+              },
             });
             expect(body.errors).toEqual({
               currentPassword: FIELD_CANNOT_BE_EMPTY,
@@ -205,9 +226,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: newPassword,
-              currentPassword: 1234,
-              newPassword,
+              body: {
+                confirmNewPassword: newPassword,
+                currentPassword: 1234,
+                newPassword,
+              },
             });
             expect(body.errors).toEqual({
               currentPassword: FIELD_SHOULD_BE_A_STRING,
@@ -220,9 +243,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: newPassword,
-              currentPassword: 'wrongPassword',
-              newPassword,
+              body: {
+                confirmNewPassword: newPassword,
+                currentPassword: 'wrongPassword',
+                newPassword,
+              },
             });
             expect(body.errors).toEqual({
               currentPassword: WRONG_PASSWORD,
@@ -236,8 +261,10 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: 'NewPassword0!',
-              currentPassword: userPassword,
+              body: {
+                confirmNewPassword: 'NewPassword0!',
+                currentPassword: userPassword,
+              },
             });
             expect(body.errors).toEqual({
               confirmNewPassword: FIELD_SHOULD_MATCH('password'),
@@ -250,9 +277,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: '',
-              currentPassword: userPassword,
-              newPassword: '',
+              body: {
+                confirmNewPassword: '',
+                currentPassword: userPassword,
+                newPassword: '',
+              },
             });
             expect(body.errors).toEqual({
               newPassword: FIELD_CANNOT_BE_EMPTY,
@@ -264,9 +293,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: 1234,
-              currentPassword: userPassword,
-              newPassword: 1234,
+              body: {
+                confirmNewPassword: 1234,
+                currentPassword: userPassword,
+                newPassword: 1234,
+              },
             });
             expect(body.errors).toEqual({
               newPassword: FIELD_SHOULD_BE_A_STRING,
@@ -279,9 +310,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: newPassword,
-              currentPassword: userPassword,
-              newPassword,
+              body: {
+                confirmNewPassword: newPassword,
+                currentPassword: userPassword,
+                newPassword,
+              },
             });
             expect(body.errors).toEqual({
               newPassword: FIELD_CANNOT_CONTAIN_SPACES,
@@ -294,9 +327,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: newPassword,
-              currentPassword: userPassword,
-              newPassword,
+              body: {
+                confirmNewPassword: newPassword,
+                currentPassword: userPassword,
+                newPassword,
+              },
             });
             expect(body.errors).toEqual({
               newPassword: FIELD_MIN_LENGTH(8),
@@ -309,9 +344,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: newPassword,
-              currentPassword: userPassword,
-              newPassword,
+              body: {
+                confirmNewPassword: newPassword,
+                currentPassword: userPassword,
+                newPassword,
+              },
             });
             expect(body.errors).toEqual({
               newPassword: FIELD_MAX_LENGTH(30),
@@ -324,9 +361,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: newPassword,
-              currentPassword: userPassword,
-              newPassword,
+              body: {
+                confirmNewPassword: newPassword,
+                currentPassword: userPassword,
+                newPassword,
+              },
             });
             expect(body.errors).toEqual({
               newPassword: FIELD_SHOULD_BE_A_PASSWORD,
@@ -339,9 +378,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: newPassword,
-              currentPassword: userPassword,
-              newPassword,
+              body: {
+                confirmNewPassword: newPassword,
+                currentPassword: userPassword,
+                newPassword,
+              },
             });
             expect(body.errors).toEqual({
               newPassword: FIELD_SHOULD_BE_A_PASSWORD,
@@ -354,9 +395,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: newPassword,
-              currentPassword: userPassword,
-              newPassword,
+              body: {
+                confirmNewPassword: newPassword,
+                currentPassword: userPassword,
+                newPassword,
+              },
             });
             expect(body.errors).toEqual({
               newPassword: FIELD_SHOULD_BE_A_PASSWORD,
@@ -369,9 +412,11 @@ describe('/users', () => {
               body,
               status,
             } = await putUsersMePassword(app, token, {
-              confirmNewPassword: newPassword,
-              currentPassword: userPassword,
-              newPassword,
+              body: {
+                confirmNewPassword: newPassword,
+                currentPassword: userPassword,
+                newPassword,
+              },
             });
             expect(body.errors).toEqual({
               newPassword: FIELD_SHOULD_BE_A_PASSWORD,

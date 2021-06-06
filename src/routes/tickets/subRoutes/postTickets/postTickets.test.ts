@@ -24,8 +24,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/tickets', () => {
   let app: Server;
   let sequelize: Sequelize;
@@ -40,10 +38,16 @@ describe('/tickets', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({});
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({});
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -76,8 +80,10 @@ describe('/tickets', () => {
           },
           status,
         } = await postTickets(app, token, {
-          body,
-          header,
+          body: {
+            body,
+            header,
+          },
         });
         const tickets = await Ticket.findAll();
         expect(action).toBe('POST');
@@ -91,8 +97,10 @@ describe('/tickets', () => {
         const body = 'ticket body';
         const header = 'header body';
         await postTickets(app, token, {
-          body: ` ${body} `,
-          header: ` ${header} `,
+          body: {
+            body: ` ${body} `,
+            header: ` ${header} `,
+          },
         });
         const [ticket] = await Ticket.findAll();
         expect(ticket.body).toBe(body);
@@ -107,7 +115,9 @@ describe('/tickets', () => {
           body,
           status,
         } = await postTickets(app, token, {
-          header: 'ticket header',
+          body: {
+            header: 'ticket header',
+          },
         });
         expect(body.errors).toEqual({
           body: FIELD_IS_REQUIRED,
@@ -119,8 +129,10 @@ describe('/tickets', () => {
           body,
           status,
         } = await postTickets(app, token, {
-          body: '',
-          header: 'ticket header',
+          body: {
+            body: '',
+            header: 'ticket header',
+          },
         });
         expect(body.errors).toEqual({
           body: FIELD_CANNOT_BE_EMPTY,
@@ -132,8 +144,10 @@ describe('/tickets', () => {
           body,
           status,
         } = await postTickets(app, token, {
-          body: 1234,
-          header: 'ticket header',
+          body: {
+            body: 1234,
+            header: 'ticket header',
+          },
         });
         expect(body.errors).toEqual({
           body: FIELD_SHOULD_BE_A_STRING,
@@ -145,8 +159,10 @@ describe('/tickets', () => {
           body,
           status,
         } = await postTickets(app, token, {
-          body: 'a'.repeat(9),
-          header: 'ticket header',
+          body: {
+            body: 'a'.repeat(9),
+            header: 'ticket header',
+          },
         });
         expect(body.errors).toEqual({
           body: FIELD_MIN_LENGTH(10),
@@ -158,8 +174,10 @@ describe('/tickets', () => {
           body,
           status,
         } = await postTickets(app, token, {
-          body: 'a'.repeat(201),
-          header: 'ticket header',
+          body: {
+            body: 'a'.repeat(201),
+            header: 'ticket header',
+          },
         });
         expect(body.errors).toEqual({
           body: FIELD_MAX_LENGTH(200),
@@ -173,7 +191,9 @@ describe('/tickets', () => {
           body,
           status,
         } = await postTickets(app, token, {
-          body: 'ticket body',
+          body: {
+            body: 'ticket body',
+          },
         });
         expect(body.errors).toEqual({
           header: FIELD_IS_REQUIRED,
@@ -185,8 +205,10 @@ describe('/tickets', () => {
           body,
           status,
         } = await postTickets(app, token, {
-          body: 'ticket body',
-          header: '',
+          body: {
+            body: 'ticket body',
+            header: '',
+          },
         });
         expect(body.errors).toEqual({
           header: FIELD_CANNOT_BE_EMPTY,
@@ -198,8 +220,10 @@ describe('/tickets', () => {
           body,
           status,
         } = await postTickets(app, token, {
-          body: 'ticket body',
-          header: 1234,
+          body: {
+            body: 'ticket body',
+            header: 1234,
+          },
         });
         expect(body.errors).toEqual({
           header: FIELD_SHOULD_BE_A_STRING,
@@ -211,8 +235,10 @@ describe('/tickets', () => {
           body,
           status,
         } = await postTickets(app, token, {
-          body: 'ticket body',
-          header: 'a'.repeat(4),
+          body: {
+            body: 'ticket body',
+            header: 'a'.repeat(4),
+          },
         });
         expect(body.errors).toEqual({
           header: FIELD_MIN_LENGTH(5),
@@ -224,8 +250,10 @@ describe('/tickets', () => {
           body,
           status,
         } = await postTickets(app, token, {
-          body: 'ticket body',
-          header: 'a'.repeat(31),
+          body: {
+            body: 'ticket body',
+            header: 'a'.repeat(31),
+          },
         });
         expect(body.errors).toEqual({
           header: FIELD_MAX_LENGTH(30),

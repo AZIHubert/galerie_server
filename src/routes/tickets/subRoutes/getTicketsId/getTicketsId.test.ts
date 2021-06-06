@@ -26,11 +26,10 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/tickets', () => {
   let adminToken: string;
   let app: Server;
+  let password: string;
   let sequelize: Sequelize;
   let token: string;
   let user: User;
@@ -44,21 +43,31 @@ describe('/tickets', () => {
     try {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
-      user = await createUser({});
-      const admin = await createUser({
+      const {
+        password: createdPassword,
+        user: createdUser,
+      } = await createUser({});
+      const {
+        password: passwordTwo,
+        user: admin,
+      } = await createUser({
         email: 'user2@email.com',
         userName: 'user2',
         role: 'superAdmin',
       });
+
+      password = createdPassword;
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
       const { body: adminLoginBody } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password: passwordTwo,
           userNameOrEmail: admin.email,
         },
       });
@@ -89,8 +98,10 @@ describe('/tickets', () => {
           const body = 'ticket\'s body';
           const header = 'ticket\'s header';
           await postTickets(app, token, {
-            body,
-            header,
+            body: {
+              body,
+              header,
+            },
           });
           const [ticket] = await Ticket.findAll();
           const {
@@ -132,8 +143,10 @@ describe('/tickets', () => {
         });
         it('and return ticket with user\'s profile picture', async () => {
           await postTickets(app, token, {
-            body: 'ticket\'s body',
-            header: 'ticket\'s header',
+            body: {
+              body: 'ticket\'s body',
+              header: 'ticket\'s header',
+            },
           });
           const {
             body: {
@@ -195,13 +208,17 @@ describe('/tickets', () => {
         });
         it('return ticket event if his user has deleted his account', async () => {
           await postTickets(app, token, {
-            body: 'ticket\'s body',
-            header: 'ticket\'s header',
+            body: {
+              body: 'ticket\'s body',
+              header: 'ticket\'s header',
+            },
           });
           await deleteUsersMe(app, token, {
-            deleteAccountSentence: 'delete my account',
-            password: userPassword,
-            userNameOrEmail: user.email,
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
           });
           const [ticket] = await Ticket.findAll();
           const {

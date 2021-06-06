@@ -4,25 +4,28 @@ import request from 'supertest';
 export default async (
   app: Server,
   token: string,
-  confirmToken: string | undefined,
-  body: {
-    email?: any;
-    password?: any;
-
+  option: {
+    body?: {
+      email?: any;
+      password?: any;
+    },
+    confirmToken?: string,
+  } = {
+    body: {},
   },
 ) => {
   let response: request.Response;
-  if (confirmToken) {
+  if (option.confirmToken) {
     response = await request(app)
       .post('/users/me/email/confirm')
       .set('authorization', token)
-      .set('confirmation', confirmToken)
-      .send(body);
+      .set('confirmation', option.confirmToken)
+      .send(option.body ? option.body : {});
   } else {
     response = await request(app)
       .post('/users/me/email/confirm')
       .set('authorization', token)
-      .send(body);
+      .send(option.body ? option.body : {});
   }
   return response;
 };

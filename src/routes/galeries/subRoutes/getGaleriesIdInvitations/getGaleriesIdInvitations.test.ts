@@ -29,8 +29,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/galeries', () => {
   let app: Server;
   let galerieId: string;
@@ -47,12 +45,18 @@ describe('/galeries', () => {
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
-      user = await createUser({
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({
         role: 'superAdmin',
       });
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -66,7 +70,9 @@ describe('/galeries', () => {
           },
         },
       } = await postGaleries(app, token, {
-        name: 'galerie\'s name',
+        body: {
+          name: 'galerie\'s name',
+        },
       });
       galerieId = id;
     } catch (err) {
@@ -108,7 +114,7 @@ describe('/galeries', () => {
             expect(status).toBe(200);
           });
           it('should return 1 invitation', async () => {
-            await postGaleriesIdInvitations(app, token, galerieId, {});
+            await postGaleriesIdInvitations(app, token, galerieId);
             const {
               body: {
                 data: {
@@ -167,12 +173,12 @@ describe('/galeries', () => {
                   invitations: secondPack,
                 },
               },
-            } = await getGaleriesIdInvitations(app, token, galerieId, 2);
+            } = await getGaleriesIdInvitations(app, token, galerieId, { page: 2 });
             expect(firstPack.length).toBe(20);
             expect(secondPack.length).toBe(1);
           });
           it('return user\'s profile picture', async () => {
-            await postGaleriesIdInvitations(app, token, galerieId, {});
+            await postGaleriesIdInvitations(app, token, galerieId);
             await postProfilePictures(app, token);
             const {
               body: {
@@ -241,7 +247,10 @@ describe('/galeries', () => {
             expect(invitations[0].user.currentProfilePicture.userId).toBeUndefined();
           });
           it('return invitation.user === null if user is black listed', async () => {
-            const userTwo = await createUser({
+            const {
+              password: passwordTwo,
+              user: userTwo,
+            } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
@@ -251,7 +260,7 @@ describe('/galeries', () => {
               },
             } = await postUsersLogin(app, {
               body: {
-                password: userPassword,
+                password: passwordTwo,
                 userNameOrEmail: userTwo.email,
               },
             });
@@ -263,12 +272,18 @@ describe('/galeries', () => {
                   },
                 },
               },
-            } = await postGaleriesIdInvitations(app, token, galerieId, {});
-            await postGaleriesSubscribe(app, tokenTwo, { code });
+            } = await postGaleriesIdInvitations(app, token, galerieId);
+            await postGaleriesSubscribe(app, tokenTwo, {
+              body: {
+                code,
+              },
+            });
             await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
-            await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+            await postGaleriesIdInvitations(app, tokenTwo, galerieId);
             await postBlackListUserId(app, token, userTwo.id, {
-              reason: 'black list reason',
+              body: {
+                reason: 'black list reason',
+              },
             });
             const {
               body: {
@@ -292,7 +307,10 @@ describe('/galeries', () => {
             expect(status).toBe(400);
           });
           it('user\'s role for this galerie is \'user\'', async () => {
-            const userTwo = await createUser({
+            const {
+              password: passwordTwo,
+              user: userTwo,
+            } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
@@ -302,7 +320,7 @@ describe('/galeries', () => {
               },
             } = await postUsersLogin(app, {
               body: {
-                password: userPassword,
+                password: passwordTwo,
                 userNameOrEmail: userTwo.email,
               },
             });
@@ -314,8 +332,12 @@ describe('/galeries', () => {
                   },
                 },
               },
-            } = await postGaleriesIdInvitations(app, token, galerieId, {});
-            await postGaleriesSubscribe(app, tokenTwo, { code });
+            } = await postGaleriesIdInvitations(app, token, galerieId);
+            await postGaleriesSubscribe(app, tokenTwo, {
+              body: {
+                code,
+              },
+            });
             const {
               body,
               status,
@@ -334,7 +356,10 @@ describe('/galeries', () => {
             expect(status).toBe(404);
           });
           it('galerie exist but user is not subscribe to it', async () => {
-            const userTwo = await createUser({
+            const {
+              password: passwordTwo,
+              user: userTwo,
+            } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
@@ -344,7 +369,7 @@ describe('/galeries', () => {
               },
             } = await postUsersLogin(app, {
               body: {
-                password: userPassword,
+                password: passwordTwo,
                 userNameOrEmail: userTwo.email,
               },
             });
@@ -357,7 +382,9 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleries(app, tokenTwo, {
-              name: 'galeries\'name',
+              body: {
+                name: 'galeries\'name',
+              },
             });
             const {
               body,

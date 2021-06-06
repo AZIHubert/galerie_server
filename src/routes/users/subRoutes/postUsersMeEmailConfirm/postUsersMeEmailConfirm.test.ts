@@ -30,10 +30,10 @@ import initApp from '@src/server';
 
 const emailMocked = jest.spyOn(email, 'sendValidateEmailMessage');
 const signMocked = jest.spyOn(jwt, 'sign');
-const userPassword = 'Password0!';
 
 describe('/users', () => {
   let app: Server;
+  let password: string;
   let sequelize: Sequelize;
   let token: string;
   let user: User;
@@ -46,10 +46,17 @@ describe('/users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({});
+      const {
+        password: createdPassword,
+        user: createdUser,
+      } = await createUser({});
+
+      password = createdPassword;
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -85,15 +92,13 @@ describe('/users', () => {
                   emailTokenVersion: user.emailTokenVersion,
                   id: user.id,
                 }));
-              const { status } = await postUsersMeEmailConfirm(
-                app,
-                token,
-                'Bearer token',
-                {
+              const { status } = await postUsersMeEmailConfirm(app, token, {
+                body: {
                   email: newEmail,
-                  password: userPassword,
+                  password,
                 },
-              );
+                confirmToken: 'Bearer token',
+              });
               expect(status).toBe(204);
               expect(signMocked)
                 .toHaveBeenCalledTimes(1);
@@ -109,15 +114,13 @@ describe('/users', () => {
                   emailTokenVersion: user.emailTokenVersion,
                   id: user.id,
                 }));
-              await postUsersMeEmailConfirm(
-                app,
-                token,
-                'Bearer token',
-                {
+              await postUsersMeEmailConfirm(app, token, {
+                body: {
                   email: 'user2@email.com',
-                  password: userPassword,
+                  password,
                 },
-              );
+                confirmToken: 'Bearer token',
+              });
               const {
                 emailTokenVersion,
                 updatedEmailTokenVersion,
@@ -136,15 +139,13 @@ describe('/users', () => {
                   id: user.id,
                   emailTokenVersion: user.emailTokenVersion,
                 }));
-              await postUsersMeEmailConfirm(
-                app,
-                token,
-                'Bearer token',
-                {
+              await postUsersMeEmailConfirm(app, token, {
+                body: {
                   email: ` ${newEmail} `,
-                  password: userPassword,
+                  password,
                 },
-              );
+                confirmToken: 'Bearer token',
+              });
               expect(emailMocked)
                 .toBeCalledWith(newEmail, expect.any(String));
             });
@@ -165,14 +166,12 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUsersMeEmailConfirm(
-                  app,
-                  token,
-                  'Bearer token',
-                  {
-                    password: userPassword,
+                } = await postUsersMeEmailConfirm(app, token, {
+                  body: {
+                    password,
                   },
-                );
+                  confirmToken: 'Bearer token',
+                });
                 expect(errors).toEqual({
                   email: FIELD_IS_REQUIRED,
                 });
@@ -184,15 +183,13 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUsersMeEmailConfirm(
-                  app,
-                  token,
-                  'Bearer token',
-                  {
+                } = await postUsersMeEmailConfirm(app, token, {
+                  body: {
                     email: '',
-                    password: userPassword,
+                    password,
                   },
-                );
+                  confirmToken: 'Bearer token',
+                });
                 expect(errors).toEqual({
                   email: FIELD_CANNOT_BE_EMPTY,
                 });
@@ -204,15 +201,13 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUsersMeEmailConfirm(
-                  app,
-                  token,
-                  'Bearer token',
-                  {
+                } = await postUsersMeEmailConfirm(app, token, {
+                  body: {
                     email: 1234,
-                    password: userPassword,
+                    password,
                   },
-                );
+                  confirmToken: 'Bearer token',
+                });
                 expect(errors).toEqual({
                   email: FIELD_SHOULD_BE_A_STRING,
                 });
@@ -224,15 +219,13 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUsersMeEmailConfirm(
-                  app,
-                  token,
-                  'Bearer token',
-                  {
+                } = await postUsersMeEmailConfirm(app, token, {
+                  body: {
                     email: 'not an email',
-                    password: userPassword,
+                    password,
                   },
-                );
+                  confirmToken: 'Bearer token',
+                });
                 expect(errors).toEqual({
                   email: FIELD_SHOULD_BE_AN_EMAIL,
                 });
@@ -244,15 +237,13 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUsersMeEmailConfirm(
-                  app,
-                  token,
-                  'Bearer token',
-                  {
+                } = await postUsersMeEmailConfirm(app, token, {
+                  body: {
                     email: user.email,
-                    password: userPassword,
+                    password,
                   },
-                );
+                  confirmToken: 'Bearer token',
+                });
                 expect(errors).toEqual({
                   email: 'should be a different one',
                 });
@@ -266,14 +257,12 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUsersMeEmailConfirm(
-                  app,
-                  token,
-                  'Bearer token',
-                  {
+                } = await postUsersMeEmailConfirm(app, token, {
+                  body: {
                     email: 'user2@email.com',
                   },
-                );
+                  confirmToken: 'Bearer token',
+                });
                 expect(errors).toEqual({
                   password: FIELD_IS_REQUIRED,
                 });
@@ -285,15 +274,13 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUsersMeEmailConfirm(
-                  app,
-                  token,
-                  'Bearer token',
-                  {
+                } = await postUsersMeEmailConfirm(app, token, {
+                  body: {
                     email: 'user2@email.com',
                     password: 'wrong password',
                   },
-                );
+                  confirmToken: 'Bearer token',
+                });
                 expect(errors).toEqual({
                   password: WRONG_PASSWORD,
                 });
@@ -309,15 +296,12 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUsersMeEmailConfirm(
-                  app,
-                  token,
-                  undefined,
-                  {
+                } = await postUsersMeEmailConfirm(app, token, {
+                  body: {
                     email: 'user2@email.com',
-                    password: userPassword,
+                    password,
                   },
-                );
+                });
                 expect(errors).toBe(TOKEN_NOT_FOUND);
                 expect(status).toBe(401);
               });
@@ -327,15 +311,13 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUsersMeEmailConfirm(
-                  app,
-                  token,
-                  'confirmToken',
-                  {
+                } = await postUsersMeEmailConfirm(app, token, {
+                  body: {
                     email: 'user2@email.com',
-                    password: userPassword,
+                    password,
                   },
-                );
+                  confirmToken: 'confirmToken',
+                });
                 expect(errors).toBe(WRONG_TOKEN);
                 expect(status).toBe(401);
               });
@@ -351,15 +333,13 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUsersMeEmailConfirm(
-                  app,
-                  token,
-                  'Bearer token',
-                  {
+                } = await postUsersMeEmailConfirm(app, token, {
+                  body: {
                     email: 'user2@email.com',
-                    password: userPassword,
+                    password,
                   },
-                );
+                  confirmToken: 'Bearer token',
+                });
                 expect(errors).toBe(WRONG_TOKEN_USER_ID);
                 expect(status).toBe(401);
               });
@@ -375,15 +355,13 @@ describe('/users', () => {
                     errors,
                   },
                   status,
-                } = await postUsersMeEmailConfirm(
-                  app,
-                  token,
-                  'Bearer token',
-                  {
+                } = await postUsersMeEmailConfirm(app, token, {
+                  body: {
                     email: 'user2@email.com',
-                    password: userPassword,
+                    password,
                   },
-                );
+                  confirmToken: 'Bearer token',
+                });
                 expect(errors).toBe(WRONG_TOKEN_VERSION);
                 expect(status).toBe(401);
               });

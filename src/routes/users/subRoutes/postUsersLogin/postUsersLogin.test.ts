@@ -19,10 +19,9 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/users', () => {
   let app: Server;
+  let password: string;
   let sequelize: Sequelize;
   let user: User;
 
@@ -34,7 +33,13 @@ describe('/users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      user = await createUser({});
+      const {
+        password: createdPassword,
+        user: createdUser,
+      } = await createUser({});
+
+      password = createdPassword;
+      user = createdUser;
     } catch (err) {
       done(err);
     }
@@ -61,7 +66,7 @@ describe('/users', () => {
             status,
           } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password,
               userNameOrEmail: user.email,
             },
           });
@@ -72,7 +77,7 @@ describe('/users', () => {
         it('trim request body.userNameOrEmail', async () => {
           const { status } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password,
               userNameOrEmail: ` ${user.email} `,
             },
           });
@@ -87,7 +92,7 @@ describe('/users', () => {
               status,
             } = await postUsersLogin(app, {
               body: {
-                password: userPassword,
+                password,
                 userNameOrEmail: '',
               },
             });
@@ -102,7 +107,7 @@ describe('/users', () => {
               status,
             } = await postUsersLogin(app, {
               body: {
-                password: userPassword,
+                password,
                 userNameOrEmail: 1234,
               },
             });
@@ -118,7 +123,7 @@ describe('/users', () => {
             status,
           } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password,
             },
           });
           expect(body.errors).toEqual({

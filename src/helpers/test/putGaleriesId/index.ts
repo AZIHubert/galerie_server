@@ -5,14 +5,18 @@ export default async (
   app: Server,
   token: string,
   galerieId: string,
-  body: {
-    description?: any;
-    name?: any;
+  option: {
+    body: {
+      description?: any;
+      name?: any;
+    },
+  } = {
+    body: {},
   },
 ) => {
   const response = await request(app)
     .put(`/galeries/${galerieId}`)
     .set('authorization', token)
-    .send(body);
+    .send(option.body);
   return response;
 };

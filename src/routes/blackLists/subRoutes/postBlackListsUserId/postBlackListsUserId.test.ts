@@ -30,8 +30,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/blackLists', () => {
   let app: Server;
   let sequelize: Sequelize;
@@ -47,13 +45,17 @@ describe('/blackLists', () => {
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
-      user = await createUser({
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({
         role: 'superAdmin',
       });
+      user = createdUser;
 
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -79,14 +81,20 @@ describe('/blackLists', () => {
   describe('/:userId', () => {
     describe('POST', () => {
       describe('should return status 200 and', () => {
+        let passwordTwo: string;
         let userTwo: User;
 
         beforeEach(async (done) => {
           try {
-            userTwo = await createUser({
+            const {
+              password: createdPassword,
+              user: createdUser,
+            } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
+            passwordTwo = createdPassword;
+            userTwo = createdUser;
           } catch (err) {
             done(err);
           }
@@ -104,7 +112,9 @@ describe('/blackLists', () => {
             },
             status,
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason,
+            body: {
+              reason,
+            },
           });
           const blackList = await BlackList.findOne({
             where: {
@@ -172,8 +182,10 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
-            time,
+            body: {
+              reason: 'black list reason',
+              time,
+            },
           });
           expect(blackList.time).toBe(time);
         });
@@ -188,12 +200,14 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: ` ${reason} `,
+            body: {
+              reason: ` ${reason} `,
+            },
           });
           expect(returnedReason).toBe(reason);
         });
         it('black list an admin if current user role is superAdmin', async () => {
-          const userThree = await createUser({
+          const { user: userThree } = await createUser({
             email: 'user3@email.com',
             role: 'admin',
             userName: 'user3',
@@ -201,7 +215,9 @@ describe('/blackLists', () => {
           const {
             status,
           } = await postBlackListUserId(app, token, userThree.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           expect(status).toBe(200);
         });
@@ -212,7 +228,7 @@ describe('/blackLists', () => {
             },
           } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password: passwordTwo,
               userNameOrEmail: userTwo.email,
             },
           });
@@ -228,7 +244,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           expect(currentProfilePicture.createdAt).not.toBeUndefined();
           expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
@@ -276,7 +294,9 @@ describe('/blackLists', () => {
               },
             },
           } = await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           expect(currentProfilePicture.createdAt).not.toBeUndefined();
           expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
@@ -317,7 +337,7 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, '100', {});
+          } = await postBlackListUserId(app, token, '100');
           expect(body.errors).toBe(INVALID_UUID('user'));
           expect(status).toBe(400);
         });
@@ -325,12 +345,12 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, user.id, {});
+          } = await postBlackListUserId(app, token, user.id);
           expect(body.errors).toBe('you can\'t put your own account on the black list');
           expect(status).toBe(400);
         });
         it('user.role === \'superAdmin\'', async () => {
-          const userTwo = await createUser({
+          const { user: userTwo } = await createUser({
             email: 'user2@email.com',
             role: 'superAdmin',
             userName: 'user2',
@@ -338,17 +358,20 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, userTwo.id, {});
+          } = await postBlackListUserId(app, token, userTwo.id);
           expect(body.errors).toBe('you can\'t black list a super admin');
           expect(status).toBe(400);
         });
         it('current user.role === \'admin\' and user.role === \'admin\'', async () => {
-          const userTwo = await createUser({
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
             email: 'user2@email.com',
             role: 'admin',
             userName: 'user2',
           });
-          const userThree = await createUser({
+          const { user: userThree } = await createUser({
             email: 'user3@email.com',
             role: 'admin',
             userName: 'user3',
@@ -359,29 +382,31 @@ describe('/blackLists', () => {
             },
           } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password: passwordTwo,
               userNameOrEmail: userTwo.email,
             },
           });
           const {
             body,
             status,
-          } = await postBlackListUserId(app, tokenTwo, userThree.id, {});
+          } = await postBlackListUserId(app, tokenTwo, userThree.id);
           expect(body.errors).toBe('you can\'t black list an admin');
           expect(status).toBe(400);
         });
         it('user is already black listed', async () => {
-          const userTwo = await createUser({
+          const { user: userTwo } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
           });
           await postBlackListUserId(app, token, userTwo.id, {
-            reason: 'black list reason',
+            body: {
+              reason: 'black list reason',
+            },
           });
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, userTwo.id, {});
+          } = await postBlackListUserId(app, token, userTwo.id);
           expect(body.errors).toBe('user is already black listed');
           expect(status).toBe(400);
         });
@@ -390,10 +415,11 @@ describe('/blackLists', () => {
 
           beforeEach(async (done) => {
             try {
-              userTwo = await createUser({
+              const { user: createdUser } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
+              userTwo = createdUser;
             } catch (err) {
               done(err);
             }
@@ -404,7 +430,7 @@ describe('/blackLists', () => {
             const {
               body,
               status,
-            } = await postBlackListUserId(app, token, userTwo.id, {});
+            } = await postBlackListUserId(app, token, userTwo.id);
             expect(body.errors).toEqual({
               reason: FIELD_IS_REQUIRED,
             });
@@ -415,7 +441,9 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: 1234,
+              body: {
+                reason: 1234,
+              },
             });
             expect(body.errors).toEqual({
               reason: FIELD_SHOULD_BE_A_STRING,
@@ -427,7 +455,9 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: '',
+              body: {
+                reason: '',
+              },
             });
             expect(body.errors).toEqual({
               reason: FIELD_CANNOT_BE_EMPTY,
@@ -439,7 +469,9 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: 'a'.repeat(9),
+              body: {
+                reason: 'a'.repeat(9),
+              },
             });
             expect(body.errors).toEqual({
               reason: FIELD_MIN_LENGTH(10),
@@ -451,7 +483,9 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: 'a'.repeat(201),
+              body: {
+                reason: 'a'.repeat(201),
+              },
             });
             expect(body.errors).toEqual({
               reason: FIELD_MAX_LENGTH(200),
@@ -464,10 +498,11 @@ describe('/blackLists', () => {
 
           beforeEach(async (done) => {
             try {
-              userTwo = await createUser({
+              const { user: createdUser } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
+              userTwo = createdUser;
             } catch (err) {
               done(err);
             }
@@ -479,8 +514,10 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: 'black list reason',
-              time: 'not a number',
+              body: {
+                reason: 'black list reason',
+                time: 'not a number',
+              },
             });
             expect(body.errors).toEqual({
               time: FIELD_SHOULD_BE_A_NUMBER,
@@ -492,8 +529,10 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: 'black list reason',
-              time: (1000 * 60 * 10) - 1,
+              body: {
+                reason: 'black list reason',
+                time: (1000 * 60 * 10) - 1,
+              },
             });
             expect(body.errors).toEqual({
               time: 'should be ban at least 10 minutes',
@@ -505,8 +544,10 @@ describe('/blackLists', () => {
               body,
               status,
             } = await postBlackListUserId(app, token, userTwo.id, {
-              reason: 'black list reason',
-              time: (1000 * 60 * 60 * 24 * 365) + 1,
+              body: {
+                reason: 'black list reason',
+                time: (1000 * 60 * 60 * 24 * 365) + 1,
+              },
             });
             expect(body.errors).toEqual({
               time: 'should be ban at most 1 year',
@@ -520,12 +561,12 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, uuidv4(), {});
+          } = await postBlackListUserId(app, token, uuidv4());
           expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });
         it('user is not confirmed', async () => {
-          const userTwo = await createUser({
+          const { user: userTwo } = await createUser({
             confirmed: false,
             email: 'user2@email.com',
             userName: 'user2',
@@ -533,7 +574,7 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, userTwo.id, {});
+          } = await postBlackListUserId(app, token, userTwo.id);
           expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });

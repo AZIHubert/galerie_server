@@ -28,11 +28,10 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/galeries', () => {
   let app: Server;
   let galerieId: string;
+  let password: string;
   let sequelize: Sequelize;
   let token: string;
   let user: User;
@@ -46,10 +45,17 @@ describe('/galeries', () => {
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
-      user = await createUser({});
+      const {
+        password: createdPassword,
+        user: createdUser,
+      } = await createUser({});
+
+      password = createdPassword;
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -63,7 +69,9 @@ describe('/galeries', () => {
           },
         },
       } = await postGaleries(app, token, {
-        name: 'galerie\'s name',
+        body: {
+          name: 'galerie\'s name',
+        },
       });
       galerieId = id;
     } catch (err) {
@@ -98,7 +106,7 @@ describe('/galeries', () => {
                 },
               },
               status,
-            } = await postGaleriesIdInvitations(app, token, galerieId, {});
+            } = await postGaleriesIdInvitations(app, token, galerieId);
             const createdInvitation = await Invitation.findByPk(returnedInvitation.id);
             expect(action).toBe('POST');
             expect(createdInvitation).not.toBeNull();
@@ -141,7 +149,9 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleriesIdInvitations(app, token, galerieId, {
-              numOfInvits,
+              body: {
+                numOfInvits,
+              },
             });
             expect(invitation.numOfInvits).toBe(numOfInvits);
             expect(invitation.time).toBeNull();
@@ -155,7 +165,9 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleriesIdInvitations(app, token, galerieId, {
-              time,
+              body: {
+                time,
+              },
             });
             expect(invitation.numOfInvits).toBeNull();
             expect(invitation.time).toBe(time);
@@ -170,8 +182,10 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleriesIdInvitations(app, token, galerieId, {
-              numOfInvits,
-              time,
+              body: {
+                numOfInvits,
+                time,
+              },
             });
             expect(invitation.numOfInvits).toBe(numOfInvits);
             expect(invitation.time).toBe(time);
@@ -188,7 +202,7 @@ describe('/galeries', () => {
                   },
                 },
               },
-            } = await postGaleriesIdInvitations(app, token, galerieId, {});
+            } = await postGaleriesIdInvitations(app, token, galerieId);
             expect(currentProfilePicture.createdAt).not.toBeUndefined();
             expect(currentProfilePicture.cropedImageId).toBeUndefined();
             expect(currentProfilePicture.cropedImage.bucketName).toBeUndefined();
@@ -234,12 +248,15 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await postGaleriesIdInvitations(app, token, '100', {});
+            } = await postGaleriesIdInvitations(app, token, '100');
             expect(body.errors).toBe(INVALID_UUID('galerie'));
             expect(status).toBe(400);
           });
           it('user\'s role is \'user\'', async () => {
-            const userTwo = await createUser({
+            const {
+              password: passwordTwo,
+              user: userTwo,
+            } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
@@ -249,7 +266,7 @@ describe('/galeries', () => {
               },
             } = await postUsersLogin(app, {
               body: {
-                password: userPassword,
+                password: passwordTwo,
                 userNameOrEmail: userTwo.email,
               },
             });
@@ -261,17 +278,24 @@ describe('/galeries', () => {
                   },
                 },
               },
-            } = await postGaleriesIdInvitations(app, token, galerieId, {});
-            await postGaleriesSubscribe(app, tokenTwo, { code });
+            } = await postGaleriesIdInvitations(app, token, galerieId);
+            await postGaleriesSubscribe(app, tokenTwo, {
+              body: {
+                code,
+              },
+            });
             const {
               body,
               status,
-            } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+            } = await postGaleriesIdInvitations(app, tokenTwo, galerieId);
             expect(body.errors).toBe('you\'re not allow to create an invitation');
             expect(status).toBe(400);
           });
           it('galerie is archived', async () => {
-            const userTwo = await createUser({
+            const {
+              password: passwordTwo,
+              user: userTwo,
+            } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
@@ -281,7 +305,7 @@ describe('/galeries', () => {
               },
             } = await postUsersLogin(app, {
               body: {
-                password: userPassword,
+                password: passwordTwo,
                 userNameOrEmail: userTwo.email,
               },
             });
@@ -293,18 +317,24 @@ describe('/galeries', () => {
                   },
                 },
               },
-            } = await postGaleriesIdInvitations(app, token, galerieId, {});
-            await postGaleriesSubscribe(app, tokenTwo, { code });
+            } = await postGaleriesIdInvitations(app, token, galerieId);
+            await postGaleriesSubscribe(app, tokenTwo, {
+              body: {
+                code,
+              },
+            });
             await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
             await deleteUsersMe(app, token, {
-              deleteAccountSentence: 'delete my account',
-              password: userPassword,
-              userNameOrEmail: user.email,
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
             });
             const {
               body,
               status,
-            } = await postGaleriesIdInvitations(app, tokenTwo, galerieId, {});
+            } = await postGaleriesIdInvitations(app, tokenTwo, galerieId);
             expect(body.errors).toBe('you cannot post invitation on an archived galerie');
             expect(status).toBe(400);
           });
@@ -314,7 +344,9 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await postGaleriesIdInvitations(app, token, galerieId, {
-                numOfInvits: 'wrong field',
+                body: {
+                  numOfInvits: 'wrong field',
+                },
               });
               expect(body.errors).toEqual({
                 numOfInvits: FIELD_SHOULD_BE_A_NUMBER,
@@ -326,7 +358,9 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await postGaleriesIdInvitations(app, token, galerieId, {
-                numOfInvits: 0,
+                body: {
+                  numOfInvits: 0,
+                },
               });
               expect(body.errors).toEqual({
                 numOfInvits: 'should be at least 1',
@@ -338,7 +372,9 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await postGaleriesIdInvitations(app, token, galerieId, {
-                numOfInvits: 201,
+                body: {
+                  numOfInvits: 201,
+                },
               });
               expect(body.errors).toEqual({
                 numOfInvits: 'should be at most 200',
@@ -352,7 +388,9 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await postGaleriesIdInvitations(app, token, galerieId, {
-                time: 'wrong field',
+                body: {
+                  time: 'wrong field',
+                },
               });
               expect(body.errors).toEqual({
                 time: FIELD_SHOULD_BE_A_NUMBER,
@@ -364,7 +402,9 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await postGaleriesIdInvitations(app, token, galerieId, {
-                time: (1000 * 60 * 5) - 1,
+                body: {
+                  time: (1000 * 60 * 5) - 1,
+                },
               });
               expect(body.errors).toEqual({
                 time: 'should be at least 5mn',
@@ -376,7 +416,9 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await postGaleriesIdInvitations(app, token, galerieId, {
-                time: (1000 * 60 * 60 * 24 * 365) + 1,
+                body: {
+                  time: (1000 * 60 * 60 * 24 * 365) + 1,
+                },
               });
               expect(body.errors).toEqual({
                 time: 'should be at most 1 year',
@@ -390,12 +432,15 @@ describe('/galeries', () => {
             const {
               body,
               status,
-            } = await postGaleriesIdInvitations(app, token, uuidv4(), {});
+            } = await postGaleriesIdInvitations(app, token, uuidv4());
             expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
           it('galerie exist but user is not subscribe to it', async () => {
-            const userTwo = await createUser({
+            const {
+              password: passwordTwo,
+              user: userTwo,
+            } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
@@ -405,7 +450,7 @@ describe('/galeries', () => {
               },
             } = await postUsersLogin(app, {
               body: {
-                password: userPassword,
+                password: passwordTwo,
                 userNameOrEmail: userTwo.email,
               },
             });
@@ -418,12 +463,14 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleries(app, tokenTwo, {
-              name: 'galeries\'s name',
+              body: {
+                name: 'galeries\'s name',
+              },
             });
             const {
               body,
               status,
-            } = await postGaleriesIdInvitations(app, token, id, {});
+            } = await postGaleriesIdInvitations(app, token, id);
             expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });

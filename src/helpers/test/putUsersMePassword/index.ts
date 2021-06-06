@@ -4,15 +4,17 @@ import request from 'supertest';
 export default async (
   app: Server,
   token: string,
-  body: {
-    confirmNewPassword?: any;
-    currentPassword?: any;
-    newPassword?: any;
+  option: {
+    body: {
+      confirmNewPassword?: any;
+      currentPassword?: any;
+      newPassword?: any;
+    },
   },
 ) => {
   const response = await request(app)
     .put('/users/me/password/')
     .set('authorization', token)
-    .send(body);
+    .send(option.body);
   return response;
 };

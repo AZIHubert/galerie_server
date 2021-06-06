@@ -5,14 +5,18 @@ export default async (
   app: Server,
   token: string,
   galerieId: string,
-  body: {
-    numOfInvits?: any;
-    time?: any;
+  option: {
+    body: {
+      numOfInvits?: any;
+      time?: any;
+    },
+  } = {
+    body: {},
   },
 ) => {
   const response = await request(app)
     .post(`/galeries/${galerieId}/invitations`)
     .set('authorization', token)
-    .send(body);
+    .send(option.body);
   return response;
 };

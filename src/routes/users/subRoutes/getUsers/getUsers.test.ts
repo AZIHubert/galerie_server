@@ -19,8 +19,6 @@ import {
 
 import initApp from '@src/server';
 
-const userPassword = 'Password0!';
-
 describe('/users', () => {
   let app: Server;
   let sequelize: Sequelize;
@@ -36,10 +34,16 @@ describe('/users', () => {
     try {
       await sequelize.sync({ force: true });
       await cleanGoogleBuckets();
-      user = await createUser({});
+      const {
+        password,
+        user: createdUser,
+      } = await createUser({});
+
+      user = createdUser;
+
       const { body } = await postUsersLogin(app, {
         body: {
-          password: userPassword,
+          password,
           userNameOrEmail: user.email,
         },
       });
@@ -95,7 +99,11 @@ describe('/users', () => {
           expect(users.length).toBe(0);
         });
         it('exept black listed users', async () => {
-          const { id } = await createUser({
+          const {
+            user: {
+              id,
+            },
+          } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
           });
@@ -137,16 +145,18 @@ describe('/users', () => {
                 users: secondPack,
               },
             },
-          } = await getUsers(app, token, 2);
+          } = await getUsers(app, token, { page: 2 });
           expect(firstPack.length).toBe(20);
           expect(secondPack.length).toBe(1);
         });
         it('return only relevent attributes', async () => {
           const {
-            id,
-            pseudonym,
-            role,
-            userName,
+            user: {
+              id,
+              pseudonym,
+              role,
+              userName,
+            },
           } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
@@ -178,7 +188,12 @@ describe('/users', () => {
           expect(returnedUser.userName).toEqual(userName);
         });
         it('include current profile picture', async () => {
-          const { email } = await createUser({
+          const {
+            password,
+            user: {
+              email,
+            },
+          } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
           });
@@ -188,7 +203,7 @@ describe('/users', () => {
             },
           } = await postUsersLogin(app, {
             body: {
-              password: userPassword,
+              password,
               userNameOrEmail: email,
             },
           });
