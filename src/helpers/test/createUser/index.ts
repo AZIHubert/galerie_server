@@ -6,36 +6,37 @@ import genPassword from '@src/helpers/genPassword';
 
 export default async ({
   confirmed = true,
-  email,
+  email = 'user@email.com',
   facebookId,
   googleId,
-  password,
+  password = 'Password0!',
+  pseudonym,
   role = 'user',
-  userName,
+  userName = 'user',
 }: {
   confirmed?: boolean;
   email?: string;
   facebookId?: string;
   googleId?: string;
   password?: string;
+  pseudonym?: string;
   role?: 'admin' | 'superAdmin' | 'user'
   userName?: string;
 }) => {
   const newUser = {
-    confirmed,
-    email: email === undefined ? 'user@email.com' : email,
+    confirmed: confirmed || true,
+    email: email || 'user@email.com',
     facebookId,
     googleId,
-    pseudonym: userName || 'pseudonym',
-    role,
-    userName: userName === undefined ? '@userName' : `@${userName}`,
+    pseudonym: pseudonym || userName || 'pseudonym',
+    role: role || 'superAdmin',
+    userName: `@${userName}` || '@userName',
   };
-  const userPassword = password === undefined ? 'Password0!' : password;
 
   const {
     hash,
     salt,
-  } = genPassword(userPassword);
+  } = genPassword(password || 'Password0!');
 
   const user = await User.create({
     ...newUser,
@@ -44,7 +45,7 @@ export default async ({
   });
 
   return {
-    password: userPassword,
+    password: password || 'Password0!',
     user,
   };
 };
