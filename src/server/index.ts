@@ -1,4 +1,3 @@
-import bodyParser from 'body-parser';
 import connectSessionSequelize from 'connect-session-sequelize';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -43,8 +42,8 @@ const initApp: () => http.Server = () => {
   const app: express.Application = express();
   const server = new http.Server(app);
 
-  app.use(bodyParser.json({ limit: '4MB' }));
-  app.use(bodyParser.urlencoded({ extended: true, limit: '5m' }));
+  app.use(express.urlencoded({ extended: true, limit: '5m' }));
+  app.use(express.json({ limit: '4MB' }));
 
   app.use(cookieParser());
   app.use(session({
