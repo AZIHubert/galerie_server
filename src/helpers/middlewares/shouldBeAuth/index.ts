@@ -4,36 +4,27 @@ import {
   Response,
 } from 'express';
 
-import { User } from '@src/db/models';
-
-import checkBlackList from '@src/helpers/checkBlackList';
 import {
   USER_SHOULD_NOT_BE_BLACK_LISTED,
-  USER_SHOULD_BE_AUTHENTICATED,
 } from '@src/helpers/errorMessages';
+import passport from '@src/helpers/passport';
 
-export default async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const currentUser = req.user as User;
-  let isBlackListed: boolean;
-  if (!req.isAuthenticated()) {
-    return res.status(401).send({
-      errors: USER_SHOULD_BE_AUTHENTICATED,
-    });
-  }
-  try {
-    isBlackListed = await checkBlackList(currentUser);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-  if (isBlackListed) {
-    req.logOut();
-    return res.status(401).send({
-      errors: USER_SHOULD_NOT_BE_BLACK_LISTED,
-    });
-  }
-  return next();
+export default (req: Request, res: Response, next: NextFunction) => {
+  passport.authenticate('jwt', { session: false }, (err, user, info) => {
+    if (err) return res.status(500).send(err);
+    if (!user) {
+      const errors = info.message || 'something went wrong';
+      const status = info.status || 500;
+
+      if (errors === USER_SHOULD_NOT_BE_BLACK_LISTED) {
+        req.logOut();
+      }
+
+      return res.status(status).send({
+        errors,
+      });
+    }
+    req.user = user;
+    return next();
+  })(req, res, next);
 };

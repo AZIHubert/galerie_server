@@ -29,11 +29,12 @@ interface UserI {
   email?: string;
   facebookId?: string;
   googleId?: string;
+  hash?: string;
   id: string;
-  password?: string;
   pseudonym?: string;
   resetPasswordTokenVersion: number;
   role: 'superAdmin' | 'admin' | 'user';
+  salt?: string;
   socialMediaUserName?: string;
   updatedEmailTokenVersion: number;
   userName?: string;
@@ -113,6 +114,12 @@ export default class User extends Model implements UserI {
   })
   googleId!: string;
 
+  // Use for password.
+  @Column({
+    type: DataType.STRING,
+  })
+  hash!: string;
+
   @Column({
     allowNull: false,
     defaultValue: DataType.UUIDV4,
@@ -120,12 +127,6 @@ export default class User extends Model implements UserI {
     type: DataType.UUID,
   })
   id!: string;
-
-  // Hashed password.
-  @Column({
-    type: DataType.STRING,
-  })
-  password!: string;
 
   // user.userName can't be changed
   // but pseudonym can.
@@ -156,6 +157,12 @@ export default class User extends Model implements UserI {
     type: DataType.STRING,
   })
   role!: 'superAdmin' | 'admin' | 'user';
+
+  // Use for password.
+  @Column({
+    type: DataType.STRING,
+  })
+  salt!: string;
 
   // If a user create an account with
   // Facebook or Google, socialMediaUserName

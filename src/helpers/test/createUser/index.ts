@@ -1,10 +1,8 @@
-import { hash } from 'bcrypt';
-
 import {
   User,
 } from '@src/db/models';
 
-import saltRounds from '@src/helpers/saltRounds';
+import genPassword from '@src/helpers/genPassword';
 
 export default async ({
   confirmed = true,
@@ -34,13 +32,15 @@ export default async ({
   };
   const userPassword = password === undefined ? 'Password0!' : password;
 
-  const hashPassword = await hash(
-    userPassword,
-    saltRounds,
-  );
+  const {
+    hash,
+    salt,
+  } = genPassword(userPassword);
+
   const user = await User.create({
     ...newUser,
-    password: hashPassword,
+    hash,
+    salt,
   });
 
   return {

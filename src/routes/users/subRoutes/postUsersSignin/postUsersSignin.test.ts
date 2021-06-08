@@ -1,5 +1,4 @@
 import { Server } from 'http';
-import bcrypt from 'bcrypt';
 import { Sequelize } from 'sequelize';
 
 import '@src/helpers/initEnv';
@@ -23,10 +22,9 @@ import {
   createUser,
   postUsersSignin,
 } from '@src/helpers/test';
+import validatePassword from '@src/helpers/validatePassword';
 
 import initApp from '@src/server';
-
-const bcryptMock = jest.spyOn(bcrypt, 'hash');
 
 describe('/users', () => {
   let app: Server;
@@ -82,13 +80,9 @@ describe('/users', () => {
             },
           });
           const storeUser = await User.findByPk(user.id) as User;
-          const passwordMatch = await bcrypt.compare(
-            password,
-            storeUser.password,
-          );
+          const passwordIsValid = validatePassword(password, storeUser.hash, storeUser.salt);
           expect(action).toBe('POST');
-          expect(bcryptMock).toHaveBeenCalledTimes(1);
-          expect(passwordMatch).toBeTruthy();
+          expect(passwordIsValid).toBeTruthy();
           expect(status).toBe(200);
           expect(storeUser.authTokenVersion).toBe(0);
           expect(storeUser.confirmed).toBeFalsy();

@@ -16,7 +16,7 @@ import {
   FIELD_SHOULD_BE_A_STRING,
   FIELD_SHOULD_BE_AN_EMAIL,
   MODEL_NOT_FOUND,
-  USER_SHOULD_BE_CONFIRED,
+  USER_SHOULD_BE_CONFIRMED,
   USER_SHOULD_NOT_BE_BLACK_LISTED,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
@@ -187,7 +187,7 @@ describe('/users', () => {
                 email: notConfirmedUserEmail,
               },
             });
-            expect(body.errors).toBe(USER_SHOULD_BE_CONFIRED);
+            expect(body.errors).toBe(USER_SHOULD_BE_CONFIRMED);
             expect(status).toBe(401);
           });
           it('user is black listed', async () => {

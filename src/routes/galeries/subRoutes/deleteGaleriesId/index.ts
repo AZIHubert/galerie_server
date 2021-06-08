@@ -1,4 +1,3 @@
-import { compare } from 'bcrypt';
 import {
   Request,
   Response,
@@ -26,13 +25,13 @@ import {
   normalizeJoiErrors,
   validateDeleteGaleriesIdBody,
 } from '@src/helpers/schemas';
+import validatePassword from '@src/helpers/validatePassword';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
   const currentUser = req.user as User;
   let galerie: Galerie | null;
-  let passwordsMatch: boolean;
 
   // Check if request.params.userId
   // is a UUID v4.
@@ -103,12 +102,8 @@ export default async (req: Request, res: Response) => {
     errors.name = 'wrong galerie\'s name';
   }
   if (!errors.password) {
-    try {
-      passwordsMatch = await compare(value.password, currentUser.password);
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-    if (!passwordsMatch) {
+    const passwordIsValid = validatePassword(value.password, currentUser.hash, currentUser.salt);
+    if (!passwordIsValid) {
       errors.password = WRONG_PASSWORD;
     }
   }

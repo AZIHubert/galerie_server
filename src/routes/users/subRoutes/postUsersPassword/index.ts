@@ -13,7 +13,7 @@ import { sendResetPassword } from '@src/helpers/email';
 import checkBlackList from '@src/helpers/checkBlackList';
 import {
   MODEL_NOT_FOUND,
-  USER_SHOULD_BE_CONFIRED,
+  USER_SHOULD_BE_CONFIRMED,
   USER_SHOULD_NOT_BE_BLACK_LISTED,
 } from '@src/helpers/errorMessages';
 import {
@@ -63,7 +63,7 @@ export default async (req: Request, res: Response) => {
   // their password.
   if (!user.confirmed) {
     return res.status(401).send({
-      errors: USER_SHOULD_BE_CONFIRED,
+      errors: USER_SHOULD_BE_CONFIRMED,
     });
   }
 

@@ -1,4 +1,5 @@
-import { compare } from 'bcrypt';
+// DELETE /users/me/
+
 import {
   Request,
   Response,
@@ -26,10 +27,10 @@ import {
   normalizeJoiErrors,
   validateDeleteUserMeBody,
 } from '@src/helpers/schemas';
+import validatePassword from '@src/helpers/validatePassword';
 
 export default async (req: Request, res: Response) => {
   const user = req.user as User;
-  let passwordsMatch: boolean;
 
   // Check if user is created with Google or Facebook.
   // If true, the user can't delete his account.
@@ -64,8 +65,8 @@ export default async (req: Request, res: Response) => {
     errors.deleteAccountSentence = 'wrong sentence';
   }
   try {
-    passwordsMatch = await compare(value.password, user.password);
-    if (!passwordsMatch) {
+    const passwordIsValid = validatePassword(value.password, user.hash, user.salt);
+    if (!passwordIsValid) {
       errors.password = WRONG_PASSWORD;
     }
   } catch (err) {

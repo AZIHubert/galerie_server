@@ -1,4 +1,3 @@
-import bcrypt from 'bcrypt';
 import {
   Request,
   Response,
@@ -9,7 +8,7 @@ import { User } from '@src/db/models';
 import accEnv from '@src/helpers/accEnv';
 import { FIELD_IS_ALREADY_TAKEN } from '@src/helpers/errorMessages';
 import { userExcluder } from '@src/helpers/excluders';
-import saltRounds from '@src/helpers/saltRounds';
+import genPassword from '@src/helpers/genPassword';
 import {
   normalizeJoiErrors,
   validatePostUsersSigninBody,
@@ -68,11 +67,15 @@ export default async (req: Request, res: Response) => {
   }
 
   try {
-    const hashPassword = await bcrypt.hash(value.password, saltRounds);
+    const {
+      hash,
+      salt,
+    } = genPassword(value.password);
     newUser = await User.create({
       email: value.email,
-      password: hashPassword,
+      hash,
       pseudonym: value.userName,
+      salt,
       userName: `@${value.userName}`,
     });
   } catch (err) {

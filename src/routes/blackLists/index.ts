@@ -2,8 +2,8 @@ import { Router } from 'express';
 
 import {
   shouldBeAdmin,
+  shouldBeAuth,
 } from '@src/helpers/middlewares';
-import passport from '@src/helpers/passport';
 
 import {
   deleteBlackListsId,
@@ -19,14 +19,14 @@ import {
 const router = Router();
 
 const profilePicturesRoutes: () => Router = () => {
-  router.delete('/:blackListId/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, deleteBlackListsId);
+  router.delete('/:blackListId/', shouldBeAuth, shouldBeAdmin, deleteBlackListsId);
 
-  router.get('/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, getBlackLists);
-  router.get('/:blackListId/', passport.authenticate('jwt', { session: false }), shouldBeAdmin, getBlackListsId);
+  router.get('/', shouldBeAuth, shouldBeAdmin, getBlackLists);
+  router.get('/:blackListId/', shouldBeAuth, shouldBeAdmin, getBlackListsId);
 
-  router.post('/:userId', passport.authenticate('jwt', { session: false }), shouldBeAdmin, postBlackListsUserIs);
+  router.post('/:userId', shouldBeAuth, shouldBeAdmin, postBlackListsUserIs);
 
-  router.put('/:blackListId/', passport.authenticate('jwt', { session: false }), putBlackListsId);
+  router.put('/:blackListId/', shouldBeAuth, putBlackListsId);
 
   return router;
 };

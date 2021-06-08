@@ -1,8 +1,4 @@
 import {
-  compare,
-  hash,
-} from 'bcrypt';
-import {
   Request,
   Response,
 } from 'express';
@@ -10,18 +6,18 @@ import {
 import { User } from '@src/db/models';
 
 import { WRONG_PASSWORD } from '@src/helpers/errorMessages';
+import genPassword from '@src/helpers/genPassword';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import saltRounds from '@src/helpers/saltRounds';
 import {
   normalizeJoiErrors,
   validatePutUsersMePasswordBody,
 } from '@src/helpers/schemas';
 import setRefreshToken from '@src/helpers/setRefreshToken';
+import validatePassword from '@src/helpers/validatePassword';
 
 export default async (req: Request, res: Response) => {
   const { currentPassword, newPassword } = req.body;
   const user = req.user as User;
-  let passwordsMatch: boolean;
 
   try {
     const {
@@ -37,12 +33,8 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if current password match.
-  try {
-    passwordsMatch = await compare(currentPassword, user.password);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-  if (!passwordsMatch) {
+  const passwordIsValid = validatePassword(currentPassword, user.hash, user.salt);
+  if (!passwordIsValid) {
     return res.status(400).send({
       errors: {
         currentPassword: WRONG_PASSWORD,
@@ -52,8 +44,14 @@ export default async (req: Request, res: Response) => {
 
   try {
     // Hash and update password.
-    const hashedPassword = await hash(newPassword, saltRounds);
-    await user.update({ password: hashedPassword });
+    const {
+      hash,
+      salt,
+    } = genPassword(newPassword);
+    await user.update({
+      hash,
+      salt,
+    });
     // authTokenVersion allow us to let
     // a user access his account.
     // Incrementing authTokenVersion allow

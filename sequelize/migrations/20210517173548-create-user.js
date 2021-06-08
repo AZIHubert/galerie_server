@@ -4,7 +4,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
     default: 0,
     type: DataTypes.INTEGER,
   },
-  confirm: {
+  confirmed: {
     allowNull: false,
     default: false,
     type: DataTypes.BOOLEAN,
@@ -38,14 +38,14 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
     type: DataTypes.STRING,
     unique: true,
   },
+  hash: {
+    type: DataTypes.STRING,
+  },
   id: {
     allowNull: false,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     type: DataTypes.UUID,
-  },
-  password: {
-    type: DataTypes.STRING,
   },
   pseudonym: {
     allowNull: false,
@@ -59,6 +59,9 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
   role: {
     allowNull: false,
     default: 'user',
+    type: DataTypes.STRING,
+  },
+  salt: {
     type: DataTypes.STRING,
   },
   socialMediaUserName: {

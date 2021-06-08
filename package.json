@@ -37,8 +37,6 @@
   },
   "dependencies": {
     "@google-cloud/storage": "^5.7.2",
-    "bcrypt": "^5.0.0",
-    "body-parser": "^1.19.0",
     "connect-session-sequelize": "^7.1.0",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
@@ -79,7 +77,6 @@
     "@babel/plugin-transform-runtime": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
     "@babel/preset-typescript": "^7.12.7",
-    "@types/bcrypt": "^3.0.0",
     "@types/bluebird": "^3.5.33",
     "@types/cookie-parser": "^1.4.2",
     "@types/cors": "^2.8.9",

@@ -1,4 +1,3 @@
-import bcrypt from 'bcrypt';
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 
@@ -18,6 +17,7 @@ import {
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import validatePassword from '@src/helpers/validatePassword';
 import {
   createUser,
   postUsersLogin,
@@ -26,7 +26,6 @@ import {
 
 import initApp from '@src/server';
 
-const hashMocked = jest.spyOn(bcrypt, 'hash');
 const userPassword = 'Password0!';
 
 describe('/users', () => {
@@ -101,10 +100,8 @@ describe('/users', () => {
             },
           });
           await user.reload();
-          const passwordMatch = await bcrypt
-            .compare(newPassword, user.password);
-          expect(hashMocked).toHaveBeenCalledTimes(1);
-          expect(passwordMatch).toBeTruthy();
+          const passwordIsValid = validatePassword(newPassword, user.hash, user.salt);
+          expect(passwordIsValid).toBeTruthy();
         });
         it('should increment authTokenVersion', async () => {
           const newPassword = 'NewPassword0!';

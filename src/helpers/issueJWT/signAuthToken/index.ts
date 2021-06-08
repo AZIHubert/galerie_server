@@ -6,7 +6,10 @@ import { User } from '@src/db/models';
 
 const PRIV_KEY = fs.readFileSync(path.join('./id_rsa_priv.authToken.pem'));
 
-export default ({ id, authTokenVersion }: User) => {
+export default ({
+  authTokenVersion,
+  id,
+}: User) => {
   const expiresIn = 1800;
   const payload = {
     authTokenVersion,
