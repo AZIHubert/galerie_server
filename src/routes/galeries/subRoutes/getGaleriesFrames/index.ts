@@ -1,4 +1,4 @@
-// GET /galeries/:galerieId/frames/
+// GET /galeries/frames/
 
 import {
   Request,
@@ -15,10 +15,6 @@ import {
 
 import checkBlackList from '@src/helpers/checkBlackList';
 import {
-  INVALID_UUID,
-  MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
-import {
   frameExcluder,
   galeriePictureExcluder,
   imageExcluder,
@@ -27,25 +23,15 @@ import {
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 import gc from '@src/helpers/gc';
 import signedUrl from '@src/helpers/signedUrl';
-import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
-  const { galerieId } = req.params;
   const limit = 20;
   const { page } = req.query;
   const currentUser = req.user as User;
   const returnedFrames: Array<any> = [];
-  let frames: Frame[];
-  let galerie: Galerie | null;
+  let frames: Array<Frame>;
+  let galeries: Array<Galerie>;
   let offset: number;
-
-  // Check if request.params.galerieId
-  // is a UUID v4.
-  if (!uuidValidatev4(galerieId)) {
-    return res.status(400).send({
-      errors: INVALID_UUID('galerie'),
-    });
-  }
 
   if (typeof page === 'string') {
     offset = ((+page || 1) - 1) * limit;
@@ -53,9 +39,10 @@ export default async (req: Request, res: Response) => {
     offset = 0;
   }
 
-  // Fecth galerie,
+  // Fetch all galeries where
+  // current user is subscribe.
   try {
-    galerie = await Galerie.findByPk(galerieId, {
+    galeries = await Galerie.findAll({
       include: [{
         model: User,
         where: {
@@ -66,13 +53,22 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  if (!galerie) {
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('galerie'),
+
+  // If current user is
+  // subscribe to no galerie,
+  // there is no need to continue.
+  if (galeries.length === 0) {
+    return res.status(200).send({
+      action: 'GET',
+      frames: [],
     });
   }
 
-  // Fetch all frames relative to this galerie.
+  // Map galeries to an array of id.
+  const galeriesId = galeries.map((galerie) => galerie.id);
+
+  // Fetch all frames
+  // of every galeries.
   try {
     frames = await Frame.findAll({
       attributes: {
@@ -119,7 +115,7 @@ export default async (req: Request, res: Response) => {
       offset,
       order: [['createdAt', 'DESC']],
       where: {
-        galerieId,
+        galerieId: galeriesId,
       },
     });
   } catch (err) {
@@ -285,9 +281,6 @@ export default async (req: Request, res: Response) => {
 
   return res.status(200).send({
     action: 'GET',
-    data: {
-      galerieId,
-      frames: returnedFrames,
-    },
+    frames: returnedFrames,
   });
 };

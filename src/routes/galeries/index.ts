@@ -13,6 +13,7 @@ import {
   deleteGaleriesIdUsersId,
 
   getGaleries,
+  getGaleriesFrames,
   getGaleriesId,
   getGaleriesIdFrames,
   getGaleriesIdFramesId,
@@ -43,16 +44,7 @@ const galeriesRoutes: () => Router = () => {
   router.delete('/:galerieId/users/:userId', shouldBeAuth, deleteGaleriesIdUsersId);
 
   router.get('/', shouldBeAuth, getGaleries);
-  // TODO:
-  router.get('/frames', shouldBeAuth, () => {
-    // await Frame.findAll({
-    //  where: {
-    //    galerieId: {
-    //      in: ArrayOfIdWhereUserIsSubscribeToIt
-    //    }
-    //  }
-    // })
-  });
+  router.get('/frames', shouldBeAuth, getGaleriesFrames);
   router.get('/:galerieId/', shouldBeAuth, getGaleriesId);
   router.get('/:galerieId/frames/', shouldBeAuth, getGaleriesIdFrames);
   router.get('/:galerieId/frames/:frameId/', shouldBeAuth, getGaleriesIdFramesId);
