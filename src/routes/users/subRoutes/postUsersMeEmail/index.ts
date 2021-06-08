@@ -1,4 +1,3 @@
-import { compare } from 'bcrypt';
 import {
   Request,
   Response,
@@ -18,11 +17,11 @@ import {
   normalizeJoiErrors,
   validatePostUsersMeUpdateEmailBody,
 } from '@src/helpers/schemas';
+import validatePassword from '@src/helpers/validatePassword';
 
 const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 
 export default async (req: Request, res: Response) => {
-  let passwordsMatch: boolean;
   const user = req.user as User;
 
   // Validate req.body fields.
@@ -37,12 +36,8 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if password match.
-  try {
-    passwordsMatch = await compare(value.password, user.password);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-  if (!passwordsMatch) {
+  const passwordIsValid = validatePassword(value.password, user.hash, user.salt);
+  if (!passwordIsValid) {
     return res.status(400).send({
       errors: {
         password: WRONG_PASSWORD,

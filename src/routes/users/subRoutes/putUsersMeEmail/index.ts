@@ -1,4 +1,5 @@
-import { compare } from 'bcrypt';
+// PUT /users/me/email/
+
 import {
   Request,
   Response,
@@ -19,11 +20,11 @@ import {
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
 import setRefreshToken from '@src/helpers/setRefreshToken';
+import validatePassword from '@src/helpers/validatePassword';
 import { updateEmailToken } from '@src/helpers/verifyConfirmation';
 
 export default async (req: Request, res: Response) => {
   const user = req.user as User;
-  let matchedPasswords: boolean;
 
   // Validate confirmToken.
   const verify = updateEmailToken(req);
@@ -59,7 +60,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Validate password.
+  // Validate request.body.
   const {
     error,
     value,
@@ -69,12 +70,10 @@ export default async (req: Request, res: Response) => {
       errors: normalizeJoiErrors(error),
     });
   }
-  try {
-    matchedPasswords = await compare(value.password, user.password);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-  if (!matchedPasswords) {
+
+  // Validate password.
+  const passwordIsValid = validatePassword(value.password, user.hash, user.salt);
+  if (!passwordIsValid) {
     return res.status(400).send({
       errors: {
         password: WRONG_PASSWORD,

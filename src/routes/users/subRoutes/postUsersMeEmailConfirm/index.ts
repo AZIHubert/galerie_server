@@ -1,4 +1,3 @@
-import { compare } from 'bcrypt';
 import {
   Request,
   Response,
@@ -20,6 +19,7 @@ import {
   validatePostUsersMeUpdateEmailConfirmBody,
   normalizeJoiErrors,
 } from '@src/helpers/schemas';
+import validatePassword from '@src/helpers/validatePassword';
 import { sendEmailToken } from '@src/helpers/verifyConfirmation';
 
 const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
@@ -58,13 +58,8 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if password match.
-  let passwordsMatch: boolean;
-  try {
-    passwordsMatch = await compare(password, user.password);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-  if (!passwordsMatch) {
+  const passwordIsValid = validatePassword(password, user.hash, user.salt);
+  if (!passwordIsValid) {
     return res.status(400).send({
       errors: {
         password: WRONG_PASSWORD,

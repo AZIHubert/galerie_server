@@ -1,7 +1,9 @@
 import { Router } from 'express';
 
-import { uploadFile } from '@src/helpers/middlewares';
-import passport from '@src/helpers/passport';
+import {
+  shouldBeAuth,
+  uploadFile,
+} from '@src/helpers/middlewares';
 
 import {
   deleteProfilePicturesId,
@@ -14,14 +16,14 @@ import {
 const router = Router();
 
 const profilePicturesRoutes: () => Router = () => {
-  router.delete('/:profilePictureId/', passport.authenticate('jwt', { session: false }), deleteProfilePicturesId);
+  router.delete('/:profilePictureId/', shouldBeAuth, deleteProfilePicturesId);
 
-  router.get('/', passport.authenticate('jwt', { session: false }), getProfilePictures);
-  router.get('/:profilePictureId/', passport.authenticate('jwt', { session: false }), getProfilePicturesId);
+  router.get('/', shouldBeAuth, getProfilePictures);
+  router.get('/:profilePictureId/', shouldBeAuth, getProfilePicturesId);
 
-  router.post('/', passport.authenticate('jwt', { session: false }), uploadFile, postProfilePictures);
+  router.post('/', shouldBeAuth, uploadFile, postProfilePictures);
 
-  router.put('/:profilePictureId/', passport.authenticate('jwt', { session: false }), putProfilePicturesId);
+  router.put('/:profilePictureId/', shouldBeAuth, putProfilePicturesId);
 
   return router;
 };

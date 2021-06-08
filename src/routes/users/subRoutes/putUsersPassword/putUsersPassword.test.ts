@@ -1,4 +1,3 @@
-import bcrypt from 'bcrypt';
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
@@ -21,12 +20,13 @@ import {
   FIELD_SHOULD_MATCH,
   MODEL_NOT_FOUND,
   TOKEN_NOT_FOUND,
-  USER_SHOULD_BE_CONFIRED,
+  USER_SHOULD_BE_CONFIRMED,
   USER_SHOULD_NOT_BE_BLACK_LISTED,
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import validatePassword from '@src/helpers/validatePassword';
 import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 import {
   createUser,
@@ -35,44 +35,41 @@ import {
 
 import initApp from '@src/server';
 
-const hashMocked = jest.spyOn(bcrypt, 'hash');
+let app: Server;
+let sequelize: Sequelize;
+let user: User;
 
 describe('/users', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let user: User;
-
-  beforeAll(() => {
-    app = initApp();
-    sequelize = initSequelize();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      const { user: createdUser } = await createUser({});
-
-      user = createdUser;
-    } catch (err) {
-      done(err);
-    }
-    jest.clearAllMocks();
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/resetPassword', () => {
     describe('PUT', () => {
+      beforeAll(() => {
+        app = initApp();
+        sequelize = initSequelize();
+      });
+
+      beforeEach(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          const { user: createdUser } = await createUser({});
+
+          user = createdUser;
+        } catch (err) {
+          done(err);
+        }
+        jest.clearAllMocks();
+        done();
+      });
+
+      afterAll(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
       describe('should return status 204 and', () => {
         beforeEach(() => {
           jest.spyOn(verifyConfirmation, 'resetPassword')
@@ -94,10 +91,8 @@ describe('/users', () => {
             confirmToken: 'Bearer token',
           });
           await user.reload();
-          const passwordMatch = await bcrypt
-            .compare(newPassword, user.password);
-          expect(hashMocked).toHaveBeenCalledTimes(1);
-          expect(passwordMatch).toBeTruthy();
+          const passwordIsValid = validatePassword(newPassword, user.hash, user.salt);
+          expect(passwordIsValid).toBeTruthy();
           expect(status).toBe(204);
         });
         it('increment authToken and resetPasswordTokenVersion version', async () => {
@@ -147,7 +142,7 @@ describe('/users', () => {
             },
             confirmToken: 'Bearer token',
           });
-          expect(body.errors).toBe(USER_SHOULD_BE_CONFIRED);
+          expect(body.errors).toBe(USER_SHOULD_BE_CONFIRMED);
           expect(status).toBe(400);
         });
         it('user is black listed', async () => {

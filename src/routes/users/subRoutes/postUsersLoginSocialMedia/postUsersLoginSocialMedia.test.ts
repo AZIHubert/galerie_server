@@ -84,9 +84,10 @@ describe('/users', () => {
             expect(facebookUser.email).toBeNull();
             expect(facebookUser.facebookId).toBe(facebookId);
             expect(facebookUser.googleId).toBeNull();
-            expect(facebookUser.password).toBeNull();
+            expect(facebookUser.hash).toBeNull();
             expect(facebookUser.pseudonym).toBe(userName);
             expect(facebookUser.role).toBe('user');
+            expect(facebookUser.salt).toBeNull();
             expect(facebookUser.socialMediaUserName).toBe(userName);
             expect(facebookUser.userName).toBeNull();
             expect(loginToken).not.toBeUndefined();
@@ -122,9 +123,10 @@ describe('/users', () => {
             expect(googleUser.email).toBeNull();
             expect(googleUser.facebookId).toBeNull();
             expect(googleUser.googleId).toBe(googleId);
-            expect(googleUser.password).toBeNull();
+            expect(googleUser.hash).toBeNull();
             expect(googleUser.pseudonym).toBe(userName);
             expect(googleUser.role).toBe('user');
+            expect(googleUser.salt).toBeNull();
             expect(googleUser.socialMediaUserName).toBe(userName);
             expect(googleUser.userName).toBeNull();
             expect(loginToken).not.toBeUndefined();

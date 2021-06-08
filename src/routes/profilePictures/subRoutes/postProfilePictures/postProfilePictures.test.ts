@@ -19,12 +19,12 @@ import {
 
 import initApp from '@src/server';
 
-describe('/profilePicture', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
+let app: Server;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
 
+describe('/profilePicture', () => {
   beforeAll(() => {
     app = initApp();
     sequelize = initSequelize();
@@ -54,7 +54,6 @@ describe('/profilePicture', () => {
     }
     done();
   });
-
   afterAll(async (done) => {
     try {
       await sequelize.sync({ force: true });
@@ -66,7 +65,6 @@ describe('/profilePicture', () => {
     app.close();
     done();
   });
-
   describe('POST', () => {
     describe('should return status 200 and', () => {
       it('create a profile picture, images and store in Google buckets', async () => {

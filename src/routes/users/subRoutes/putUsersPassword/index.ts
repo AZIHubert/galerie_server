@@ -1,4 +1,3 @@
-import { hash } from 'bcrypt';
 import {
   Request,
   Response,
@@ -9,11 +8,11 @@ import { User } from '@src/db/models';
 import checkBlackList from '@src/helpers/checkBlackList';
 import {
   MODEL_NOT_FOUND,
-  USER_SHOULD_BE_CONFIRED,
+  USER_SHOULD_BE_CONFIRMED,
   USER_SHOULD_NOT_BE_BLACK_LISTED,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
-import saltRounds from '@src/helpers/saltRounds';
+import genPassword from '@src/helpers/genPassword';
 import {
   normalizeJoiErrors,
   validatePutUsersResetPasswordBody,
@@ -55,7 +54,7 @@ export default async (req: Request, res: Response) => {
   // their password.
   if (!user.confirmed) {
     return res.status(400).send({
-      errors: USER_SHOULD_BE_CONFIRED,
+      errors: USER_SHOULD_BE_CONFIRMED,
     });
   }
 
@@ -100,8 +99,14 @@ export default async (req: Request, res: Response) => {
       // should not be accessible once again.
       resetPasswordTokenVersion: 1,
     });
-    const hashedPassword = await hash(req.body.password, saltRounds);
-    await user.update({ password: hashedPassword });
+    const {
+      hash,
+      salt,
+    } = genPassword(req.body.password);
+    await user.update({
+      hash,
+      salt,
+    });
   } catch (err) {
     return res.status(500).send(err);
   }

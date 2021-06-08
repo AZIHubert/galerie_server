@@ -1,6 +1,5 @@
 // POST /users/login/
 
-import { compare } from 'bcrypt';
 import {
   Request,
   Response,
@@ -13,7 +12,7 @@ import checkBlackList from '@src/helpers/checkBlackList';
 import {
   MODEL_NOT_FOUND,
   WRONG_PASSWORD,
-  USER_SHOULD_BE_CONFIRED,
+  USER_SHOULD_BE_CONFIRMED,
   USER_SHOULD_NOT_BE_BLACK_LISTED,
 } from '@src/helpers/errorMessages';
 import { signAuthToken } from '@src/helpers/issueJWT';
@@ -22,6 +21,7 @@ import {
   normalizeJoiErrors,
   validatePostUsersLoginBody,
 } from '@src/helpers/schemas';
+import validatePassword from '@src/helpers/validatePassword';
 
 export default async (req: Request, res: Response) => {
   let user: User | null;
@@ -83,7 +83,7 @@ export default async (req: Request, res: Response) => {
   // it cannot logged in.
   if (!user.confirmed) {
     return res.status(401).send({
-      errors: USER_SHOULD_BE_CONFIRED,
+      errors: USER_SHOULD_BE_CONFIRMED,
     });
   }
 
@@ -99,9 +99,9 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if password is correct.
-  const PasswordsMatch = await compare(password, user.password);
-  if (!PasswordsMatch) {
+  // Check if request.password is valid.
+  const passwordIsValid = validatePassword(password, user.hash, user.salt);
+  if (!passwordIsValid) {
     return res.status(400).send({
       errors: {
         password: WRONG_PASSWORD,
