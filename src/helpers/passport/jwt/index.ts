@@ -17,6 +17,9 @@ const options = {
 export default new JwtStrategy(options, async (payload, done) => {
   let user: User | null;
 
+  // TODO:
+  // check if payload.sub is a uuidv4.
+
   try {
     user = await User.findByPk(payload.sub);
   } catch (err) {
