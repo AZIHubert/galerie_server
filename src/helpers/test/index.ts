@@ -14,6 +14,7 @@ export { default as deleteUsersMe } from './deleteUsersMe';
 export { default as getBlackLists } from './getBlackLists';
 export { default as getBlackListsId } from './getBlackListsId';
 export { default as getGaleries } from './getGaleries';
+export { default as getGaleriesFrames } from './getGaleriesFrames';
 export { default as getGaleriesId } from './getGaleriesId';
 export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';
 export { default as getGaleriesIdFramesId } from './getGaleriesIdFramesId';

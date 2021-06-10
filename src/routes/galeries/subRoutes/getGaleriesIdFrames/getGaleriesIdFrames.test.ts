@@ -32,81 +32,80 @@ import {
 
 import initApp from '@src/server';
 
+let app: Server;
+let galerieId: string;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 describe('/galeries', () => {
-  let app: Server;
-  let galerieId: string;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    jest.clearAllMocks();
-    (signedUrl as jest.Mock).mockImplementation(() => ({
-      OK: true,
-      signedUrl: 'signedUrl',
-    }));
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({
-        role: 'superAdmin',
-      });
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-      const {
-        body: {
-          data: {
-            galerie: {
-              id,
-            },
-          },
-        },
-      } = await postGaleries(app, token, {
-        body: {
-          name: 'galerie\'s name',
-        },
-      });
-      galerieId = id;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    jest.clearAllMocks();
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe(':/galerieId', () => {
     describe('/frames', () => {
       describe('POST', () => {
+        beforeAll(() => {
+          sequelize = initSequelize();
+          app = initApp();
+        });
+
+        beforeEach(async (done) => {
+          jest.clearAllMocks();
+          (signedUrl as jest.Mock).mockImplementation(() => ({
+            OK: true,
+            signedUrl: 'signedUrl',
+          }));
+          try {
+            await cleanGoogleBuckets();
+            await sequelize.sync({ force: true });
+            const {
+              password,
+              user: createdUser,
+            } = await createUser({
+              role: 'superAdmin',
+            });
+
+            user = createdUser;
+
+            const { body } = await postUsersLogin(app, {
+              body: {
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            token = body.token;
+            const {
+              body: {
+                data: {
+                  galerie: {
+                    id,
+                  },
+                },
+              },
+            } = await postGaleries(app, token, {
+              body: {
+                name: 'galerie\'s name',
+              },
+            });
+            galerieId = id;
+          } catch (err) {
+            done(err);
+          }
+          done();
+        });
+
+        afterAll(async (done) => {
+          jest.clearAllMocks();
+          try {
+            await cleanGoogleBuckets();
+            await sequelize.sync({ force: true });
+            await sequelize.close();
+          } catch (err) {
+            done(err);
+          }
+          app.close();
+          done();
+        });
         describe('should return status 200 and', () => {
           it('return no frame', async () => {
             const {

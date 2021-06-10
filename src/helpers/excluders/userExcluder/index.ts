@@ -6,8 +6,9 @@ export default [
   'emailTokenVersion',
   'facebookId',
   'googleId',
-  'password',
+  'hash',
   'resetPasswordTokenVersion',
+  'salt',
   'updatedAt',
   'updatedEmailTokenVersion',
 ];

@@ -55,12 +55,14 @@ export default async (req: Request, res: Response) => {
   }
 
   // If current user is
-  // subscribe to no galerie,
+  // not subscribe to any galerie,
   // there is no need to continue.
   if (galeries.length === 0) {
     return res.status(200).send({
       action: 'GET',
-      frames: [],
+      data: {
+        frames: [],
+      },
     });
   }
 
@@ -281,6 +283,8 @@ export default async (req: Request, res: Response) => {
 
   return res.status(200).send({
     action: 'GET',
-    frames: returnedFrames,
+    data: {
+      frames: returnedFrames,
+    },
   });
 };
