@@ -574,7 +574,11 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await postBlackListUserId(app, token, userTwo.id);
+          } = await postBlackListUserId(app, token, userTwo.id, {
+            body: {
+              reason: 'black list reason',
+            },
+          });
           expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
           expect(status).toBe(404);
         });

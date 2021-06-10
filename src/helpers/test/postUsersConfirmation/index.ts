@@ -13,6 +13,6 @@ export default async (
 ) => {
   const response = await request(app)
     .post('/users/confirmation')
-    .send(option.body);
+    .send(option.body ? option.body : {});
   return response;
 };

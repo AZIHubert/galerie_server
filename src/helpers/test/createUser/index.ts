@@ -24,7 +24,7 @@ export default async ({
   userName?: string;
 }) => {
   const newUser = {
-    confirmed: confirmed || true,
+    confirmed: confirmed !== undefined ? confirmed : true,
     email: email || 'user@email.com',
     facebookId,
     googleId,
