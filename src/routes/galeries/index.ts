@@ -69,15 +69,6 @@ const galeriesRoutes: () => Router = () => {
 export default galeriesRoutes;
 
 // TODO:
-// add newFrames to galerieUser
-
-// When GET /galeries/:galerieId
-// newFrames become false
-
-// When Post /galeries/:galerieId/frames
-// newFrames become true for all other users.
-
 // When returning galerie
-// include newFrames.
-
+// include galerie.hasNewFrames (from galerieUser.hasNewFrames).
 // Update check invitation time (see blacklist)
