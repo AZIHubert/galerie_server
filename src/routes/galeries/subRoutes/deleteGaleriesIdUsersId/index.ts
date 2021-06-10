@@ -1,4 +1,4 @@
-// DELETE /galeries/:galerieId/user/:userId/
+// DELETE /galeries/:galerieId/users/:userId/
 
 import {
   Request,
@@ -77,11 +77,9 @@ export default async (req: Request, res: Response) => {
 
   // Check if user's role for this galerie
   // is not user.
-  const { role } = galerie
-    .users
-    .filter((u) => u.id === currentUser.id)[0]
-    .GalerieUser;
-  if (role === 'user') {
+  const userFromGalerie = galerie.users
+    .find((u) => u.id === currentUser.id);
+  if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'user') {
     return res.status(400).send({
       errors: 'you should be an admin or the creator of this galerie to delete a user',
     });
@@ -111,14 +109,11 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  const { role: deletedRole } = user
-    .galeries
-    .filter((g) => g.id === galerieId)[0]
-    .GalerieUser;
-
   // The creator of this galerie cannot
   // be deleted.
-  if (deletedRole === 'creator') {
+  const galerieFromUser = user.galeries
+    .find((g) => g.id === galerieId);
+  if (!galerieFromUser || galerieFromUser.GalerieUser.role === 'creator') {
     return res.status(400).send({
       errors: 'you can\'t delete the creator of this galerie',
     });
@@ -127,8 +122,11 @@ export default async (req: Request, res: Response) => {
   // An admin cannot delete
   // another admin.
   if (
-    deletedRole === 'admin'
-    && role === 'admin'
+    (
+      !galerieFromUser
+      || galerieFromUser.GalerieUser.role === 'admin'
+    )
+    && userFromGalerie.GalerieUser.role === 'admin'
   ) {
     return res.status(400).send({
       errors: 'you should be the creator of this galerie to delete an admin',

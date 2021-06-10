@@ -1,3 +1,5 @@
+// GET /galeries/
+
 import {
   Request,
   Response,
@@ -209,13 +211,15 @@ export default async (req: Request, res: Response) => {
           }
         }
 
+        const userFromGalerie = galerie.users
+          .find((user) => user.id === currentUser.id);
+
         returnedGaleries.push({
           ...galerie.toJSON(),
           currentCoverPicture: returnCurrentCoverPicture,
-          role: galerie
-            .users
-            .filter((user) => user.id === currentUser.id)[0]
-            .GalerieUser.role,
+          role: userFromGalerie
+            ? userFromGalerie.GalerieUser.role
+            : 'user',
           users: [],
         });
       }),

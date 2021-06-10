@@ -1,3 +1,5 @@
+// DELETE galeries/:galerieId/unsubscribe/
+
 import {
   Request,
   Response,
@@ -58,11 +60,9 @@ export default async (req: Request, res: Response) => {
 
   // The creator of this galerie
   // cannot unsubscribe this one.
-  const { role } = galerie
-    .users
-    .filter((user) => user.id === currentUser.id)[0]
-    .GalerieUser;
-  if (role === 'creator') {
+  const userFromGalerie = galerie.users
+    .find((user) => user.id === currentUser.id);
+  if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'creator') {
     return res.status(400).send({
       errors: 'you cannot unsubscribe a galerie you\'ve created',
     });
@@ -77,9 +77,10 @@ export default async (req: Request, res: Response) => {
     });
 
     // Destroy the one of the current user.
-    await galerieUsers
-      .filter((galerieUser) => galerieUser.userId === currentUser.id)[0]
-      .destroy();
+    const galerieUser = galerieUsers.find((gu) => gu.userId === currentUser.id);
+    if (galerieUser) {
+      await galerieUser.destroy();
+    }
   } catch (err) {
     return res.status(500).send(err);
   }

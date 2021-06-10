@@ -1,4 +1,4 @@
-// GET /galeries/:galerieId/user/
+// GET /galeries/:galerieId/users/
 
 import {
   Request,
@@ -86,11 +86,6 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  const { role } = galerie
-    .users
-    .filter((user) => user.id === currentUser.id)[0]
-    .GalerieUser;
-
   // TODO:
   // if queryOrder === 'createdAt',
   // need to fetch instead
@@ -123,6 +118,9 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  const userFromGalerie = galerie.users
+    .find((user) => user.id === currentUser.id);
+
   try {
     await Promise.all(
       users.map(async (user) => {
@@ -140,7 +138,13 @@ export default async (req: Request, res: Response) => {
           // is black listed, had a field that
           // indicate this user is black listed.
           isBlackListed: userIsBlackListed
-            && (role !== 'user' || currentUser.role !== 'user')
+            && (
+              (
+                !userFromGalerie
+                || userFromGalerie.GalerieUser.role !== 'user'
+              )
+              || currentUser.role !== 'user'
+            )
             ? true
             : undefined,
         };
@@ -152,7 +156,13 @@ export default async (req: Request, res: Response) => {
         if (
           (
             userIsBlackListed
-            && (role !== 'user' || currentUser.role !== 'user')
+            && (
+              (
+                !userFromGalerie
+                || userFromGalerie.GalerieUser.role !== 'user'
+              )
+              || currentUser.role !== 'user'
+            )
           )
           || !userIsBlackListed
         ) {

@@ -111,11 +111,9 @@ export default async (req: Request, res: Response) => {
 
   // Check if user's role for this galerie
   // is creator or admin.
-  const { role } = galerie
-    .users
-    .filter((user) => user.id === userId)[0]
-    .GalerieUser;
-  if (role === 'user') {
+  const userFromGalerie = galerie.users
+    .find((user) => user.id === userId);
+  if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'user') {
     return res.status(400).send({
       errors: 'your\'re not allow to update this frame',
     });
@@ -130,7 +128,7 @@ export default async (req: Request, res: Response) => {
 
   // Check if frame exist.
   const frame = galerie.frames
-    .filter((f) => String(f.id) === frameId)[0];
+    .find((f) => String(f.id) === frameId);
   if (!frame) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('frame'),
@@ -139,7 +137,7 @@ export default async (req: Request, res: Response) => {
 
   // Check if galerie picture exist.
   const galeriePicture = frame.galeriePictures
-    .filter((gp) => gp.id === galeriePictureId)[0];
+    .find((gp) => gp.id === galeriePictureId);
   if (!galeriePicture) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('galerie picture'),
@@ -161,10 +159,10 @@ export default async (req: Request, res: Response) => {
     // Check if one galerie picture's coverPicture
     // attribute is true.
     const currentCoverPicture = allGaleriePictures
-      .filter((gp) => gp.current);
-    if (currentCoverPicture.length) {
+      .find((gp) => gp.current);
+    if (currentCoverPicture) {
       try {
-        await currentCoverPicture[0].update({
+        await currentCoverPicture.update({
           current: false,
         });
       } catch (err) {

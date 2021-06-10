@@ -1,3 +1,5 @@
+// DELETE /galeries/:galerieId/invitations/:invitationId/
+
 import {
   Request,
   Response,
@@ -63,11 +65,9 @@ export default async (req: Request, res: Response) => {
 
   // Check if user's role for this galerie
   // is not 'user'.
-  const { role } = galerie
-    .users
-    .filter((user) => user.id === currentUser.id)[0]
-    .GalerieUser;
-  if (role === 'user') {
+  const userFromGalerie = galerie.users
+    .find((user) => user.id === currentUser.id);
+  if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'user') {
     return res.status(400).send({
       errors: 'your not allow to delete invitations',
     });
