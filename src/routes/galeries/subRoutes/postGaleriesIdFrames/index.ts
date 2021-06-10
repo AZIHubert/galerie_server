@@ -2,6 +2,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -9,6 +10,7 @@ import {
   Frame,
   Galerie,
   GaleriePicture,
+  GalerieUser,
   Image,
   User,
 } from '@src/db/models';
@@ -433,6 +435,24 @@ export default async (req: Request, res: Response) => {
         errors: 'something went wrong',
       });
     }
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // set GalerieUser.hasNewFrames
+  // to true for each other users
+  // subscribe to this galerie.
+  try {
+    await GalerieUser.update({
+      hasNewFrames: true,
+    }, {
+      where: {
+        galerieId,
+        userId: {
+          [Op.not]: currentUser.id,
+        },
+      },
+    });
   } catch (err) {
     return res.status(500).send(err);
   }

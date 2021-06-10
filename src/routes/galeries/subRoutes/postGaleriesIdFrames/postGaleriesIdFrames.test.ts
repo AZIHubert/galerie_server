@@ -7,6 +7,7 @@ import '@src/helpers/initEnv';
 import {
   Frame,
   GaleriePicture,
+  GalerieUser,
   Image,
   User,
 } from '@src/db/models';
@@ -38,76 +39,75 @@ import initApp from '@src/server';
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
 const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
+let app: Server;
+let galerieId: string;
+let password: string;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
 
 describe('/galeries', () => {
-  let app: Server;
-  let galerieId: string;
-  let password: string;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      const {
-        password: createdPassword,
-        user: createdUser,
-      } = await createUser({
-        role: 'superAdmin',
-      });
-
-      password = createdPassword;
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-      const {
-        body: {
-          data: {
-            galerie: {
-              id,
-            },
-          },
-        },
-      } = await postGaleries(app, token, {
-        body: {
-          name: 'galerie\'s name',
-        },
-      });
-      galerieId = id;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:galerieId', () => {
     describe('/frames', () => {
       describe('POST', () => {
+        beforeAll(() => {
+          sequelize = initSequelize();
+          app = initApp();
+        });
+
+        beforeEach(async (done) => {
+          try {
+            await cleanGoogleBuckets();
+            await sequelize.sync({ force: true });
+            const {
+              password: createdPassword,
+              user: createdUser,
+            } = await createUser({
+              role: 'superAdmin',
+            });
+
+            password = createdPassword;
+            user = createdUser;
+
+            const { body } = await postUsersLogin(app, {
+              body: {
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            token = body.token;
+            const {
+              body: {
+                data: {
+                  galerie: {
+                    id,
+                  },
+                },
+              },
+            } = await postGaleries(app, token, {
+              body: {
+                name: 'galerie\'s name',
+              },
+            });
+            galerieId = id;
+          } catch (err) {
+            done(err);
+          }
+          done();
+        });
+
+        afterAll(async (done) => {
+          try {
+            await cleanGoogleBuckets();
+            await sequelize.sync({ force: true });
+            await sequelize.close();
+          } catch (err) {
+            done(err);
+          }
+          app.close();
+          done();
+        });
+
         describe('should return status 200 and', () => {
           it('create a frame width 1 images', async () => {
             const {
@@ -645,6 +645,80 @@ describe('/galeries', () => {
               numOfGaleriePictures: 3,
             });
             expect(frame.description).toBe(description);
+          });
+          it('set GalerieUser.hasNewFrames to true for all other users subscribe to this galerie', async () => {
+            const {
+              password: passwordTwo,
+              user: userTwo,
+            } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            const {
+              password: passwordThree,
+              user: userThree,
+            } = await createUser({
+              email: 'user3@email.com',
+              userName: 'user3',
+            });
+            const {
+              body: {
+                token: tokenTwo,
+              },
+            } = await postUsersLogin(app, {
+              body: {
+                password: passwordTwo,
+                userNameOrEmail: userTwo.email,
+              },
+            });
+            const {
+              body: {
+                token: tokenThree,
+              },
+            } = await postUsersLogin(app, {
+              body: {
+                password: passwordThree,
+                userNameOrEmail: userThree.email,
+              },
+            });
+            const {
+              body: {
+                data: {
+                  invitation: {
+                    code,
+                  },
+                },
+              },
+            } = await postGaleriesIdInvitations(app, token, galerieId);
+            await postGaleriesSubscribe(app, tokenTwo, {
+              body: {
+                code,
+              },
+            });
+            await postGaleriesSubscribe(app, tokenThree, {
+              body: {
+                code,
+              },
+            });
+            await postGaleriesIdFrames(app, token, galerieId);
+            const galerieUserOne = await GalerieUser.findOne({
+              where: {
+                userId: user.id,
+              },
+            }) as GalerieUser;
+            const galerieUserTwo = await GalerieUser.findOne({
+              where: {
+                userId: userTwo.id,
+              },
+            }) as GalerieUser;
+            const galerieUserThree = await GalerieUser.findOne({
+              where: {
+                userId: userThree.id,
+              },
+            }) as GalerieUser;
+            expect(galerieUserOne.hasNewFrames).toBeFalsy();
+            expect(galerieUserTwo.hasNewFrames).toBeTruthy();
+            expect(galerieUserThree.hasNewFrames).toBeTruthy();
           });
         });
         describe('should return status 400 if', () => {
