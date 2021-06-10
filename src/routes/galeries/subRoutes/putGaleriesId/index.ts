@@ -69,13 +69,9 @@ export default async (req: Request, res: Response) => {
   }
 
   // Only creator or admin are allow to update galerie.
-  const { role } = galerie
-    .users
-    .filter((user) => user.id === currentUser.id)[0]
-    .GalerieUser;
-  if (
-    role === 'user'
-  ) {
+  const userFromGalerie = galerie.users
+    .find((user) => user.id === currentUser.id);
+  if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'user') {
     return res.status(400).send({
       errors: 'you\'re not allow to update this galerie',
     });

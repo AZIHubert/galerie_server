@@ -226,10 +226,7 @@ export default async (req: Request, res: Response) => {
     .find((u) => u.id === currentUser.id);
 
   // Set GalerieUser.hasNewFrame to false.
-  const hasNewFrame = userFromGalerie
-    ? userFromGalerie.GalerieUser.hasNewFrames
-    : false;
-  if (hasNewFrame) {
+  if (userFromGalerie && userFromGalerie.GalerieUser.hasNewFrames) {
     try {
       await GalerieUser.update({
         hasNewFrames: false,

@@ -1,3 +1,5 @@
+// DELETE /galeries/:galerieId/
+
 import {
   Request,
   Response,
@@ -75,11 +77,9 @@ export default async (req: Request, res: Response) => {
 
   // Check if user\'s role relative to
   // this galerie is 'creator'.
-  const { role } = galerie
-    .users
-    .filter((user) => user.id === currentUser.id)[0]
-    .GalerieUser;
-  if (role !== 'creator') {
+  const userFromGalerie = galerie.users
+    .find((user) => user.id === currentUser.id);
+  if (!userFromGalerie || userFromGalerie.GalerieUser.role !== 'creator') {
     return res.status(400).send({
       errors: 'not allow to delete this galerie',
     });

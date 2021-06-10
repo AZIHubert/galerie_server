@@ -72,11 +72,9 @@ export default async (req: Request, res: Response) => {
 
   // Check if current user role for this galerie
   // is 'creator' or 'admin'.
-  const { role } = galerie
-    .users
-    .filter((user) => user.id === currentUser.id)[0]
-    .GalerieUser;
-  if (role === 'user') {
+  const userFromGalerie = galerie.users
+    .find((user) => user.id === currentUser.id);
+  if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'user') {
     return res.status(400).send({
       errors: 'you should be an admin or the creator to update the role of a user',
     });
@@ -112,7 +110,7 @@ export default async (req: Request, res: Response) => {
   // can update the role of an admin.
   if (
     galerieUser.role === 'admin'
-    && role !== 'creator'
+    && userFromGalerie.GalerieUser.role !== 'creator'
   ) {
     return res.status(400).send({
       errors: 'you should be the creator of this galerie to update the role of an admin',

@@ -1,3 +1,5 @@
+// DELETE /galeries/:galerieId/frames/:frameId/
+
 import {
   Request,
   Response,
@@ -92,13 +94,14 @@ export default async (req: Request, res: Response) => {
 
   // Only creator/admin or the user
   // who post the frame can deleted it.
-  const { role } = galerie
-    .users
-    .filter((user) => user.id === currentUser.id)[0]
-    .GalerieUser;
+  const userFromGalerie = galerie.users
+    .find((user) => user.id === currentUser.id);
   if (
     currentUser.id !== frame.userId
-    && role === 'user'
+    && (
+      !userFromGalerie
+      || userFromGalerie.GalerieUser.role === 'user'
+    )
   ) {
     return res.status(400).send({
       errors: 'your not allow to delete this frame',
