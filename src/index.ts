@@ -20,3 +20,5 @@ initSequelize(() => {
 // TODO:
 // Test when image does not exist
 // Test when image from GB does not exist
+
+// galerie.users.filter should be galerie.user.find
