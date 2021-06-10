@@ -4,7 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import {
+  GalerieUser,
+  User,
+} from '@src/db/models';
 
 import {
   INVALID_UUID,
@@ -15,11 +18,13 @@ import {
   cleanGoogleBuckets,
   createUser,
   getGaleriesIdUsers,
+  postBlackListUserId,
   postGaleries,
   postGaleriesIdInvitations,
   postGaleriesSubscribe,
   postProfilePictures,
   postUsersLogin,
+  putGaleriesIdUsersId,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -43,9 +48,7 @@ describe('/galeries', () => {
       const {
         password,
         user: createdUser,
-      } = await createUser({
-        role: 'superAdmin',
-      });
+      } = await createUser({});
 
       user = createdUser;
 
@@ -262,12 +265,528 @@ describe('/galeries', () => {
           } = await getGaleriesIdUsers(app, token, galerieId);
           expect(users.length).toBe(0);
         });
-        it('TODO: return a pack of 20 users', async () => {});
-        it('TODO: don\'t return user if he\'s black listed and current user role for this galerie is \'user\'', async () => {});
-        it('TODO: return user if he\'s black listed and current user role for this galerie is \'admin\'', async () => {});
-        it('TODO: return user if he\'s black listed and current user role for this galerie is \'creator\'', async () => {});
-        it('TODO: return user if he\'s black list and current user role for this galerie is \'user\' and role is \'admin\'', async () => {});
-        it('TODO: return user if he\'s black list and current user role for this galerie is \'user\' and role is \'superAdmin\'', async () => {});
+        it('return a pack of 20 users', async () => {
+          const NUM = 21;
+          const numOfUsers = new Array(NUM).fill(0);
+          await Promise.all(
+            numOfUsers.map(async (_, index) => {
+              const { user: newUser } = await createUser({
+                email: `user${index + 2}@email.com`,
+                userName: `user${index + 2}`,
+              });
+              await GalerieUser.create({
+                galerieId,
+                role: 'user',
+                userId: newUser.id,
+              });
+            }),
+          );
+          const {
+            body: {
+              data: {
+                users: firstPack,
+              },
+            },
+          } = await getGaleriesIdUsers(app, token, galerieId);
+          const {
+            body: {
+              data: {
+                users: secondPack,
+              },
+            },
+          } = await getGaleriesIdUsers(app, token, galerieId, { page: 2 });
+          expect(firstPack.length).toBe(20);
+          expect(secondPack.length).toBe(1);
+        });
+        it('don\'t return user if he\'s black listed and user role is user and current user role for this galerie is \'user\'', async () => {
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
+            email: 'user2@email.com',
+            role: 'admin',
+            userName: 'user2',
+          });
+          const {
+            password: passwordThree,
+            user: userThree,
+          } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          const {
+            password: passwordFour,
+            user: userFour,
+          } = await createUser({
+            email: 'user4@email.com',
+            userName: 'user4',
+          });
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordTwo,
+              userNameOrEmail: userTwo.email,
+            },
+          });
+          const {
+            body: {
+              token: tokenThree,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordThree,
+              userNameOrEmail: userThree.email,
+            },
+          });
+          const {
+            body: {
+              token: tokenFour,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordFour,
+              userNameOrEmail: userFour.email,
+            },
+          });
+          const {
+            body: {
+              data: {
+                invitation: {
+                  code,
+                },
+              },
+            },
+          } = await postGaleriesIdInvitations(app, token, galerieId);
+          await postGaleriesSubscribe(app, tokenThree, {
+            body: {
+              code,
+            },
+          });
+          await postGaleriesSubscribe(app, tokenFour, {
+            body: {
+              code,
+            },
+          });
+          await postBlackListUserId(app, tokenTwo, userThree.id, {
+            body: {
+              reason: 'black list reason',
+            },
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getGaleriesIdUsers(app, tokenFour, galerieId);
+          expect(users.length).toBe(1);
+        });
+        it('return user if he\'s black listed and current user role for this galerie is \'admin\'', async () => {
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
+            email: 'user2@email.com',
+            role: 'admin',
+            userName: 'user2',
+          });
+          const {
+            password: passwordThree,
+            user: userThree,
+          } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          const {
+            password: passwordFour,
+            user: userFour,
+          } = await createUser({
+            email: 'user4@email.com',
+            userName: 'user4',
+          });
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordTwo,
+              userNameOrEmail: userTwo.email,
+            },
+          });
+          const {
+            body: {
+              token: tokenThree,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordThree,
+              userNameOrEmail: userThree.email,
+            },
+          });
+          const {
+            body: {
+              token: tokenFour,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordFour,
+              userNameOrEmail: userFour.email,
+            },
+          });
+          const {
+            body: {
+              data: {
+                invitation: {
+                  code,
+                },
+              },
+            },
+          } = await postGaleriesIdInvitations(app, token, galerieId);
+          await postGaleriesSubscribe(app, tokenThree, {
+            body: {
+              code,
+            },
+          });
+          await postGaleriesSubscribe(app, tokenFour, {
+            body: {
+              code,
+            },
+          });
+          await putGaleriesIdUsersId(app, token, galerieId, userFour.id);
+          await postBlackListUserId(app, tokenTwo, userThree.id, {
+            body: {
+              reason: 'black list reason',
+            },
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getGaleriesIdUsers(app, tokenFour, galerieId);
+          const blackListedUser = users.find((u: any) => u.id === userThree.id);
+          expect(blackListedUser.isBlackListed).toBeTruthy();
+        });
+        it('return user if he\'s black listed and current user role for this galerie is \'creator\'', async () => {
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
+            email: 'user2@email.com',
+            role: 'admin',
+            userName: 'user2',
+          });
+          const {
+            password: passwordThree,
+            user: userThree,
+          } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordTwo,
+              userNameOrEmail: userTwo.email,
+            },
+          });
+          const {
+            body: {
+              token: tokenThree,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordThree,
+              userNameOrEmail: userThree.email,
+            },
+          });
+          const {
+            body: {
+              data: {
+                invitation: {
+                  code,
+                },
+              },
+            },
+          } = await postGaleriesIdInvitations(app, token, galerieId);
+          await postGaleriesSubscribe(app, tokenThree, {
+            body: {
+              code,
+            },
+          });
+          await postBlackListUserId(app, tokenTwo, userThree.id, {
+            body: {
+              reason: 'black list reason',
+            },
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getGaleriesIdUsers(app, token, galerieId);
+          const blackListedUser = users.find((u: any) => u.id === userThree.id);
+          expect(blackListedUser.isBlackListed).toBeTruthy();
+        });
+        it('return user if he\'s black list and current user role for this galerie is \'user\' and role is \'admin\'', async () => {
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
+            email: 'user2@email.com',
+            role: 'admin',
+            userName: 'user2',
+          });
+          const {
+            password: passwordThree,
+            user: userThree,
+          } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordTwo,
+              userNameOrEmail: userTwo.email,
+            },
+          });
+          const {
+            body: {
+              token: tokenThree,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordThree,
+              userNameOrEmail: userThree.email,
+            },
+          });
+          const {
+            body: {
+              data: {
+                invitation: {
+                  code,
+                },
+              },
+            },
+          } = await postGaleriesIdInvitations(app, token, galerieId);
+          await postGaleriesSubscribe(app, tokenTwo, {
+            body: {
+              code,
+            },
+          });
+          await postGaleriesSubscribe(app, tokenThree, {
+            body: {
+              code,
+            },
+          });
+          await postBlackListUserId(app, tokenTwo, userThree.id, {
+            body: {
+              reason: 'black list reason',
+            },
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getGaleriesIdUsers(app, tokenTwo, galerieId);
+          const blackListedUser = users.find((u: any) => u.id === userThree.id);
+          expect(blackListedUser.isBlackListed).toBeTruthy();
+        });
+        it('return user if he\'s black list and current user role for this galerie is \'user\' and role is \'superAdmin\'', async () => {
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
+            email: 'user2@email.com',
+            role: 'superAdmin',
+            userName: 'user2',
+          });
+          const {
+            password: passwordThree,
+            user: userThree,
+          } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordTwo,
+              userNameOrEmail: userTwo.email,
+            },
+          });
+          const {
+            body: {
+              token: tokenThree,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordThree,
+              userNameOrEmail: userThree.email,
+            },
+          });
+          const {
+            body: {
+              data: {
+                invitation: {
+                  code,
+                },
+              },
+            },
+          } = await postGaleriesIdInvitations(app, token, galerieId);
+          await postGaleriesSubscribe(app, tokenTwo, {
+            body: {
+              code,
+            },
+          });
+          await postGaleriesSubscribe(app, tokenThree, {
+            body: {
+              code,
+            },
+          });
+          await postBlackListUserId(app, tokenTwo, userThree.id, {
+            body: {
+              reason: 'black list reason',
+            },
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getGaleriesIdUsers(app, tokenTwo, galerieId);
+          const blackListedUser = users.find((u: any) => u.id === userThree.id);
+          expect(blackListedUser.isBlackListed).toBeTruthy();
+        });
+        it('should sort users by userName', async () => {
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
+            email: 'user2@email.com',
+            userName: 'c',
+          });
+          const {
+            password: passwordThree,
+            user: userThree,
+          } = await createUser({
+            email: 'user3@email.com',
+            userName: 'a',
+          });
+          const {
+            password: passwordFour,
+            user: userFour,
+          } = await createUser({
+            email: 'user4@email.com',
+            userName: 'd',
+          });
+          const {
+            password: passwordFive,
+            user: userFive,
+          } = await createUser({
+            email: 'user5@email.com',
+            userName: 'b',
+          });
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordTwo,
+              userNameOrEmail: userTwo.email,
+            },
+          });
+          const {
+            body: {
+              token: tokenThree,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordThree,
+              userNameOrEmail: userThree.email,
+            },
+          });
+          const {
+            body: {
+              token: tokenFour,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordFour,
+              userNameOrEmail: userFour.email,
+            },
+          });
+          const {
+            body: {
+              token: tokenFive,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordFive,
+              userNameOrEmail: userFive.email,
+            },
+          });
+          const {
+            body: {
+              data: {
+                invitation: {
+                  code,
+                },
+              },
+            },
+          } = await postGaleriesIdInvitations(app, token, galerieId);
+          await postGaleriesSubscribe(app, tokenTwo, {
+            body: {
+              code,
+            },
+          });
+          await postGaleriesSubscribe(app, tokenThree, {
+            body: {
+              code,
+            },
+          });
+          await postGaleriesSubscribe(app, tokenFour, {
+            body: {
+              code,
+            },
+          });
+          await postGaleriesSubscribe(app, tokenFive, {
+            body: {
+              code,
+            },
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getGaleriesIdUsers(app, token, galerieId);
+          expect(users[0].pseudonym).toBe('a');
+          expect(users[1].pseudonym).toBe('b');
+          expect(users[2].pseudonym).toBe('c');
+          expect(users[3].pseudonym).toBe('d');
+        });
       });
       describe('should return status 400 if', () => {
         it('request.params.galerieId is not a UUID v4', async () => {

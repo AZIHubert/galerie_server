@@ -510,9 +510,6 @@ describe('/galeries', () => {
               },
             },
           } = await getGaleriesFrames(app, token);
-          // console.log(frames.map((f: any) => f.id));
-          // console.log([frameOne.id, frameTwo.id, frameThree.id]);
-          // console.log([frameOne.createdAt, frameTwo.createdAt, frameThree.createdAt]);
           expect(frames[0].id).toBe(frameFour.id);
           expect(frames[1].id).toBe(frameThree.id);
           expect(frames[2].id).toBe(frameTwo.id);

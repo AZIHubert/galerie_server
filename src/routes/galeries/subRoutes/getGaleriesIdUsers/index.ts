@@ -21,7 +21,6 @@ import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture'
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
-  const limit = 20;
   const { galerieId } = req.params;
   const {
     direction: queryDirection,
@@ -29,12 +28,13 @@ export default async (req: Request, res: Response) => {
     page,
   } = req.query;
   const currentUser = req.user as User;
+  const limit = 20;
   const usersWithProfilePicture: Array<any> = [];
-  let direction = 'DESC';
+  let direction = 'ASC';
   let galerie: Galerie | null;
   let offset: number;
-  let order = 'createdAt';
-  let users: User[];
+  let order = 'pseudonym';
+  let users: User[] = [];
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -50,10 +50,8 @@ export default async (req: Request, res: Response) => {
   ) {
     direction = queryDirection;
   }
-
   if (
-    queryOrder === 'createdAt'
-    || queryOrder === 'pseudonym'
+    queryOrder === 'pseudonym'
     || queryOrder === 'userName'
   ) {
     order = queryOrder;
@@ -85,12 +83,6 @@ export default async (req: Request, res: Response) => {
       errors: MODEL_NOT_FOUND('galerie'),
     });
   }
-
-  // TODO:
-  // if queryOrder === 'createdAt',
-  // need to fetch instead
-  // GalerieUser where galerieId === galerie.id.
-  // and order by createdAt
 
   try {
     users = await User.findAll({
@@ -130,7 +122,9 @@ export default async (req: Request, res: Response) => {
         const returnedUser = {
           ...user.toJSON(),
           currentProfilePicture,
-          galerieRole: user.galeries[0].GalerieUser.role,
+          galerieRole: user.galeries[0]
+            ? user.galeries[0].GalerieUser.role
+            : 'user',
           galeries: undefined,
           // If current user role for this galerie
           // is 'admin' or 'creator' or current user role
