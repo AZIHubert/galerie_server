@@ -16,7 +16,3 @@ initSequelize(() => {
     console.log(`App start on port ${PORT}`);
   });
 });
-
-// TODO:
-// Test when image does not exist
-// Test when image from GB does not exist
