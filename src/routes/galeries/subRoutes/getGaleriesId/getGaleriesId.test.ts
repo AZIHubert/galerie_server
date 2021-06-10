@@ -4,7 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import {
+  GalerieUser,
+  User,
+} from '@src/db/models';
 
 import {
   INVALID_UUID,
@@ -25,55 +28,55 @@ import {
 
 import initApp from '@src/server';
 
+let app: Server;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/galeries', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({});
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:galerieId', () => {
     describe('GET', () => {
+      beforeAll(() => {
+        sequelize = initSequelize();
+        app = initApp();
+      });
+
+      beforeEach(async (done) => {
+        try {
+          await cleanGoogleBuckets();
+          await sequelize.sync({ force: true });
+          const {
+            password,
+            user: createdUser,
+          } = await createUser({});
+
+          user = createdUser;
+
+          const { body } = await postUsersLogin(app, {
+            body: {
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          token = body.token;
+        } catch (err) {
+          done(err);
+        }
+        done();
+      });
+
+      afterAll(async (done) => {
+        try {
+          await cleanGoogleBuckets();
+          await sequelize.sync({ force: true });
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
       describe('it should return status 200 and', () => {
         let returnedGalerie: any;
 
@@ -224,6 +227,61 @@ describe('/galeries', () => {
           expect(currentCoverPicture.pendingImage.updatedAt).toBeUndefined();
           expect(currentCoverPicture.pendingImage.width).not.toBeUndefined();
           expect(currentCoverPicture.updatedAt).toBeUndefined();
+        });
+        it('set GalerieUser.hasNewFrames to false', async () => {
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const {
+            body: {
+              token: tokenTwo,
+            },
+          } = await postUsersLogin(app, {
+            body: {
+              password: passwordTwo,
+              userNameOrEmail: userTwo.email,
+            },
+          });
+          const {
+            body: {
+              data: {
+                galerie: {
+                  id: galerieId,
+                },
+              },
+            },
+          } = await postGaleries(app, tokenTwo, {
+            body: {
+              name: 'galerie\'s name',
+            },
+          });
+          const {
+            body: {
+              data: {
+                invitation: {
+                  code,
+                },
+              },
+            },
+          } = await postGaleriesIdInvitations(app, tokenTwo, galerieId);
+          await postGaleriesSubscribe(app, token, {
+            body: {
+              code,
+            },
+          });
+          await postGaleriesIdFrames(app, tokenTwo, galerieId);
+          await getGaleriesId(app, token, galerieId);
+          const galerieUser = await GalerieUser.findOne({
+            where: {
+              galerieId,
+              userId: user.id,
+            },
+          }) as GalerieUser;
+          expect(galerieUser.hasNewFrames).toBeFalsy();
         });
       });
       describe('it should return status 400 if', () => {

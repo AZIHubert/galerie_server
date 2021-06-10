@@ -9,6 +9,7 @@ import {
   Frame,
   Galerie,
   GaleriePicture,
+  GalerieUser,
   Image,
   User,
 } from '@src/db/models';
@@ -27,7 +28,7 @@ import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
-  const user = req.user as User;
+  const currentUser = req.user as User;
   let galerie: Galerie | null;
   let returnCurrentCoverPicture = null;
 
@@ -50,7 +51,7 @@ export default async (req: Request, res: Response) => {
       include: [{
         model: User,
         where: {
-          id: user.id,
+          id: currentUser.id,
         },
       }],
     });
@@ -221,16 +222,37 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  const userFromGalerie = galerie.users
+    .find((u) => u.id === currentUser.id);
+
+  // Set GalerieUser.hasNewFrame to false.
+  const hasNewFrame = userFromGalerie
+    ? userFromGalerie.GalerieUser.hasNewFrames
+    : false;
+  if (hasNewFrame) {
+    try {
+      await GalerieUser.update({
+        hasNewFrames: false,
+      }, {
+        where: {
+          userId: currentUser.id,
+          galerieId,
+        },
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+  }
+
   return res.status(200).send({
     action: 'GET',
     data: {
       galerie: {
         ...galerie.toJSON(),
         currentCoverPicture: returnCurrentCoverPicture,
-        role: galerie
-          .users
-          .filter((u) => u.id === user.id)[0]
-          .GalerieUser.role,
+        role: userFromGalerie
+          ? userFromGalerie.GalerieUser.role
+          : 'user',
         users: [],
       },
     },
