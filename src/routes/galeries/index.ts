@@ -67,6 +67,3 @@ const galeriesRoutes: () => Router = () => {
 };
 
 export default galeriesRoutes;
-
-// TODO:
-// Update check invitation time (see blacklist)
