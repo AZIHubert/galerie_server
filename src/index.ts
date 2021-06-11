@@ -16,3 +16,7 @@ initSequelize(() => {
     console.log(`App start on port ${PORT}`);
   });
 });
+
+// TODO:
+// remove test user.password
+// test user.hash user.salt

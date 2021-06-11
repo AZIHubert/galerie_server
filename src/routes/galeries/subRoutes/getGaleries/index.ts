@@ -217,6 +217,9 @@ export default async (req: Request, res: Response) => {
         returnedGaleries.push({
           ...galerie.toJSON(),
           currentCoverPicture: returnCurrentCoverPicture,
+          hasNewFrames: userFromGalerie
+            ? userFromGalerie?.GalerieUser.hasNewFrames
+            : false,
           role: userFromGalerie
             ? userFromGalerie.GalerieUser.role
             : 'user',

@@ -96,6 +96,7 @@ describe('/galerie', () => {
         expect(returnedGalerie.currentCoverPicture).toBeNull();
         expect(returnedGalerie.defaultCoverPicture).not.toBeUndefined();
         expect(returnedGalerie.description).toBe('');
+        expect(returnedGalerie.hasNewFrames).toBeFalsy();
         expect(returnedGalerie.id).not.toBeUndefined();
         expect(returnedGalerie.name).toBe(name);
         expect(returnedGalerie.role).toBe('creator');

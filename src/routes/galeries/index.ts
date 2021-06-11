@@ -69,6 +69,4 @@ const galeriesRoutes: () => Router = () => {
 export default galeriesRoutes;
 
 // TODO:
-// When returning galerie
-// include galerie.hasNewFrames (from galerieUser.hasNewFrames).
 // Update check invitation time (see blacklist)

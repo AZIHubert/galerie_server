@@ -117,6 +117,7 @@ describe('/galeries', () => {
           expect(galerie.currentCoverPicture).toBe(returnedGalerie.currentCoverPicture);
           expect(galerie.defaultCoverPicture).toBe(returnedGalerie.defaultCoverPicture);
           expect(galerie.description).toBe(returnedGalerie.description);
+          expect(galerie.hasNewFrames).toBe(returnedGalerie.hasNewFrames);
           expect(galerie.id).toBe(returnedGalerie.id);
           expect(galerie.name).toBe(returnedGalerie.name);
           expect(galerie.role).toBe(returnedGalerie.role);
