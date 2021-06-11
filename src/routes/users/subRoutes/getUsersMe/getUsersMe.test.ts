@@ -18,55 +18,55 @@ import {
 
 import initApp from '@src/server';
 
+let app: Server;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/users', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    app = initApp();
-    sequelize = initSequelize();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({});
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/me', () => {
     describe('GET', () => {
+      beforeAll(() => {
+        app = initApp();
+        sequelize = initSequelize();
+      });
+
+      beforeEach(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await cleanGoogleBuckets();
+          const {
+            password,
+            user: createdUser,
+          } = await createUser({});
+
+          user = createdUser;
+
+          const { body } = await postUsersLogin(app, {
+            body: {
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          token = body.token;
+        } catch (err) {
+          done(err);
+        }
+        done();
+      });
+
+      afterAll(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await cleanGoogleBuckets();
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
       describe('should return status 200 and', () => {
         it('return your own account with relevent properties', async () => {
           const {
@@ -89,11 +89,13 @@ describe('/users', () => {
           expect(returnedUser.emeilTokenVersion).toBeUndefined();
           expect(returnedUser.facebookId).toBeUndefined();
           expect(returnedUser.googleId).toBeUndefined();
+          expect(returnedUser.hash).toBeUndefined();
           expect(returnedUser.id).toEqual(user.id);
-          expect(returnedUser.password).toBeUndefined();
           expect(returnedUser.pseudonym).toEqual(user.pseudonym);
           expect(returnedUser.resetPasswordTokenVersion).toBeUndefined();
           expect(returnedUser.role).toEqual(user.role);
+          expect(returnedUser.salt).toBeUndefined();
+          expect(returnedUser.socialMediaUserName).not.toBeUndefined();
           expect(returnedUser.updatedAt).toBeUndefined();
           expect(returnedUser.updatedEmailTokenVersion).toBeUndefined();
           expect(returnedUser.userName).toEqual(user.userName);

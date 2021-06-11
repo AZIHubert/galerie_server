@@ -26,73 +26,73 @@ import {
 
 import initApp from '@src/server';
 
+let adminToken: string;
+let app: Server;
+let password: string;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/tickets', () => {
-  let adminToken: string;
-  let app: Server;
-  let password: string;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      const {
-        password: createdPassword,
-        user: createdUser,
-      } = await createUser({});
-      const {
-        password: passwordTwo,
-        user: admin,
-      } = await createUser({
-        email: 'user2@email.com',
-        userName: 'user2',
-        role: 'superAdmin',
-      });
-
-      password = createdPassword;
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      const { body: adminLoginBody } = await postUsersLogin(app, {
-        body: {
-          password: passwordTwo,
-          userNameOrEmail: admin.email,
-        },
-      });
-      token = body.token;
-      adminToken = adminLoginBody.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:id', () => {
     describe('GET', () => {
+      beforeAll(() => {
+        sequelize = initSequelize();
+        app = initApp();
+      });
+
+      beforeEach(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await cleanGoogleBuckets();
+          const {
+            password: createdPassword,
+            user: createdUser,
+          } = await createUser({});
+          const {
+            password: passwordTwo,
+            user: admin,
+          } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+            role: 'superAdmin',
+          });
+
+          password = createdPassword;
+          user = createdUser;
+
+          const { body } = await postUsersLogin(app, {
+            body: {
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const { body: adminLoginBody } = await postUsersLogin(app, {
+            body: {
+              password: passwordTwo,
+              userNameOrEmail: admin.email,
+            },
+          });
+          token = body.token;
+          adminToken = adminLoginBody.token;
+        } catch (err) {
+          done(err);
+        }
+        done();
+      });
+
+      afterAll(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await cleanGoogleBuckets();
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
       describe('should return status 200 and', () => {
         it('return a ticket', async () => {
           const body = 'ticket\'s body';
@@ -130,11 +130,12 @@ describe('/tickets', () => {
           expect(returnedTicket.user.emailTokenVersion).toBeUndefined();
           expect(returnedTicket.user.facebookId).toBeUndefined();
           expect(returnedTicket.user.googleId).toBeUndefined();
+          expect(returnedTicket.user.hash).toBeUndefined();
           expect(returnedTicket.user.id).toBe(user.id);
-          expect(returnedTicket.user.password).toBeUndefined();
           expect(returnedTicket.user.pseudonym).toBe(user.pseudonym);
           expect(returnedTicket.user.resetPasswordTokenVersion).toBeUndefined();
           expect(returnedTicket.user.role).toBe(user.role);
+          expect(returnedTicket.user.salt).toBeUndefined();
           expect(returnedTicket.user.socialMediaUserName).toBe(user.socialMediaUserName);
           expect(returnedTicket.user.updatedEmailTokenVersion).toBeUndefined();
           expect(returnedTicket.user.updatedAt).toBeUndefined();

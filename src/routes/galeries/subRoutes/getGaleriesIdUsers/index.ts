@@ -29,12 +29,12 @@ export default async (req: Request, res: Response) => {
   } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
-  const usersWithProfilePicture: Array<any> = [];
   let direction = 'ASC';
   let galerie: Galerie | null;
   let offset: number;
   let order = 'pseudonym';
   let users: User[] = [];
+  let usersWithProfilePicture: Array<any> = [];
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -114,10 +114,12 @@ export default async (req: Request, res: Response) => {
     .find((user) => user.id === currentUser.id);
 
   try {
-    await Promise.all(
+    usersWithProfilePicture = await Promise.all(
       users.map(async (user) => {
         const userIsBlackListed = await checkBlackList(user);
         const currentProfilePicture = await fetchCurrentProfilePicture(user);
+
+        console.log('after: ', user.pseudonym);
 
         const returnedUser = {
           ...user.toJSON(),
@@ -126,19 +128,20 @@ export default async (req: Request, res: Response) => {
             ? user.galeries[0].GalerieUser.role
             : 'user',
           galeries: undefined,
+
           // If current user role for this galerie
           // is 'admin' or 'creator' or current user role
           // is 'admin' or 'superAdmin' and this user
           // is black listed, had a field that
           // indicate this user is black listed.
           isBlackListed: userIsBlackListed
-            && (
-              (
-                !userFromGalerie
-                || userFromGalerie.GalerieUser.role !== 'user'
-              )
-              || currentUser.role !== 'user'
-            )
+        && (
+          (
+            !userFromGalerie
+            || userFromGalerie.GalerieUser.role !== 'user'
+          )
+          || currentUser.role !== 'user'
+        )
             ? true
             : undefined,
         };
@@ -150,18 +153,19 @@ export default async (req: Request, res: Response) => {
         if (
           (
             userIsBlackListed
-            && (
-              (
-                !userFromGalerie
-                || userFromGalerie.GalerieUser.role !== 'user'
-              )
-              || currentUser.role !== 'user'
-            )
+        && (
+          (
+            !userFromGalerie
+            || userFromGalerie.GalerieUser.role !== 'user'
           )
-          || !userIsBlackListed
+          || currentUser.role !== 'user'
+        )
+          )
+      || !userIsBlackListed
         ) {
-          usersWithProfilePicture.push(returnedUser);
+          return returnedUser;
         }
+        return null;
       }),
     );
   } catch (err) {
@@ -172,7 +176,7 @@ export default async (req: Request, res: Response) => {
     action: 'GET',
     data: {
       galerieId,
-      users: usersWithProfilePicture,
+      users: usersWithProfilePicture.filter((u) => !!u),
     },
   });
 };

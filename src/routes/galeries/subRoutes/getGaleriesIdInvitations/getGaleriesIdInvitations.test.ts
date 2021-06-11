@@ -29,73 +29,73 @@ import {
 
 import initApp from '@src/server';
 
+let app: Server;
+let galerieId: string;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/galeries', () => {
-  let app: Server;
-  let galerieId: string;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({
-        role: 'superAdmin',
-      });
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-      const {
-        body: {
-          data: {
-            galerie: {
-              id,
-            },
-          },
-        },
-      } = await postGaleries(app, token, {
-        body: {
-          name: 'galerie\'s name',
-        },
-      });
-      galerieId = id;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:id', () => {
     describe('/invitations', () => {
       describe('GET', () => {
+        beforeAll(() => {
+          sequelize = initSequelize();
+          app = initApp();
+        });
+
+        beforeEach(async (done) => {
+          try {
+            await cleanGoogleBuckets();
+            await sequelize.sync({ force: true });
+            const {
+              password,
+              user: createdUser,
+            } = await createUser({
+              role: 'superAdmin',
+            });
+
+            user = createdUser;
+
+            const { body } = await postUsersLogin(app, {
+              body: {
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            token = body.token;
+            const {
+              body: {
+                data: {
+                  galerie: {
+                    id,
+                  },
+                },
+              },
+            } = await postGaleries(app, token, {
+              body: {
+                name: 'galerie\'s name',
+              },
+            });
+            galerieId = id;
+          } catch (err) {
+            done(err);
+          }
+          done();
+        });
+
+        afterAll(async (done) => {
+          try {
+            await cleanGoogleBuckets();
+            await sequelize.sync({ force: true });
+            await sequelize.close();
+          } catch (err) {
+            done(err);
+          }
+          app.close();
+          done();
+        });
+
         describe('should return status 200 and', () => {
           it('return no invitation', async () => {
             const {
@@ -140,10 +140,13 @@ describe('/galeries', () => {
             expect(invitations[0].user.emailTokenVersion).toBeUndefined();
             expect(invitations[0].user.facebookId).toBeUndefined();
             expect(invitations[0].user.googleId).toBeUndefined();
-            expect(invitations[0].user.password).toBeUndefined();
+            expect(invitations[0].user.hash).toBeUndefined();
+            expect(invitations[0].user.id).not.toBeUndefined();
             expect(invitations[0].user.pseudonym).not.toBeUndefined();
             expect(invitations[0].user.resetPasswordTokenVersion).toBeUndefined();
             expect(invitations[0].user.role).not.toBeUndefined();
+            expect(invitations[0].user.salt).toBeUndefined();
+            expect(invitations[0].user.socialMediaUserName).not.toBeUndefined();
             expect(invitations[0].user.updatedAt).toBeUndefined();
             expect(invitations[0].user.updatedEmailTokenVersion).toBeUndefined();
             expect(invitations[0].userId).toBeUndefined();

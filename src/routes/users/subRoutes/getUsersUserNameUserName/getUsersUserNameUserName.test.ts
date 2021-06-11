@@ -18,56 +18,56 @@ import {
 
 import initApp from '@src/server';
 
+let app: Server;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/users', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({});
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/userName', () => {
     describe('/:userName', () => {
       describe('GET', () => {
+        beforeAll(() => {
+          sequelize = initSequelize();
+          app = initApp();
+        });
+
+        beforeEach(async (done) => {
+          try {
+            await sequelize.sync({ force: true });
+            await cleanGoogleBuckets();
+            const {
+              password,
+              user: createdUser,
+            } = await createUser({});
+
+            user = createdUser;
+
+            const { body } = await postUsersLogin(app, {
+              body: {
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            token = body.token;
+          } catch (err) {
+            done(err);
+          }
+          done();
+        });
+
+        afterAll(async (done) => {
+          try {
+            await sequelize.sync({ force: true });
+            await cleanGoogleBuckets();
+            await sequelize.close();
+          } catch (err) {
+            done(err);
+          }
+          app.close();
+          done();
+        });
+
         describe('should return status 200 and', () => {
           it('should not return current user', async () => {
             const {
@@ -156,11 +156,13 @@ describe('/users', () => {
             expect(returnedUser.email).toBeUndefined();
             expect(returnedUser.facebookId).toBeUndefined();
             expect(returnedUser.googleId).toBeUndefined();
+            expect(returnedUser.hash).toBeUndefined();
             expect(returnedUser.id).toEqual(id);
-            expect(returnedUser.password).toBeUndefined();
             expect(returnedUser.pseudonym).toEqual(pseudonym);
             expect(returnedUser.resetPasswordTokenVersion).toBeUndefined();
             expect(returnedUser.role).toEqual(role);
+            expect(returnedUser.salt).toBeUndefined();
+            expect(returnedUser.socialMediaUserName).not.toBeUndefined();
             expect(returnedUser.updatedEmailTokenVersion).toBeUndefined();
             expect(returnedUser.updatedAt).toBeUndefined();
             expect(returnedUser.userName).toEqual(userName);

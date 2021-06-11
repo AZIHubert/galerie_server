@@ -192,8 +192,8 @@ describe('/galeries', () => {
           expect(frames[0].user.emailTokenVersion).toBeUndefined();
           expect(frames[0].user.facebookId).toBeUndefined();
           expect(frames[0].user.googleId).toBeUndefined();
-          expect(frames[0].user.id).not.toBeUndefined();
           expect(frames[0].user.hash).toBeUndefined();
+          expect(frames[0].user.id).not.toBeUndefined();
           expect(frames[0].user.pseudonym).not.toBeUndefined();
           expect(frames[0].user.resetPasswordTokenVersion).toBeUndefined();
           expect(frames[0].user.role).not.toBeUndefined();

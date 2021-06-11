@@ -26,38 +26,38 @@ import validatePassword from '@src/helpers/validatePassword';
 
 import initApp from '@src/server';
 
+let app: Server;
+let sequelize: Sequelize;
+
 describe('/users', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-
-  beforeAll(() => {
-    app = initApp();
-    sequelize = initSequelize();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-    } catch (err) {
-      done(err);
-    }
-    jest.clearAllMocks();
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-      app.close();
-      done();
-    } catch (err) {
-      done(err);
-    }
-  });
-
   describe('/signin', () => {
     describe('POST', () => {
+      beforeAll(() => {
+        app = initApp();
+        sequelize = initSequelize();
+      });
+
+      beforeEach(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+        } catch (err) {
+          done(err);
+        }
+        jest.clearAllMocks();
+        done();
+      });
+
+      afterAll(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await sequelize.close();
+          app.close();
+          done();
+        } catch (err) {
+          done(err);
+        }
+      });
+
       describe('should return status 200 and', () => {
         it('return a user with relevent attributes and create a user with an encrypted password', async () => {
           const email = 'user@email.com';
@@ -101,11 +101,12 @@ describe('/users', () => {
           expect(user.emailTokenVersion).toBeUndefined();
           expect(user.facebookId).toBeUndefined();
           expect(user.googleId).toBeUndefined();
+          expect(user.hash).toBeUndefined();
           expect(user.id).not.toBeUndefined();
-          expect(user.password).toBeUndefined();
           expect(user.pseudonym).toBe(userName);
           expect(user.resetPasswordTokenVersion).toBeUndefined();
           expect(user.role).toBe('user');
+          expect(user.salt).toBeUndefined();
           expect(user.socialMediaUserName).toBeNull();
           expect(user.updatedAt).toBeUndefined();
           expect(user.userName).toBe(`@${userName}`);
