@@ -30,56 +30,56 @@ import {
 
 import initApp from '@src/server';
 
+let app: Server;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/blackLists', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({
-        role: 'superAdmin',
-      });
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:userId', () => {
     describe('POST', () => {
+      beforeAll(() => {
+        sequelize = initSequelize();
+        app = initApp();
+      });
+
+      beforeEach(async (done) => {
+        try {
+          await cleanGoogleBuckets();
+          await sequelize.sync({ force: true });
+          const {
+            password,
+            user: createdUser,
+          } = await createUser({
+            role: 'superAdmin',
+          });
+          user = createdUser;
+
+          const { body } = await postUsersLogin(app, {
+            body: {
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          token = body.token;
+        } catch (err) {
+          done(err);
+        }
+        done();
+      });
+
+      afterAll(async (done) => {
+        try {
+          await cleanGoogleBuckets();
+          await sequelize.sync({ force: true });
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
       describe('should return status 200 and', () => {
         let passwordTwo: string;
         let userTwo: User;
@@ -134,15 +134,16 @@ describe('/blackLists', () => {
           expect(returnedBlackList.admin.emailTokenVersion).toBeUndefined();
           expect(returnedBlackList.admin.facebookId).toBeUndefined();
           expect(returnedBlackList.admin.googleId).toBeUndefined();
-          expect(returnedBlackList.admin.password).toBeUndefined();
+          expect(returnedBlackList.admin.hash).toBeUndefined();
+          expect(returnedBlackList.admin.id).toBe(user.id);
           expect(returnedBlackList.admin.pseudonym).toBe(user.pseudonym);
           expect(returnedBlackList.admin.resetPasswordTokenVersion).toBeUndefined();
           expect(returnedBlackList.admin.role).toBe(user.role);
+          expect(returnedBlackList.admin.salt).toBeUndefined();
           expect(returnedBlackList.admin.socialMediaUserName).toBe(user.socialMediaUserName);
           expect(returnedBlackList.admin.updatedAt).toBeUndefined();
           expect(returnedBlackList.admin.updatedEmailTokenVersion).toBeUndefined();
           expect(returnedBlackList.admin.userName).toBe(user.userName);
-          expect(returnedBlackList.admin.id).toBe(user.id);
           expect(returnedBlackList.adminId).toBeUndefined();
           expect(returnedBlackList.createdAt).not.toBeUndefined();
           expect(returnedBlackList.id).not.toBeUndefined();
@@ -161,15 +162,16 @@ describe('/blackLists', () => {
           expect(returnedBlackList.user.emailTokenVersion).toBeUndefined();
           expect(returnedBlackList.user.facebookId).toBeUndefined();
           expect(returnedBlackList.user.googleId).toBeUndefined();
-          expect(returnedBlackList.user.password).toBeUndefined();
+          expect(returnedBlackList.user.hash).toBeUndefined();
+          expect(returnedBlackList.user.id).toBe(userTwo.id);
           expect(returnedBlackList.user.pseudonym).toBe(userTwo.pseudonym);
           expect(returnedBlackList.user.resetPasswordTokenVersion).toBeUndefined();
           expect(returnedBlackList.user.role).toBe(userTwo.role);
+          expect(returnedBlackList.user.salt).toBeUndefined();
           expect(returnedBlackList.user.socialMediaUserName).toBe(userTwo.socialMediaUserName);
           expect(returnedBlackList.user.updatedAt).toBeUndefined();
           expect(returnedBlackList.user.updatedEmailTokenVersion).toBeUndefined();
           expect(returnedBlackList.user.userName).toBe(userTwo.userName);
-          expect(returnedBlackList.user.id).toBe(userTwo.id);
           expect(returnedBlackList.userId).toBeUndefined();
           expect(status).toBe(200);
         });

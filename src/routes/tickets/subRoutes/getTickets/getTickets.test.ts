@@ -21,72 +21,72 @@ import {
 
 import initApp from '@src/server';
 
+let adminToken: string;
+let app: Server;
+let password: string;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/tickets', () => {
-  let adminToken: string;
-  let app: Server;
-  let password: string;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      const {
-        password: createdPassword,
-        user: createdUser,
-      } = await createUser({});
-      const {
-        password: passwordTwo,
-        user: admin,
-      } = await createUser({
-        email: 'user2@email.com',
-        userName: 'user2',
-        role: 'superAdmin',
-      });
-
-      password = createdPassword;
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      const { body: adminLoginBody } = await postUsersLogin(app, {
-        body: {
-          password: passwordTwo,
-          userNameOrEmail: admin.email,
-        },
-      });
-      token = body.token;
-      adminToken = adminLoginBody.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('GET', () => {
+    beforeAll(() => {
+      sequelize = initSequelize();
+      app = initApp();
+    });
+
+    beforeEach(async (done) => {
+      try {
+        await sequelize.sync({ force: true });
+        await cleanGoogleBuckets();
+        const {
+          password: createdPassword,
+          user: createdUser,
+        } = await createUser({});
+        const {
+          password: passwordTwo,
+          user: admin,
+        } = await createUser({
+          email: 'user2@email.com',
+          userName: 'user2',
+          role: 'superAdmin',
+        });
+
+        password = createdPassword;
+        user = createdUser;
+
+        const { body } = await postUsersLogin(app, {
+          body: {
+            password,
+            userNameOrEmail: user.email,
+          },
+        });
+        const { body: adminLoginBody } = await postUsersLogin(app, {
+          body: {
+            password: passwordTwo,
+            userNameOrEmail: admin.email,
+          },
+        });
+        token = body.token;
+        adminToken = adminLoginBody.token;
+      } catch (err) {
+        done(err);
+      }
+      done();
+    });
+
+    afterAll(async (done) => {
+      try {
+        await sequelize.sync({ force: true });
+        await cleanGoogleBuckets();
+        await sequelize.close();
+      } catch (err) {
+        done(err);
+      }
+      app.close();
+      done();
+    });
+
     describe('should return status 200 and', () => {
       it('return all tickets', async () => {
         const body = 'ticket\'s body';
@@ -175,11 +175,12 @@ describe('/tickets', () => {
         expect(tickets[0].user.emailTokenVersion).toBeUndefined();
         expect(tickets[0].user.facebookId).toBeUndefined();
         expect(tickets[0].user.googleId).toBeUndefined();
+        expect(tickets[0].user.hash).toBeUndefined();
         expect(tickets[0].user.id).toBe(user.id);
-        expect(tickets[0].user.password).toBeUndefined();
         expect(tickets[0].user.pseudonym).toBe(user.pseudonym);
         expect(tickets[0].user.resetPasswordTokenVersion).toBeUndefined();
         expect(tickets[0].user.role).toBe(user.role);
+        expect(tickets[0].user.salt).toBeUndefined();
         expect(tickets[0].user.socialMediaUserName).toBe(user.socialMediaUserName);
         expect(tickets[0].user.updateEmailTokenVersion).toBeUndefined();
         expect(tickets[0].user.updatedAt).toBeUndefined();

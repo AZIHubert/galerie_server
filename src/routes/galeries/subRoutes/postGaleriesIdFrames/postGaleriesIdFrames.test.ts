@@ -207,11 +207,12 @@ describe('/galeries', () => {
             expect(returnedFrame.user.email).toBeUndefined();
             expect(returnedFrame.user.facebookId).toBeUndefined();
             expect(returnedFrame.user.googleId).toBeUndefined();
+            expect(returnedFrame.user.hash).toBeUndefined();
             expect(returnedFrame.user.id).not.toBeUndefined();
-            expect(returnedFrame.user.password).toBeUndefined();
             expect(returnedFrame.user.pseudonym).not.toBeUndefined();
             expect(returnedFrame.user.resetPasswordTokenVersion).toBeUndefined();
             expect(returnedFrame.user.role).not.toBeUndefined();
+            expect(returnedFrame.user.salt).toBeUndefined();
             expect(returnedFrame.user.socialMediaUserName).not.toBeUndefined();
             expect(returnedFrame.user.updatedAt).toBeUndefined();
             expect(returnedFrame.user.updatedEmailTokenVersion).toBeUndefined();

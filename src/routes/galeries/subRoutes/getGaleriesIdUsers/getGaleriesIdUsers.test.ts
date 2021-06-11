@@ -154,6 +154,7 @@ describe('/galeries', () => {
           expect(users[0].confirmed).toBeUndefined();
           expect(users[0].confirmTokenVersion).toBeUndefined();
           expect(users[0].createdAt).not.toBeUndefined();
+          expect(users[0].confirmTokenVersion).toBeUndefined();
           expect(users[0].currentProfilePicture).not.toBeUndefined();
           expect(users[0].defaultProfilePicture).not.toBeUndefined();
           expect(users[0].email).toBeUndefined();
@@ -162,11 +163,12 @@ describe('/galeries', () => {
           expect(users[0].galerieRole).not.toBeUndefined();
           expect(users[0].galeries).toBeUndefined();
           expect(users[0].googleId).toBeUndefined();
+          expect(users[0].hash).toBeUndefined();
           expect(users[0].id).not.toBeUndefined();
-          expect(users[0].password).toBeUndefined();
           expect(users[0].pseudonym).not.toBeUndefined();
           expect(users[0].resetPasswordTokenVersion).toBeUndefined();
           expect(users[0].role).not.toBeUndefined();
+          expect(users[0].salt).toBeUndefined();
           expect(users[0].socialMediaUserName).not.toBeUndefined();
           expect(users[0].updatedAt).toBeUndefined();
           expect(users[0].updatedEmailTokenVersion).toBeUndefined();
@@ -677,7 +679,7 @@ describe('/galeries', () => {
           const blackListedUser = users.find((u: any) => u.id === userThree.id);
           expect(blackListedUser.isBlackListed).toBeTruthy();
         });
-        it('should sort users by userName', async () => {
+        it.only('should sort users by userName', async () => {
           const {
             password: passwordTwo,
             user: userTwo,

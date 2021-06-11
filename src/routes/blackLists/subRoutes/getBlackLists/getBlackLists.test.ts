@@ -116,15 +116,16 @@ describe('/blackLists', () => {
         expect(blackLists[0].admin.emailTokenVersion).toBeUndefined();
         expect(blackLists[0].admin.facebookId).toBeUndefined();
         expect(blackLists[0].admin.googleId).toBeUndefined();
-        expect(blackLists[0].admin.password).toBeUndefined();
+        expect(blackLists[0].admin.hash).toBeUndefined();
+        expect(blackLists[0].admin.id).not.toBeUndefined();
         expect(blackLists[0].admin.pseudonym).not.toBeUndefined();
         expect(blackLists[0].admin.resetPasswordTokenVersion).toBeUndefined();
         expect(blackLists[0].admin.role).not.toBeUndefined();
+        expect(blackLists[0].admin.salt).toBeUndefined();
         expect(blackLists[0].admin.socialMediaUserName).not.toBeUndefined();
         expect(blackLists[0].admin.updatedAt).toBeUndefined();
         expect(blackLists[0].admin.updatedEmailTokenVersion).toBeUndefined();
         expect(blackLists[0].admin.userName).not.toBeUndefined();
-        expect(blackLists[0].admin.id).not.toBeUndefined();
         expect(blackLists[0].adminId).toBeUndefined();
         expect(blackLists[0].createdAt).not.toBeUndefined();
         expect(blackLists[0].id).not.toBeUndefined();
@@ -142,15 +143,16 @@ describe('/blackLists', () => {
         expect(blackLists[0].user.emailTokenVersion).toBeUndefined();
         expect(blackLists[0].user.facebookId).toBeUndefined();
         expect(blackLists[0].user.googleId).toBeUndefined();
-        expect(blackLists[0].user.password).toBeUndefined();
+        expect(blackLists[0].user.id).not.toBeUndefined();
+        expect(blackLists[0].user.hash).toBeUndefined();
         expect(blackLists[0].user.pseudonym).not.toBeUndefined();
         expect(blackLists[0].user.resetPasswordTokenVersion).toBeUndefined();
         expect(blackLists[0].user.role).not.toBeUndefined();
+        expect(blackLists[0].user.salt).toBeUndefined();
         expect(blackLists[0].user.socialMediaUserName).not.toBeUndefined();
         expect(blackLists[0].user.updatedAt).toBeUndefined();
         expect(blackLists[0].user.updatedEmailTokenVersion).toBeUndefined();
         expect(blackLists[0].user.userName).not.toBeUndefined();
-        expect(blackLists[0].user.id).not.toBeUndefined();
         expect(blackLists[0].userId).toBeUndefined();
       });
       it('return two black lists', async () => {
@@ -426,15 +428,16 @@ describe('/blackLists', () => {
         expect(updatedBy.emailTokenVersion).toBeUndefined();
         expect(updatedBy.facebookId).toBeUndefined();
         expect(updatedBy.googleId).toBeUndefined();
-        expect(updatedBy.password).toBeUndefined();
+        expect(updatedBy.hash).toBeUndefined();
+        expect(updatedBy.id).not.toBeUndefined();
         expect(updatedBy.pseudonym).not.toBeUndefined();
         expect(updatedBy.resetPasswordTokenVersion).toBeUndefined();
         expect(updatedBy.role).not.toBeUndefined();
+        expect(updatedBy.salt).toBeUndefined();
         expect(updatedBy.socialMediaUserName).not.toBeUndefined();
         expect(updatedBy.updatedAt).toBeUndefined();
         expect(updatedBy.updatedEmailTokenVersion).toBeUndefined();
         expect(updatedBy.userName).not.toBeUndefined();
-        expect(updatedBy.id).not.toBeUndefined();
       });
       it('include updatedBy current profile picture', async () => {
         const { user: userTwo } = await createUser({
