@@ -87,13 +87,6 @@ export default async (req: Request, res: Response) => {
           model: User,
         },
         {
-          as: 'updatedBy',
-          attributes: {
-            exclude: userExcluder,
-          },
-          model: User,
-        },
-        {
           as: 'user',
           attributes: {
             exclude: userExcluder,
@@ -105,6 +98,7 @@ export default async (req: Request, res: Response) => {
       offset,
       order: [['createdAt', direction]],
       where: {
+        active: true,
         [Op.or]: [
           {
             time: {
@@ -126,18 +120,11 @@ export default async (req: Request, res: Response) => {
     // with their signed url.
     returnedBlackLists = await Promise.all(
       blackLists.map(async (blackList) => {
-        // Fetch user, admin and updatedBy current profile picture.
         const currentProfilePicture = await fetchCurrentProfilePicture(blackList.user);
         let adminCurrentProfilePicture;
-        let updatedByCurrentProfilePicture;
 
         if (blackList.admin) {
           adminCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.admin);
-        }
-        if (blackList.updatedBy) {
-          updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(
-            blackList.updatedBy,
-          );
         }
 
         return {
@@ -145,10 +132,6 @@ export default async (req: Request, res: Response) => {
           admin: blackList.admin ? {
             ...blackList.admin.toJSON(),
             currentProfilePicture: adminCurrentProfilePicture,
-          } : null,
-          updatedBy: blackList.updatedBy ? {
-            ...blackList.updatedBy.toJSON(),
-            currentProfilePicture: updatedByCurrentProfilePicture,
           } : null,
           user: {
             ...blackList.user.toJSON(),
