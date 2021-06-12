@@ -16,6 +16,7 @@ interface BlackListI {
   id: string;
   reason: string;
   time?: Date;
+  updatedById?: string;
   userId: string;
 }
 
@@ -62,13 +63,21 @@ export default class BlackList extends Model implements BlackListI {
   })
   time!: Date;
 
-  // Id of the baned user.
+  // Id of the user who update this blackList
+  // (set active to false manually).
   @ForeignKey(() => User)
   @Column({
     allowNull: false,
     type: DataType.UUID,
   })
   userId!: string;
+
+  // Id of the baned user.
+  @ForeignKey(() => User)
+  @Column({
+    type: DataType.UUID,
+  })
+  updatedById!: string;
 
   @BelongsTo(() => User, 'adminId')
   admin!: User;

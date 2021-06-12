@@ -7,12 +7,14 @@ export default async ({
   adminId,
   reason = 'black list\'s reason',
   time,
+  updatedById,
   userId,
 } : {
   active?: boolean,
   adminId: string;
   reason?: string;
   time?: number;
+  updatedById?: string;
   userId: string;
 }) => {
   const blackList = await BlackList.create({
@@ -20,6 +22,7 @@ export default async ({
     adminId,
     reason,
     time: time ? new Date(Date.now() + time) : null,
+    updatedById,
     userId,
   });
 

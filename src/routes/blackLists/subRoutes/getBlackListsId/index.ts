@@ -26,6 +26,7 @@ export default async (req: Request, res: Response) => {
   let adminCurrentProfilePicture;
   let blackList: BlackList | null;
   let currentProfilePicture;
+  let updatedByCurrentProfilePicture;
 
   // Check if request.params.blackListId
   // is a UUID v4.
@@ -50,6 +51,13 @@ export default async (req: Request, res: Response) => {
           model: User,
         },
         {
+          as: 'updatedBy',
+          attributes: {
+            exclude: userExcluder,
+          },
+          model: User,
+        },
+        {
           as: 'user',
           attributes: {
             exclude: userExcluder,
@@ -64,18 +72,6 @@ export default async (req: Request, res: Response) => {
 
   // Check if black list exist.
   if (!blackList) {
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('black list'),
-    });
-  }
-
-  // Check if blackList.user exist.
-  if (!blackList.user) {
-    try {
-      await blackList.destroy();
-    } catch (err) {
-      return res.status(500).send(err);
-    }
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('black list'),
     });
@@ -109,11 +105,24 @@ export default async (req: Request, res: Response) => {
     }
   }
 
+  // Fetch updatedBy current profile picture
+  if (blackList.updatedBy) {
+    try {
+      updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.updatedBy);
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+  }
+
   const returnedBlackList = {
     ...blackList.toJSON(),
     admin: blackList.admin ? {
       ...blackList.admin.toJSON(),
       currentProfilePicture: adminCurrentProfilePicture,
+    } : null,
+    updatedBy: blackList.updatedBy ? {
+      ...blackList.updatedBy.toJSON(),
+      currentProfilePicture: updatedByCurrentProfilePicture,
     } : null,
     user: {
       ...blackList.user.toJSON(),

@@ -21,55 +21,55 @@ import {
 
 import initApp from '@src/server';
 
+let app: Server;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/profilePictures', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({});
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:profilePictureId', () => {
     describe('GET', () => {
+      beforeAll(() => {
+        sequelize = initSequelize();
+        app = initApp();
+      });
+
+      beforeEach(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await cleanGoogleBuckets();
+          const {
+            password,
+            user: createdUser,
+          } = await createUser({});
+
+          user = createdUser;
+
+          const { body } = await postUsersLogin(app, {
+            body: {
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          token = body.token;
+        } catch (err) {
+          done(err);
+        }
+        done();
+      });
+
+      afterAll(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await cleanGoogleBuckets();
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
       describe('should return status 200 and', () => {
         it('return profile picture', async () => {
           const {

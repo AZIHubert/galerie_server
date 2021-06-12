@@ -22,15 +22,18 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
+import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
   createBlackList,
+  createProfilePicture,
   createUser,
   postBlackListUserId,
-  postProfilePictures,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
+
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let sequelize: Sequelize;
@@ -47,6 +50,11 @@ describe('/blackLists', () => {
 
       beforeEach(async (done) => {
         mockDate.reset();
+        jest.clearAllMocks();
+        (signedUrl as jest.Mock).mockImplementation(() => ({
+          OK: true,
+          signedUrl: 'signedUrl',
+        }));
         try {
           await cleanGoogleBuckets();
           await sequelize.sync({ force: true });
@@ -56,9 +64,7 @@ describe('/blackLists', () => {
             role: 'superAdmin',
           });
           user = createdUser;
-
           const jwt = signAuthToken(user);
-
           token = jwt.token;
         } catch (err) {
           done(err);
@@ -68,6 +74,7 @@ describe('/blackLists', () => {
 
       afterAll(async (done) => {
         mockDate.reset();
+        jest.clearAllMocks();
         try {
           await cleanGoogleBuckets();
           await sequelize.sync({ force: true });
@@ -97,7 +104,7 @@ describe('/blackLists', () => {
           done();
         });
 
-        it('create black list', async () => {
+        it('create black list without time', async () => {
           const reason = 'black list reason';
           const {
             body: {
@@ -146,7 +153,9 @@ describe('/blackLists', () => {
           expect(returnedBlackList.id).not.toBeUndefined();
           expect(returnedBlackList.reason).toBe(reason);
           expect(returnedBlackList.time).toBeNull();
-          expect(returnedBlackList.updatedAt).toBeUndefined();
+          expect(returnedBlackList.updatedAt).not.toBeUndefined();
+          expect(returnedBlackList.updatedById).toBeUndefined();
+          expect(returnedBlackList.updatedBy).toBeNull();
           expect(returnedBlackList.user.authTokenVersion).toBeUndefined();
           expect(returnedBlackList.user.confirmed).toBeUndefined();
           expect(returnedBlackList.user.confirmTokenVersion).toBeUndefined();
@@ -223,8 +232,10 @@ describe('/blackLists', () => {
           expect(status).toBe(200);
         });
         it('return black listed user current profile picture', async () => {
-          const { token: tokenTwo } = signAuthToken(userTwo);
-          await postProfilePictures(app, tokenTwo);
+          await createProfilePicture({
+            current: true,
+            userId: userTwo.id,
+          });
           const {
             body: {
               data: {
@@ -274,7 +285,10 @@ describe('/blackLists', () => {
           expect(currentProfilePicture.userId).toBeUndefined();
         });
         it('return admin/superAdmin current profile picture', async () => {
-          await postProfilePictures(app, token);
+          await createProfilePicture({
+            current: true,
+            userId: user.id,
+          });
           const {
             body: {
               data: {

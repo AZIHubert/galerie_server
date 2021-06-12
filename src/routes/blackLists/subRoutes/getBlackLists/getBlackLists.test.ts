@@ -10,16 +10,19 @@ import {
 
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
+import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
   createBlackList,
+  createProfilePicture,
   createUser,
   deleteUsersMe,
   getBlackLists,
-  postProfilePictures,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
+
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let password: string;
@@ -36,6 +39,11 @@ describe('/blackLists', () => {
 
     beforeEach(async (done) => {
       mockDate.reset();
+      jest.clearAllMocks();
+      (signedUrl as jest.Mock).mockImplementation(() => ({
+        OK: true,
+        signedUrl: 'signedUrl',
+      }));
       try {
         await cleanGoogleBuckets();
         await sequelize.sync({ force: true });
@@ -57,6 +65,7 @@ describe('/blackLists', () => {
 
     afterAll(async (done) => {
       mockDate.reset();
+      jest.clearAllMocks();
       try {
         await cleanGoogleBuckets();
         await sequelize.sync({ force: true });
@@ -124,7 +133,9 @@ describe('/blackLists', () => {
         expect(blackLists[0].createdAt).not.toBeUndefined();
         expect(blackLists[0].id).not.toBeUndefined();
         expect(blackLists[0].reason).not.toBeUndefined();
-        expect(blackLists[0].updatedAt).toBeUndefined();
+        expect(blackLists[0].updatedAt).not.toBeUndefined();
+        expect(blackLists[0].updatedBy).toBeNull();
+        expect(blackLists[0].updatedById).toBeUndefined();
         expect(blackLists[0].user.authTokenVersion).toBeUndefined();
         expect(blackLists[0].user.confirmed).toBeUndefined();
         expect(blackLists[0].user.confirmTokenVersion).toBeUndefined();
@@ -212,8 +223,10 @@ describe('/blackLists', () => {
           email: 'user2@email.com',
           userName: 'user2',
         });
-        const { token: tokenTwo } = signAuthToken(userTwo);
-        await postProfilePictures(app, tokenTwo);
+        await createProfilePicture({
+          current: true,
+          userId: userTwo.id,
+        });
         await createBlackList({
           adminId: user.id,
           userId: userTwo.id,
@@ -271,7 +284,10 @@ describe('/blackLists', () => {
           adminId: user.id,
           userId: userTwo.id,
         });
-        await postProfilePictures(app, token);
+        await createProfilePicture({
+          current: true,
+          userId: user.id,
+        });
         const {
           body: {
             data: {

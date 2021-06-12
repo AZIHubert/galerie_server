@@ -22,60 +22,60 @@ import initApp from '@src/server';
 
 jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
+let app: Server;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/profilePictures', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    app = initApp();
-    sequelize = initSequelize();
-  });
-
-  beforeEach(async (done) => {
-    jest.clearAllMocks();
-    (signedUrl as jest.Mock).mockImplementation(() => ({
-      OK: true,
-      signedUrl: 'signedUrl',
-    }));
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({});
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    jest.clearAllMocks();
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('GET', () => {
+    beforeAll(() => {
+      app = initApp();
+      sequelize = initSequelize();
+    });
+
+    beforeEach(async (done) => {
+      jest.clearAllMocks();
+      (signedUrl as jest.Mock).mockImplementation(() => ({
+        OK: true,
+        signedUrl: 'signedUrl',
+      }));
+      try {
+        await sequelize.sync({ force: true });
+        await cleanGoogleBuckets();
+        const {
+          password,
+          user: createdUser,
+        } = await createUser({});
+
+        user = createdUser;
+
+        const { body } = await postUsersLogin(app, {
+          body: {
+            password,
+            userNameOrEmail: user.email,
+          },
+        });
+        token = body.token;
+      } catch (err) {
+        done(err);
+      }
+      done();
+    });
+
+    afterAll(async (done) => {
+      jest.clearAllMocks();
+      try {
+        await sequelize.sync({ force: true });
+        await cleanGoogleBuckets();
+        await sequelize.close();
+      } catch (err) {
+        done(err);
+      }
+      app.close();
+      done();
+    });
+
     describe('should return status 200 and', () => {
       it('return no profile picture', async () => {
         const {

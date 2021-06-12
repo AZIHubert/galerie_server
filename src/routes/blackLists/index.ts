@@ -12,6 +12,8 @@ import {
   getBlackListsId,
 
   postBlackListsUserIs,
+
+  putBlackListsId,
 } from './subRoutes';
 
 const router = Router();
@@ -22,13 +24,9 @@ const profilePicturesRoutes: () => Router = () => {
   router.get('/', shouldBeAuth, shouldBeAdmin, getBlackLists);
   router.get('/:blackListId/', shouldBeAuth, shouldBeAdmin, getBlackListsId);
 
-  router.post('/:userId', shouldBeAuth, shouldBeAdmin, postBlackListsUserIs);
+  router.post('/:userId/', shouldBeAuth, shouldBeAdmin, postBlackListsUserIs);
 
-  router.put('/:blackListId/', shouldBeAuth, shouldBeAdmin, () => {});
-  // Set active to false.
-  // If blackList.admin.role === superAdmin
-  // and currentUser.role === admin
-  // return error.
+  router.put('/:blackListId/', shouldBeAuth, shouldBeAdmin, putBlackListsId);
 
   return router;
 };

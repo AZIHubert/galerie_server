@@ -16,16 +16,19 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
+import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
   createBlackList,
+  createProfilePicture,
   createUser,
   deleteUsersMe,
   getBlackListsId,
-  postProfilePictures,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
+
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let sequelize: Sequelize;
@@ -42,6 +45,11 @@ describe('/blackLists', () => {
 
       beforeEach(async (done) => {
         mockDate.reset();
+        jest.clearAllMocks();
+        (signedUrl as jest.Mock).mockImplementation(() => ({
+          OK: true,
+          signedUrl: 'signedUrl',
+        }));
         try {
           await cleanGoogleBuckets();
           await sequelize.sync({ force: true });
@@ -61,6 +69,7 @@ describe('/blackLists', () => {
 
       afterAll(async (done) => {
         mockDate.reset();
+        jest.clearAllMocks();
         try {
           await cleanGoogleBuckets();
           await sequelize.sync({ force: true });
@@ -129,7 +138,9 @@ describe('/blackLists', () => {
           expect(blackList.createdAt).not.toBeUndefined();
           expect(blackList.id).not.toBeUndefined();
           expect(blackList.reason).not.toBeUndefined();
-          expect(blackList.updatedAt).toBeUndefined();
+          expect(blackList.updatedAt).not.toBeUndefined();
+          expect(blackList.updatedBy).not.toBeUndefined();
+          expect(blackList.updatedById).toBeUndefined();
           expect(blackList.user.authTokenVersion).toBeUndefined();
           expect(blackList.user.confirmed).toBeUndefined();
           expect(blackList.user.confirmTokenVersion).toBeUndefined();
@@ -153,9 +164,47 @@ describe('/blackLists', () => {
           expect(blackList.userId).toBeUndefined();
           expect(status).toBe(200);
         });
+        it('include blackList.updatedBy', async () => {
+          const { id: blackListId } = await createBlackList({
+            active: false,
+            adminId: user.id,
+            updatedById: user.id,
+            userId: userTwo.id,
+          });
+          const {
+            body: {
+              data: {
+                blackList: {
+                  updatedBy,
+                },
+              },
+            },
+          } = await getBlackListsId(app, token, blackListId);
+          expect(updatedBy.authTokenVersion).toBeUndefined();
+          expect(updatedBy.confirmed).toBeUndefined();
+          expect(updatedBy.confirmTokenVersion).toBeUndefined();
+          expect(updatedBy.createdAt).not.toBeUndefined();
+          expect(updatedBy.currentProfilePicture).not.toBeUndefined();
+          expect(updatedBy.email).toBeUndefined();
+          expect(updatedBy.emailTokenVersion).toBeUndefined();
+          expect(updatedBy.facebookId).toBeUndefined();
+          expect(updatedBy.googleId).toBeUndefined();
+          expect(updatedBy.hash).toBeUndefined();
+          expect(updatedBy.id).not.toBeUndefined();
+          expect(updatedBy.pseudonym).not.toBeUndefined();
+          expect(updatedBy.resetPasswordTokenVersion).toBeUndefined();
+          expect(updatedBy.role).not.toBeUndefined();
+          expect(updatedBy.salt).toBeUndefined();
+          expect(updatedBy.socialMediaUserName).not.toBeUndefined();
+          expect(updatedBy.updatedAt).toBeUndefined();
+          expect(updatedBy.updatedEmailTokenVersion).toBeUndefined();
+          expect(updatedBy.userName).not.toBeUndefined();
+        });
         it('include black listed user current profile picture', async () => {
-          const { token: tokenTwo } = signAuthToken(userTwo);
-          await postProfilePictures(app, tokenTwo);
+          await createProfilePicture({
+            current: true,
+            userId: userTwo.id,
+          });
           const { id: blackListId } = await createBlackList({
             adminId: user.id,
             userId: userTwo.id,
@@ -205,7 +254,10 @@ describe('/blackLists', () => {
           expect(currentProfilePicture.userId).toBeUndefined();
         });
         it('include admin current profile picture', async () => {
-          await postProfilePictures(app, token);
+          await createProfilePicture({
+            current: true,
+            userId: user.id,
+          });
           const { id: blackListId } = await createBlackList({
             adminId: user.id,
             userId: userTwo.id,
@@ -215,6 +267,61 @@ describe('/blackLists', () => {
               data: {
                 blackList: {
                   admin: {
+                    currentProfilePicture,
+                  },
+                },
+              },
+            },
+          } = await getBlackListsId(app, token, blackListId);
+          expect(currentProfilePicture.createdAt).not.toBeUndefined();
+          expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
+          expect(currentProfilePicture.cropedImage.format).not.toBeUndefined();
+          expect(currentProfilePicture.cropedImage.height).not.toBeUndefined();
+          expect(currentProfilePicture.cropedImage.id).toBeUndefined();
+          expect(currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
+          expect(currentProfilePicture.cropedImage.size).not.toBeUndefined();
+          expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
+          expect(currentProfilePicture.cropedImage.width).not.toBeUndefined();
+          expect(currentProfilePicture.cropedImageId).toBeUndefined();
+          expect(currentProfilePicture.current).toBeUndefined();
+          expect(currentProfilePicture.id).not.toBeUndefined();
+          expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
+          expect(currentProfilePicture.originalImage.format).not.toBeUndefined();
+          expect(currentProfilePicture.originalImage.height).not.toBeUndefined();
+          expect(currentProfilePicture.originalImage.id).toBeUndefined();
+          expect(currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
+          expect(currentProfilePicture.originalImage.size).not.toBeUndefined();
+          expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
+          expect(currentProfilePicture.originalImage.width).not.toBeUndefined();
+          expect(currentProfilePicture.originalImageId).toBeUndefined();
+          expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
+          expect(currentProfilePicture.pendingImage.format).not.toBeUndefined();
+          expect(currentProfilePicture.pendingImage.height).not.toBeUndefined();
+          expect(currentProfilePicture.pendingImage.id).toBeUndefined();
+          expect(currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
+          expect(currentProfilePicture.pendingImage.size).not.toBeUndefined();
+          expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
+          expect(currentProfilePicture.pendingImage.width).not.toBeUndefined();
+          expect(currentProfilePicture.pendingImageId).toBeUndefined();
+          expect(currentProfilePicture.updatedAt).toBeUndefined();
+          expect(currentProfilePicture.userId).toBeUndefined();
+        });
+        it('include updatedBy current profile picture', async () => {
+          await createProfilePicture({
+            current: true,
+            userId: user.id,
+          });
+          const { id: blackListId } = await createBlackList({
+            active: false,
+            adminId: user.id,
+            updatedById: user.id,
+            userId: userTwo.id,
+          });
+          const {
+            body: {
+              data: {
+                blackList: {
+                  updatedBy: {
                     currentProfilePicture,
                   },
                 },
