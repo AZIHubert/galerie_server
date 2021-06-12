@@ -12,8 +12,6 @@ import {
   getBlackListsId,
 
   postBlackListsUserIs,
-
-  putBlackListsId,
 } from './subRoutes';
 
 const router = Router();
@@ -25,8 +23,6 @@ const profilePicturesRoutes: () => Router = () => {
   router.get('/:blackListId/', shouldBeAuth, shouldBeAdmin, getBlackListsId);
 
   router.post('/:userId', shouldBeAuth, shouldBeAdmin, postBlackListsUserIs);
-
-  router.put('/:blackListId/', shouldBeAuth, putBlackListsId);
 
   return router;
 };

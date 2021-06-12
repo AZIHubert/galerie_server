@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import {
+  shouldBeAdmin,
   shouldBeAuth,
   shouldBeSuperAdmin,
   shouldNotBeAuth,
@@ -40,6 +41,8 @@ const usersRoutes: () => Router = () => {
 
   router.get('/', shouldBeAuth, getUsers);
   router.get('/id/:userId/', shouldBeAuth, getUsersIdId);
+  // TODO:
+  router.get('/id/:userId/blackLists', shouldBeAuth, shouldBeAdmin, () => {});
   router.get('/logout/', shouldBeAuth, getUsersLogout);
   router.get('/me/', shouldBeAuth, getUsersMe);
   router.get('/refreshToken/', getUsersRefreshToken);

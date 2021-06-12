@@ -49,7 +49,6 @@ export { default as postUsersMeEmailConfirm } from './postUsersMeEmailConfirm';
 export { default as postUsersPassword } from './postUsersPassword';
 export { default as postUsersSignin } from './postUsersSignin';
 
-export { default as putBlackListsId } from './putBlackListsId';
 export { default as putGaleriesId } from './putGaleriesId';
 export { default as putGaleriesIdFramesId } from './putGaleriesIdFramesId';
 export { default as putGaleriesIdFramesIdGaleriePicturesId } from './putGaleriesIdFramesIdGaleriePicturesId';
