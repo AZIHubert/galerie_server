@@ -3,7 +3,6 @@ export { default as createBlackList } from './createBlackList';
 export { default as createProfilePicture } from './createProfilePicture';
 export { default as createUser } from './createUser';
 
-export { default as deleteBlackListsId } from './deleteBlackListsId';
 export { default as deleteGaleriesId } from './deleteGaleriesId';
 export { default as deleteGaleriesIdFramesId } from './deleteGaleriesIdFramesId';
 export { default as deleteGaleriesIdInvitationId } from './deleteGaleriesIdInvitationId';

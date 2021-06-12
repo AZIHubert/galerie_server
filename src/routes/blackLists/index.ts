@@ -6,7 +6,6 @@ import {
 } from '@src/helpers/middlewares';
 
 import {
-  deleteBlackListsId,
 
   getBlackLists,
   getBlackListsId,
@@ -19,8 +18,6 @@ import {
 const router = Router();
 
 const profilePicturesRoutes: () => Router = () => {
-  router.delete('/:blackListId/', shouldBeAuth, shouldBeAdmin, deleteBlackListsId);
-
   router.get('/', shouldBeAuth, shouldBeAdmin, getBlackLists);
   router.get('/:blackListId/', shouldBeAuth, shouldBeAdmin, getBlackListsId);
 
