@@ -8,7 +8,6 @@ import {
   User,
 } from '@src/db/models';
 
-import checkBlackList from '@src/helpers/checkBlackList';
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
@@ -33,7 +32,11 @@ export default async (req: Request, res: Response) => {
   let blackList: BlackList;
   let currentProfilePicture;
   let user: User | null;
-  let userIsBlackListed: boolean;
+
+  // TODO:
+  // Check if user have active black listed
+  // active = true
+  // set all active blackList to false.
 
   // Check if request.params.userId
   // is a UUID v4.
@@ -85,16 +88,18 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if user is already blackListed.
+  // Set all active BlackLists to false.
   try {
-    userIsBlackListed = await checkBlackList(user);
+    await BlackList.update({
+      active: false,
+    }, {
+      where: {
+        userId,
+        active: true,
+      },
+    });
   } catch (err) {
     return res.status(500).send(err);
-  }
-  if (userIsBlackListed) {
-    return res.status(400).send({
-      errors: 'user is already black listed',
-    });
   }
 
   const {
@@ -150,7 +155,6 @@ export default async (req: Request, res: Response) => {
       ...objectUserExcluder,
       currentProfilePicture: adminCurrentProfilePicture,
     },
-    updatedBy: null,
     user: {
       ...user.toJSON(),
       currentProfilePicture,

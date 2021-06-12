@@ -28,7 +28,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --quiet --fix",
     "migration:generate": "sequelize migration:generate --name",
     "start": "cross-env NODE_ENV=development PORT=8000 ts-node src/index.ts",
-    "test": "cross-env NODE_ENV=test PORT=2000 yarn jest --verbose --detectOpenHandles"
+    "test": "cross-env NODE_ENV=test PORT=2000 yarn db:migrate:undo:all:test && yarn db:migrate:test && yarn jest --verbose --detectOpenHandles"
   },
   "_moduleAliases": {
     "@sequelize": "./sequelize",

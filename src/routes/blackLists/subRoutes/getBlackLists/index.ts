@@ -4,6 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   BlackList,
@@ -71,8 +72,8 @@ export default async (req: Request, res: Response) => {
     direction = queryDirection;
   }
 
+  // Fetch blackLists.
   try {
-    // Get all black listed user
     blackLists = await BlackList.findAll({
       attributes: {
         exclude: blackListExcluder,
@@ -103,6 +104,18 @@ export default async (req: Request, res: Response) => {
       limit,
       offset,
       order: [['createdAt', direction]],
+      where: {
+        [Op.or]: [
+          {
+            time: {
+              [Op.gte]: new Date(Date.now()),
+            },
+          },
+          {
+            time: null,
+          },
+        ],
+      },
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -113,55 +126,35 @@ export default async (req: Request, res: Response) => {
     // with their signed url.
     returnedBlackLists = await Promise.all(
       blackLists.map(async (blackList) => {
-        // Check if blackList.user exist
-        if (!blackList.user) {
-          await blackList.destroy();
-        } else {
-          let blackListExpire = false;
+        // Fetch user, admin and updatedBy current profile picture.
+        const currentProfilePicture = await fetchCurrentProfilePicture(blackList.user);
+        let adminCurrentProfilePicture;
+        let updatedByCurrentProfilePicture;
 
-          // Check if black list is expired.
-          if (blackList.time) {
-            const time = new Date(
-              blackList.createdAt.getTime() + blackList.time,
-            );
-            blackListExpire = time < new Date(Date.now());
-          }
-
-          if (blackListExpire) {
-            await blackList.destroy();
-          } else {
-            // Fetch user, admin and updatedBy current profile picture.
-            const currentProfilePicture = await fetchCurrentProfilePicture(blackList.user);
-            let adminCurrentProfilePicture;
-            let updatedByCurrentProfilePicture;
-            if (blackList.admin) {
-              adminCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.admin);
-            }
-            if (blackList.updatedBy) {
-              updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(
-                blackList.updatedBy,
-              );
-            }
-
-            return {
-              ...blackList.toJSON(),
-              admin: blackList.admin ? {
-                ...blackList.admin.toJSON(),
-                currentProfilePicture: adminCurrentProfilePicture,
-              } : null,
-              updatedBy: blackList.updatedBy ? {
-                ...blackList.updatedBy.toJSON(),
-                currentProfilePicture: updatedByCurrentProfilePicture,
-              } : null,
-              user: {
-                ...blackList.user.toJSON(),
-                currentProfilePicture,
-              },
-            };
-          }
-          return null;
+        if (blackList.admin) {
+          adminCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.admin);
         }
-        return null;
+        if (blackList.updatedBy) {
+          updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(
+            blackList.updatedBy,
+          );
+        }
+
+        return {
+          ...blackList.toJSON(),
+          admin: blackList.admin ? {
+            ...blackList.admin.toJSON(),
+            currentProfilePicture: adminCurrentProfilePicture,
+          } : null,
+          updatedBy: blackList.updatedBy ? {
+            ...blackList.updatedBy.toJSON(),
+            currentProfilePicture: updatedByCurrentProfilePicture,
+          } : null,
+          user: {
+            ...blackList.user.toJSON(),
+            currentProfilePicture,
+          },
+        };
       }),
     );
   } catch (err) {

@@ -1,4 +1,9 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('blackList', {
+  active: {
+    allowNull: false,
+    defaultValue: true,
+    type: DataTypes.BOOLEAN,
+  },
   adminId: {
     references: {
       key: 'id',
@@ -26,13 +31,6 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('b
   updatedAt: {
     allowNull: false,
     type: DataTypes.DATE,
-  },
-  updatedById: {
-    references: {
-      key: 'id',
-      model: 'users',
-    },
-    type: DataTypes.UUID,
   },
   userId: {
     allowNull: false,

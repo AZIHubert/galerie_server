@@ -1,16 +1,17 @@
 import { Server } from 'http';
+import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 
 import '@src/helpers/initEnv';
 
 import {
-  BlackList,
   User,
 } from '@src/db/models';
 
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
+  createBlackList,
   createUser,
   deleteUsersMe,
   getBlackLists,
@@ -35,6 +36,7 @@ describe('/blackLists', () => {
   });
 
   beforeEach(async (done) => {
+    mockDate.reset();
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
@@ -61,6 +63,7 @@ describe('/blackLists', () => {
   });
 
   afterAll(async (done) => {
+    mockDate.reset();
     try {
       await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
@@ -93,10 +96,9 @@ describe('/blackLists', () => {
           email: 'user2@email.com',
           userName: 'user2',
         });
-        await postBlackListUserId(app, token, userTwo.id, {
-          body: {
-            reason: 'black list reason',
-          },
+        await createBlackList({
+          adminId: user.id,
+          userId: userTwo.id,
         });
         const {
           body: {
@@ -164,15 +166,13 @@ describe('/blackLists', () => {
           email: 'user3@email.com',
           userName: 'user3',
         });
-        await postBlackListUserId(app, token, userTwo.id, {
-          body: {
-            reason: 'black list reason',
-          },
+        await createBlackList({
+          adminId: user.id,
+          userId: userTwo.id,
         });
-        await postBlackListUserId(app, token, userThree.id, {
-          body: {
-            reason: 'black list reason',
-          },
+        await createBlackList({
+          adminId: user.id,
+          userId: userThree.id,
         });
         const {
           body: {
@@ -192,10 +192,8 @@ describe('/blackLists', () => {
               email: `user${index + 2}@email.com`,
               userName: `user${index + 2}`,
             });
-            await BlackList.create({
+            await createBlackList({
               adminId: user.id,
-              reason: 'black list reason',
-              time: null,
               userId: newUser.id,
             });
           }),
@@ -236,10 +234,9 @@ describe('/blackLists', () => {
           },
         });
         await postProfilePictures(app, tokenTwo);
-        await postBlackListUserId(app, token, userTwo.id, {
-          body: {
-            reason: 'black list reason',
-          },
+        await createBlackList({
+          adminId: user.id,
+          userId: userTwo.id,
         });
         const {
           body: {
@@ -290,10 +287,9 @@ describe('/blackLists', () => {
           email: 'user2@email.com',
           userName: 'user2',
         });
-        await postBlackListUserId(app, token, userTwo.id, {
-          body: {
-            reason: 'black list reason',
-          },
+        await createBlackList({
+          adminId: user.id,
+          userId: userTwo.id,
         });
         await postProfilePictures(app, token);
         const {
@@ -363,10 +359,9 @@ describe('/blackLists', () => {
             userNameOrEmail: userTwo.email,
           },
         });
-        await postBlackListUserId(app, tokenTwo, userThree.id, {
-          body: {
-            reason: 'black list reason',
-          },
+        await createBlackList({
+          adminId: user.id,
+          userId: userThree.id,
         });
         await deleteUsersMe(app, tokenTwo, {
           body: {
@@ -386,7 +381,110 @@ describe('/blackLists', () => {
         } = await getBlackLists(app, token);
         expect(admin).toBeNull();
       });
-      it('include updatedBy', async () => {
+      it('include BlackLists with time if there are not expired', async () => {
+        const timeStamp = 1434319925275;
+        const time = 1000 * 60 * 10;
+        mockDate.set(timeStamp);
+        const {
+          user: userTwo,
+        } = await createUser({
+          email: 'user2@email.com',
+          userName: 'user2',
+        });
+        await createBlackList({
+          adminId: user.id,
+          time,
+          userId: userTwo.id,
+        });
+        mockDate.set(timeStamp + time - 1);
+        const {
+          body: {
+            data: {
+              blackLists,
+            },
+          },
+        } = await getBlackLists(app, token);
+        expect(blackLists.length).toBe(1);
+      });
+      it('do not include BlackLists with time if there are expired', async () => {
+        const timeStamp = 1434319925275;
+        const time = 1000 * 60 * 10;
+        mockDate.set(timeStamp);
+        const {
+          user: userTwo,
+        } = await createUser({
+          email: 'user2@email.com',
+          userName: 'user2',
+        });
+        await createBlackList({
+          adminId: user.id,
+          time,
+          userId: userTwo.id,
+        });
+        mockDate.set(timeStamp + time + 1);
+        const {
+          body: {
+            data: {
+              blackLists,
+            },
+          },
+        } = await getBlackLists(app, token);
+        expect(blackLists.length).toBe(0);
+      });
+      it('order BlackLists by createdAt', async () => {
+        const {
+          user: userTwo,
+        } = await createUser({
+          email: 'user2@email.com',
+          userName: 'user2',
+        });
+        const {
+          user: userThree,
+        } = await createUser({
+          email: 'user3@email.com',
+          userName: 'user3',
+        });
+        const {
+          user: userFour,
+        } = await createUser({
+          email: 'user4@email.com',
+          userName: 'user4',
+        });
+        const {
+          user: userFive,
+        } = await createUser({
+          email: 'user5@email.com',
+          userName: 'user5',
+        });
+        const blackListOne = await createBlackList({
+          adminId: user.id,
+          userId: userTwo.id,
+        });
+        const blackListTwo = await createBlackList({
+          adminId: user.id,
+          userId: userThree.id,
+        });
+        const blackListThree = await createBlackList({
+          adminId: user.id,
+          userId: userFour.id,
+        });
+        const blackListFour = await createBlackList({
+          adminId: user.id,
+          userId: userFive.id,
+        });
+        const {
+          body: {
+            data: {
+              blackLists,
+            },
+          },
+        } = await getBlackLists(app, token);
+        expect(blackLists[0].id).toBe(blackListFour.id);
+        expect(blackLists[1].id).toBe(blackListThree.id);
+        expect(blackLists[2].id).toBe(blackListTwo.id);
+        expect(blackLists[3].id).toBe(blackListOne.id);
+      });
+      xit('include updatedBy', async () => {
         const { user: userTwo } = await createUser({
           email: 'user2@email.com',
           userName: 'user2',
@@ -439,7 +537,7 @@ describe('/blackLists', () => {
         expect(updatedBy.updatedEmailTokenVersion).toBeUndefined();
         expect(updatedBy.userName).not.toBeUndefined();
       });
-      it('include updatedBy current profile picture', async () => {
+      xit('include updatedBy current profile picture', async () => {
         const { user: userTwo } = await createUser({
           email: 'user2@email.com',
           userName: 'user2',
@@ -507,7 +605,7 @@ describe('/blackLists', () => {
         expect(currentProfilePicture.updatedAt).toBeUndefined();
         expect(currentProfilePicture.userId).toBeUndefined();
       });
-      it('do not include updatedBy current profile picture if he had deleted his account', async () => {
+      xit('do not include updatedBy current profile picture if he had deleted his account', async () => {
         const { user: userTwo } = await createUser({
           email: 'user2@email.com',
           userName: 'user2',

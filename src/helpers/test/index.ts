@@ -1,4 +1,5 @@
 export { default as cleanGoogleBuckets } from './cleanGoogleBuckets';
+export { default as createBlackList } from './createBlackList';
 export { default as createUser } from './createUser';
 
 export { default as deleteBlackListsId } from './deleteBlackListsId';

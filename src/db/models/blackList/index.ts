@@ -2,6 +2,7 @@ import {
   BelongsTo,
   Column,
   DataType,
+  Default,
   ForeignKey,
   Model,
   Table,
@@ -10,11 +11,11 @@ import {
 import User from '../user';
 
 interface BlackListI {
+  active: boolean;
   adminId?: string;
   id: string;
   reason: string;
   time?: Date;
-  updatedById?: string;
   userId: string;
 }
 
@@ -22,6 +23,16 @@ interface BlackListI {
   tableName: 'blackList',
 })
 export default class BlackList extends Model implements BlackListI {
+  // Only the active black list
+  // Is used to check if a user is blackListed.
+  // Non active black lists are considered as expired.
+  @Default(true)
+  @Column({
+    allowNull: false,
+    type: DataType.BOOLEAN,
+  })
+  active!: boolean;
+
   // Id of the admin who created the black list.
   @ForeignKey(() => User)
   @Column({
@@ -50,15 +61,6 @@ export default class BlackList extends Model implements BlackListI {
     type: DataType.DATE,
   })
   time!: Date;
-
-  // If another admin want to change
-  // this blackList, his ID is save
-  // has updatedById.
-  @ForeignKey(() => User)
-  @Column({
-    type: DataType.UUID,
-  })
-  updatedById!: string;
 
   // Id of the baned user.
   @ForeignKey(() => User)
