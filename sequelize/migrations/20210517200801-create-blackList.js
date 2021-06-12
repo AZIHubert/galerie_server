@@ -21,7 +21,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('b
     type: DataTypes.STRING,
   },
   time: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.DATE,
   },
   updatedAt: {
     allowNull: false,

@@ -1,4 +1,5 @@
 import { Server } from 'http';
+import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -44,6 +45,7 @@ describe('/blackLists', () => {
       });
 
       beforeEach(async (done) => {
+        mockDate.reset();
         try {
           await cleanGoogleBuckets();
           await sequelize.sync({ force: true });
@@ -69,6 +71,7 @@ describe('/blackLists', () => {
       });
 
       afterAll(async (done) => {
+        mockDate.reset();
         try {
           await cleanGoogleBuckets();
           await sequelize.sync({ force: true });
@@ -176,7 +179,9 @@ describe('/blackLists', () => {
           expect(status).toBe(200);
         });
         it('post black list with a time', async () => {
+          const timeStamp = 1434319925275;
           const time = 1000 * 60 * 10;
+          mockDate.set(timeStamp);
           const {
             body: {
               data: {
@@ -189,7 +194,7 @@ describe('/blackLists', () => {
               time,
             },
           });
-          expect(blackList.time).toBe(time);
+          expect(new Date(timeStamp + time)).toEqual(new Date(blackList.time));
         });
         it('trim reason', async () => {
           const reason = 'black list reason';

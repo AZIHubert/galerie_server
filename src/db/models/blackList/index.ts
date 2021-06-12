@@ -13,7 +13,7 @@ interface BlackListI {
   adminId?: string;
   id: string;
   reason: string;
-  time?: number;
+  time?: Date;
   updatedById?: string;
   userId: string;
 }
@@ -47,9 +47,9 @@ export default class BlackList extends Model implements BlackListI {
   // How many time the user is baned.
   // If null, the ban is illimited.
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.DATE,
   })
-  time!: number;
+  time!: Date;
 
   // If another admin want to change
   // this blackList, his ID is save

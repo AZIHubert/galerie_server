@@ -112,7 +112,9 @@ export default async (req: Request, res: Response) => {
     blackList = await BlackList.create({
       adminId: currentUser.id,
       reason: value.reason,
-      time: value.time ? value.time : null,
+      time: value.time
+        ? new Date(Date.now() + value.time)
+        : null,
       userId,
     });
   } catch (err) {
