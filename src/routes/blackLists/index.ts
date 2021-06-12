@@ -24,6 +24,12 @@ const profilePicturesRoutes: () => Router = () => {
 
   router.post('/:userId', shouldBeAuth, shouldBeAdmin, postBlackListsUserIs);
 
+  router.put('/:blackListId/', shouldBeAuth, shouldBeAdmin, () => {});
+  // Set active to false.
+  // If blackList.admin.role === superAdmin
+  // and currentUser.role === admin
+  // return error.
+
   return router;
 };
 export default profilePicturesRoutes;

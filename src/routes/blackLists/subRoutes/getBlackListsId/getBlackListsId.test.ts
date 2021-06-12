@@ -1,10 +1,12 @@
 import { Server } from 'http';
+import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
 import {
+  BlackList,
   User,
 } from '@src/db/models';
 
@@ -13,81 +15,74 @@ import {
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
 import {
   cleanGoogleBuckets,
+  createBlackList,
   createUser,
   deleteUsersMe,
   getBlackListsId,
-  postBlackListUserId,
   postProfilePictures,
-  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
 
+let app: Server;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/blackLists', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({
-        role: 'superAdmin',
-      });
-      user = createdUser;
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:blackListId', () => {
     describe('GET', () => {
+      beforeAll(() => {
+        sequelize = initSequelize();
+        app = initApp();
+      });
+
+      beforeEach(async (done) => {
+        mockDate.reset();
+        try {
+          await cleanGoogleBuckets();
+          await sequelize.sync({ force: true });
+          const {
+            user: createdUser,
+          } = await createUser({
+            role: 'superAdmin',
+          });
+          user = createdUser;
+          const jwt = signAuthToken(user);
+          token = jwt.token;
+        } catch (err) {
+          done(err);
+        }
+        done();
+      });
+
+      afterAll(async (done) => {
+        mockDate.reset();
+        try {
+          await cleanGoogleBuckets();
+          await sequelize.sync({ force: true });
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
       describe('should return status 200 and', () => {
-        let passwordTwo: string;
         let userTwo: User;
 
         beforeEach(async (done) => {
           try {
             const {
-              password: createdPassword,
               user: createdUser,
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
-            passwordTwo = createdPassword;
             userTwo = createdUser;
           } catch (err) {
             done(err);
@@ -96,18 +91,9 @@ describe('/blackLists', () => {
         });
 
         it('return black list', async () => {
-          const {
-            body: {
-              data: {
-                blackList: {
-                  id: blackListId,
-                },
-              },
-            },
-          } = await postBlackListUserId(app, token, userTwo.id, {
-            body: {
-              reason: 'black list user',
-            },
+          const { id: blackListId } = await createBlackList({
+            adminId: user.id,
+            userId: userTwo.id,
           });
           const {
             body: {
@@ -119,6 +105,7 @@ describe('/blackLists', () => {
             status,
           } = await getBlackListsId(app, token, blackListId);
           expect(action).toBe('GET');
+          expect(blackList.active).not.toBeUndefined();
           expect(blackList.admin.authTokenVersion).toBeUndefined();
           expect(blackList.admin.confirmed).toBeUndefined();
           expect(blackList.admin.confirmTokenVersion).toBeUndefined();
@@ -142,8 +129,7 @@ describe('/blackLists', () => {
           expect(blackList.createdAt).not.toBeUndefined();
           expect(blackList.id).not.toBeUndefined();
           expect(blackList.reason).not.toBeUndefined();
-          expect(blackList.updatedById).toBeUndefined();
-          expect(blackList.updatedBy).toBeNull();
+          expect(blackList.updatedAt).toBeUndefined();
           expect(blackList.user.authTokenVersion).toBeUndefined();
           expect(blackList.user.confirmed).toBeUndefined();
           expect(blackList.user.confirmTokenVersion).toBeUndefined();
@@ -168,29 +154,11 @@ describe('/blackLists', () => {
           expect(status).toBe(200);
         });
         it('include black listed user current profile picture', async () => {
-          const {
-            body: {
-              token: tokenTwo,
-            },
-          } = await postUsersLogin(app, {
-            body: {
-              password: passwordTwo,
-              userNameOrEmail: userTwo.email,
-            },
-          });
+          const { token: tokenTwo } = signAuthToken(userTwo);
           await postProfilePictures(app, tokenTwo);
-          const {
-            body: {
-              data: {
-                blackList: {
-                  id: blackListId,
-                },
-              },
-            },
-          } = await postBlackListUserId(app, token, userTwo.id, {
-            body: {
-              reason: 'black list user',
-            },
+          const { id: blackListId } = await createBlackList({
+            adminId: user.id,
+            userId: userTwo.id,
           });
           const {
             body: {
@@ -238,18 +206,9 @@ describe('/blackLists', () => {
         });
         it('include admin current profile picture', async () => {
           await postProfilePictures(app, token);
-          const {
-            body: {
-              data: {
-                blackList: {
-                  id: blackListId,
-                },
-              },
-            },
-          } = await postBlackListUserId(app, token, userTwo.id, {
-            body: {
-              reason: 'black list user',
-            },
+          const { id: blackListId } = await createBlackList({
+            adminId: user.id,
+            userId: userTwo.id,
           });
           const {
             body: {
@@ -304,30 +263,12 @@ describe('/blackLists', () => {
             role: 'admin',
             userName: 'user3',
           });
-          const {
-            body: {
-              token: tokenTwo,
-            },
-          } = await postUsersLogin(app, {
-            body: {
-              password: passwordThree,
-              userNameOrEmail: userThree.email,
-            },
+          const { token: tokenThree } = signAuthToken(userThree);
+          const { id: blackListId } = await createBlackList({
+            adminId: userThree.id,
+            userId: userTwo.id,
           });
-          const {
-            body: {
-              data: {
-                blackList: {
-                  id: blackListId,
-                },
-              },
-            },
-          } = await postBlackListUserId(app, tokenTwo, userTwo.id, {
-            body: {
-              reason: 'black list reason',
-            },
-          });
-          await deleteUsersMe(app, tokenTwo, {
+          await deleteUsersMe(app, tokenThree, {
             body: {
               deleteAccountSentence: 'delete my account',
               password: passwordThree,
@@ -363,6 +304,29 @@ describe('/blackLists', () => {
             status,
           } = await getBlackListsId(app, token, uuidv4());
           expect(body.errors).toBe(MODEL_NOT_FOUND('black list'));
+          expect(status).toBe(404);
+        });
+        it('black list is expired', async () => {
+          const timeStamp = 1434319925275;
+          const time = 1000 * 60 * 10;
+          mockDate.set(timeStamp);
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: blackListId } = await createBlackList({
+            adminId: user.id,
+            time,
+            userId: userTwo.id,
+          });
+          mockDate.set(timeStamp + time + 1);
+          const {
+            body,
+            status,
+          } = await getBlackListsId(app, token, blackListId);
+          const expiredBlacklist = await BlackList.findByPk(blackListId);
+          expect(body.errors).toBe(MODEL_NOT_FOUND('black list'));
+          expect(expiredBlacklist).toBeNull();
           expect(status).toBe(404);
         });
       });

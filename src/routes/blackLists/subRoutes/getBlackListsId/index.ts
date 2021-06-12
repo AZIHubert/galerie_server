@@ -1,3 +1,5 @@
+// GET /blackLists/:blackListId/
+
 import {
   Request,
   Response,
@@ -23,9 +25,7 @@ export default async (req: Request, res: Response) => {
   const { blackListId } = req.params;
   let adminCurrentProfilePicture;
   let blackList: BlackList | null;
-  let blackListExpire = false;
   let currentProfilePicture;
-  let updatedByCurrentProfilePicture;
 
   // Check if request.params.blackListId
   // is a UUID v4.
@@ -44,13 +44,6 @@ export default async (req: Request, res: Response) => {
       include: [
         {
           as: 'admin',
-          attributes: {
-            exclude: userExcluder,
-          },
-          model: User,
-        },
-        {
-          as: 'updatedBy',
           attributes: {
             exclude: userExcluder,
           },
@@ -89,13 +82,7 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if black list is expired.
-  if (blackList.time) {
-    const time = new Date(
-      blackList.createdAt.getTime() + blackList.time,
-    );
-    blackListExpire = time < new Date(Date.now());
-  }
-  if (blackListExpire) {
+  if (blackList.time && blackList.time < new Date(Date.now())) {
     try {
       await blackList.destroy();
     } catch (err) {
@@ -122,21 +109,11 @@ export default async (req: Request, res: Response) => {
     }
   }
 
-  if (blackList.updatedBy) {
-    updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(
-      blackList.updatedBy,
-    );
-  }
-
   const returnedBlackList = {
     ...blackList.toJSON(),
     admin: blackList.admin ? {
       ...blackList.admin.toJSON(),
       currentProfilePicture: adminCurrentProfilePicture,
-    } : null,
-    updatedBy: blackList.updatedBy ? {
-      ...blackList.updatedBy.toJSON(),
-      currentProfilePicture: updatedByCurrentProfilePicture,
     } : null,
     user: {
       ...blackList.user.toJSON(),
