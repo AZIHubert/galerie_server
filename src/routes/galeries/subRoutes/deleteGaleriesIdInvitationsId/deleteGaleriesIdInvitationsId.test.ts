@@ -14,97 +14,71 @@ import {
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
 import {
-  cleanGoogleBuckets,
+  createGalerie,
+  createGalerieUser,
+  createInvitation,
   createUser,
   deleteGaleriesIdInvitationId,
-  postGaleries,
-  postGaleriesIdInvitations,
-  postGaleriesSubscribe,
-  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
 
+let app: Server;
+let galerieId: string;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/galeries', () => {
-  let app: Server;
-  let galerieId: string;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({
-        role: 'superAdmin',
-      });
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-      const {
-        body: {
-          data: {
-            galerie: {
-              id,
-            },
-          },
-        },
-      } = await postGaleries(app, token, {
-        body: {
-          name: 'galerie\'s name',
-        },
-      });
-      galerieId = id;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:galerieId', () => {
     describe('/invations', () => {
       describe('/:invitationId', () => {
         describe('DELETE', () => {
+          beforeAll(() => {
+            sequelize = initSequelize();
+            app = initApp();
+          });
+
+          beforeEach(async (done) => {
+            try {
+              await sequelize.sync({ force: true });
+              const {
+                user: createdUser,
+              } = await createUser({
+                role: 'superAdmin',
+              });
+              user = createdUser;
+              const jwt = signAuthToken(user);
+              token = jwt.token;
+              const galerie = await createGalerie({
+                userId: user.id,
+              });
+              galerieId = galerie.id;
+            } catch (err) {
+              done(err);
+            }
+            done();
+          });
+
+          afterAll(async (done) => {
+            try {
+              await sequelize.sync({ force: true });
+              await sequelize.close();
+            } catch (err) {
+              done(err);
+            }
+            app.close();
+            done();
+          });
+
           describe('should return status 200 and', () => {
             it('destroy invitation', async () => {
-              const {
-                body: {
-                  data: {
-                    invitation: {
-                      id: invitationId,
-                    },
-                  },
-                },
-              } = await postGaleriesIdInvitations(app, token, galerieId);
+              const { id: invitationId } = await createInvitation({
+                galerieId,
+                userId: user.id,
+              });
               const {
                 body: {
                   action,
@@ -120,6 +94,36 @@ describe('/galeries', () => {
               expect(invitation).toBeNull();
               expect(returnedGalerieId).toBe(galerieId);
               expect(returnedInvitationId).toBe(invitationId);
+              expect(status).toBe(200);
+            });
+            it('destroy the invitation if current user role for this galerie is \'admin\'', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              const { user: userThree } = await createUser({
+                email: 'user3@email.com',
+                userName: 'user3',
+              });
+              await createGalerieUser({
+                galerieId,
+                role: 'admin',
+                userId: userTwo.id,
+              });
+              await createGalerieUser({
+                galerieId,
+                role: 'admin',
+                userId: userThree.id,
+              });
+              const { id: invitationId } = await createInvitation({
+                galerieId,
+                userId: userTwo.id,
+              });
+              const {
+                status,
+              } = await deleteGaleriesIdInvitationId(app, token, galerieId, invitationId);
+              const invitation = await Invitation.findByPk(invitationId);
+              expect(invitation).toBeNull();
               expect(status).toBe(200);
             });
           });
@@ -142,42 +146,49 @@ describe('/galeries', () => {
             });
             it('user\'s role is \'user\' for this galerie', async () => {
               const {
-                password: passwordTwo,
                 user: userTwo,
               } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
+              const { token: tokenTwo } = signAuthToken(userTwo);
               const {
-                body: {
-                  token: tokenTwo,
-                },
-              } = await postUsersLogin(app, {
-                body: {
-                  password: passwordTwo,
-                  userNameOrEmail: userTwo.email,
-                },
+                id: invitationId,
+              } = await createInvitation({
+                galerieId,
+                userId: user.id,
               });
-              const {
-                body: {
-                  data: {
-                    invitation: {
-                      id: invitationId,
-                      code,
-                    },
-                  },
-                },
-              } = await postGaleriesIdInvitations(app, token, galerieId);
-              await postGaleriesSubscribe(app, tokenTwo, {
-                body: {
-                  code,
-                },
+              await createGalerieUser({
+                galerieId,
+                userId: userTwo.id,
               });
               const {
                 body,
                 status,
               } = await deleteGaleriesIdInvitationId(app, tokenTwo, galerieId, invitationId);
-              expect(body.errors).toBe('your not allow to delete invitations');
+              expect(body.errors).toBe('you\'re not allow to delete this invitation');
+              expect(status).toBe(400);
+            });
+            it('creator of this invitation is the creator of this galerie', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              await createGalerieUser({
+                galerieId,
+                role: 'admin',
+                userId: userTwo.id,
+              });
+              const { token: tokenTwo } = signAuthToken(userTwo);
+              const { id: invitationId } = await createInvitation({
+                galerieId,
+                userId: user.id,
+              });
+              const {
+                body,
+                status,
+              } = await deleteGaleriesIdInvitationId(app, tokenTwo, galerieId, invitationId);
+              expect(body.errors).toBe('you\'re not allow to delete this invitation');
               expect(status).toBe(400);
             });
           });
@@ -192,39 +203,18 @@ describe('/galeries', () => {
             });
             it('galerie exist but user is not subscribe to it', async () => {
               const {
-                password: passwordTwo,
                 user: userTwo,
               } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
-              const {
-                body: {
-                  token: tokenTwo,
-                },
-              } = await postUsersLogin(app, {
-                body: {
-                  password: passwordTwo,
-                  userNameOrEmail: userTwo.email,
-                },
-              });
-              const {
-                body: {
-                  data: {
-                    galerie: {
-                      id,
-                    },
-                  },
-                },
-              } = await postGaleries(app, tokenTwo, {
-                body: {
-                  name: 'galeries\'name',
-                },
+              const galerie = await createGalerie({
+                userId: userTwo.id,
               });
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdInvitationId(app, token, id, uuidv4());
+              } = await deleteGaleriesIdInvitationId(app, token, galerie.id, uuidv4());
               expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
               expect(status).toBe(404);
             });
@@ -237,28 +227,17 @@ describe('/galeries', () => {
               expect(status).toBe(404);
             });
             it('invitation exist but does not belong to this galerie', async () => {
-              const {
-                body: {
-                  data: {
-                    galerie,
-                  },
-                },
-              } = await postGaleries(app, token, {
-                body: {
-                  name: 'galerie\'s name',
-                },
+              const galerie = await createGalerie({
+                userId: user.id,
               });
-              const {
-                body: {
-                  data: {
-                    invitation,
-                  },
-                },
-              } = await postGaleriesIdInvitations(app, token, galerie.id);
+              const { id: invitationId } = await createInvitation({
+                galerieId: galerie.id,
+                userId: user.id,
+              });
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdInvitationId(app, token, galerieId, invitation.id);
+              } = await deleteGaleriesIdInvitationId(app, token, galerieId, invitationId);
               expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
               expect(status).toBe(404);
             });
