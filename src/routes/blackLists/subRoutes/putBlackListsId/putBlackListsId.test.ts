@@ -220,16 +220,6 @@ describe('/blackLists', () => {
           expect(body.errors).toBe('you\'re not allow to update this blackList');
           expect(status).toBe(400);
         });
-      });
-      describe('should return status 404 if', () => {
-        it('blackList not found', async () => {
-          const {
-            body,
-            status,
-          } = await putBlackListsId(app, token, uuidv4());
-          expect(body.errors).toBe(MODEL_NOT_FOUND('black list'));
-          expect(status).toBe(404);
-        });
         it('blackList is expired', async () => {
           const timeStamp = 1434319925275;
           const time = 1000 * 60 * 10;
@@ -238,7 +228,7 @@ describe('/blackLists', () => {
             email: 'user2@email.com',
             userName: 'user2',
           });
-          const { id: blackListId } = await createBlackList({
+          const blackList = await createBlackList({
             adminId: user.id,
             time,
             userId: userTwo.id,
@@ -247,7 +237,19 @@ describe('/blackLists', () => {
           const {
             body,
             status,
-          } = await putBlackListsId(app, token, blackListId);
+          } = await putBlackListsId(app, token, blackList.id);
+          await blackList.reload();
+          expect(blackList.active).toBe(false);
+          expect(body.errors).toBe('not allow to update a non active black list');
+          expect(status).toBe(400);
+        });
+      });
+      describe('should return status 404 if', () => {
+        it('blackList not found', async () => {
+          const {
+            body,
+            status,
+          } = await putBlackListsId(app, token, uuidv4());
           expect(body.errors).toBe(MODEL_NOT_FOUND('black list'));
           expect(status).toBe(404);
         });

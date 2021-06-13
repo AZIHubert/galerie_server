@@ -60,12 +60,12 @@ export default async (req: Request, res: Response) => {
   // Check if black list is expired.
   if (blackList.time && blackList.time < new Date(Date.now())) {
     try {
-      await blackList.destroy();
+      await blackList.update({ active: false });
     } catch (err) {
       return res.status(500).send(err);
     }
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('black list'),
+    return res.status(400).send({
+      errors: 'not allow to update a non active black list',
     });
   }
 

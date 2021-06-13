@@ -5,10 +5,7 @@ import {
 
 const blackListExpire = (blackList: BlackList) => {
   if (blackList.time) {
-    const time = new Date(
-      blackList.createdAt.getTime() + blackList.time,
-    );
-    return time < new Date(Date.now());
+    return blackList.time < new Date(Date.now());
   }
   return false;
 };
@@ -16,12 +13,13 @@ const blackListExpire = (blackList: BlackList) => {
 export default async (user: User) => {
   const blackList = await BlackList.findOne({
     where: {
+      active: true,
       userId: user.id,
     },
   });
   if (blackList) {
     if (blackListExpire(blackList)) {
-      await blackList.destroy();
+      await blackList.update({ active: false });
       return false;
     }
     return true;

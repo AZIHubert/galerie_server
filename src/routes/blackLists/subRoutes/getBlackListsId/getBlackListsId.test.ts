@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
-  BlackList,
   User,
 } from '@src/db/models';
 
@@ -393,6 +392,23 @@ describe('/blackLists', () => {
           } = await getBlackListsId(app, token, blackListId);
           expect(admin).toBeNull();
         });
+        it('set blackList.active to false if it\'s expired', async () => {
+          const timeStamp = 1434319925275;
+          const time = 1000 * 60 * 10;
+          mockDate.set(timeStamp);
+          const blackList = await createBlackList({
+            adminId: user.id,
+            time,
+            userId: userTwo.id,
+          });
+          mockDate.set(timeStamp + time + 1);
+          const {
+            status,
+          } = await getBlackListsId(app, token, blackList.id);
+          await blackList.reload();
+          expect(blackList.active).toBe(false);
+          expect(status).toBe(200);
+        });
       });
       describe('should return status 400 if', () => {
         it('req.params.blackListId is not a UUID v4', async () => {
@@ -411,29 +427,6 @@ describe('/blackLists', () => {
             status,
           } = await getBlackListsId(app, token, uuidv4());
           expect(body.errors).toBe(MODEL_NOT_FOUND('black list'));
-          expect(status).toBe(404);
-        });
-        it('black list is expired', async () => {
-          const timeStamp = 1434319925275;
-          const time = 1000 * 60 * 10;
-          mockDate.set(timeStamp);
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          const { id: blackListId } = await createBlackList({
-            adminId: user.id,
-            time,
-            userId: userTwo.id,
-          });
-          mockDate.set(timeStamp + time + 1);
-          const {
-            body,
-            status,
-          } = await getBlackListsId(app, token, blackListId);
-          const expiredBlacklist = await BlackList.findByPk(blackListId);
-          expect(body.errors).toBe(MODEL_NOT_FOUND('black list'));
-          expect(expiredBlacklist).toBeNull();
           expect(status).toBe(404);
         });
       });

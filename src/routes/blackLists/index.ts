@@ -12,6 +12,7 @@ import {
 
   postBlackListsUserIs,
 
+  putBlackLists,
   putBlackListsId,
 } from './subRoutes';
 
@@ -23,6 +24,7 @@ const profilePicturesRoutes: () => Router = () => {
 
   router.post('/:userId/', shouldBeAuth, shouldBeAdmin, postBlackListsUserIs);
 
+  router.put('/', shouldBeAuth, shouldBeAdmin, putBlackLists);
   router.put('/:blackListId/', shouldBeAuth, shouldBeAdmin, putBlackListsId);
 
   return router;
