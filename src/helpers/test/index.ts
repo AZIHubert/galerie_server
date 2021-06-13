@@ -1,5 +1,10 @@
 export { default as cleanGoogleBuckets } from './cleanGoogleBuckets';
 export { default as createBlackList } from './createBlackList';
+export { default as createFrame } from './createFrame';
+export { default as createGalerie } from './createGalerie';
+export { default as createGalerieUser } from './createGalerieUser';
+export { default as createInvitation } from './createInvitation';
+export { default as createLike } from './createLike';
 export { default as createProfilePicture } from './createProfilePicture';
 export { default as createUser } from './createUser';
 

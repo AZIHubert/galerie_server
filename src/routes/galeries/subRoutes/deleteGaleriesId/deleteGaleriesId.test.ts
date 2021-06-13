@@ -23,103 +23,81 @@ import {
   MODEL_NOT_FOUND,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
-import accEnv from '@src/helpers/accEnv';
-import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
 import {
-  cleanGoogleBuckets,
+  createFrame,
+  createGalerieUser,
+  createGalerie,
+  createInvitation,
+  createLike,
   createUser,
   deleteGaleriesId,
-  postGaleries,
-  postGaleriesIdFrames,
-  postGaleriesIdFramesIdLikes,
-  postGaleriesIdInvitations,
-  postGaleriesSubscribe,
-  postUsersLogin,
-  putGaleriesIdUsersId,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
 
-const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
-const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
+let app: Server;
+let password: string;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
 
 describe('/galeries', () => {
-  let app: Server;
-  let password: string;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      const {
-        password: createdPassword,
-        user: createdUser,
-      } = await createUser({});
-
-      password = createdPassword;
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:galerieId', () => {
     describe('DELETE', () => {
+      beforeAll(() => {
+        sequelize = initSequelize();
+        app = initApp();
+      });
+
+      beforeEach(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          const {
+            password: createdPassword,
+            user: createdUser,
+          } = await createUser({});
+
+          password = createdPassword;
+          user = createdUser;
+
+          const jwt = signAuthToken(user);
+          token = jwt.token;
+        } catch (err) {
+          done(err);
+        }
+        done();
+      });
+
+      afterAll(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
       describe('should return status 200 and', () => {
         const name = 'galerie\'s name';
         let galerieId: string;
+
         beforeEach(async (done) => {
           try {
-            const {
-              body: {
-                data: {
-                  galerie: {
-                    id,
-                  },
-                },
-              },
-            } = await postGaleries(app, token, {
-              body: {
-                name,
-              },
+            const galerie = await createGalerie({
+              userId: user.id,
+              name,
             });
-            galerieId = id;
+            galerieId = galerie.id;
           } catch (err) {
             done(err);
           }
           done();
         });
+
         it('destroy galerie', async () => {
           const {
             body: {
@@ -141,113 +119,74 @@ describe('/galeries', () => {
           expect(galerie).toBeNull();
           expect(status).toBe(200);
         });
-        it('destroy frames/galeriePictures/images and images from Google Bucket', async () => {
-          const {
-            body: {
-              data: {
-                frame: {
-                  id: frameId,
-                },
-              },
-            },
-          } = await postGaleriesIdFrames(app, token, galerieId);
+        it('destroy frames/galeriePictures/images', async () => {
+          const createdFrame = await createFrame({
+            galerieId,
+            userId: user.id,
+          });
           await deleteGaleriesId(app, token, galerieId, {
             body: {
               name,
               password,
             },
           });
-          const [bucketCropedImages] = await gc
-            .bucket(GALERIES_BUCKET_PP_CROP)
-            .getFiles();
-          const [bucketOriginalImages] = await gc
-            .bucket(GALERIES_BUCKET_PP)
-            .getFiles();
-          const [bucketPendingImages] = await gc
-            .bucket(GALERIES_BUCKET_PP_PENDING)
-            .getFiles();
-          const frames = await Frame.findAll({
-            where: {
-              galerieId,
-            },
-          });
+          const frame = await Frame.findByPk(createdFrame.id);
           const galeriePictures = await GaleriePicture.findAll({
             where: {
-              frameId,
+              id: createdFrame.galeriePictures.map((gp) => gp.id),
             },
           });
-          const images = await Image.findAll();
-          expect(bucketCropedImages.length).toBe(0);
-          expect(bucketOriginalImages.length).toBe(0);
-          expect(bucketPendingImages.length).toBe(0);
-          expect(frames.length).toBe(0);
+          const images = await Image.findAll({
+            where: {
+              id: createdFrame.galeriePictures.map((gp) => gp.originalImageId),
+            },
+          });
+          expect(frame).toBeNull();
           expect(galeriePictures.length).toBe(0);
           expect(images.length).toBe(0);
         });
         it('destroy invitations', async () => {
-          await postGaleriesIdInvitations(app, token, galerieId);
+          const { id: invitationId } = await createInvitation({
+            galerieId,
+            userId: user.id,
+          });
           await deleteGaleriesId(app, token, galerieId, {
             body: {
               name,
               password,
             },
           });
-          const invitations = await Invitation.findAll({
-            where: {
-              galerieId,
-            },
-          });
-          expect(invitations.length).toBe(0);
+          const invitation = await Invitation.findByPk(invitationId);
+          expect(invitation).toBeNull();
         });
         it('destroy likes', async () => {
-          const {
-            body: {
-              data: {
-                frame,
-              },
-            },
-          } = await postGaleriesIdFrames(app, token, galerieId);
-          await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: user.id,
+          });
+          const { id: likeId } = await createLike({
+            frameId,
+            userId: user.id,
+          });
           await deleteGaleriesId(app, token, galerieId, {
             body: {
               name,
               password,
             },
           });
-          const likes = await Like.findAll();
-          expect(likes.length).toBe(0);
+          const like = await Like.findByPk(likeId);
+          expect(like).toBeNull();
         });
-        it('destroy GalerieUser models', async () => {
+        it('destroy GalerieUsers', async () => {
           const {
-            password: passwordTwo,
             user: userTwo,
           } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
           });
-          const {
-            body: {
-              token: tokenTwo,
-            },
-          } = await postUsersLogin(app, {
-            body: {
-              password: passwordTwo,
-              userNameOrEmail: userTwo.email,
-            },
-          });
-          const {
-            body: {
-              data: {
-                invitation: {
-                  code,
-                },
-              },
-            },
-          } = await postGaleriesIdInvitations(app, token, galerieId);
-          await postGaleriesSubscribe(app, tokenTwo, {
-            body: {
-              code,
-            },
+          const { id: galerieUserId } = await createGalerieUser({
+            galerieId,
+            userId: userTwo.id,
           });
           await deleteGaleriesId(app, token, galerieId, {
             body: {
@@ -255,8 +194,8 @@ describe('/galeries', () => {
               password,
             },
           });
-          const galerieUsers = await GalerieUser.findAll();
-          expect(galerieUsers.length).toBe(0);
+          const galerieUser = await GalerieUser.findByPk(galerieUserId);
+          expect(galerieUser).toBeNull();
         });
       });
       describe('should return status 400 if', () => {
@@ -270,55 +209,18 @@ describe('/galeries', () => {
         });
         it('user\'s role is user', async () => {
           const name = 'galerie\'s name';
-          const {
-            body: {
-              data: {
-                galerie,
-              },
-            },
-          } = await postGaleries(app, token, {
-            body: {
-              name,
-            },
-          });
-          const {
-            password: passwordTwo,
-            user: userTwo,
-          } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          const {
-            body: {
-              token: tokenTwo,
-            },
-          } = await postUsersLogin(app, {
-            body: {
-              password: passwordTwo,
-              userNameOrEmail: userTwo.email,
-            },
-          });
-          const {
-            body: {
-              data: {
-                invitation: {
-                  code,
-                },
-              },
-            },
-          } = await postGaleriesIdInvitations(app, token, galerie.id);
-          await postGaleriesSubscribe(app, tokenTwo, {
-            body: {
-              code,
-            },
+          const galerie = await createGalerie({
+            userId: user.id,
+            name,
+            role: 'user',
           });
           const {
             body,
             status,
-          } = await deleteGaleriesId(app, tokenTwo, galerie.id, {
+          } = await deleteGaleriesId(app, token, galerie.id, {
             body: {
               name,
-              password: passwordTwo,
+              password,
             },
           });
           expect(body.errors).toBe('not allow to delete this galerie');
@@ -326,80 +228,34 @@ describe('/galeries', () => {
         });
         it('user\'s role is admin', async () => {
           const name = 'galerie\'s name';
-          const {
-            body: {
-              data: {
-                galerie,
-              },
-            },
-          } = await postGaleries(app, token, {
-            body: {
-              name,
-            },
+          const galerie = await createGalerie({
+            userId: user.id,
+            name,
+            role: 'admin',
           });
-          const {
-            password: passwordTwo,
-            user: userTwo,
-          } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          const {
-            body: {
-              token: tokenTwo,
-            },
-          } = await postUsersLogin(app, {
-            body: {
-              password: passwordTwo,
-              userNameOrEmail: userTwo.email,
-            },
-          });
-          const {
-            body: {
-              data: {
-                invitation: {
-                  code,
-                },
-              },
-            },
-          } = await postGaleriesIdInvitations(app, token, galerie.id);
-          await postGaleriesSubscribe(app, tokenTwo, {
-            body: {
-              code,
-            },
-          });
-          await putGaleriesIdUsersId(app, token, galerie.id, userTwo.id);
           const {
             body,
             status,
-          } = await deleteGaleriesId(app, tokenTwo, galerie.id, {
+          } = await deleteGaleriesId(app, token, galerie.id, {
             body: {
               name,
-              password: passwordTwo,
+              password,
             },
           });
           expect(body.errors).toBe('not allow to delete this galerie');
           expect(status).toBe(400);
         });
         describe('name', () => {
-          let galerieId: string;
           const name = 'galerie\'s name';
+          let galerieId: string;
+
           beforeEach(async (done) => {
             try {
-              const {
-                body: {
-                  data: {
-                    galerie: {
-                      id,
-                    },
-                  },
-                },
-              } = await postGaleries(app, token, {
-                body: {
-                  name,
-                },
+              const galerie = await createGalerie({
+                userId: user.id,
+                name,
               });
-              galerieId = id;
+              galerieId = galerie.id;
             } catch (err) {
               done(err);
             }
@@ -464,29 +320,22 @@ describe('/galeries', () => {
           });
         });
         describe('password', () => {
-          let galerieId: string;
           const name = 'galerie\'s name';
+          let galerieId: string;
+
           beforeEach(async (done) => {
             try {
-              const {
-                body: {
-                  data: {
-                    galerie: {
-                      id,
-                    },
-                  },
-                },
-              } = await postGaleries(app, token, {
-                body: {
-                  name,
-                },
+              const galerie = await createGalerie({
+                name,
+                userId: user.id,
               });
-              galerieId = id;
+              galerieId = galerie.id;
             } catch (err) {
               done(err);
             }
             done();
           });
+
           it('is not send', async () => {
             const {
               body,
