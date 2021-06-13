@@ -37,6 +37,17 @@ import {
 
 import initApp from '@src/server';
 
+jest.mock('@src/helpers/gc', () => ({
+  __esModule: true,
+  default: ({
+    bucket: () => ({
+      file: () => ({
+        delete: () => Promise.resolve(),
+      }),
+    }),
+  }),
+}));
+
 let app: Server;
 let password: string;
 let sequelize: Sequelize;

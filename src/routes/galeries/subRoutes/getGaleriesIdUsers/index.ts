@@ -119,8 +119,6 @@ export default async (req: Request, res: Response) => {
         const userIsBlackListed = await checkBlackList(user);
         const currentProfilePicture = await fetchCurrentProfilePicture(user);
 
-        console.log('after: ', user.pseudonym);
-
         const returnedUser = {
           ...user.toJSON(),
           currentProfilePicture,
