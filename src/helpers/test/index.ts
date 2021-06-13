@@ -29,6 +29,7 @@ export { default as getTickets } from './getTickets';
 export { default as getTicketsId } from './getTicketsId';
 export { default as getUsers } from './getUsers';
 export { default as getUsersIdId } from './getUsersIdId';
+export { default as getUsersIdIdBlackLists } from './getUsersIdIdBlackLists';
 export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';

@@ -3,7 +3,6 @@ import {
   Column,
   DataType,
   Default,
-  HasOne,
   HasMany,
   Model,
   Table,
@@ -221,6 +220,6 @@ export default class User extends Model implements UserI {
   @HasMany(() => Ticket)
   tickets!: Ticket[];
 
-  @HasOne(() => BlackList, 'userId')
+  @HasMany(() => BlackList, 'userId')
   blackList!: BlackList;
 }
