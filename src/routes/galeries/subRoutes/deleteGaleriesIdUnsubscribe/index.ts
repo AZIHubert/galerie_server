@@ -261,6 +261,7 @@ export default async (req: Request, res: Response) => {
     }
 
     // ...destroy all likes posted
+    // (and decrement frame.numOfLikes)
     // by this user...
     try {
       framesLikeByCurrentUser = await Frame.findAll({
@@ -283,6 +284,7 @@ export default async (req: Request, res: Response) => {
       try {
         await Promise.all(
           framesLikeByCurrentUser.map(async (frame) => {
+            await frame.decrement({ numOfLikes: 1 });
             await Promise.all(
               frame.likes.map(async (like) => {
                 await like.destroy();

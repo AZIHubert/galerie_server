@@ -277,6 +277,22 @@ describe('/galeries', () => {
               });
               expect(like).toBeNull();
             });
+            it('decrement all frames.numOfLikes liked by the deleted user', async () => {
+              const {
+                id: frameId,
+              } = await createFrame({
+                galerieId,
+                userId: userTwo.id,
+              });
+              await createLike({
+                frameId,
+                incrementNumOfLikes: true,
+                userId: user.id,
+              });
+              await deleteGaleriesUnsubscribe(app, token, galerieId);
+              const frame = await Frame.findByPk(frameId) as Frame;
+              expect(frame.numOfLikes).toBe(0);
+            });
             it('destroy all invitations posted by this user', async () => {
               const { id: invitationId } = await createInvitation({
                 galerieId,

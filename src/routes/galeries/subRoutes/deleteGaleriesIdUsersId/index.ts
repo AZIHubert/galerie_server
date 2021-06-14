@@ -11,6 +11,7 @@ import {
   Galerie,
   GalerieUser,
   Image,
+  Invitation,
   Like,
   User,
 } from '@src/db/models';
@@ -22,12 +23,18 @@ import {
 import gc from '@src/helpers/gc';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
+// TODO:
+// delete invitation posted by this user.
+// should decrement all frames.numOfLikes where
+// deleted user likes.
+
 export default async (req: Request, res: Response) => {
   const {
     galerieId,
     userId,
   } = req.params;
   const currentUser = req.user as User;
+  let framesLikeByCurrentUser: Array<Frame>;
   let galerie: Galerie | null;
   let user: User | null;
 
@@ -202,21 +209,61 @@ export default async (req: Request, res: Response) => {
             },
           ),
         );
-        await Like.destroy({
-          where: {
-            frameId: frame.id,
-          },
-        });
       }),
     );
+    // TODO:
+    // test if usefull.
+    await Like.destroy({
+      where: {
+        frameId: frames.map((frame) => frame.id),
+      },
+    });
   } catch (err) {
     return res.status(500).send(err);
   }
 
-  // Destroy all likes posted by this user.
+  // Destroy all likes post by
+  // deleted user on this galerie.
+  // and decrement frames.numOfLikes.
   try {
-    await Like.destroy({
+    framesLikeByCurrentUser = await Frame.findAll({
+      include: [
+        {
+          model: Like,
+          where: {
+            userId: user.id,
+          },
+        },
+      ],
       where: {
+        galerieId,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  if (framesLikeByCurrentUser) {
+    try {
+      await Promise.all(
+        framesLikeByCurrentUser.map(async (frame) => {
+          await frame.decrement({ numOfLikes: 1 });
+          await Promise.all(
+            frame.likes.map(async (like) => {
+              await like.destroy();
+            }),
+          );
+        }),
+      );
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+  }
+
+  // Destroy invitation posted by deleted user.
+  try {
+    await Invitation.destroy({
+      where: {
+        galerieId,
         userId,
       },
     });
