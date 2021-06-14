@@ -88,7 +88,7 @@ export default async (req: Request, res: Response) => {
         });
 
         // Fetch signed url if galerie have cover picture.
-        if (currentCoverPicture && currentCoverPicture.galeriePictures.length === 1) {
+        if (currentCoverPicture) {
           normalizeCurrentCoverPicture = await fetchFrame(currentCoverPicture);
         }
 
