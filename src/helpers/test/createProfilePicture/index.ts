@@ -20,11 +20,12 @@ export default async ({
     size: 10,
     width: 10,
   });
-  await ProfilePicture.create({
+  const profilePicture = await ProfilePicture.create({
     cropedImageId: imageId,
     current,
     originalImageId: imageId,
     pendingImageId: imageId,
     userId,
   });
+  return profilePicture;
 };

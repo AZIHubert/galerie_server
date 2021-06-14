@@ -55,6 +55,7 @@ export default async ({
     id: string;
     numOfLikes: number;
     userId: string;
+    createdAt: Date;
     galeriePictures: Array<{
       cropedImageId: string;
       current: boolean;
