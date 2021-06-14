@@ -22,12 +22,12 @@ import gc from '@src/helpers/gc';
 import signedUrl from '@src/helpers/signedUrl';
 
 export default async (req: Request, res: Response) => {
-  const returnedGaleries: Array<any> = [];
   const currentUser = req.user as User;
   const limit = 20;
   const { page } = req.query;
   let galeries: Galerie[];
   let offset: number;
+  let returnedGaleries: Array<any>;
 
   if (typeof page === 'string') {
     offset = ((+page || 1) - 1) * limit;
@@ -55,7 +55,7 @@ export default async (req: Request, res: Response) => {
   }
 
   try {
-    await Promise.all(
+    returnedGaleries = await Promise.all(
       galeries.map(async (galerie) => {
         let returnCurrentCoverPicture = null;
 
@@ -214,9 +214,10 @@ export default async (req: Request, res: Response) => {
         const userFromGalerie = galerie.users
           .find((user) => user.id === currentUser.id);
 
-        returnedGaleries.push({
+        return {
           ...galerie.toJSON(),
           currentCoverPicture: returnCurrentCoverPicture,
+          frames: [],
           hasNewFrames: userFromGalerie
             ? userFromGalerie?.GalerieUser.hasNewFrames
             : false,
@@ -224,7 +225,7 @@ export default async (req: Request, res: Response) => {
             ? userFromGalerie.GalerieUser.role
             : 'user',
           users: [],
-        });
+        };
       }),
     );
   } catch (err) {

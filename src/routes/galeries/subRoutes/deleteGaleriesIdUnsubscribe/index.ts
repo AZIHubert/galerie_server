@@ -172,19 +172,6 @@ export default async (req: Request, res: Response) => {
       return res.status(500).send(err);
     }
 
-    // ...destroy all invitations...
-    // TODO:
-    // test if required.
-    try {
-      await Invitation.destroy({
-        where: {
-          galerieId: galerie.id,
-        },
-      });
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-
     // ...and destroy galerie.
     try {
       await galerie.destroy();

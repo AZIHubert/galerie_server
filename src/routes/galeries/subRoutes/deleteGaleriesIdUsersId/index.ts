@@ -23,11 +23,6 @@ import {
 import gc from '@src/helpers/gc';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
-// TODO:
-// delete invitation posted by this user.
-// should decrement all frames.numOfLikes where
-// deleted user likes.
-
 export default async (req: Request, res: Response) => {
   const {
     galerieId,
@@ -211,13 +206,6 @@ export default async (req: Request, res: Response) => {
         );
       }),
     );
-    // TODO:
-    // test if usefull.
-    await Like.destroy({
-      where: {
-        frameId: frames.map((frame) => frame.id),
-      },
-    });
   } catch (err) {
     return res.status(500).send(err);
   }

@@ -99,7 +99,7 @@ export default async (req: Request, res: Response) => {
   // decrement frame.numOfLike
   if (like) {
     await like.destroy();
-    await frame.increment({ numOfLikes: -1 });
+    await frame.decrement({ numOfLikes: 1 });
 
   // Else, create one
   // increment frame.numOfLike

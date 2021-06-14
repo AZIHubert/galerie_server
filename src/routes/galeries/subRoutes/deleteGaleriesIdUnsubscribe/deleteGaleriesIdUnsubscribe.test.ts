@@ -64,6 +64,7 @@ describe('/galeries', () => {
         });
 
         beforeEach(async (done) => {
+          jest.clearAllMocks();
           try {
             await sequelize.sync({ force: true });
 
@@ -103,6 +104,7 @@ describe('/galeries', () => {
         });
 
         afterAll(async (done) => {
+          jest.clearAllMocks();
           try {
             await sequelize.sync({ force: true });
             await sequelize.close();
