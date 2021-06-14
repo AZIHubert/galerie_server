@@ -5,6 +5,8 @@ import '@src/helpers/initEnv';
 
 import {
   Galerie,
+  GaleriePicture,
+  Image,
   User,
 } from '@src/db/models';
 
@@ -260,6 +262,43 @@ describe('/galeries', () => {
         expect(currentCoverPicture.pendingImage.updatedAt).toBeUndefined();
         expect(currentCoverPicture.pendingImage.width).not.toBeUndefined();
         expect(currentCoverPicture.updatedAt).toBeUndefined();
+      });
+      it('return galerie.currentCoverPicture === null and destroy the galeriePicture if signedUrl.Ok === false', async () => {
+        (signedUrl as jest.Mock).mockImplementation(() => ({
+          OK: false,
+        }));
+        const { id: galerieId } = await createGalerie({
+          userId: user.id,
+        });
+        const createdFrame = await createFrame({
+          current: true,
+          galerieId,
+          userId: user.id,
+        });
+        const {
+          body: {
+            data: {
+              galeries: [{
+                currentCoverPicture,
+              }],
+            },
+          },
+        } = await getGaleries(app, token);
+        const galeriePictures = await GaleriePicture.findAll({
+          where: {
+            id: createdFrame.galeriePictures
+              .map((galeriePicure) => galeriePicure.id),
+          },
+        });
+        const images = await Image.findAll({
+          where: {
+            id: createdFrame.galeriePictures
+              .map((galeriePicure) => galeriePicure.originalImageId),
+          },
+        });
+        expect(currentCoverPicture).toBeNull();
+        expect(galeriePictures.length).toBe(0);
+        expect(images.length).toBe(0);
       });
     });
   });
