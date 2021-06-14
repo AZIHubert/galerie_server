@@ -1,4 +1,5 @@
 import { Server } from 'http';
+import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 
 import '@src/helpers/initEnv';
@@ -14,6 +15,7 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
+  createBlackList,
   createFrame,
   createGalerie,
   createGalerieUser,
@@ -40,6 +42,7 @@ describe('/galeries', () => {
       });
 
       beforeEach(async (done) => {
+        mockDate.reset();
         jest.clearAllMocks();
         (signedUrl as jest.Mock).mockImplementation(() => ({
           OK: true,
@@ -62,6 +65,7 @@ describe('/galeries', () => {
       });
 
       afterAll(async (done) => {
+        mockDate.reset();
         jest.clearAllMocks();
         try {
           await sequelize.sync({ force: true });
@@ -373,6 +377,75 @@ describe('/galeries', () => {
           expect(frames[2].id).toBe(frameThree.id);
           expect(frames[3].id).toBe(frameTwo.id);
           expect(frames[4].id).toBe(frameOne.id);
+        });
+        it('return frame.user === null user is blackListed', async () => {
+          const { id: galerieId } = await createGalerie({
+            userId: user.id,
+          });
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: userTwo.id,
+          });
+          await createFrame({
+            galerieId,
+            userId: userTwo.id,
+          });
+          await createBlackList({
+            adminId: user.id,
+            userId: userTwo.id,
+          });
+          const {
+            body: {
+              data: {
+                frames: [{
+                  user: returnedUser,
+                }],
+              },
+            },
+          } = await getGaleriesFrames(app, token);
+          expect(returnedUser).toBeNull();
+        });
+        it('return frame.user is user was blackListed but his blackList is expired', async () => {
+          const timeStamp = 1434319925275;
+          const time = 1000 * 60 * 10;
+          mockDate.set(timeStamp);
+          const { id: galerieId } = await createGalerie({
+            userId: user.id,
+          });
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: userTwo.id,
+          });
+          await createFrame({
+            galerieId,
+            userId: userTwo.id,
+          });
+          const blackList = await createBlackList({
+            adminId: user.id,
+            time,
+            userId: userTwo.id,
+          });
+          mockDate.set(timeStamp + time + 1);
+          const {
+            body: {
+              data: {
+                frames: [{
+                  user: returnedUser,
+                }],
+              },
+            },
+          } = await getGaleriesFrames(app, token);
+          await blackList.reload();
+          expect(blackList.active).toBe(false);
+          expect(returnedUser).not.toBeNull();
         });
         it('return null and destroy frame if frame don\'t have galeriePictures', async () => {
           const { id: galerieId } = await createGalerie({

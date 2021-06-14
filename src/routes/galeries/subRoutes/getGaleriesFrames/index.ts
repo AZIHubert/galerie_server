@@ -117,18 +117,19 @@ export default async (req: Request, res: Response) => {
     returnedFrames = await Promise.all(
       frames.map(async (frame) => {
         const normalizedFrame = await fetchFrame(frame);
+        let currentProfilePicture: any = null;
         if (normalizedFrame) {
           const userIsBlackListed = await checkBlackList(frame.user);
           if (!userIsBlackListed) {
-            const currentProfilePicture = await fetchCurrentProfilePicture(frame.user);
-            return {
-              ...normalizedFrame,
-              user: userIsBlackListed ? null : {
-                ...frame.user.toJSON(),
-                currentProfilePicture,
-              },
-            };
+            currentProfilePicture = await fetchCurrentProfilePicture(frame.user);
           }
+          return {
+            ...normalizedFrame,
+            user: userIsBlackListed ? null : {
+              ...frame.user.toJSON(),
+              currentProfilePicture,
+            },
+          };
         }
         await frame.destroy();
         return null;
