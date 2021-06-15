@@ -1,3 +1,5 @@
+// POST /galeries/
+
 import {
   Request,
   Response,

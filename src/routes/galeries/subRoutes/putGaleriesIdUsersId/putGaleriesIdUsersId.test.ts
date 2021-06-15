@@ -21,54 +21,54 @@ import {
 
 import initApp from '@src/server';
 
+let app: Server;
+let galerieId: string;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/galeries', () => {
-  let app: Server;
-  let galerieId: string;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      const {
-        user: createdUser,
-      } = await createUser({
-        role: 'superAdmin',
-      });
-      user = createdUser;
-      const jwt = signAuthToken(user);
-      token = jwt.token;
-      const galerie = await createGalerie({
-        userId: user.id,
-      });
-      galerieId = galerie.id;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:galerieId', () => {
     describe('/users', () => {
       describe('/:userId', () => {
         describe('PUT', () => {
+          beforeAll(() => {
+            sequelize = initSequelize();
+            app = initApp();
+          });
+
+          beforeEach(async (done) => {
+            try {
+              await sequelize.sync({ force: true });
+              const {
+                user: createdUser,
+              } = await createUser({
+                role: 'superAdmin',
+              });
+              user = createdUser;
+              const jwt = signAuthToken(user);
+              token = jwt.token;
+              const galerie = await createGalerie({
+                userId: user.id,
+              });
+              galerieId = galerie.id;
+            } catch (err) {
+              done(err);
+            }
+            done();
+          });
+
+          afterAll(async (done) => {
+            try {
+              await sequelize.sync({ force: true });
+              await sequelize.close();
+            } catch (err) {
+              done(err);
+            }
+            app.close();
+            done();
+          });
+
           describe('should return status 200 and', () => {
             let userTwo: User;
 
