@@ -11,7 +11,7 @@ export default async ({
   galerieId: string;
   hasNewFrames?: boolean;
   role?: 'admin' | 'creator' | 'user';
-  userId: string;
+  userId?: string;
 }) => {
   const galerieUser = await GalerieUser.create({
     galerieId,
