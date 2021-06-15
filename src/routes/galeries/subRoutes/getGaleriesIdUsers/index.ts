@@ -24,15 +24,14 @@ export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
   const {
     direction: queryDirection,
-    order: queryOrder,
     page,
   } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let direction = 'ASC';
   let galerie: Galerie | null;
   let offset: number;
-  let order = 'pseudonym';
   let users: User[] = [];
   let usersWithProfilePicture: Array<any> = [];
 
@@ -42,25 +41,6 @@ export default async (req: Request, res: Response) => {
     return res.status(400).send({
       errors: INVALID_UUID('galerie'),
     });
-  }
-
-  if (
-    queryDirection === 'ASC'
-    || queryDirection === 'DESC'
-  ) {
-    direction = queryDirection;
-  }
-  if (
-    queryOrder === 'pseudonym'
-    || queryOrder === 'userName'
-  ) {
-    order = queryOrder;
-  }
-
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
   }
 
   // Fetch galerie.
@@ -84,11 +64,20 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  if (
+    queryDirection === 'ASC'
+    || queryDirection === 'DESC'
+  ) {
+    direction = queryDirection;
+  }
+  if (typeof page === 'string') {
+    offset = ((+page || 1) - 1) * limit;
+  } else {
+    offset = 0;
+  }
+
   try {
     users = await User.findAll({
-      attributes: {
-        exclude: userExcluder,
-      },
       include: [
         {
           model: Galerie,
@@ -99,7 +88,7 @@ export default async (req: Request, res: Response) => {
       ],
       limit,
       offset,
-      order: [[order, direction]],
+      order: [['pseudonym', direction]],
       where: {
         id: {
           [Op.not]: currentUser.id,
@@ -110,60 +99,28 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  const userFromGalerie = galerie.users
-    .find((user) => user.id === currentUser.id);
-
   try {
     usersWithProfilePicture = await Promise.all(
       users.map(async (user) => {
         const userIsBlackListed = await checkBlackList(user);
-        const currentProfilePicture = await fetchCurrentProfilePicture(user);
 
-        const returnedUser = {
+        if (userIsBlackListed) {
+          return null;
+        }
+        const currentProfilePicture = await fetchCurrentProfilePicture(user);
+        userExcluder.forEach((e) => {
+          objectUserExcluder[e] = undefined;
+        });
+
+        return {
           ...user.toJSON(),
+          ...objectUserExcluder,
           currentProfilePicture,
           galerieRole: user.galeries[0]
             ? user.galeries[0].GalerieUser.role
             : 'user',
           galeries: undefined,
-
-          // If current user role for this galerie
-          // is 'admin' or 'creator' or current user role
-          // is 'admin' or 'superAdmin' and this user
-          // is black listed, had a field that
-          // indicate this user is black listed.
-          isBlackListed: userIsBlackListed
-        && (
-          (
-            !userFromGalerie
-            || userFromGalerie.GalerieUser.role !== 'user'
-          )
-          || currentUser.role !== 'user'
-        )
-            ? true
-            : undefined,
         };
-
-        // Push this user if he's not black listed
-        // or he's black listed and current user role
-        // for this galerie is 'admin' or 'creator'
-        // or current user role is 'admin' or 'superAdmin'.
-        if (
-          (
-            userIsBlackListed
-        && (
-          (
-            !userFromGalerie
-            || userFromGalerie.GalerieUser.role !== 'user'
-          )
-          || currentUser.role !== 'user'
-        )
-          )
-      || !userIsBlackListed
-        ) {
-          return returnedUser;
-        }
-        return null;
       }),
     );
   } catch (err) {
@@ -174,7 +131,7 @@ export default async (req: Request, res: Response) => {
     action: 'GET',
     data: {
       galerieId,
-      users: usersWithProfilePicture.filter((u) => !!u),
+      users: usersWithProfilePicture,
     },
   });
 };
