@@ -11,13 +11,11 @@ import {
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
 import {
-  cleanGoogleBuckets,
+  createGalerie,
+  createGalerieUser,
   createUser,
-  postGaleries,
-  postGaleriesIdInvitations,
-  postGaleriesSubscribe,
-  postUsersLogin,
   putGaleriesIdUsersId,
 } from '@src/helpers/test';
 
@@ -37,38 +35,19 @@ describe('/galeries', () => {
 
   beforeEach(async (done) => {
     try {
-      await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
       const {
-        password,
         user: createdUser,
       } = await createUser({
         role: 'superAdmin',
       });
-
       user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
+      const jwt = signAuthToken(user);
+      token = jwt.token;
+      const galerie = await createGalerie({
+        userId: user.id,
       });
-      token = body.token;
-      const {
-        body: {
-          data: {
-            galerie: {
-              id,
-            },
-          },
-        },
-      } = await postGaleries(app, token, {
-        body: {
-          name: 'galerie\'s name',
-        },
-      });
-      galerieId = id;
+      galerieId = galerie.id;
     } catch (err) {
       done(err);
     }
@@ -77,7 +56,6 @@ describe('/galeries', () => {
 
   afterAll(async (done) => {
     try {
-      await cleanGoogleBuckets();
       await sequelize.sync({ force: true });
       await sequelize.close();
     } catch (err) {
@@ -93,42 +71,19 @@ describe('/galeries', () => {
         describe('PUT', () => {
           describe('should return status 200 and', () => {
             let userTwo: User;
-            let tokenTwo: string;
 
             beforeEach(async (done) => {
               try {
                 const {
-                  body: {
-                    data: {
-                      invitation: {
-                        code,
-                      },
-                    },
-                  },
-                } = await postGaleriesIdInvitations(app, token, galerieId);
-                const {
-                  password: passwordTwo,
                   user: createdUser,
                 } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
                 });
-
                 userTwo = createdUser;
-
-                const {
-                  body,
-                } = await postUsersLogin(app, {
-                  body: {
-                    password: passwordTwo,
-                    userNameOrEmail: userTwo.email,
-                  },
-                });
-                tokenTwo = body.token;
-                await postGaleriesSubscribe(app, tokenTwo, {
-                  body: {
-                    code,
-                  },
+                await createGalerieUser({
+                  galerieId,
+                  userId: userTwo.id,
                 });
               } catch (err) {
                 done(err);
@@ -165,6 +120,20 @@ describe('/galeries', () => {
               } = await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               expect(role).toBe('user');
             });
+            it('update user role if current user\'s role for this galerie is \'admin\'', async () => {
+              const { user: userThree } = await createUser({
+                email: 'user3@email.com',
+                userName: 'user3',
+              });
+              const { token: tokenThree } = signAuthToken(userThree);
+              await createGalerieUser({
+                galerieId,
+                role: 'admin',
+                userId: userThree.id,
+              });
+              const { status } = await putGaleriesIdUsersId(app, tokenThree, galerieId, userTwo.id);
+              expect(status).toBe(200);
+            });
           });
           describe('should return status 400 if', () => {
             it('request.params.galerieId is not a UUID v4', async () => {
@@ -193,35 +162,15 @@ describe('/galeries', () => {
             });
             it('current user role for this galerie is \'user\'', async () => {
               const {
-                body: {
-                  data: {
-                    invitation: {
-                      code,
-                    },
-                  },
-                },
-              } = await postGaleriesIdInvitations(app, token, galerieId);
-              const {
-                password: passwordTwo,
                 user: userTwo,
               } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
-              const {
-                body: {
-                  token: tokenTwo,
-                },
-              } = await postUsersLogin(app, {
-                body: {
-                  password: passwordTwo,
-                  userNameOrEmail: userTwo.email,
-                },
-              });
-              await postGaleriesSubscribe(app, tokenTwo, {
-                body: {
-                  code,
-                },
+              const { token: tokenTwo } = signAuthToken(userTwo);
+              await createGalerieUser({
+                galerieId,
+                userId: userTwo.id,
               });
               const {
                 body,
@@ -232,35 +181,15 @@ describe('/galeries', () => {
             });
             it('user\'s role is creator', async () => {
               const {
-                body: {
-                  data: {
-                    invitation: {
-                      code,
-                    },
-                  },
-                },
-              } = await postGaleriesIdInvitations(app, token, galerieId);
-              const {
-                password: passwordTwo,
                 user: userTwo,
               } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
-              const {
-                body: {
-                  token: tokenTwo,
-                },
-              } = await postUsersLogin(app, {
-                body: {
-                  password: passwordTwo,
-                  userNameOrEmail: userTwo.email,
-                },
-              });
-              await postGaleriesSubscribe(app, tokenTwo, {
-                body: {
-                  code,
-                },
+              const { token: tokenTwo } = signAuthToken(userTwo);
+              await createGalerieUser({
+                galerieId,
+                userId: userTwo.id,
               });
               await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               const {
@@ -272,59 +201,27 @@ describe('/galeries', () => {
             });
             it('user\'s role is admin and current user role is admin', async () => {
               const {
-                body: {
-                  data: {
-                    invitation: {
-                      code,
-                    },
-                  },
-                },
-              } = await postGaleriesIdInvitations(app, token, galerieId);
-              const {
-                password: passwordTwo,
                 user: userTwo,
               } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
               const {
-                password: passwordThree,
                 user: userThree,
               } = await createUser({
                 email: 'user3@email.com',
                 userName: 'user3',
               });
-              const {
-                body: {
-                  token: tokenTwo,
-                },
-              } = await postUsersLogin(app, {
-                body: {
-                  password: passwordTwo,
-                  userNameOrEmail: userTwo.email,
-                },
+              const { token: tokenTwo } = signAuthToken(userTwo);
+              await createGalerieUser({
+                galerieId,
+                role: 'admin',
+                userId: userTwo.id,
               });
-              const {
-                body: {
-                  token: tokenThree,
-                },
-              } = await postUsersLogin(app, {
-                body: {
-                  password: passwordThree,
-                  userNameOrEmail: userThree.email,
-                },
+              await createGalerieUser({
+                galerieId,
+                userId: userThree.id,
               });
-              await postGaleriesSubscribe(app, tokenTwo, {
-                body: {
-                  code,
-                },
-              });
-              await postGaleriesSubscribe(app, tokenThree, {
-                body: {
-                  code,
-                },
-              });
-              await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               await putGaleriesIdUsersId(app, token, galerieId, userThree.id);
               const {
                 body,
@@ -345,32 +242,13 @@ describe('/galeries', () => {
             });
             it('galerie exist but current user is not subscribe to it', async () => {
               const {
-                password: passwordTwo,
                 user: userTwo,
               } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
-              const {
-                body: {
-                  token: tokenTwo,
-                },
-              } = await postUsersLogin(app, {
-                body: {
-                  password: passwordTwo,
-                  userNameOrEmail: userTwo.email,
-                },
-              });
-              const {
-                body: {
-                  data: {
-                    galerie,
-                  },
-                },
-              } = await postGaleries(app, tokenTwo, {
-                body: {
-                  name: 'galerie\'s name',
-                },
+              const galerie = await createGalerie({
+                userId: userTwo.id,
               });
               const {
                 body,
