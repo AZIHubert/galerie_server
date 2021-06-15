@@ -12,14 +12,14 @@ export default async ({
   code?: string;
   galerieId: string;
   numOfInvits?: number;
-  time?: Date;
+  time?: number;
   userId: string;
 }) => {
   const invitation = await Invitation.create({
     code,
     galerieId,
     numOfInvits,
-    time,
+    time: time ? new Date(Date.now() + time) : null,
     userId,
   });
   return invitation;

@@ -39,6 +39,11 @@ const router = Router();
 const galeriesRoutes: () => Router = () => {
   router.delete('/:galerieId/', shouldBeAuth, deleteGaleriesId);
   router.delete('/:galerieId/frames/:frameId/', shouldBeAuth, deleteGaleriesIdFramesId);
+  // TODO:
+  router.delete('/:galerieId/invitations', shouldBeAuth, () => {});
+  // delete all invitations
+  // where: time !== null and time > new Date(Date.now())
+  // or numOfInvits !== null and numOfInvits < 1
   router.delete('/:galerieId/invitations/:invitationId', shouldBeAuth, deleteGaleriesIdInvitationsId);
   router.delete('/:galerieId/unsubscribe/', shouldBeAuth, deleteGaleriesIdUnsubscribe);
   router.delete('/:galerieId/users/:userId', shouldBeAuth, deleteGaleriesIdUsersId);

@@ -106,7 +106,7 @@ describe('/galeries', () => {
             expect(invitations.length).toBe(0);
             expect(status).toBe(200);
           });
-          it('should return 1 invitation', async () => {
+          it('return 1 invitation', async () => {
             await createInvitation({
               galerieId,
               userId: user.id,
@@ -147,6 +147,39 @@ describe('/galeries', () => {
             expect(invitations[0].user.updatedEmailTokenVersion).toBeUndefined();
             expect(invitations[0].userId).toBeUndefined();
           });
+          it('return invitations if there are not expired', async () => {
+            const timeStamp = 1434319925275;
+            const time = 1000 * 60 * 10;
+            mockDate.set(timeStamp);
+            await createInvitation({
+              galerieId,
+              time,
+              userId: user.id,
+            });
+            const {
+              body: {
+                data: {
+                  invitations,
+                },
+              },
+            } = await getGaleriesIdInvitations(app, token, galerieId);
+            expect(invitations.length).toBe(1);
+          });
+          it('return invitations if numOfInvits > 0', async () => {
+            await createInvitation({
+              galerieId,
+              numOfInvits: 1,
+              userId: user.id,
+            });
+            const {
+              body: {
+                data: {
+                  invitations,
+                },
+              },
+            } = await getGaleriesIdInvitations(app, token, galerieId);
+            expect(invitations.length).toBe(1);
+          });
           it('return a pack of 20 invitations', async () => {
             const NUM = 21;
             const numOfInvitations = new Array(NUM).fill(0);
@@ -176,7 +209,7 @@ describe('/galeries', () => {
             expect(firstPack.length).toBe(20);
             expect(secondPack.length).toBe(1);
           });
-          it('should order invitations by createdAt', async () => {
+          it('order invitations by createdAt', async () => {
             const invitationOne = await createInvitation({
               galerieId,
               userId: user.id,
@@ -285,6 +318,40 @@ describe('/galeries', () => {
             expect(invitations[0].user.currentProfilePicture.updatedAt).toBeUndefined();
             expect(invitations[0].user.currentProfilePicture.userId).toBeUndefined();
           });
+          it('not return invitation if it\'s expired', async () => {
+            const timeStamp = 1434319925275;
+            const time = 1000 * 60 * 10;
+            mockDate.set(timeStamp);
+            await createInvitation({
+              galerieId,
+              time,
+              userId: user.id,
+            });
+            mockDate.set(timeStamp + time + 1);
+            const {
+              body: {
+                data: {
+                  invitations,
+                },
+              },
+            } = await getGaleriesIdInvitations(app, token, galerieId);
+            expect(invitations.length).toBe(0);
+          });
+          it('not return invitation if numOfInvits < 1', async () => {
+            await createInvitation({
+              galerieId,
+              numOfInvits: 0,
+              userId: user.id,
+            });
+            const {
+              body: {
+                data: {
+                  invitations,
+                },
+              },
+            } = await getGaleriesIdInvitations(app, token, galerieId);
+            expect(invitations.length).toBe(0);
+          });
           it('return invitation.user === null if user is black listed', async () => {
             const {
               user: userTwo,
@@ -316,7 +383,7 @@ describe('/galeries', () => {
             } = await getGaleriesIdInvitations(app, token, galerieId);
             expect(invitationUser).toBeNull();
           });
-          it('TODO: should return user if his blackList is expired', async () => {
+          it('return user if his blackList is expired', async () => {
             const timeStamp = 1434319925275;
             const time = 1000 * 60 * 10;
             mockDate.set(timeStamp);

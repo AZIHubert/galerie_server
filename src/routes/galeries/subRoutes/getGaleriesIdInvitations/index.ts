@@ -93,14 +93,32 @@ export default async (req: Request, res: Response) => {
       offset,
       order: [['createdAt', 'DESC']],
       where: {
-        [Op.or]: [
+        [Op.and]: [
           {
-            time: {
-              [Op.gte]: new Date(Date.now()),
-            },
+            [Op.or]: [
+              {
+                numOfInvits: {
+                  [Op.gt]: 0,
+                },
+              },
+              {
+                numOfInvits: {
+                  [Op.eq]: null,
+                },
+              },
+            ],
           },
           {
-            time: null,
+            [Op.or]: [
+              {
+                time: {
+                  [Op.gt]: new Date(Date.now()),
+                },
+              },
+              {
+                time: null,
+              },
+            ],
           },
         ],
         galerieId,
