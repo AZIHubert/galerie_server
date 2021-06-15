@@ -12,7 +12,7 @@ export default async ({
   code?: string;
   galerieId: string;
   numOfInvits?: number;
-  time?: number;
+  time?: Date;
   userId: string;
 }) => {
   const invitation = await Invitation.create({

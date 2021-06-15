@@ -1,4 +1,5 @@
 import { Server } from 'http';
+import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -14,17 +15,17 @@ import {
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
+import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
+  createBlackList,
+  createGalerie,
+  createGalerieUser,
+  createInvitation,
+  createProfilePicture,
   createUser,
   getGaleriesIdInvitations,
-  postBlackListUserId,
-  postGaleries,
-  postGaleriesIdInvitations,
-  postProfilePictures,
-  postGaleriesSubscribe,
-  putGaleriesIdUsersId,
-  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -34,6 +35,8 @@ let galerieId: string;
 let sequelize: Sequelize;
 let token: string;
 let user: User;
+
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 describe('/galeries', () => {
   describe('/:id', () => {
@@ -45,39 +48,27 @@ describe('/galeries', () => {
         });
 
         beforeEach(async (done) => {
+          mockDate.reset();
+          jest.clearAllMocks();
+          (signedUrl as jest.Mock).mockImplementation(() => ({
+            OK: true,
+            signedUrl: 'signedUrl',
+          }));
           try {
             await cleanGoogleBuckets();
             await sequelize.sync({ force: true });
             const {
-              password,
               user: createdUser,
             } = await createUser({
               role: 'superAdmin',
             });
-
             user = createdUser;
-
-            const { body } = await postUsersLogin(app, {
-              body: {
-                password,
-                userNameOrEmail: user.email,
-              },
+            const jwt = signAuthToken(user);
+            token = jwt.token;
+            const galerie = await createGalerie({
+              userId: user.id,
             });
-            token = body.token;
-            const {
-              body: {
-                data: {
-                  galerie: {
-                    id,
-                  },
-                },
-              },
-            } = await postGaleries(app, token, {
-              body: {
-                name: 'galerie\'s name',
-              },
-            });
-            galerieId = id;
+            galerieId = galerie.id;
           } catch (err) {
             done(err);
           }
@@ -85,6 +76,8 @@ describe('/galeries', () => {
         });
 
         afterAll(async (done) => {
+          mockDate.reset();
+          jest.clearAllMocks();
           try {
             await cleanGoogleBuckets();
             await sequelize.sync({ force: true });
@@ -114,7 +107,10 @@ describe('/galeries', () => {
             expect(status).toBe(200);
           });
           it('should return 1 invitation', async () => {
-            await postGaleriesIdInvitations(app, token, galerieId);
+            await createInvitation({
+              galerieId,
+              userId: user.id,
+            });
             const {
               body: {
                 data: {
@@ -180,9 +176,49 @@ describe('/galeries', () => {
             expect(firstPack.length).toBe(20);
             expect(secondPack.length).toBe(1);
           });
+          it('should order invitations by createdAt', async () => {
+            const invitationOne = await createInvitation({
+              galerieId,
+              userId: user.id,
+            });
+            const invitationTwo = await createInvitation({
+              galerieId,
+              userId: user.id,
+            });
+            const invitationThree = await createInvitation({
+              galerieId,
+              userId: user.id,
+            });
+            const invitationFour = await createInvitation({
+              galerieId,
+              userId: user.id,
+            });
+            const invitationFive = await createInvitation({
+              galerieId,
+              userId: user.id,
+            });
+            const {
+              body: {
+                data: {
+                  invitations,
+                },
+              },
+            } = await getGaleriesIdInvitations(app, token, galerieId);
+            expect(invitations.length).toBe(5);
+            expect(invitations[0].id).toBe(invitationFive.id);
+            expect(invitations[1].id).toBe(invitationFour.id);
+            expect(invitations[2].id).toBe(invitationThree.id);
+            expect(invitations[3].id).toBe(invitationTwo.id);
+            expect(invitations[4].id).toBe(invitationOne.id);
+          });
           it('return user\'s profile picture', async () => {
-            await postGaleriesIdInvitations(app, token, galerieId);
-            await postProfilePictures(app, token);
+            await createInvitation({
+              galerieId,
+              userId: user.id,
+            });
+            await createProfilePicture({
+              userId: user.id,
+            });
             const {
               body: {
                 data: {
@@ -251,42 +287,23 @@ describe('/galeries', () => {
           });
           it('return invitation.user === null if user is black listed', async () => {
             const {
-              password: passwordTwo,
               user: userTwo,
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
-            const {
-              body: {
-                token: tokenTwo,
-              },
-            } = await postUsersLogin(app, {
-              body: {
-                password: passwordTwo,
-                userNameOrEmail: userTwo.email,
-              },
+            await createGalerieUser({
+              galerieId,
+              role: 'admin',
+              userId: userTwo.id,
             });
-            const {
-              body: {
-                data: {
-                  invitation: {
-                    code,
-                  },
-                },
-              },
-            } = await postGaleriesIdInvitations(app, token, galerieId);
-            await postGaleriesSubscribe(app, tokenTwo, {
-              body: {
-                code,
-              },
+            await createInvitation({
+              galerieId,
+              userId: userTwo.id,
             });
-            await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
-            await postGaleriesIdInvitations(app, tokenTwo, galerieId);
-            await postBlackListUserId(app, token, userTwo.id, {
-              body: {
-                reason: 'black list reason',
-              },
+            await createBlackList({
+              adminId: user.id,
+              userId: userTwo.id,
             });
             const {
               body: {
@@ -298,6 +315,43 @@ describe('/galeries', () => {
               },
             } = await getGaleriesIdInvitations(app, token, galerieId);
             expect(invitationUser).toBeNull();
+          });
+          it('TODO: should return user if his blackList is expired', async () => {
+            const timeStamp = 1434319925275;
+            const time = 1000 * 60 * 10;
+            mockDate.set(timeStamp);
+            const {
+              user: userTwo,
+            } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            await createGalerieUser({
+              galerieId,
+              role: 'admin',
+              userId: userTwo.id,
+            });
+            await createInvitation({
+              galerieId,
+              userId: userTwo.id,
+            });
+            await createBlackList({
+              adminId: user.id,
+              time,
+              userId: userTwo.id,
+            });
+            mockDate.set(timeStamp + time + 1);
+            const {
+              body: {
+                data: {
+                  invitations,
+                },
+              },
+            } = await getGaleriesIdInvitations(app, token, galerieId);
+            await userTwo.reload();
+            expect(invitations[0].user).not.toBeNull();
+            expect(userTwo.blackListedAt).toBeNull();
+            expect(userTwo.isBlackListed).toBe(false);
           });
         });
         describe('should return status 400 if', () => {
@@ -311,35 +365,15 @@ describe('/galeries', () => {
           });
           it('user\'s role for this galerie is \'user\'', async () => {
             const {
-              password: passwordTwo,
               user: userTwo,
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
-            const {
-              body: {
-                token: tokenTwo,
-              },
-            } = await postUsersLogin(app, {
-              body: {
-                password: passwordTwo,
-                userNameOrEmail: userTwo.email,
-              },
-            });
-            const {
-              body: {
-                data: {
-                  invitation: {
-                    code,
-                  },
-                },
-              },
-            } = await postGaleriesIdInvitations(app, token, galerieId);
-            await postGaleriesSubscribe(app, tokenTwo, {
-              body: {
-                code,
-              },
+            const { token: tokenTwo } = signAuthToken(userTwo);
+            await createGalerieUser({
+              galerieId,
+              userId: userTwo.id,
             });
             const {
               body,
@@ -360,39 +394,18 @@ describe('/galeries', () => {
           });
           it('galerie exist but user is not subscribe to it', async () => {
             const {
-              password: passwordTwo,
               user: userTwo,
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
-            const {
-              body: {
-                token: tokenTwo,
-              },
-            } = await postUsersLogin(app, {
-              body: {
-                password: passwordTwo,
-                userNameOrEmail: userTwo.email,
-              },
-            });
-            const {
-              body: {
-                data: {
-                  galerie: {
-                    id,
-                  },
-                },
-              },
-            } = await postGaleries(app, tokenTwo, {
-              body: {
-                name: 'galeries\'name',
-              },
+            const galerieTwo = await createGalerie({
+              userId: userTwo.id,
             });
             const {
               body,
               status,
-            } = await getGaleriesIdInvitations(app, token, id);
+            } = await getGaleriesIdInvitations(app, token, galerieTwo.id);
             expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
