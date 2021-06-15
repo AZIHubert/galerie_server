@@ -23,6 +23,7 @@ import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { blackListId } = req.params;
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let adminCurrentProfilePicture;
   let blackList: BlackList | null;
   let currentProfilePicture;
@@ -59,9 +60,6 @@ export default async (req: Request, res: Response) => {
         },
         {
           as: 'user',
-          attributes: {
-            exclude: userExcluder,
-          },
           model: User,
         },
       ],
@@ -80,7 +78,10 @@ export default async (req: Request, res: Response) => {
   // Check if black list is expired.
   if (blackList.time && blackList.time < new Date(Date.now())) {
     try {
-      await blackList.update({ active: false });
+      await blackList.user.update({
+        blackListedAt: null,
+        isBlackListed: false,
+      });
     } catch (err) {
       return res.status(500).send(err);
     }
@@ -111,8 +112,13 @@ export default async (req: Request, res: Response) => {
     }
   }
 
+  userExcluder.forEach((e) => {
+    objectUserExcluder[e] = undefined;
+  });
+
   const returnedBlackList = {
     ...blackList.toJSON(),
+    active: blackList.user.isBlackListed,
     admin: blackList.admin ? {
       ...blackList.admin.toJSON(),
       currentProfilePicture: adminCurrentProfilePicture,
@@ -123,6 +129,7 @@ export default async (req: Request, res: Response) => {
     } : null,
     user: {
       ...blackList.user.toJSON(),
+      ...objectUserExcluder,
       currentProfilePicture,
     },
   };

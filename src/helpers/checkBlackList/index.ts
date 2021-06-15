@@ -11,18 +11,18 @@ const blackListExpire = (blackList: BlackList) => {
 };
 
 export default async (user: User) => {
-  const blackList = await BlackList.findOne({
-    where: {
-      active: true,
-      userId: user.id,
-    },
-  });
-  if (blackList) {
-    if (blackListExpire(blackList)) {
-      await blackList.update({ active: false });
-      return false;
+  if (user.isBlackListed) {
+    const blackList = await BlackList.findOne({
+      order: [['createdAt', 'DESC']],
+      where: {
+        userId: user.id,
+      },
+    });
+    if (blackList && !blackListExpire(blackList)) {
+      return true;
     }
-    return true;
+    await user.update({ isBlackListed: false });
+    return false;
   }
   return false;
 };

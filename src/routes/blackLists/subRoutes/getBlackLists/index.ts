@@ -17,47 +17,17 @@ import {
 } from '@src/helpers/excluders';
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 
-// TODO:
-// when there are more than 20 blackLists
-// and at a fetch, one of then is destroy
-// because of its expire time,
-// when a user request the next page of
-// blackList, one of then gonna be skiped.
-
-// Solutions
-// Return black list with a field expired: boolean.
-
-// Store date directly in blackList.time (not juste number)
-// Then return blackList if date.today is gretter or lower (not sure) than blackList.time.
-// Do the same thing for invitation.date.
-
-// Probleme.
-// When do delete expired blackLists/invitations?
-// Solution
-// Create a route DELETE /blackLists/expired.
-// When BlackList is required by app, trigger this route to.
-// Create a route DELETE /galeries/:galerieId/invitations/expired.
-// When Invitations of galerie with galerieId is required by app, trigger this route to.
-
-// When Users are required, if the 20 of them are blacklisted
-// GET users return nothing.
-
-// Solution
-// Return all users with a label user.isBlackListed
-// Before, only admin/superAdmin was able to see blacklisted user.
-// or return black listed users as an empty object (or just 'null')
-// for user.role === 'user'.
-
 export default async (req: Request, res: Response) => {
   const {
     direction: queryDirection,
     page,
   } = req.query;
   const limit = 20;
-  let blackLists: Array<BlackList>;
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let direction = 'DESC';
   let offset: number;
   let returnedBlackLists: Array<any> = [];
+  let users:Array<User>;
 
   if (typeof page === 'string') {
     offset = ((+page || 1) - 1) * limit;
@@ -74,48 +44,50 @@ export default async (req: Request, res: Response) => {
 
   // Fetch blackLists.
   try {
-    blackLists = await BlackList.findAll({
-      attributes: {
-        exclude: blackListExcluder,
-      },
+    users = await User.findAll({
       include: [
         {
-          as: 'admin',
+          as: 'blackListsUser',
           attributes: {
-            exclude: userExcluder,
+            exclude: blackListExcluder,
           },
-          model: User,
-        },
-        {
-          as: 'updatedBy',
-          attributes: {
-            exclude: userExcluder,
+          include: [
+            {
+              as: 'admin',
+              attributes: {
+                exclude: userExcluder,
+              },
+              model: User,
+            },
+            {
+              as: 'updatedBy',
+              attributes: {
+                exclude: userExcluder,
+              },
+              model: User,
+            },
+          ],
+          order: [['createdAt', 'DESC']],
+          model: BlackList,
+          where: {
+            [Op.or]: [
+              {
+                time: {
+                  [Op.gte]: new Date(Date.now()),
+                },
+              },
+              {
+                time: null,
+              },
+            ],
           },
-          model: User,
-        },
-        {
-          as: 'user',
-          attributes: {
-            exclude: userExcluder,
-          },
-          model: User,
         },
       ],
       limit,
       offset,
-      order: [['createdAt', direction]],
+      order: [['blackListedAt', direction]],
       where: {
-        active: true,
-        [Op.or]: [
-          {
-            time: {
-              [Op.gte]: new Date(Date.now()),
-            },
-          },
-          {
-            time: null,
-          },
-        ],
+        isBlackListed: true,
       },
     });
   } catch (err) {
@@ -126,30 +98,42 @@ export default async (req: Request, res: Response) => {
     // Get black listed admin/updatedBy/user's
     // current profile picture  with their signed url.
     returnedBlackLists = await Promise.all(
-      blackLists.map(async (blackList) => {
-        const currentProfilePicture = await fetchCurrentProfilePicture(blackList.user);
+      users.map(async (user) => {
+        const {
+          blackListsUser: [{
+            admin,
+            updatedBy,
+          }],
+        } = user;
+        const currentProfilePicture = await fetchCurrentProfilePicture(user);
         let adminCurrentProfilePicture;
         let updatedByCurrentProfilePicture;
 
-        if (blackList.admin) {
-          adminCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.admin);
+        if (admin) {
+          adminCurrentProfilePicture = await fetchCurrentProfilePicture(admin);
         }
-        if (blackList.updatedBy) {
-          updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.updatedBy);
+        if (user.blackListsUser[0].updatedBy) {
+          updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(updatedBy);
         }
 
+        userExcluder.forEach((e) => {
+          objectUserExcluder[e] = undefined;
+        });
+
         return {
-          ...blackList.toJSON(),
-          admin: blackList.admin ? {
-            ...blackList.admin.toJSON(),
+          ...user.blackListsUser[0].toJSON(),
+          admin: admin ? {
+            ...admin.toJSON(),
             currentProfilePicture: adminCurrentProfilePicture,
           } : null,
-          updatedBy: blackList.updatedBy ? {
-            ...blackList.updatedBy.toJSON(),
+          active: true,
+          updatedBy: updatedBy ? {
+            ...updatedBy.toJSON(),
             currentProfilePicture: updatedByCurrentProfilePicture,
           } : null,
           user: {
-            ...blackList.user.toJSON(),
+            ...user.toJSON(),
+            ...objectUserExcluder,
             currentProfilePicture,
           },
         };

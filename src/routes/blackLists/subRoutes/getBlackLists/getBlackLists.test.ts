@@ -110,6 +110,7 @@ describe('/blackLists', () => {
         } = await getBlackLists(app, token);
         expect(blackLists.length).toBe(1);
         expect(blackLists[0].admin.authTokenVersion).toBeUndefined();
+        expect(blackLists[0].admin.blackLitedAt).toBeUndefined();
         expect(blackLists[0].admin.confirmed).toBeUndefined();
         expect(blackLists[0].admin.confirmTokenVersion).toBeUndefined();
         expect(blackLists[0].admin.createdAt).not.toBeUndefined();
@@ -121,6 +122,7 @@ describe('/blackLists', () => {
         expect(blackLists[0].admin.googleId).toBeUndefined();
         expect(blackLists[0].admin.hash).toBeUndefined();
         expect(blackLists[0].admin.id).not.toBeUndefined();
+        expect(blackLists[0].admin.isBlackListed).toBeUndefined();
         expect(blackLists[0].admin.pseudonym).not.toBeUndefined();
         expect(blackLists[0].admin.resetPasswordTokenVersion).toBeUndefined();
         expect(blackLists[0].admin.role).not.toBeUndefined();
@@ -137,6 +139,7 @@ describe('/blackLists', () => {
         expect(blackLists[0].updatedBy).toBeNull();
         expect(blackLists[0].updatedById).toBeUndefined();
         expect(blackLists[0].user.authTokenVersion).toBeUndefined();
+        expect(blackLists[0].user.blackListedAt).toBeUndefined();
         expect(blackLists[0].user.confirmed).toBeUndefined();
         expect(blackLists[0].user.confirmTokenVersion).toBeUndefined();
         expect(blackLists[0].user.createdAt).not.toBeUndefined();
@@ -147,6 +150,7 @@ describe('/blackLists', () => {
         expect(blackLists[0].user.facebookId).toBeUndefined();
         expect(blackLists[0].user.googleId).toBeUndefined();
         expect(blackLists[0].user.id).not.toBeUndefined();
+        expect(blackLists[0].user.isBlackListed).toBeUndefined();
         expect(blackLists[0].user.hash).toBeUndefined();
         expect(blackLists[0].user.pseudonym).not.toBeUndefined();
         expect(blackLists[0].user.resetPasswordTokenVersion).toBeUndefined();
@@ -478,12 +482,10 @@ describe('/blackLists', () => {
           userName: 'user2',
         });
         await createBlackList({
-          active: false,
           adminId: user.id,
           userId: userTwo.id,
         });
         await createBlackList({
-          active: true,
           adminId: user.id,
           userId: userTwo.id,
         });

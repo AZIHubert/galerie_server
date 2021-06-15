@@ -70,15 +70,16 @@ describe('/blackLists', () => {
             email: 'user2@email.com',
             userName: 'user2',
           });
-          const blackList = await createBlackList({
+          await createBlackList({
             adminId: user.id,
             time,
             userId: userTwo.id,
           });
           mockDate.set(timeStamp + time + 1);
           const { status } = await putBlackLists(app, token);
-          await blackList.reload();
-          expect(blackList.active).toBe(false);
+          await userTwo.reload();
+          expect(userTwo.blackListedAt).toBeNull();
+          expect(userTwo.isBlackListed).toBe(false);
           expect(status).toBe(204);
         });
         it('set active to false two expired blackLists', async () => {
@@ -93,22 +94,24 @@ describe('/blackLists', () => {
             email: 'user3@email.com',
             userName: 'user3',
           });
-          const blackListOne = await createBlackList({
+          await createBlackList({
             adminId: user.id,
             time,
             userId: userTwo.id,
           });
-          const blackListTwo = await createBlackList({
+          await createBlackList({
             adminId: user.id,
             time,
             userId: userThree.id,
           });
           mockDate.set(timeStamp + time + 1);
           await putBlackLists(app, token);
-          await blackListOne.reload();
-          await blackListTwo.reload();
-          expect(blackListOne.active).toBe(false);
-          expect(blackListTwo.active).toBe(false);
+          await userTwo.reload();
+          await userThree.reload();
+          expect(userTwo.blackListedAt).toBeNull();
+          expect(userTwo.isBlackListed).toBe(false);
+          expect(userThree.blackListedAt).toBeNull();
+          expect(userThree.isBlackListed).toBe(false);
         });
         it('set active to false Four expired blackLists', async () => {
           const timeStamp = 1434319925275;
@@ -130,49 +133,54 @@ describe('/blackLists', () => {
             email: 'user5@email.com',
             userName: 'user5',
           });
-          const blackListOne = await createBlackList({
+          await createBlackList({
             adminId: user.id,
             time,
             userId: userTwo.id,
           });
-          const blackListTwo = await createBlackList({
+          await createBlackList({
             adminId: user.id,
             time,
             userId: userThree.id,
           });
-          const blackListThree = await createBlackList({
+          await createBlackList({
             adminId: user.id,
             time,
             userId: userFour.id,
           });
-          const blackListFour = await createBlackList({
+          await createBlackList({
             adminId: user.id,
             time,
             userId: userFive.id,
           });
           mockDate.set(timeStamp + time + 1);
           await putBlackLists(app, token);
-          await blackListOne.reload();
-          await blackListTwo.reload();
-          await blackListThree.reload();
-          await blackListFour.reload();
-          expect(blackListOne.active).toBe(false);
-          expect(blackListTwo.active).toBe(false);
-          expect(blackListThree.active).toBe(false);
-          expect(blackListFour.active).toBe(false);
+          await userTwo.reload();
+          await userThree.reload();
+          await userFour.reload();
+          await userFive.reload();
+          expect(userTwo.blackListedAt).toBeNull();
+          expect(userTwo.isBlackListed).toBe(false);
+          expect(userThree.blackListedAt).toBeNull();
+          expect(userThree.isBlackListed).toBe(false);
+          expect(userFour.blackListedAt).toBeNull();
+          expect(userFour.isBlackListed).toBe(false);
+          expect(userFive.blackListedAt).toBeNull();
+          expect(userFive.isBlackListed).toBe(false);
         });
         it('do not set active to false if a blackList.time === null', async () => {
           const { user: userTwo } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
           });
-          const blackList = await createBlackList({
+          await createBlackList({
             adminId: user.id,
             userId: userTwo.id,
           });
           await putBlackLists(app, token);
-          await blackList.reload();
-          expect(blackList.active).toBe(true);
+          await userTwo.reload();
+          expect(userTwo.blackListedAt).not.toBeNull();
+          expect(userTwo.isBlackListed).toBe(true);
         });
         it('do not set active to false if a blackList is not expired', async () => {
           const timeStamp = 1434319925275;
@@ -182,14 +190,16 @@ describe('/blackLists', () => {
             email: 'user2@email.com',
             userName: 'user2',
           });
-          const blackList = await createBlackList({
+          await createBlackList({
             adminId: user.id,
             time,
             userId: userTwo.id,
           });
           mockDate.set(timeStamp + time - 1);
           await putBlackLists(app, token);
-          expect(blackList.active).toBe(true);
+          await userTwo.reload();
+          expect(userTwo.blackListedAt).toEqual(new Date(timeStamp));
+          expect(userTwo.isBlackListed).toBe(true);
         });
       });
     });

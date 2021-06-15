@@ -25,7 +25,6 @@ import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
-  createBlackList,
   createProfilePicture,
   createUser,
   postBlackListUserId,
@@ -127,8 +126,8 @@ describe('/blackLists', () => {
           });
           expect(action).toBe('POST');
           expect(blackList).not.toBeNull();
-          expect(returnedBlackList.active).toBe(true);
           expect(returnedBlackList.admin.authTokenVersion).toBeUndefined();
+          expect(returnedBlackList.admin.blackListedAt).toBeUndefined();
           expect(returnedBlackList.admin.confirmed).toBeUndefined();
           expect(returnedBlackList.admin.confirmTokenVersion).toBeUndefined();
           expect(new Date(returnedBlackList.admin.createdAt)).toEqual(user.createdAt);
@@ -140,6 +139,7 @@ describe('/blackLists', () => {
           expect(returnedBlackList.admin.googleId).toBeUndefined();
           expect(returnedBlackList.admin.hash).toBeUndefined();
           expect(returnedBlackList.admin.id).toBe(user.id);
+          expect(returnedBlackList.admin.isBlackListed).toBeUndefined();
           expect(returnedBlackList.admin.pseudonym).toBe(user.pseudonym);
           expect(returnedBlackList.admin.resetPasswordTokenVersion).toBeUndefined();
           expect(returnedBlackList.admin.role).toBe(user.role);
@@ -149,6 +149,7 @@ describe('/blackLists', () => {
           expect(returnedBlackList.admin.updatedEmailTokenVersion).toBeUndefined();
           expect(returnedBlackList.admin.userName).toBe(user.userName);
           expect(returnedBlackList.adminId).toBeUndefined();
+          expect(returnedBlackList.active).toBe(true);
           expect(returnedBlackList.createdAt).not.toBeUndefined();
           expect(returnedBlackList.id).not.toBeUndefined();
           expect(returnedBlackList.reason).toBe(reason);
@@ -157,6 +158,7 @@ describe('/blackLists', () => {
           expect(returnedBlackList.updatedById).toBeUndefined();
           expect(returnedBlackList.updatedBy).toBeNull();
           expect(returnedBlackList.user.authTokenVersion).toBeUndefined();
+          expect(returnedBlackList.user.blackListedAt).toBeUndefined();
           expect(returnedBlackList.user.confirmed).toBeUndefined();
           expect(returnedBlackList.user.confirmTokenVersion).toBeUndefined();
           expect(new Date(returnedBlackList.user.createdAt)).toEqual(userTwo.createdAt);
@@ -168,6 +170,8 @@ describe('/blackLists', () => {
           expect(returnedBlackList.user.googleId).toBeUndefined();
           expect(returnedBlackList.user.hash).toBeUndefined();
           expect(returnedBlackList.user.id).toBe(userTwo.id);
+          expect(returnedBlackList.user.isBlackListed).toBeUndefined();
+          expect(returnedBlackList.user.isBlackListed).toBeUndefined();
           expect(returnedBlackList.user.pseudonym).toBe(userTwo.pseudonym);
           expect(returnedBlackList.user.resetPasswordTokenVersion).toBeUndefined();
           expect(returnedBlackList.user.role).toBe(userTwo.role);
@@ -213,6 +217,18 @@ describe('/blackLists', () => {
             },
           });
           expect(returnedReason).toBe(reason);
+        });
+        it('set user.isBlackListed and user.blackListedAt', async () => {
+          const timeStamp = 1434319925275;
+          mockDate.set(timeStamp);
+          await postBlackListUserId(app, token, userTwo.id, {
+            body: {
+              reason: 'blackList reason',
+            },
+          });
+          await userTwo.reload();
+          expect(userTwo.blackListedAt).toEqual(new Date(timeStamp));
+          expect(userTwo.isBlackListed).toBe(true);
         });
         it('black list an admin if current user role is superAdmin', async () => {
           const {
@@ -336,19 +352,6 @@ describe('/blackLists', () => {
           expect(currentProfilePicture.pendingImageId).toBeUndefined();
           expect(currentProfilePicture.updatedAt).toBeUndefined();
           expect(currentProfilePicture.userId).toBeUndefined();
-        });
-        it('set all other blackLists.active to false', async () => {
-          const blackList = await createBlackList({
-            adminId: user.id,
-            userId: userTwo.id,
-          });
-          await postBlackListUserId(app, token, userTwo.id, {
-            body: {
-              reason: 'black list reason',
-            },
-          });
-          await blackList.reload();
-          expect(blackList.active).toBe(false);
         });
       });
       describe('should return status 400 if', () => {

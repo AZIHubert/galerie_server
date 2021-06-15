@@ -7,6 +7,7 @@ import {
 import { Op } from 'sequelize';
 
 import {
+  BlackList,
   Frame,
   Galerie,
   Like,
@@ -29,11 +30,11 @@ export default async (req: Request, res: Response) => {
   const limit = 20;
   const { page } = req.query;
   const currentUser = req.user as User;
-  const usersWithProfilePicture: Array<any> = [];
   let frame: Frame | null;
   let galerie: Galerie | null;
   let likes: Array<Like>;
   let offset: number;
+  let returnedUsers: Array<any>;
 
   if (typeof page === 'string') {
     offset = ((+page || 1) - 1) * limit;
@@ -104,8 +105,16 @@ export default async (req: Request, res: Response) => {
           attributes: {
             exclude: userExcluder,
           },
+          include: [
+            {
+              as: 'blackListsUser',
+              model: BlackList,
+            },
+          ],
           model: User,
           where: {
+            '$blackListsUser.active$': false,
+            '$blackListsUser.userId$': null,
             id: {
               [Op.not]: currentUser.id,
             },
@@ -114,9 +123,7 @@ export default async (req: Request, res: Response) => {
       ],
       limit,
       offset,
-      order: [
-        ['createdAt', 'DESC'],
-      ],
+      order: [['createdAt', 'DESC']],
       where: {
         frameId,
       },
@@ -127,16 +134,20 @@ export default async (req: Request, res: Response) => {
 
   // Fetch users profile pictures.
   try {
-    await Promise.all(
-      likes.map(async (like) => {
-        const currentProfilePicture = await fetchCurrentProfilePicture(like.user);
+    returnedUsers = await Promise.all(
+      // TODO:
+      // Check if user is blackListed
+      // if blackListed
+      //  return null
+      // else fetch current profile picture
+      //  return normalized user.
+      likes.map(async ({ user }) => {
+        const currentProfilePicture = await fetchCurrentProfilePicture(user);
 
-        const returnedUser = {
-          ...like.user.toJSON(),
+        return {
+          ...user.toJSON(),
           currentProfilePicture,
         };
-
-        usersWithProfilePicture.push(returnedUser);
       }),
     );
   } catch (err) {
@@ -148,7 +159,7 @@ export default async (req: Request, res: Response) => {
     data: {
       galerieId,
       frameId,
-      users: usersWithProfilePicture,
+      users: returnedUsers,
     },
   });
 };

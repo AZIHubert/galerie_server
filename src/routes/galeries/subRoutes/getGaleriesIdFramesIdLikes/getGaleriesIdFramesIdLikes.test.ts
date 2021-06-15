@@ -16,6 +16,9 @@ import {
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
   cleanGoogleBuckets,
+  createBlackList,
+  createGalerieUser,
+  createLike,
   createUser,
   getGaleriesIdFramesIdLikes,
   postGaleries,
@@ -29,77 +32,78 @@ import {
 
 import initApp from '@src/server';
 
+let app: Server;
+let galerieId: string;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/galeries', () => {
-  let app: Server;
-  let galerieId: string;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({
-        role: 'superAdmin',
-      });
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-      const {
-        body: {
-          data: {
-            galerie: {
-              id,
-            },
-          },
-        },
-      } = await postGaleries(app, token, {
-        body: {
-          name: 'galerie\'s name',
-        },
-      });
-      galerieId = id;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:galerieId', () => {
     describe('/frames', () => {
       describe('/:frameId', () => {
         describe('/likes', () => {
           describe('GET', () => {
+            beforeAll(() => {
+              sequelize = initSequelize();
+              app = initApp();
+            });
+
+            beforeEach(async (done) => {
+              try {
+                await cleanGoogleBuckets();
+                await sequelize.sync({ force: true });
+                const {
+                  password,
+                  user: createdUser,
+                } = await createUser({
+                  role: 'superAdmin',
+                });
+
+                user = createdUser;
+
+                const { body } = await postUsersLogin(app, {
+                  body: {
+                    password,
+                    userNameOrEmail: user.email,
+                  },
+                });
+                token = body.token;
+                const {
+                  body: {
+                    data: {
+                      galerie: {
+                        id,
+                      },
+                    },
+                  },
+                } = await postGaleries(app, token, {
+                  body: {
+                    name: 'galerie\'s name',
+                  },
+                });
+                galerieId = id;
+              } catch (err) {
+                done(err);
+              }
+              done();
+            });
+
+            afterAll(async (done) => {
+              try {
+                await cleanGoogleBuckets();
+                await sequelize.sync({ force: true });
+                await sequelize.close();
+              } catch (err) {
+                done(err);
+              }
+              app.close();
+              done();
+            });
+
             describe('should return status 200 and', () => {
               let frameId: string;
+
               beforeEach(async (done) => {
                 try {
                   const {
@@ -115,6 +119,7 @@ describe('/galeries', () => {
                 }
                 done();
               });
+
               it('should not include current user', async () => {
                 await postGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 const {
@@ -144,7 +149,7 @@ describe('/galeries', () => {
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 expect(users.length).toBe(0);
               });
-              it('return One user', async () => {
+              it.only('return One user', async () => {
                 const {
                   password: passwordTwo,
                   user: userTwo,
@@ -318,6 +323,65 @@ describe('/galeries', () => {
                 expect(firstPack.length).toBe(20);
                 expect(secondPack.length).toBe(1);
               });
+              it('TODO: order users by createdAt', async () => {});
+              it.only('return null if user is black listed', async () => {
+                const { user: userTwo } = await createUser({
+                  email: 'user2@email.com',
+                  userName: 'user2',
+                });
+                await createGalerieUser({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userTwo.id,
+                });
+                const blackList = await createBlackList({
+                  adminId: user.id,
+                  userId: userTwo.id,
+                });
+                console.log(blackList);
+                const {
+                  body: {
+                    data: {
+                      users,
+                    },
+                  },
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+                console.log(users);
+                expect(users.length).toBe(0);
+              });
+              it.only('whith blackList.active === false', async () => {
+                const { user: userTwo } = await createUser({
+                  email: 'user2@email.com',
+                  userName: 'user2',
+                });
+                await createGalerieUser({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userTwo.id,
+                });
+                const blackList = await createBlackList({
+                  active: false,
+                  adminId: user.id,
+                  userId: userTwo.id,
+                });
+                console.log(blackList);
+                const {
+                  body: {
+                    data: {
+                      users,
+                    },
+                  },
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+                console.log(users);
+                expect(users.length).toBe(1);
+              });
+              it('TODO: return user if black list has expired', async () => {});
             });
             describe('should return status 400 if', () => {
               it('request.params.galerieId is not a UUID v4', async () => {

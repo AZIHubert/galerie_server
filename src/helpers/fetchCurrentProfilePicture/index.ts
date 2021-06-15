@@ -24,35 +24,14 @@ export default async (user: User, exlude?: Array<string>) => {
     include: [
       {
         as: 'cropedImage',
-        attributes: {
-          exclude: [
-            'createdAt',
-            'id',
-            'updatedAt',
-          ],
-        },
         model: Image,
       },
       {
         as: 'originalImage',
-        attributes: {
-          exclude: [
-            'createdAt',
-            'id',
-            'updatedAt',
-          ],
-        },
         model: Image,
       },
       {
         as: 'pendingImage',
-        attributes: {
-          exclude: [
-            'createdAt',
-            'id',
-            'updatedAt',
-          ],
-        },
         model: Image,
       },
     ],
@@ -68,97 +47,77 @@ export default async (user: User, exlude?: Array<string>) => {
       originalImage,
       pendingImage,
     } = currentProfilePicture;
-    if (
-      cropedImage
-      && originalImage
-      && pendingImage
-    ) {
-      const cropedImageSignedUrl = await signedUrl(
-        cropedImage.bucketName,
-        cropedImage.fileName,
-      );
-      const originalImageSignedUrl = await signedUrl(
-        originalImage.bucketName,
-        originalImage.fileName,
-      );
-      const pendingImageSignedUrl = await signedUrl(
-        pendingImage.bucketName,
-        pendingImage.fileName,
-      );
 
-      if (
-        cropedImageSignedUrl.OK
-        && originalImageSignedUrl.OK
-        && pendingImageSignedUrl.OK
-      ) {
-        returnedCurrentProfilePicture = {
-          ...currentProfilePicture.toJSON(),
-          cropedImage: {
-            ...cropedImage.toJSON(),
-            bucketName: undefined,
-            fileName: undefined,
-            signedUrl: cropedImageSignedUrl.signedUrl,
-          },
-          originalImage: {
-            ...originalImage.toJSON(),
-            bucketName: undefined,
-            fileName: undefined,
-            signedUrl: originalImageSignedUrl.signedUrl,
-          },
-          pendingImage: {
-            ...pendingImage.toJSON(),
-            bucketName: undefined,
-            fileName: undefined,
-            signedUrl: pendingImageSignedUrl.signedUrl,
-          },
-        };
-      } else {
-        if (cropedImageSignedUrl.OK) {
-          await gc
-            .bucket(cropedImage.bucketName)
-            .file(cropedImage.fileName)
-            .delete();
-        }
-        if (originalImageSignedUrl.OK) {
-          await gc
-            .bucket(originalImage.bucketName)
-            .file(originalImage.fileName)
-            .delete();
-        }
-        if (pendingImageSignedUrl.OK) {
-          await gc
-            .bucket(pendingImage.bucketName)
-            .file(pendingImage.fileName)
-            .delete();
-        }
-        await cropedImage.destroy();
-        await originalImage.destroy();
-        await pendingImage.destroy();
-        await currentProfilePicture.destroy();
-      }
-    } else {
-      if (cropedImage) {
-        await cropedImage.destroy();
+    const cropedImageSignedUrl = await signedUrl(
+      cropedImage.bucketName,
+      cropedImage.fileName,
+    );
+    const originalImageSignedUrl = await signedUrl(
+      originalImage.bucketName,
+      originalImage.fileName,
+    );
+    const pendingImageSignedUrl = await signedUrl(
+      pendingImage.bucketName,
+      pendingImage.fileName,
+    );
+
+    if (
+      !cropedImageSignedUrl.OK
+      || !originalImageSignedUrl.OK
+      || !pendingImageSignedUrl.OK
+    ) {
+      if (cropedImageSignedUrl.OK) {
         await gc
           .bucket(cropedImage.bucketName)
           .file(cropedImage.fileName)
           .delete();
       }
-      if (originalImage) {
-        await originalImage.destroy();
+      if (originalImageSignedUrl.OK) {
         await gc
           .bucket(originalImage.bucketName)
           .file(originalImage.fileName)
           .delete();
       }
-      if (pendingImage) {
-        await pendingImage.destroy();
+      if (pendingImageSignedUrl.OK) {
         await gc
           .bucket(pendingImage.bucketName)
           .file(pendingImage.fileName)
           .delete();
       }
-      await currentProfilePicture.destroy();
+      await cropedImage.destroy();
+      await originalImage.destroy();
+      await pendingImage.destroy();
+    } else {
+      returnedCurrentProfilePicture = {
+        ...currentProfilePicture.toJSON(),
+        cropedImage: {
+          ...cropedImage.toJSON(),
+          bucketName: undefined,
+          createdAt: undefined,
+          fileName: undefined,
+          id: undefined,
+          signedUrl: cropedImageSignedUrl.signedUrl,
+          updatedAt: undefined,
+        },
+        originalImage: {
+          ...originalImage.toJSON(),
+          bucketName: undefined,
+          createdAt: undefined,
+          fileName: undefined,
+          id: undefined,
+          signedUrl: originalImageSignedUrl.signedUrl,
+          updatedAt: undefined,
+        },
+        pendingImage: {
+          ...pendingImage.toJSON(),
+          bucketName: undefined,
+          createdAt: undefined,
+          fileName: undefined,
+          id: undefined,
+          signedUrl: pendingImageSignedUrl.signedUrl,
+          updatedAt: undefined,
+        },
+      };
     }
   }
 

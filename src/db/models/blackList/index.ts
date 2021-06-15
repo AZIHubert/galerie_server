@@ -2,7 +2,6 @@ import {
   BelongsTo,
   Column,
   DataType,
-  Default,
   ForeignKey,
   Model,
   Table,
@@ -11,7 +10,6 @@ import {
 import User from '../user';
 
 interface BlackListI {
-  active: boolean;
   adminId?: string;
   id: string;
   reason: string;
@@ -24,16 +22,6 @@ interface BlackListI {
   tableName: 'blackList',
 })
 export default class BlackList extends Model implements BlackListI {
-  // Only the active black list
-  // Is used to check if a user is blackListed.
-  // Non active black lists are considered as expired.
-  @Default(true)
-  @Column({
-    allowNull: false,
-    type: DataType.BOOLEAN,
-  })
-  active!: boolean;
-
   // Id of the admin who created the black list.
   @ForeignKey(() => User)
   @Column({

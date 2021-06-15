@@ -1,9 +1,4 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('blackList', {
-  active: {
-    allowNull: false,
-    defaultValue: true,
-    type: DataTypes.BOOLEAN,
-  },
   adminId: {
     references: {
       key: 'id',

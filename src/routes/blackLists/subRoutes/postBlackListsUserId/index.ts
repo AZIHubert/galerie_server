@@ -33,11 +33,6 @@ export default async (req: Request, res: Response) => {
   let currentProfilePicture;
   let user: User | null;
 
-  // TODO:
-  // Check if user have active black listed
-  // active = true
-  // set all active blackList to false.
-
   // Check if request.params.userId
   // is a UUID v4.
   if (!uuidValidatev4(userId)) {
@@ -56,9 +51,6 @@ export default async (req: Request, res: Response) => {
   // Fetch user.
   try {
     user = await User.findOne({
-      attributes: {
-        exclude: userExcluder,
-      },
       where: {
         id: userId,
         confirmed: true,
@@ -88,20 +80,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Set all active BlackLists to false.
-  try {
-    await BlackList.update({
-      active: false,
-    }, {
-      where: {
-        userId,
-        active: true,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
+  // Validate request.body
   const {
     error,
     value,
@@ -112,8 +91,8 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // create blackList.
   try {
-    // create blackList.
     blackList = await BlackList.create({
       adminId: currentUser.id,
       reason: value.reason,
@@ -121,6 +100,15 @@ export default async (req: Request, res: Response) => {
         ? new Date(Date.now() + value.time)
         : null,
       userId,
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  try {
+    await user.update({
+      blackListedAt: new Date(Date.now()),
+      isBlackListed: true,
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -150,6 +138,7 @@ export default async (req: Request, res: Response) => {
   const returnedBlackList = {
     ...blackList.toJSON(),
     ...objectBlackListExcluder,
+    active: true,
     admin: {
       ...currentUser.toJSON(),
       ...objectUserExcluder,
@@ -158,6 +147,7 @@ export default async (req: Request, res: Response) => {
     updatedBy: null,
     user: {
       ...user.toJSON(),
+      ...objectUserExcluder,
       currentProfilePicture,
     },
   };

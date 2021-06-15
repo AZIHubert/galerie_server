@@ -21,6 +21,7 @@ import Ticket from '../ticket';
 
 interface UserI {
   authTokenVersion: number;
+  blackListedAt: Date;
   confirmed: boolean;
   confirmTokenVersion: number;
   defaultProfilePicture?: string;
@@ -30,6 +31,7 @@ interface UserI {
   googleId?: string;
   hash?: string;
   id: string;
+  isBlackListed: boolean;
   pseudonym?: string;
   resetPasswordTokenVersion: number;
   role: 'superAdmin' | 'admin' | 'user';
@@ -53,6 +55,11 @@ export default class User extends Model implements UserI {
     type: DataType.INTEGER,
   })
   authTokenVersion!: number;
+
+  @Column({
+    type: DataType.DATE,
+  })
+  blackListedAt!: Date;
 
   // Use to check if a user
   // has confirmed his account.
@@ -127,6 +134,13 @@ export default class User extends Model implements UserI {
   })
   id!: string;
 
+  @Default(false)
+  @Column({
+    allowNull: false,
+    type: DataType.BOOLEAN,
+  })
+  isBlackListed!: boolean
+
   // user.userName can't be changed
   // but pseudonym can.
   // when a user is created,
@@ -200,7 +214,13 @@ export default class User extends Model implements UserI {
   // notificationsUser!: Notification[]
 
   @HasMany(() => BlackList, 'adminId')
-  blackLists!: BlackList[];
+  blackListsAdmin!: BlackList[];
+
+  @HasMany(() => BlackList, 'updatedById')
+  blackListsUpdatedBy!: BlackList[];
+
+  @HasMany(() => BlackList, 'userId')
+  blackListsUser!: BlackList[];
 
   @HasMany(() => Frame)
   frames!: Frame[];
@@ -219,7 +239,4 @@ export default class User extends Model implements UserI {
 
   @HasMany(() => Ticket)
   tickets!: Ticket[];
-
-  @HasMany(() => BlackList, 'userId')
-  blackList!: BlackList;
 }

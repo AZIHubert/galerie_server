@@ -105,14 +105,15 @@ describe('/blackLists', () => {
           expect(returnedBlackList).toBe(blackListId);
           expect(status).toBe(200);
         });
-        it('set active to false', async () => {
+        it('set user.blackListedAt === null && user.isBlackListed === false', async () => {
           const blackList = await createBlackList({
             adminId: user.id,
             userId: userTwo.id,
           });
           await putBlackListsId(app, token, blackList.id);
-          await blackList.reload();
-          expect(blackList.active).toBe(false);
+          await userTwo.reload();
+          expect(userTwo.blackListedAt).toBeNull();
+          expect(userTwo.isBlackListed).toBe(false);
         });
         it('set blackList.updatedById === currentUser.id', async () => {
           const blackList = await createBlackList({
@@ -239,7 +240,10 @@ describe('/blackLists', () => {
             status,
           } = await putBlackListsId(app, token, blackList.id);
           await blackList.reload();
-          expect(blackList.active).toBe(false);
+          await userTwo.reload();
+          expect(blackList.updatedById).toBeNull();
+          expect(userTwo.blackListedAt).toBeNull();
+          expect(userTwo.isBlackListed).toBe(false);
           expect(body.errors).toBe('not allow to update a non active black list');
           expect(status).toBe(400);
         });

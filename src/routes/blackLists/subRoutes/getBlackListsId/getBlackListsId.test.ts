@@ -115,6 +115,7 @@ describe('/blackLists', () => {
           expect(action).toBe('GET');
           expect(blackList.active).not.toBeUndefined();
           expect(blackList.admin.authTokenVersion).toBeUndefined();
+          expect(blackList.admin.blackListedAt).toBeUndefined();
           expect(blackList.admin.confirmed).toBeUndefined();
           expect(blackList.admin.confirmTokenVersion).toBeUndefined();
           expect(blackList.admin.createdAt).not.toBeUndefined();
@@ -125,6 +126,7 @@ describe('/blackLists', () => {
           expect(blackList.admin.googleId).toBeUndefined();
           expect(blackList.admin.hash).toBeUndefined();
           expect(blackList.admin.id).not.toBeUndefined();
+          expect(blackList.admin.isBlackListed).toBeUndefined();
           expect(blackList.admin.pseudonym).not.toBeUndefined();
           expect(blackList.admin.resetPasswordTokenVersion).toBeUndefined();
           expect(blackList.admin.role).not.toBeUndefined();
@@ -141,6 +143,7 @@ describe('/blackLists', () => {
           expect(blackList.updatedBy).not.toBeUndefined();
           expect(blackList.updatedById).toBeUndefined();
           expect(blackList.user.authTokenVersion).toBeUndefined();
+          expect(blackList.user.blackListedAt).toBeUndefined();
           expect(blackList.user.confirmed).toBeUndefined();
           expect(blackList.user.confirmTokenVersion).toBeUndefined();
           expect(blackList.user.createdAt).not.toBeUndefined();
@@ -152,6 +155,7 @@ describe('/blackLists', () => {
           expect(blackList.user.googleId).toBeUndefined();
           expect(blackList.user.hash).toBeUndefined();
           expect(blackList.user.id).not.toBeUndefined();
+          expect(blackList.user.isBlackListed).toBeUndefined();
           expect(blackList.user.pseudonym).not.toBeUndefined();
           expect(blackList.user.resetPasswordTokenVersion).toBeUndefined();
           expect(blackList.user.role).not.toBeUndefined();
@@ -180,6 +184,7 @@ describe('/blackLists', () => {
             },
           } = await getBlackListsId(app, token, blackListId);
           expect(updatedBy.authTokenVersion).toBeUndefined();
+          expect(updatedBy.blackListedAt).toBeUndefined();
           expect(updatedBy.confirmed).toBeUndefined();
           expect(updatedBy.confirmTokenVersion).toBeUndefined();
           expect(updatedBy.createdAt).not.toBeUndefined();
@@ -190,6 +195,7 @@ describe('/blackLists', () => {
           expect(updatedBy.googleId).toBeUndefined();
           expect(updatedBy.hash).toBeUndefined();
           expect(updatedBy.id).not.toBeUndefined();
+          expect(updatedBy.isBlackListed).toBeUndefined();
           expect(updatedBy.pseudonym).not.toBeUndefined();
           expect(updatedBy.resetPasswordTokenVersion).toBeUndefined();
           expect(updatedBy.role).not.toBeUndefined();
@@ -392,7 +398,7 @@ describe('/blackLists', () => {
           } = await getBlackListsId(app, token, blackListId);
           expect(admin).toBeNull();
         });
-        it('set blackList.active to false if it\'s expired', async () => {
+        it('set user.isBlackListed === false and user.blackListedAt === null if it\'s expired', async () => {
           const timeStamp = 1434319925275;
           const time = 1000 * 60 * 10;
           mockDate.set(timeStamp);
@@ -405,8 +411,9 @@ describe('/blackLists', () => {
           const {
             status,
           } = await getBlackListsId(app, token, blackList.id);
-          await blackList.reload();
-          expect(blackList.active).toBe(false);
+          await userTwo.reload();
+          expect(userTwo.blackListedAt).toBeNull();
+          expect(userTwo.isBlackListed).toBe(false);
           expect(status).toBe(200);
         });
       });

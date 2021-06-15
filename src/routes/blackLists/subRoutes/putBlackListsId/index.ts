@@ -37,6 +37,14 @@ export default async (req: Request, res: Response) => {
           as: 'admin',
           model: User,
         },
+        {
+          as: 'user',
+          model: User,
+          required: false,
+          where: {
+            isBlackListed: true,
+          },
+        },
       ],
     });
   } catch (err) {
@@ -51,7 +59,7 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if blackList is active.
-  if (!blackList.active) {
+  if (!blackList.user) {
     return res.status(400).send({
       errors: 'not allow to update a non active black list',
     });
@@ -60,7 +68,10 @@ export default async (req: Request, res: Response) => {
   // Check if black list is expired.
   if (blackList.time && blackList.time < new Date(Date.now())) {
     try {
-      await blackList.update({ active: false });
+      await blackList.user.update({
+        blackListedAt: null,
+        isBlackListed: false,
+      });
     } catch (err) {
       return res.status(500).send(err);
     }
@@ -84,8 +95,11 @@ export default async (req: Request, res: Response) => {
   // Set active to false.
   try {
     await blackList.update({
-      active: false,
       updatedById: currentUser.id,
+    });
+    await blackList.user.update({
+      blackListedAt: null,
+      isBlackListed: false,
     });
   } catch (err) {
     return res.status(500).send(err);
