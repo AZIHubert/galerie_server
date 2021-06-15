@@ -199,7 +199,7 @@ describe('/blackLists', () => {
               time,
             },
           });
-          expect(new Date(timeStamp + time)).toEqual(new Date(blackList.time));
+          expect(new Date(blackList.time)).toEqual(new Date(timeStamp + time));
         });
         it('trim reason', async () => {
           const reason = 'black list reason';

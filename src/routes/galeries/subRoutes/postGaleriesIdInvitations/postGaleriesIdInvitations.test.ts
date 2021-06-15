@@ -1,4 +1,5 @@
 import { Server } from 'http';
+import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -14,23 +15,23 @@ import {
   User,
 } from '@src/db/models';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
+import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
+  createGalerie,
+  createGalerieUser,
+  createProfilePicture,
   createUser,
-  deleteUsersMe,
-  postGaleries,
   postGaleriesIdInvitations,
-  postGaleriesSubscribe,
-  postProfilePictures,
-  postUsersLogin,
-  putGaleriesIdUsersId,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
 
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
+
 let app: Server;
 let galerieId: string;
-let password: string;
 let sequelize: Sequelize;
 let token: string;
 let user: User;
@@ -45,38 +46,25 @@ describe('/galeries', () => {
         });
 
         beforeEach(async (done) => {
+          mockDate.reset();
+          jest.clearAllMocks();
+          (signedUrl as jest.Mock).mockImplementation(() => ({
+            OK: true,
+            signedUrl: 'signedUrl',
+          }));
           try {
             await cleanGoogleBuckets();
             await sequelize.sync({ force: true });
             const {
-              password: createdPassword,
               user: createdUser,
             } = await createUser({});
-
-            password = createdPassword;
             user = createdUser;
-
-            const { body } = await postUsersLogin(app, {
-              body: {
-                password,
-                userNameOrEmail: user.email,
-              },
+            const jwt = signAuthToken(user);
+            token = jwt.token;
+            const galerie = await createGalerie({
+              userId: user.id,
             });
-            token = body.token;
-            const {
-              body: {
-                data: {
-                  galerie: {
-                    id,
-                  },
-                },
-              },
-            } = await postGaleries(app, token, {
-              body: {
-                name: 'galerie\'s name',
-              },
-            });
-            galerieId = id;
+            galerieId = galerie.id;
           } catch (err) {
             done(err);
           }
@@ -84,6 +72,8 @@ describe('/galeries', () => {
         });
 
         afterAll(async (done) => {
+          mockDate.reset();
+          jest.clearAllMocks();
           try {
             await cleanGoogleBuckets();
             await sequelize.sync({ force: true });
@@ -141,7 +131,7 @@ describe('/galeries', () => {
             expect(returnedGalerieId).toBe(galerieId);
             expect(status).toBe(200);
           });
-          it('create an invit with time === null', async () => {
+          it('create an invit with numOfInvits', async () => {
             const numOfInvits = 1;
             const {
               body: {
@@ -157,8 +147,10 @@ describe('/galeries', () => {
             expect(invitation.numOfInvits).toBe(numOfInvits);
             expect(invitation.time).toBeNull();
           });
-          it('create an invit with numOfTime === null', async () => {
-            const time = 1000 * 60 * 5;
+          it('create an invit with time', async () => {
+            const timeStamp = 1434319925275;
+            const time = 1000 * 60 * 10;
+            mockDate.set(timeStamp);
             const {
               body: {
                 data: {
@@ -171,11 +163,13 @@ describe('/galeries', () => {
               },
             });
             expect(invitation.numOfInvits).toBeNull();
-            expect(invitation.time).toBe(time);
+            expect(new Date(invitation.time)).toEqual(new Date(timeStamp + time));
           });
-          it('create an invit with time/numOfTime', async () => {
+          it('create an invit with time && numOfTime', async () => {
             const numOfInvits = 1;
-            const time = 1000 * 60 * 5;
+            const timeStamp = 1434319925275;
+            const time = 1000 * 60 * 10;
+            mockDate.set(timeStamp);
             const {
               body: {
                 data: {
@@ -189,10 +183,12 @@ describe('/galeries', () => {
               },
             });
             expect(invitation.numOfInvits).toBe(numOfInvits);
-            expect(invitation.time).toBe(time);
+            expect(new Date(invitation.time)).toEqual(new Date(timeStamp + time));
           });
           it('should incude profile picture', async () => {
-            await postProfilePictures(app, token);
+            await createProfilePicture({
+              userId: user.id,
+            });
             const {
               body: {
                 data: {
@@ -255,35 +251,15 @@ describe('/galeries', () => {
           });
           it('user\'s role is \'user\'', async () => {
             const {
-              password: passwordTwo,
               user: userTwo,
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
-            const {
-              body: {
-                token: tokenTwo,
-              },
-            } = await postUsersLogin(app, {
-              body: {
-                password: passwordTwo,
-                userNameOrEmail: userTwo.email,
-              },
-            });
-            const {
-              body: {
-                data: {
-                  invitation: {
-                    code,
-                  },
-                },
-              },
-            } = await postGaleriesIdInvitations(app, token, galerieId);
-            await postGaleriesSubscribe(app, tokenTwo, {
-              body: {
-                code,
-              },
+            const { token: tokenTwo } = signAuthToken(userTwo);
+            await createGalerieUser({
+              galerieId,
+              userId: userTwo.id,
             });
             const {
               body,
@@ -293,49 +269,14 @@ describe('/galeries', () => {
             expect(status).toBe(400);
           });
           it('galerie is archived', async () => {
-            const {
-              password: passwordTwo,
-              user: userTwo,
-            } = await createUser({
-              email: 'user2@email.com',
-              userName: 'user2',
-            });
-            const {
-              body: {
-                token: tokenTwo,
-              },
-            } = await postUsersLogin(app, {
-              body: {
-                password: passwordTwo,
-                userNameOrEmail: userTwo.email,
-              },
-            });
-            const {
-              body: {
-                data: {
-                  invitation: {
-                    code,
-                  },
-                },
-              },
-            } = await postGaleriesIdInvitations(app, token, galerieId);
-            await postGaleriesSubscribe(app, tokenTwo, {
-              body: {
-                code,
-              },
-            });
-            await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
-            await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 'delete my account',
-                password,
-                userNameOrEmail: user.email,
-              },
+            const galerieTwo = await createGalerie({
+              archived: true,
+              userId: user.id,
             });
             const {
               body,
               status,
-            } = await postGaleriesIdInvitations(app, tokenTwo, galerieId);
+            } = await postGaleriesIdInvitations(app, token, galerieTwo.id);
             expect(body.errors).toBe('you cannot post invitation on an archived galerie');
             expect(status).toBe(400);
           });
@@ -439,39 +380,18 @@ describe('/galeries', () => {
           });
           it('galerie exist but user is not subscribe to it', async () => {
             const {
-              password: passwordTwo,
               user: userTwo,
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
-            const {
-              body: {
-                token: tokenTwo,
-              },
-            } = await postUsersLogin(app, {
-              body: {
-                password: passwordTwo,
-                userNameOrEmail: userTwo.email,
-              },
-            });
-            const {
-              body: {
-                data: {
-                  galerie: {
-                    id,
-                  },
-                },
-              },
-            } = await postGaleries(app, tokenTwo, {
-              body: {
-                name: 'galeries\'s name',
-              },
+            const galerieTwo = await createGalerie({
+              userId: userTwo.id,
             });
             const {
               body,
               status,
-            } = await postGaleriesIdInvitations(app, token, id);
+            } = await postGaleriesIdInvitations(app, token, galerieTwo.id);
             expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
