@@ -60,6 +60,8 @@ export default async (req: Request, res: Response) => {
         id: {
           [Op.not]: id,
         },
+        // TODO:
+        // isBlackListed: false
         userName: {
           [Op.iLike]: `%${userName.toLowerCase()}%`,
         },
@@ -72,10 +74,6 @@ export default async (req: Request, res: Response) => {
       users.map(async (user) => {
         const userIsBlackListed = await checkBlackList(user);
         let currentProfilePicture;
-
-        // TODO:
-        // If currentUser.role === 'admin' || 'superAdmin'
-        // include blackList user with a field user.isBlackListed.
 
         if (!userIsBlackListed) {
           currentProfilePicture = await fetchCurrentProfilePicture(user);

@@ -83,10 +83,6 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // TODO:
-  // set all blackList where user.id === blackList.adminId
-  // to blackList.adminId === null.
-
   try {
     await user.update({ role });
   } catch (err) {

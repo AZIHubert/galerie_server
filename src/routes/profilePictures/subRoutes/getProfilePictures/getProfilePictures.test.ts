@@ -4,18 +4,18 @@ import { Sequelize } from 'sequelize';
 import '@src/helpers/initEnv';
 
 import {
-  Image,
   ProfilePicture,
+  Image,
   User,
 } from '@src/db/models';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
+  createProfilePicture,
   createUser,
   getProfilePictures,
-  postProfilePictures,
-  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -44,19 +44,11 @@ describe('/profilePictures', () => {
         await sequelize.sync({ force: true });
         await cleanGoogleBuckets();
         const {
-          password,
           user: createdUser,
         } = await createUser({});
-
         user = createdUser;
-
-        const { body } = await postUsersLogin(app, {
-          body: {
-            password,
-            userNameOrEmail: user.email,
-          },
-        });
-        token = body.token;
+        const jwt = signAuthToken(user);
+        token = jwt.token;
       } catch (err) {
         done(err);
       }
@@ -92,7 +84,9 @@ describe('/profilePictures', () => {
         expect(status).toBe(200);
       });
       it('return one profile picture', async () => {
-        await postProfilePictures(app, token);
+        await createProfilePicture({
+          userId: user.id,
+        });
         const {
           body: {
             data: {
@@ -146,21 +140,7 @@ describe('/profilePictures', () => {
         const numOfProfilePictures = new Array(NUM).fill(0);
         await Promise.all(
           numOfProfilePictures.map(async () => {
-            const {
-              id: imageId,
-            } = await Image.create({
-              bucketName: 'bucketName',
-              fileName: 'fileName',
-              format: 'format',
-              height: 10,
-              size: 10,
-              width: 10,
-            });
-            await ProfilePicture.create({
-              cropedImageId: imageId,
-              current: false,
-              originalImageId: imageId,
-              pendingImageId: imageId,
+            await createProfilePicture({
               userId: user.id,
             });
           }),
@@ -181,6 +161,56 @@ describe('/profilePictures', () => {
         } = await getProfilePictures(app, token, { page: 2 });
         expect(firstPack.length).toEqual(20);
         expect(secondPack.length).toEqual(1);
+      });
+      it('order profile pictures by createdAt', async () => {
+        const profilePictureOne = await createProfilePicture({
+          userId: user.id,
+        });
+        const profilePictureTwo = await createProfilePicture({
+          userId: user.id,
+        });
+        const profilePictureThree = await createProfilePicture({
+          userId: user.id,
+        });
+        const profilePictureFour = await createProfilePicture({
+          userId: user.id,
+        });
+        const profilePictureFive = await createProfilePicture({
+          userId: user.id,
+        });
+        const {
+          body: {
+            data: {
+              profilePictures,
+            },
+          },
+        } = await getProfilePictures(app, token);
+        expect(profilePictures.length).toBe(5);
+        expect(profilePictures[0].id).toBe(profilePictureFive.id);
+        expect(profilePictures[1].id).toBe(profilePictureFour.id);
+        expect(profilePictures[2].id).toBe(profilePictureThree.id);
+        expect(profilePictures[3].id).toBe(profilePictureTwo.id);
+        expect(profilePictures[4].id).toBe(profilePictureOne.id);
+      });
+      it('return profilePicture === null if signedUrl.OK === false', async () => {
+        (signedUrl as jest.Mock).mockImplementation(() => ({
+          OK: false,
+        }));
+        const { id: profilePicureId } = await createProfilePicture({
+          userId: user.id,
+        });
+        const {
+          body: {
+            data: {
+              profilePictures,
+            },
+          },
+        } = await getProfilePictures(app, token);
+        const profilePicture = await ProfilePicture.findByPk(profilePicureId);
+        const images = await Image.findAll();
+        expect(profilePicture).toBeNull();
+        expect(profilePictures[0]).toBeNull();
+        expect(images.length).toBe(0);
       });
     });
   });
