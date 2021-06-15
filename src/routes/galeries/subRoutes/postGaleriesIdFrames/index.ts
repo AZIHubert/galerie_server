@@ -423,6 +423,7 @@ export default async (req: Request, res: Response) => {
     ...frame.toJSON(),
     ...objectFrameExcluder,
     galeriePictures: returnedGaleriePictures,
+    liked: false,
     user: {
       ...currentUser.toJSON(),
       ...objectUserExcluder,

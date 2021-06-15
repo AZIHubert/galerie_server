@@ -10,6 +10,7 @@ import {
   Galerie,
   GaleriePicture,
   Image,
+  Like,
   User,
 } from '@src/db/models';
 
@@ -97,7 +98,15 @@ export default async (req: Request, res: Response) => {
             },
           ],
           model: GaleriePicture,
-        }, {
+        },
+        {
+          model: Like,
+          required: false,
+          where: {
+            userId: currentUser.id,
+          },
+        },
+        {
           as: 'user',
           model: User,
         },
@@ -129,6 +138,8 @@ export default async (req: Request, res: Response) => {
           }
           return {
             ...normalizedFrame,
+            liked: !!frame.likes.length,
+            likes: undefined,
             user: userIsBlackListed ? null : {
               ...frame.user.toJSON(),
               ...objectUserExcluder,

@@ -45,7 +45,6 @@ let token: string;
 let user: User;
 
 jest.mock('@src/helpers/signedUrl', () => jest.fn());
-jest.mock('@src/helpers/nameImage', () => jest.fn());
 
 describe('/galeries', () => {
   describe('/:galerieId', () => {
@@ -184,6 +183,7 @@ describe('/galeries', () => {
             expect(returnedFrame.galeriePictures[0].pendingImage.width).not.toBeUndefined();
             expect(returnedFrame.galeriePictures[0].updatedAt).toBeUndefined();
             expect(returnedFrame.id).not.toBeUndefined();
+            expect(returnedFrame.liked).not.toBeUndefined();
             expect(returnedFrame.numOfLikes).toBe(0);
             expect(returnedFrame.updatedAt).toBeUndefined();
             expect(returnedFrame.user.authTokenVersion).toBeUndefined();
@@ -652,11 +652,11 @@ describe('/galeries', () => {
               email: 'user3@email.com',
               userName: 'user3',
             });
-            await createGalerieUser({
+            const galerieUserTwo = await createGalerieUser({
               galerieId,
               userId: userTwo.id,
             });
-            await createGalerieUser({
+            const galerieUserThree = await createGalerieUser({
               galerieId,
               userId: userThree.id,
             });
@@ -666,19 +666,11 @@ describe('/galeries', () => {
                 userId: user.id,
               },
             }) as GalerieUser;
-            const galerieUserTwo = await GalerieUser.findOne({
-              where: {
-                userId: userTwo.id,
-              },
-            }) as GalerieUser;
-            const galerieUserThree = await GalerieUser.findOne({
-              where: {
-                userId: userThree.id,
-              },
-            }) as GalerieUser;
-            expect(galerieUserOne.hasNewFrames).toBeFalsy();
-            expect(galerieUserTwo.hasNewFrames).toBeTruthy();
-            expect(galerieUserThree.hasNewFrames).toBeTruthy();
+            await galerieUserTwo.reload();
+            await galerieUserThree.reload();
+            expect(galerieUserOne.hasNewFrames).toBe(false);
+            expect(galerieUserTwo.hasNewFrames).toBe(true);
+            expect(galerieUserThree.hasNewFrames).toBe(true);
           });
         });
         describe('should return status 400 if', () => {

@@ -25,6 +25,7 @@ import {
   createGalerie,
   createGalerieUser,
   createProfilePicture,
+  createLike,
   createUser,
   getGaleriesIdFrames,
 } from '@src/helpers/test';
@@ -152,6 +153,8 @@ describe('/galeries', () => {
             expect(frames[0].galeriePictures[0].pendingImage.width).not.toBeUndefined();
             expect(frames[0].galeriePictures[0].pendingImageId).toBeUndefined();
             expect(frames[0].id).not.toBeUndefined();
+            expect(frames[0].liked).not.toBeUndefined();
+            expect(frames[0].likes).toBeUndefined();
             expect(frames[0].numOfLikes).not.toBeUndefined();
             expect(frames[0].updatedAt).toBeUndefined();
             expect(frames[0].user.authTokenVersion).toBeUndefined();
@@ -287,6 +290,60 @@ describe('/galeries', () => {
             expect(frames[0].user.currentProfilePicture.pendingImageId).toBeUndefined();
             expect(frames[0].user.currentProfilePicture.updatedAt).toBeUndefined();
             expect(frames[0].user.currentProfilePicture.userId).toBeUndefined();
+          });
+          it('return with liked === false if user don\'t have like a frame', async () => {
+            await createFrame({
+              galerieId,
+              userId: user.id,
+            });
+            const {
+              body: {
+                data: {
+                  frames,
+                },
+              },
+            } = await getGaleriesIdFrames(app, token, galerieId);
+            expect(frames[0].liked).toBe(false);
+          });
+          it('return with liked === true if user have like a frame', async () => {
+            const { id: frameId } = await createFrame({
+              galerieId,
+              userId: user.id,
+            });
+            await createLike({
+              frameId,
+              userId: user.id,
+            });
+            const {
+              body: {
+                data: {
+                  frames,
+                },
+              },
+            } = await getGaleriesIdFrames(app, token, galerieId);
+            expect(frames[0].liked).toBe(true);
+          });
+          it('return with liked === false if another user have like a frame', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            const { id: frameId } = await createFrame({
+              galerieId,
+              userId: user.id,
+            });
+            await createLike({
+              frameId,
+              userId: userTwo.id,
+            });
+            const {
+              body: {
+                data: {
+                  frames,
+                },
+              },
+            } = await getGaleriesIdFrames(app, token, galerieId);
+            expect(frames[0].liked).toBe(false);
           });
           it('should return frame.user === null if user is blackListed', async () => {
             const {
