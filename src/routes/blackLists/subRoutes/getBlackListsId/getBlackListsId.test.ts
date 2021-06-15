@@ -207,7 +207,6 @@ describe('/blackLists', () => {
         });
         it('include black listed user current profile picture', async () => {
           await createProfilePicture({
-            current: true,
             userId: userTwo.id,
           });
           const { id: blackListId } = await createBlackList({
@@ -260,7 +259,6 @@ describe('/blackLists', () => {
         });
         it('include admin current profile picture', async () => {
           await createProfilePicture({
-            current: true,
             userId: user.id,
           });
           const { id: blackListId } = await createBlackList({
@@ -313,7 +311,6 @@ describe('/blackLists', () => {
         });
         it('include updatedBy current profile picture', async () => {
           await createProfilePicture({
-            current: true,
             userId: user.id,
           });
           const { id: blackListId } = await createBlackList({

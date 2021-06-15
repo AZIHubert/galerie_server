@@ -340,7 +340,6 @@ describe('/users', () => {
             });
             it('include user\'s current profile picture', async () => {
               await createProfilePicture({
-                current: true,
                 userId: userTwo.id,
               });
               await createBlackList({
@@ -393,7 +392,6 @@ describe('/users', () => {
             });
             it('include admin\'s current profile picture', async () => {
               await createProfilePicture({
-                current: true,
                 userId: user.id,
               });
               await createBlackList({
@@ -446,7 +444,6 @@ describe('/users', () => {
             });
             it('include updatedBy\'s current profile picture', async () => {
               await createProfilePicture({
-                current: true,
                 userId: user.id,
               });
               await createBlackList({

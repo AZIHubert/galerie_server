@@ -4,7 +4,7 @@ import {
 } from '@src/db/models';
 
 export default async ({
-  current = false,
+  current = true,
   userId,
 }: {
   current?: boolean;

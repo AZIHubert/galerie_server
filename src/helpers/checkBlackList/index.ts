@@ -21,7 +21,10 @@ export default async (user: User) => {
     if (blackList && !blackListExpire(blackList)) {
       return true;
     }
-    await user.update({ isBlackListed: false });
+    await user.update({
+      blackListedAt: null,
+      isBlackListed: false,
+    });
     return false;
   }
   return false;

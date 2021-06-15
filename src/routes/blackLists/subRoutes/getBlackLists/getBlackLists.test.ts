@@ -228,7 +228,6 @@ describe('/blackLists', () => {
           userName: 'user2',
         });
         await createProfilePicture({
-          current: true,
           userId: userTwo.id,
         });
         await createBlackList({
@@ -289,7 +288,6 @@ describe('/blackLists', () => {
           userId: userTwo.id,
         });
         await createProfilePicture({
-          current: true,
           userId: user.id,
         });
         const {

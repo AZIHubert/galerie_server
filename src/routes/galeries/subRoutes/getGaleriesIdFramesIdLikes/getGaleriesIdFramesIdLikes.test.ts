@@ -1,11 +1,11 @@
 import { Server } from 'http';
+import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
 import {
-  Like,
   User,
 } from '@src/db/models';
 
@@ -14,20 +14,17 @@ import {
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
+import signedUrl from '@src/helpers/signedUrl';
 import {
-  cleanGoogleBuckets,
   createBlackList,
+  createFrame,
+  createGalerie,
   createGalerieUser,
   createLike,
+  createProfilePicture,
   createUser,
   getGaleriesIdFramesIdLikes,
-  postGaleries,
-  postGaleriesIdFrames,
-  postGaleriesIdFramesIdLikes,
-  postGaleriesIdInvitations,
-  postGaleriesSubscribe,
-  postProfilePictures,
-  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -37,6 +34,8 @@ let galerieId: string;
 let sequelize: Sequelize;
 let token: string;
 let user: User;
+
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 describe('/galeries', () => {
   describe('/:galerieId', () => {
@@ -50,39 +49,26 @@ describe('/galeries', () => {
             });
 
             beforeEach(async (done) => {
+              mockDate.reset();
+              jest.clearAllMocks();
+              (signedUrl as jest.Mock).mockImplementation(() => ({
+                OK: true,
+                signedUrl: 'signedUrl',
+              }));
               try {
-                await cleanGoogleBuckets();
                 await sequelize.sync({ force: true });
                 const {
-                  password,
                   user: createdUser,
                 } = await createUser({
                   role: 'superAdmin',
                 });
-
                 user = createdUser;
-
-                const { body } = await postUsersLogin(app, {
-                  body: {
-                    password,
-                    userNameOrEmail: user.email,
-                  },
+                const jwt = signAuthToken(user);
+                token = jwt.token;
+                const galerie = await createGalerie({
+                  userId: user.id,
                 });
-                token = body.token;
-                const {
-                  body: {
-                    data: {
-                      galerie: {
-                        id,
-                      },
-                    },
-                  },
-                } = await postGaleries(app, token, {
-                  body: {
-                    name: 'galerie\'s name',
-                  },
-                });
-                galerieId = id;
+                galerieId = galerie.id;
               } catch (err) {
                 done(err);
               }
@@ -90,8 +76,9 @@ describe('/galeries', () => {
             });
 
             afterAll(async (done) => {
+              mockDate.reset();
+              jest.clearAllMocks();
               try {
-                await cleanGoogleBuckets();
                 await sequelize.sync({ force: true });
                 await sequelize.close();
               } catch (err) {
@@ -106,13 +93,10 @@ describe('/galeries', () => {
 
               beforeEach(async (done) => {
                 try {
-                  const {
-                    body: {
-                      data: {
-                        frame,
-                      },
-                    },
-                  } = await postGaleriesIdFrames(app, token, galerieId);
+                  const frame = await createFrame({
+                    galerieId,
+                    userId: user.id,
+                  });
                   frameId = frame.id;
                 } catch (err) {
                   done(err);
@@ -121,7 +105,10 @@ describe('/galeries', () => {
               });
 
               it('should not include current user', async () => {
-                await postGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+                await createLike({
+                  frameId,
+                  userId: user.id,
+                });
                 const {
                   body: {
                     action,
@@ -149,39 +136,21 @@ describe('/galeries', () => {
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 expect(users.length).toBe(0);
               });
-              it.only('return One user', async () => {
+              it('return One user', async () => {
                 const {
-                  password: passwordTwo,
                   user: userTwo,
                 } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
                 });
-                const {
-                  body: {
-                    token: tokenTwo,
-                  },
-                } = await postUsersLogin(app, {
-                  body: {
-                    password: passwordTwo,
-                    userNameOrEmail: userTwo.email,
-                  },
+                await createGalerieUser({
+                  galerieId,
+                  userId: userTwo.id,
                 });
-                const {
-                  body: {
-                    data: {
-                      invitation: {
-                        code,
-                      },
-                    },
-                  },
-                } = await postGaleriesIdInvitations(app, token, galerieId);
-                await postGaleriesSubscribe(app, tokenTwo, {
-                  body: {
-                    code,
-                  },
+                await createLike({
+                  frameId,
+                  userId: userTwo.id,
                 });
-                await postGaleriesIdFramesIdLikes(app, tokenTwo, galerieId, frameId);
                 const {
                   body: {
                     data: {
@@ -213,38 +182,22 @@ describe('/galeries', () => {
               });
               it('return users with current profile picture', async () => {
                 const {
-                  password: passwordTwo,
                   user: userTwo,
                 } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
                 });
-                const {
-                  body: {
-                    token: tokenTwo,
-                  },
-                } = await postUsersLogin(app, {
-                  body: {
-                    password: passwordTwo,
-                    userNameOrEmail: userTwo.email,
-                  },
+                await createGalerieUser({
+                  galerieId,
+                  userId: userTwo.id,
                 });
-                const {
-                  body: {
-                    data: {
-                      invitation: {
-                        code,
-                      },
-                    },
-                  },
-                } = await postGaleriesIdInvitations(app, token, galerieId);
-                await postGaleriesSubscribe(app, tokenTwo, {
-                  body: {
-                    code,
-                  },
+                await createLike({
+                  frameId,
+                  userId: userTwo.id,
                 });
-                await postGaleriesIdFramesIdLikes(app, tokenTwo, galerieId, frameId);
-                await postProfilePictures(app, tokenTwo);
+                await createProfilePicture({
+                  userId: userTwo.id,
+                });
                 const {
                   body: {
                     data: {
@@ -300,7 +253,7 @@ describe('/galeries', () => {
                       email: `user${index + 2}@email.com`,
                       userName: `user${index + 2}`,
                     });
-                    await Like.create({
+                    await createLike({
                       frameId,
                       userId: newUser.id,
                     });
@@ -323,25 +276,47 @@ describe('/galeries', () => {
                 expect(firstPack.length).toBe(20);
                 expect(secondPack.length).toBe(1);
               });
-              it('TODO: order users by createdAt', async () => {});
-              it.only('return null if user is black listed', async () => {
+              it('order users by createdAt', async () => {
                 const { user: userTwo } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
                 });
-                await createGalerieUser({
-                  galerieId,
-                  userId: userTwo.id,
+                const { user: userThree } = await createUser({
+                  email: 'user3@email.com',
+                  userName: 'user3',
+                });
+                const { user: userFour } = await createUser({
+                  email: 'user4@email.com',
+                  userName: 'user4',
+                });
+                const { user: userFive } = await createUser({
+                  email: 'user5@email.com',
+                  userName: 'user5',
+                });
+                const { user: userSix } = await createUser({
+                  email: 'user6@email.com',
+                  userName: 'user6',
                 });
                 await createLike({
                   frameId,
                   userId: userTwo.id,
                 });
-                const blackList = await createBlackList({
-                  adminId: user.id,
-                  userId: userTwo.id,
+                await createLike({
+                  frameId,
+                  userId: userThree.id,
                 });
-                console.log(blackList);
+                await createLike({
+                  frameId,
+                  userId: userFour.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userFive.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userSix.id,
+                });
                 const {
                   body: {
                     data: {
@@ -349,10 +324,14 @@ describe('/galeries', () => {
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                console.log(users);
-                expect(users.length).toBe(0);
+                expect(users.length).toBe(5);
+                expect(users[0].id).toBe(userSix.id);
+                expect(users[1].id).toBe(userFive.id);
+                expect(users[2].id).toBe(userFour.id);
+                expect(users[3].id).toBe(userThree.id);
+                expect(users[4].id).toBe(userTwo.id);
               });
-              it.only('whith blackList.active === false', async () => {
+              it('return null if user is black listed', async () => {
                 const { user: userTwo } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
@@ -365,12 +344,10 @@ describe('/galeries', () => {
                   frameId,
                   userId: userTwo.id,
                 });
-                const blackList = await createBlackList({
-                  active: false,
+                await createBlackList({
                   adminId: user.id,
                   userId: userTwo.id,
                 });
-                console.log(blackList);
                 const {
                   body: {
                     data: {
@@ -378,10 +355,45 @@ describe('/galeries', () => {
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                console.log(users);
                 expect(users.length).toBe(1);
+                expect(users[0]).toBeNull();
               });
-              it('TODO: return user if black list has expired', async () => {});
+              it('return user if black list has expired', async () => {
+                const timeStamp = 1434319925275;
+                const time = 1000 * 60 * 10;
+                mockDate.set(timeStamp);
+                const {
+                  user: userTwo,
+                } = await createUser({
+                  email: 'user2@email.com',
+                  userName: 'user2',
+                });
+                await createGalerieUser({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userTwo.id,
+                });
+                await createBlackList({
+                  adminId: user.id,
+                  time,
+                  userId: userTwo.id,
+                });
+                mockDate.set(timeStamp + time + 1);
+                const {
+                  body: {
+                    data: {
+                      users,
+                    },
+                  },
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+                await userTwo.reload();
+                expect(users[0]).not.toBeNull();
+                expect(userTwo.blackListedAt).toBeNull();
+                expect(userTwo.isBlackListed).toBe(false);
+              });
             });
             describe('should return status 400 if', () => {
               it('request.params.galerieId is not a UUID v4', async () => {
@@ -412,37 +424,18 @@ describe('/galeries', () => {
               });
               it('galerie exist but current user is not subscribe to it', async () => {
                 const {
-                  password: passwordTwo,
                   user: userTwo,
                 } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
                 });
-                const {
-                  body: {
-                    token: tokenTwo,
-                  },
-                } = await postUsersLogin(app, {
-                  body: {
-                    password: passwordTwo,
-                    userNameOrEmail: userTwo.email,
-                  },
-                });
-                const {
-                  body: {
-                    data: {
-                      galerie,
-                    },
-                  },
-                } = await postGaleries(app, tokenTwo, {
-                  body: {
-                    name: 'galerie\'s name',
-                  },
+                const galerieTwo = await createGalerie({
+                  userId: userTwo.id,
                 });
                 const {
                   body,
                   status,
-                } = await getGaleriesIdFramesIdLikes(app, token, galerie.id, uuidv4());
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieTwo.id, uuidv4());
                 expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
                 expect(status).toBe(404);
               });
@@ -455,28 +448,17 @@ describe('/galeries', () => {
                 expect(status).toBe(404);
               });
               it('frame exist but is not post on this galerie', async () => {
-                const {
-                  body: {
-                    data: {
-                      galerie,
-                    },
-                  },
-                } = await postGaleries(app, token, {
-                  body: {
-                    name: 'galerie\'s name',
-                  },
+                const galerieTwo = await createGalerie({
+                  userId: user.id,
                 });
-                const {
-                  body: {
-                    data: {
-                      frame,
-                    },
-                  },
-                } = await postGaleriesIdFrames(app, token, galerie.id);
+                const { id: frameId } = await createFrame({
+                  galerieId: galerieTwo.id,
+                  userId: user.id,
+                });
                 const {
                   body,
                   status,
-                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
                 expect(status).toBe(404);
               });

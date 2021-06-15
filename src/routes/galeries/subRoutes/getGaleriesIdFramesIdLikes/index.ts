@@ -7,13 +7,13 @@ import {
 import { Op } from 'sequelize';
 
 import {
-  BlackList,
   Frame,
   Galerie,
   Like,
   User,
 } from '@src/db/models';
 
+import checkBlackList from '@src/helpers/checkBlackList';
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
@@ -30,6 +30,7 @@ export default async (req: Request, res: Response) => {
   const limit = 20;
   const { page } = req.query;
   const currentUser = req.user as User;
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let frame: Frame | null;
   let galerie: Galerie | null;
   let likes: Array<Like>;
@@ -102,19 +103,8 @@ export default async (req: Request, res: Response) => {
     likes = await Like.findAll({
       include: [
         {
-          attributes: {
-            exclude: userExcluder,
-          },
-          include: [
-            {
-              as: 'blackListsUser',
-              model: BlackList,
-            },
-          ],
           model: User,
           where: {
-            '$blackListsUser.active$': false,
-            '$blackListsUser.userId$': null,
             id: {
               [Op.not]: currentUser.id,
             },
@@ -135,17 +125,19 @@ export default async (req: Request, res: Response) => {
   // Fetch users profile pictures.
   try {
     returnedUsers = await Promise.all(
-      // TODO:
-      // Check if user is blackListed
-      // if blackListed
-      //  return null
-      // else fetch current profile picture
-      //  return normalized user.
       likes.map(async ({ user }) => {
+        const userIsBlackListed = await checkBlackList(user);
+        if (userIsBlackListed) {
+          return null;
+        }
         const currentProfilePicture = await fetchCurrentProfilePicture(user);
+        userExcluder.forEach((e) => {
+          objectUserExcluder[e] = undefined;
+        });
 
         return {
           ...user.toJSON(),
+          ...objectUserExcluder,
           currentProfilePicture,
         };
       }),

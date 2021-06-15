@@ -155,6 +155,7 @@ describe('/galeries', () => {
             expect(frames[0].numOfLikes).not.toBeUndefined();
             expect(frames[0].updatedAt).toBeUndefined();
             expect(frames[0].user.authTokenVersion).toBeUndefined();
+            expect(frames[0].user.blackListedAt).toBeUndefined();
             expect(frames[0].user.confirmed).toBeUndefined();
             expect(frames[0].user.confirmTokenVersion).toBeUndefined();
             expect(frames[0].user.createdAt).not.toBeUndefined();
@@ -165,6 +166,7 @@ describe('/galeries', () => {
             expect(frames[0].user.googleId).toBeUndefined();
             expect(frames[0].user.hash).toBeUndefined();
             expect(frames[0].user.id).not.toBeUndefined();
+            expect(frames[0].user.isBlackListed).toBeUndefined();
             expect(frames[0].user.pseudonym).not.toBeUndefined();
             expect(frames[0].user.resetPasswordTokenVersion).toBeUndefined();
             expect(frames[0].user.role).not.toBeUndefined();
@@ -243,7 +245,6 @@ describe('/galeries', () => {
               userId: user.id,
             });
             await createProfilePicture({
-              current: true,
               userId: user.id,
             });
             const {
@@ -333,7 +334,7 @@ describe('/galeries', () => {
               galerieId,
               userId: userTwo.id,
             });
-            const blackList = await createBlackList({
+            await createBlackList({
               adminId: user.id,
               time,
               userId: userTwo.id,
@@ -347,8 +348,9 @@ describe('/galeries', () => {
               },
             } = await getGaleriesIdFrames(app, token, galerieId);
             expect(frame.user).not.toBeNull();
-            await blackList.reload();
-            expect(blackList.active).toBe(false);
+            await userTwo.reload();
+            expect(userTwo.blackListedAt).toBeNull();
+            expect(userTwo.isBlackListed).toBe(false);
           });
           it('return null and destroy frame if frame don\'t have galeriePictures', async () => {
             const { id: frameId } = await Frame.create({

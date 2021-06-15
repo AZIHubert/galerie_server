@@ -249,7 +249,6 @@ describe('/blackLists', () => {
         });
         it('return black listed user current profile picture', async () => {
           await createProfilePicture({
-            current: true,
             userId: userTwo.id,
           });
           const {
@@ -302,7 +301,6 @@ describe('/blackLists', () => {
         });
         it('return admin/superAdmin current profile picture', async () => {
           await createProfilePicture({
-            current: true,
             userId: user.id,
           });
           const {

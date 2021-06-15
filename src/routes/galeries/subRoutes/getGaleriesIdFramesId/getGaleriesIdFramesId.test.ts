@@ -156,6 +156,7 @@ describe('/galeries', () => {
               expect(returnedFrame.numOfLikes).toBe(frame.numOfLikes);
               expect(returnedFrame.updatedAt).toBeUndefined();
               expect(returnedFrame.user.authTokenVersion).toBeUndefined();
+              expect(returnedFrame.user.blackListedAt).toBeUndefined();
               expect(returnedFrame.user.confirmed).toBeUndefined();
               expect(returnedFrame.user.confirmedTokenVersion).toBeUndefined();
               expect(returnedFrame.user.createdAt).not.toBeUndefined();
@@ -167,6 +168,7 @@ describe('/galeries', () => {
               expect(returnedFrame.user.googleId).toBeUndefined();
               expect(returnedFrame.user.hash).toBeUndefined();
               expect(returnedFrame.user.id).not.toBeUndefined();
+              expect(returnedFrame.user.isBlackListed).toBeUndefined();
               expect(returnedFrame.user.pseudonym).not.toBeUndefined();
               expect(returnedFrame.user.resetPasswordTokenVersion).toBeUndefined();
               expect(returnedFrame.user.role).not.toBeUndefined();
@@ -185,7 +187,6 @@ describe('/galeries', () => {
                 userId: user.id,
               });
               const profilePicture = await createProfilePicture({
-                current: true,
                 userId: user.id,
               });
               const {
@@ -307,7 +308,7 @@ describe('/galeries', () => {
                 galerieId,
                 userId: userTwo.id,
               });
-              const blackList = await createBlackList({
+              await createBlackList({
                 adminId: user.id,
                 time,
                 userId: userTwo.id,
@@ -322,9 +323,10 @@ describe('/galeries', () => {
                   },
                 },
               } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
-              await blackList.reload();
+              await userTwo.reload();
               expect(frameUser).not.toBeNull();
-              expect(blackList.active).toBe(false);
+              expect(userTwo.blackListedAt).toBeNull();
+              expect(userTwo.isBlackListed).toBe(false);
             });
           });
           describe('should return status 400 if', () => {
