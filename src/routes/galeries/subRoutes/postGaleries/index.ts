@@ -114,6 +114,7 @@ export default async (req: Request, res: Response) => {
     ...galerie.toJSON(),
     ...objectGalerieExcluder,
     currentCoverPicture: null,
+    frames: [],
     hasNewFrames: false,
     role: 'creator',
     users: [],

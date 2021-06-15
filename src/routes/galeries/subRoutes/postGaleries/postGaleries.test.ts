@@ -8,10 +8,10 @@ import {
   User,
 } from '@src/db/models';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
 import {
   createUser,
   postGaleries,
-  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -24,54 +24,47 @@ import {
   FIELD_SHOULD_BE_A_STRING,
 } from '@src/helpers/errorMessages';
 
+let app: Server;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/galerie', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({
-        role: 'superAdmin',
-      });
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('POST', () => {
+    beforeAll(() => {
+      sequelize = initSequelize();
+      app = initApp();
+    });
+
+    beforeEach(async (done) => {
+      try {
+        await sequelize.sync({ force: true });
+        const {
+          user: createdUser,
+        } = await createUser({
+          role: 'superAdmin',
+        });
+
+        user = createdUser;
+        const jwt = signAuthToken(user);
+        token = jwt.token;
+      } catch (err) {
+        done(err);
+      }
+      done();
+    });
+
+    afterAll(async (done) => {
+      try {
+        await sequelize.sync({ force: true });
+        await sequelize.close();
+      } catch (err) {
+        done(err);
+      }
+      app.close();
+      done();
+    });
+
     describe('should return status 200 and', () => {
       it('create a galerie', async () => {
         const name = 'galeries\'s name';
@@ -96,12 +89,13 @@ describe('/galerie', () => {
         expect(returnedGalerie.currentCoverPicture).toBeNull();
         expect(returnedGalerie.defaultCoverPicture).not.toBeUndefined();
         expect(returnedGalerie.description).toBe('');
+        expect(returnedGalerie.frames).toEqual([]);
         expect(returnedGalerie.hasNewFrames).toBeFalsy();
         expect(returnedGalerie.id).not.toBeUndefined();
         expect(returnedGalerie.name).toBe(name);
         expect(returnedGalerie.role).toBe('creator');
         expect(returnedGalerie.updatedAt).toBeUndefined();
-        expect(returnedGalerie.users.length).toBe(0);
+        expect(returnedGalerie.users).toEqual([]);
         expect(status).toBe(200);
       });
       it('create galerie with descrition', async () => {
