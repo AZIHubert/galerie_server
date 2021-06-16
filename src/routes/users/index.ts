@@ -2,7 +2,6 @@ import { Router } from 'express';
 
 import {
   shouldBeAuth,
-  shouldBeSuperAdmin,
   shouldNotBeAuth,
   shouldNotBeGoogleOrFacebookUser,
 } from '@src/helpers/middlewares';
@@ -26,7 +25,6 @@ import {
   postUsersSignin,
 
   putUsersConfirmation,
-  putUsersIdRole,
   putUsersMeEmail,
   putUsersMePseudonym,
   putUsersMePassword,
@@ -56,7 +54,6 @@ const usersRoutes: () => Router = () => {
   // POST /signin/beta/
   // same as Signin but with a beta key code required
 
-  router.put('/:userId/role/', shouldBeAuth, shouldBeSuperAdmin, putUsersIdRole);
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.put('/me/email/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, putUsersMeEmail);
   router.put('/me/password/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, putUsersMePassword);

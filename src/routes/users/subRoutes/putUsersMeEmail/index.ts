@@ -8,6 +8,7 @@ import {
 import { User } from '@src/db/models';
 
 import {
+  FIELD_IS_ALREADY_TAKEN,
   WRONG_PASSWORD,
   WRONG_TOKEN,
   WRONG_TOKEN_USER_ID,
@@ -26,23 +27,39 @@ import { updateEmailToken } from '@src/helpers/verifyConfirmation';
 export default async (req: Request, res: Response) => {
   const user = req.user as User;
 
-  // Validate confirmToken.
+  // Validate request.headers.confirmation.
   const verify = updateEmailToken(req);
   if (!verify.OK) {
     return res.status(verify.status).send({
       errors: verify.errors,
     });
   }
+  // Don't increment tokenVersion
+  // it is not a error if an other
+  // user is logged in when clicking
+  // on the email.
   if (verify.id !== user.id) {
     return res.status(401).send({
       errors: WRONG_TOKEN_USER_ID,
     });
   }
   if (verify.updatedEmailTokenVersion !== user.updatedEmailTokenVersion) {
+    // If issue with confirmation
+    // increment tokenVersion.
+    try {
+      await user.increment({
+        authTokenVersion: 1,
+        updatedEmailTokenVersion: 1,
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
     return res.status(401).send({
       errors: WRONG_TOKEN_VERSION,
     });
   }
+
+  // validate request.headers.confirmation.email
   const {
     error: tokenError,
     value: tokenValue,
@@ -50,14 +67,55 @@ export default async (req: Request, res: Response) => {
     email: verify.updatedEmail,
   });
   if (tokenError) {
+    // If issue with confirmation
+    // increment tokenVersion.
+    try {
+      await user.increment({
+        authTokenVersion: 1,
+        updatedEmailTokenVersion: 1,
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
     return res.status(401).send({
       errors: normalizeJoiErrors(tokenError).email,
     });
   }
   if (verify.updatedEmail === user.email) {
+    // If issue with confirmation
+    // increment tokenVersion.
+    try {
+      await user.increment({
+        authTokenVersion: 1,
+        updatedEmailTokenVersion: 1,
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
     return res.status(401).send({
       errors: `${WRONG_TOKEN}: email should be different`,
     });
+  }
+
+  // Check if confirmation.email
+  // is not already taken.
+  try {
+    const emailAlreadyUse = await User.findOne({
+      where: {
+        email: tokenValue.email,
+      },
+    });
+    if (emailAlreadyUse) {
+      await user.increment({
+        authTokenVersion: 1,
+        updatedEmailTokenVersion: 1,
+      });
+      return res.status(401).send({
+        errors: `${WRONG_TOKEN}: ${FIELD_IS_ALREADY_TAKEN}`,
+      });
+    }
+  } catch (err) {
+    return res.status(500).send(err);
   }
 
   // Validate request.body.
@@ -108,7 +166,9 @@ export default async (req: Request, res: Response) => {
   setRefreshToken(req, user);
   const jwt = signAuthToken(user);
   return res.status(200).send({
-    expiresIn: jwt.expires,
-    token: jwt.token,
+    data: {
+      expiresIn: jwt.expires,
+      token: jwt.token,
+    },
   });
 };
