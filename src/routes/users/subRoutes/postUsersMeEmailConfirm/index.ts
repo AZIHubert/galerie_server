@@ -35,11 +35,17 @@ export default async (req: Request, res: Response) => {
       errors: verify.errors,
     });
   }
+
+  // Check if id from the token
+  // is the same as currentUser.id.
   if (verify.id !== user.id) {
     return res.status(401).send({
       errors: WRONG_TOKEN_USER_ID,
     });
   }
+
+  // Check if emailTokenVersion
+  // is the same as user.emailTokenVersion.
   if (verify.emailTokenVersion !== user.emailTokenVersion) {
     return res.status(401).send({
       errors: WRONG_TOKEN_VERSION,

@@ -19,11 +19,11 @@ import {
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
 import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 import {
   createUser,
   postUsersMeEmailConfirm,
-  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -31,58 +31,51 @@ import initApp from '@src/server';
 const emailMocked = jest.spyOn(email, 'sendValidateEmailMessage');
 const signMocked = jest.spyOn(jwt, 'sign');
 
+let app: Server;
+let password: string;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
 describe('/users', () => {
-  let app: Server;
-  let password: string;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    app = initApp();
-    sequelize = initSequelize();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      const {
-        password: createdPassword,
-        user: createdUser,
-      } = await createUser({});
-
-      password = createdPassword;
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-    } catch (err) {
-      done(err);
-    }
-    jest.clearAllMocks();
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/me', () => {
     describe('/updateEmail', () => {
       describe('/confirm', () => {
         describe('POST', () => {
+          beforeAll(() => {
+            app = initApp();
+            sequelize = initSequelize();
+          });
+
+          beforeEach(async (done) => {
+            try {
+              await sequelize.sync({ force: true });
+              const {
+                password: createdPassword,
+                user: createdUser,
+              } = await createUser({});
+              password = createdPassword;
+              user = createdUser;
+              const jsonwebtoken = signAuthToken(user);
+              token = jsonwebtoken.token;
+            } catch (err) {
+              done(err);
+            }
+            jest.clearAllMocks();
+            done();
+          });
+
+          afterAll(async (done) => {
+            try {
+              await sequelize.sync({ force: true });
+              await sequelize.close();
+            } catch (err) {
+              done(err);
+            }
+            app.close();
+            done();
+          });
+
           describe('should return status 204 and', () => {
             it('send an email and sign a token', async () => {
               const newEmail = 'user2@email.com';

@@ -14,10 +14,10 @@ import {
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
 import {
   createUser,
   postUsersMeEmail,
-  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -47,14 +47,8 @@ describe('/users', () => {
 
       password = createdPassword;
       user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
+      const jsonwebtoken = signAuthToken(user);
+      token = jsonwebtoken.token;
     } catch (err) {
       done(err);
     }
