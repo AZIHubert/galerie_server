@@ -25,6 +25,7 @@
     "db:migrate:undo:all:production": "cross-env NODE_ENV=production sequelize db:migrate:undo:all",
     "db:migrate:undo:all:test": "cross-env NODE_ENV=test sequelize db:migrate:undo:all",
     "db:migrate:undo:all": "yarn db:migrate:undo:all:development && yarn db:migrate:undo:all:production && db:migrate:undo:all:test",
+    "db:reset:test": "yarn db:drop:test && yarn db:create:test",
     "dev": "nodemon",
     "generateKeypair": "ts-node generateKeypair.ts",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --quiet --fix",
