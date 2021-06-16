@@ -3,9 +3,13 @@ import {
   Response,
 } from 'express';
 
-import { User } from '@src/db/models';
+import {
+  User,
+} from '@src/db/models';
 
-import { userExcluder } from '@src/helpers/excluders';
+import {
+  userExcluder,
+} from '@src/helpers/excluders';
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 
 export default async (req: Request, res: Response) => {

@@ -138,9 +138,9 @@ describe('/users', () => {
             } = await getUsersIdId(app, token, userTwo.id);
             const images = await Image.findAll();
             const profilePicture = await ProfilePicture.findByPk(profilePictureId);
+            expect(currentProfilePicture).toBeNull();
             expect(images.length).toBe(0);
             expect(profilePicture).toBeNull();
-            expect(currentProfilePicture).toBeNull();
           });
         });
         describe('should return status 400 if', () => {
