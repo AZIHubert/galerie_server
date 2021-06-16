@@ -3,7 +3,9 @@ import {
   Response,
 } from 'express';
 
-import { User } from '@src/db/models';
+import {
+  User,
+} from '@src/db/models';
 
 import {
   normalizeJoiErrors,
@@ -13,6 +15,7 @@ import {
 export default async (req: Request, res: Response) => {
   const user = req.user as User;
 
+  // Validate request.body.
   const {
     error,
     value,
@@ -23,6 +26,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Update pseudonym.
   try {
     await user.update({ pseudonym: value.pseudonym });
   } catch (err) {
