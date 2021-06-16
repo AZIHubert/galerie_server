@@ -10,11 +10,12 @@ import {
 } from '@src/db/models';
 
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
+import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
   createUser,
   postProfilePictures,
-  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -24,48 +25,47 @@ let sequelize: Sequelize;
 let token: string;
 let user: User;
 
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
+
 describe('/profilePicture', () => {
-  beforeAll(() => {
-    app = initApp();
-    sequelize = initSequelize();
-  });
-
-  beforeEach(async (done) => {
-    jest.clearAllMocks();
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({});
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
   describe('POST', () => {
+    beforeAll(() => {
+      app = initApp();
+      sequelize = initSequelize();
+    });
+
+    beforeEach(async (done) => {
+      jest.clearAllMocks();
+      (signedUrl as jest.Mock).mockImplementation(() => ({
+        OK: true,
+        signedUrl: 'signedUrl',
+      }));
+      try {
+        await sequelize.sync({ force: true });
+        await cleanGoogleBuckets();
+        const {
+          user: createdUser,
+        } = await createUser({});
+        user = createdUser;
+        const jwt = signAuthToken(user);
+        token = jwt.token;
+      } catch (err) {
+        done(err);
+      }
+      done();
+    });
+    afterAll(async (done) => {
+      try {
+        await sequelize.sync({ force: true });
+        await cleanGoogleBuckets();
+        await sequelize.close();
+      } catch (err) {
+        done(err);
+      }
+      app.close();
+      done();
+    });
+
     describe('should return status 200 and', () => {
       it('create a profile picture, images and store in Google buckets', async () => {
         const {
@@ -134,6 +134,27 @@ describe('/profilePicture', () => {
         const profilePicture = await ProfilePicture
           .findByPk(profilePictureId) as ProfilePicture;
         expect(profilePicture.current).toBe(false);
+      });
+    });
+    describe('should return status 500 if', () => {
+      it('all images are not saved on google', async () => {
+        (signedUrl as jest.Mock).mockImplementationOnce(() => ({
+          OK: false,
+        }));
+        const {
+          body,
+          status,
+        } = await postProfilePictures(app, token);
+        const images = await Image.findAll();
+        const profilePicture = await ProfilePicture.findOne({
+          where: {
+            userId: user.id,
+          },
+        });
+        expect(body.errors).toBe('something went wrong');
+        expect(images.length).toBe(0);
+        expect(profilePicture).toBeNull();
+        expect(status).toBe(500);
       });
     });
   });
