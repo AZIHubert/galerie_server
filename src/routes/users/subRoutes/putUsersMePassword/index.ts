@@ -19,6 +19,7 @@ export default async (req: Request, res: Response) => {
   const { currentPassword, newPassword } = req.body;
   const user = req.user as User;
 
+  // Validate request.body.
   try {
     const {
       error,
@@ -69,7 +70,9 @@ export default async (req: Request, res: Response) => {
   setRefreshToken(req, user);
   const jwt = signAuthToken(user);
   return res.status(200).send({
-    expiresIn: jwt.expires,
-    token: jwt.token,
+    data: {
+      expiresIn: jwt.expires,
+      token: jwt.token,
+    },
   });
 };

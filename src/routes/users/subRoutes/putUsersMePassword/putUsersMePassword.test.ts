@@ -3,7 +3,9 @@ import { Sequelize } from 'sequelize';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import {
+  User,
+} from '@src/db/models';
 
 import {
   FIELD_CANNOT_CONTAIN_SPACES,
@@ -17,10 +19,10 @@ import {
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
 import validatePassword from '@src/helpers/validatePassword';
 import {
   createUser,
-  postUsersLogin,
   putUsersMePassword,
 } from '@src/helpers/test';
 
@@ -42,17 +44,12 @@ describe('/users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      const { user: createdUser } = await createUser({});
-
+      const {
+        user: createdUser,
+      } = await createUser({});
       user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password: userPassword,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
+      const jwt = signAuthToken(user);
+      token = jwt.token;
     } catch (err) {
       done(err);
     }
@@ -77,7 +74,12 @@ describe('/users', () => {
         it('should return authToken', async () => {
           const newPassword = 'NewPassword0!';
           const {
-            body,
+            body: {
+              data: {
+                expiresIn,
+                token: returnedToken,
+              },
+            },
             status,
           } = await putUsersMePassword(app, token, {
             body: {
@@ -86,8 +88,8 @@ describe('/users', () => {
               newPassword,
             },
           });
-          expect(body.expiresIn).toBe(1800);
-          expect(typeof body.token).toBe('string');
+          expect(expiresIn).toBe(1800);
+          expect(returnedToken).not.toBeUndefined();
           expect(status).toBe(200);
         });
         it('should hash password and update user\'s password', async () => {
