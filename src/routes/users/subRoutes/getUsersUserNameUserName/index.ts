@@ -6,7 +6,6 @@ import { Op } from 'sequelize';
 
 import { User } from '@src/db/models';
 
-import checkBlackList from '@src/helpers/checkBlackList';
 import { userExcluder } from '@src/helpers/excluders';
 import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
 
@@ -19,10 +18,10 @@ export default async (req: Request, res: Response) => {
     order: queryOrder,
     page,
   } = req.query;
-  const returnedUsers: Array<any> = [];
-  let direction = 'DESC';
+  let direction = 'ASC';
   let offset: number;
-  let order = 'createdAt';
+  let order = 'pseudonym';
+  let returnedUsers;
   let users: User[];
 
   if (
@@ -60,8 +59,7 @@ export default async (req: Request, res: Response) => {
         id: {
           [Op.not]: id,
         },
-        // TODO:
-        // isBlackListed: false
+        isBlackListed: false,
         userName: {
           [Op.iLike]: `%${userName.toLowerCase()}%`,
         },
@@ -70,19 +68,13 @@ export default async (req: Request, res: Response) => {
 
     // Fetch current profile pictures
     // and their signed url.
-    await Promise.all(
+    returnedUsers = await Promise.all(
       users.map(async (user) => {
-        const userIsBlackListed = await checkBlackList(user);
-        let currentProfilePicture;
-
-        if (!userIsBlackListed) {
-          currentProfilePicture = await fetchCurrentProfilePicture(user);
-          const returnedUser: any = {
-            ...user.toJSON(),
-            currentProfilePicture,
-          };
-          returnedUsers.push(returnedUser);
-        }
+        const currentProfilePicture = await fetchCurrentProfilePicture(user);
+        return {
+          ...user.toJSON(),
+          currentProfilePicture,
+        };
       }),
     );
   } catch (err) {
