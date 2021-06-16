@@ -16,6 +16,7 @@ import {
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
 
+  // Validate request.body.
   const {
     error,
     value,
@@ -26,6 +27,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Create ticket.
   try {
     await Ticket.create({
       ...value,
