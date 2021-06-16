@@ -1,3 +1,5 @@
+// GET /profilePictures/
+
 import {
   Request,
   Response,

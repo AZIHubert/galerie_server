@@ -25,17 +25,21 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Fetch ticket.
   try {
     ticket = await Ticket.findByPk(ticketId);
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if ticket exist.
   if (!ticket) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('ticket'),
     });
   }
 
+  // Destroy ticket.
   try {
     await ticket.destroy();
   } catch (err) {

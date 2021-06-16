@@ -1,3 +1,5 @@
+// GET /tickets/
+
 import {
   Request,
   Response,
@@ -17,8 +19,8 @@ import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture'
 export default async (req: Request, res: Response) => {
   const { page } = req.query;
   const limit = 20;
-  const returnTickets: Array<any> = [];
   let offset: number;
+  let returnTickets: Array<any>;
   let tickets: Ticket[];
 
   if (typeof page === 'string') {
@@ -43,21 +45,26 @@ export default async (req: Request, res: Response) => {
       ],
       limit,
       offset,
+      order: [['createdAt', 'DESC']],
     });
-    await Promise.all(
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  try {
+    returnTickets = await Promise.all(
       tickets.map(async (ticket) => {
         let currentProfilePicture;
         if (ticket.user) {
           currentProfilePicture = await fetchCurrentProfilePicture(ticket.user);
         }
-        const ticketWithUsersWithProfilPicture: any = {
+        return {
           ...ticket.toJSON(),
           user: ticket.user ? {
             ...ticket.user.toJSON(),
             currentProfilePicture,
           } : null,
         };
-        returnTickets.push(ticketWithUsersWithProfilPicture);
       }),
     );
   } catch (err) {
