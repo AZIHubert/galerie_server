@@ -16,3 +16,10 @@ initSequelize(() => {
     console.log(`App start on port ${PORT}`);
   });
 });
+
+// TODO:
+// create a helper function to store image on Google Cloud
+// refactor fetch
+//  create a folder for each fetchers
+//  normalize each fetchers
+//  create fetchCoverPicture
