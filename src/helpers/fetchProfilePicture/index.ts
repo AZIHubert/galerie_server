@@ -51,6 +51,7 @@ export default async (profilePicture: ProfilePicture) => {
     await cropedImage.destroy();
     await originalImage.destroy();
     await pendingImage.destroy();
+    await profilePicture.destroy();
     return null;
   }
 

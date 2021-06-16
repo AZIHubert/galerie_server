@@ -62,9 +62,6 @@ export default async (req: Request, res: Response) => {
     returnedProfilePictures = await Promise.all(
       profilePictures.map(async (profilePicture) => {
         const normalizeProfilePicture = await fetchProfilePicture(profilePicture);
-        if (!normalizeProfilePicture) {
-          await profilePicture.destroy();
-        }
         return normalizeProfilePicture;
       }),
     );

@@ -12,7 +12,6 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
-  cleanGoogleBuckets,
   createProfilePicture,
   createUser,
   getProfilePictures,
@@ -42,7 +41,6 @@ describe('/profilePictures', () => {
       }));
       try {
         await sequelize.sync({ force: true });
-        await cleanGoogleBuckets();
         const {
           user: createdUser,
         } = await createUser({});
@@ -59,7 +57,6 @@ describe('/profilePictures', () => {
       jest.clearAllMocks();
       try {
         await sequelize.sync({ force: true });
-        await cleanGoogleBuckets();
         await sequelize.close();
       } catch (err) {
         done(err);
@@ -191,6 +188,23 @@ describe('/profilePictures', () => {
         expect(profilePictures[2].id).toBe(profilePictureThree.id);
         expect(profilePictures[3].id).toBe(profilePictureTwo.id);
         expect(profilePictures[4].id).toBe(profilePictureOne.id);
+      });
+      it('do not return profile pictures from other users', async () => {
+        const { user: userTwo } = await createUser({
+          email: 'user2@email.com',
+          userName: 'user2',
+        });
+        await createProfilePicture({
+          userId: userTwo.id,
+        });
+        const {
+          body: {
+            data: {
+              profilePictures,
+            },
+          },
+        } = await getProfilePictures(app, token);
+        expect(profilePictures.length).toBe(0);
       });
       it('return profilePicture === null if signedUrl.OK === false', async () => {
         (signedUrl as jest.Mock).mockImplementation(() => ({
