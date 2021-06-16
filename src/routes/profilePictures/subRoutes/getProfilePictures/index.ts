@@ -14,7 +14,7 @@ import {
 import {
   profilePictureExcluder,
 } from '@src/helpers/excluders';
-import fetchProfilePicture from '@src/helpers/fetchProfilePicture';
+import { fetchProfilePicture } from '@root/src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const { page } = req.query;

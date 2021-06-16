@@ -33,7 +33,7 @@ import {
 } from '@src/helpers/excluders';
 import gc from '@src/helpers/gc';
 import signedUrl from '@src/helpers/signedUrl';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import {
   normalizeJoiErrors,
   validatePostGaleriesIdFramesBody,

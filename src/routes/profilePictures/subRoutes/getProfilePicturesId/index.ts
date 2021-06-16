@@ -18,7 +18,7 @@ import {
 import {
   profilePictureExcluder,
 } from '@src/helpers/excluders';
-import fetchProfilePicture from '@src/helpers/fetchProfilePicture';
+import { fetchProfilePicture } from '@src/helpers/fetch';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {

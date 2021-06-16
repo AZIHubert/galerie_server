@@ -20,8 +20,10 @@ import {
   galeriePictureExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import fetchFrame from '@src/helpers/fetchFrame';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import {
+  fetchCurrentProfilePicture,
+  fetchFrame,
+} from '@src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const limit = 20;

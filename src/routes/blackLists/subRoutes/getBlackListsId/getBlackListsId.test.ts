@@ -23,6 +23,8 @@ import {
   createUser,
   deleteUsersMe,
   getBlackListsId,
+  testProfilePicture,
+  testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -114,27 +116,6 @@ describe('/blackLists', () => {
           } = await getBlackListsId(app, token, blackListId);
           expect(action).toBe('GET');
           expect(blackList.active).not.toBeUndefined();
-          expect(blackList.admin.authTokenVersion).toBeUndefined();
-          expect(blackList.admin.blackListedAt).toBeUndefined();
-          expect(blackList.admin.confirmed).toBeUndefined();
-          expect(blackList.admin.confirmTokenVersion).toBeUndefined();
-          expect(blackList.admin.createdAt).not.toBeUndefined();
-          expect(blackList.admin.currentProfilePicture).not.toBeUndefined();
-          expect(blackList.admin.email).toBeUndefined();
-          expect(blackList.admin.emailTokenVersion).toBeUndefined();
-          expect(blackList.admin.facebookId).toBeUndefined();
-          expect(blackList.admin.googleId).toBeUndefined();
-          expect(blackList.admin.hash).toBeUndefined();
-          expect(blackList.admin.id).not.toBeUndefined();
-          expect(blackList.admin.isBlackListed).toBeUndefined();
-          expect(blackList.admin.pseudonym).not.toBeUndefined();
-          expect(blackList.admin.resetPasswordTokenVersion).toBeUndefined();
-          expect(blackList.admin.role).not.toBeUndefined();
-          expect(blackList.admin.salt).toBeUndefined();
-          expect(blackList.admin.socialMediaUserName).not.toBeUndefined();
-          expect(blackList.admin.updatedAt).toBeUndefined();
-          expect(blackList.admin.updatedEmailTokenVersion).toBeUndefined();
-          expect(blackList.admin.userName).not.toBeUndefined();
           expect(blackList.adminId).toBeUndefined();
           expect(blackList.createdAt).not.toBeUndefined();
           expect(blackList.id).not.toBeUndefined();
@@ -142,30 +123,10 @@ describe('/blackLists', () => {
           expect(blackList.updatedAt).not.toBeUndefined();
           expect(blackList.updatedBy).not.toBeUndefined();
           expect(blackList.updatedById).toBeUndefined();
-          expect(blackList.user.authTokenVersion).toBeUndefined();
-          expect(blackList.user.blackListedAt).toBeUndefined();
-          expect(blackList.user.confirmed).toBeUndefined();
-          expect(blackList.user.confirmTokenVersion).toBeUndefined();
-          expect(blackList.user.createdAt).not.toBeUndefined();
-          expect(blackList.user.currentProfilePicture).toBeNull();
-          expect(blackList.user.defaultProfilePicture).not.toBeUndefined();
-          expect(blackList.user.email).toBeUndefined();
-          expect(blackList.user.emailTokenVersion).toBeUndefined();
-          expect(blackList.user.facebookId).toBeUndefined();
-          expect(blackList.user.googleId).toBeUndefined();
-          expect(blackList.user.hash).toBeUndefined();
-          expect(blackList.user.id).not.toBeUndefined();
-          expect(blackList.user.isBlackListed).toBeUndefined();
-          expect(blackList.user.pseudonym).not.toBeUndefined();
-          expect(blackList.user.resetPasswordTokenVersion).toBeUndefined();
-          expect(blackList.user.role).not.toBeUndefined();
-          expect(blackList.user.salt).toBeUndefined();
-          expect(blackList.user.socialMediaUserName).not.toBeUndefined();
-          expect(blackList.user.updatedAt).toBeUndefined();
-          expect(blackList.user.updatedEmailTokenVersion).toBeUndefined();
-          expect(blackList.user.userName).not.toBeUndefined();
           expect(blackList.userId).toBeUndefined();
           expect(status).toBe(200);
+          testUser(blackList.user);
+          testUser(blackList.admin);
         });
         it('include blackList.updatedBy', async () => {
           const { id: blackListId } = await createBlackList({
@@ -224,38 +185,7 @@ describe('/blackLists', () => {
               },
             },
           } = await getBlackListsId(app, token, blackListId);
-          expect(currentProfilePicture.createdAt).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.format).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.height).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.id).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.size).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.width).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImageId).toBeUndefined();
-          expect(currentProfilePicture.current).toBeUndefined();
-          expect(currentProfilePicture.id).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.originalImage.format).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.height).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.id).toBeUndefined();
-          expect(currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.size).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.originalImage.width).not.toBeUndefined();
-          expect(currentProfilePicture.originalImageId).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.format).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.height).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.id).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.size).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.width).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImageId).toBeUndefined();
-          expect(currentProfilePicture.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.userId).toBeUndefined();
+          testProfilePicture(currentProfilePicture);
         });
         it('include admin current profile picture', async () => {
           await createProfilePicture({
@@ -276,38 +206,7 @@ describe('/blackLists', () => {
               },
             },
           } = await getBlackListsId(app, token, blackListId);
-          expect(currentProfilePicture.createdAt).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.format).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.height).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.id).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.size).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.width).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImageId).toBeUndefined();
-          expect(currentProfilePicture.current).toBeUndefined();
-          expect(currentProfilePicture.id).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.originalImage.format).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.height).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.id).toBeUndefined();
-          expect(currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.size).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.originalImage.width).not.toBeUndefined();
-          expect(currentProfilePicture.originalImageId).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.format).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.height).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.id).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.size).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.width).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImageId).toBeUndefined();
-          expect(currentProfilePicture.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.userId).toBeUndefined();
+          testProfilePicture(currentProfilePicture);
         });
         it('include updatedBy current profile picture', async () => {
           await createProfilePicture({
@@ -330,38 +229,7 @@ describe('/blackLists', () => {
               },
             },
           } = await getBlackListsId(app, token, blackListId);
-          expect(currentProfilePicture.createdAt).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.format).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.height).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.id).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.size).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.width).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImageId).toBeUndefined();
-          expect(currentProfilePicture.current).toBeUndefined();
-          expect(currentProfilePicture.id).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.originalImage.format).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.height).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.id).toBeUndefined();
-          expect(currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.size).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.originalImage.width).not.toBeUndefined();
-          expect(currentProfilePicture.originalImageId).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.format).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.height).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.id).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.size).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.width).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImageId).toBeUndefined();
-          expect(currentProfilePicture.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.userId).toBeUndefined();
+          testProfilePicture(currentProfilePicture);
         });
         it('do not include admin if he have delete his account', async () => {
           const {

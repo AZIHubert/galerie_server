@@ -6,18 +6,14 @@ import {
 } from 'express';
 
 import {
-  Frame,
   Galerie,
-  GaleriePicture,
-  Image,
   User,
 } from '@src/db/models';
 
 import {
   galerieExcluder,
-  galeriePictureExcluder,
 } from '@src/helpers/excluders';
-import fetchFrame from '@src/helpers/fetchFrame';
+import { fetchCoverPicture } from '@src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
@@ -55,56 +51,14 @@ export default async (req: Request, res: Response) => {
   try {
     returnedGaleries = await Promise.all(
       galeries.map(async (galerie) => {
-        let normalizeCurrentCoverPicture;
-
-        // Fetch current cover picture.
-        const currentCoverPicture = await Frame.findOne({
-          include: [{
-            attributes: {
-              exclude: galeriePictureExcluder,
-            },
-            include: [
-              {
-                as: 'cropedImage',
-                model: Image,
-              },
-              {
-                as: 'originalImage',
-                model: Image,
-              },
-              {
-                as: 'pendingImage',
-                model: Image,
-              },
-            ],
-            model: GaleriePicture,
-            where: {
-              current: true,
-            },
-          }],
-          where: {
-            galerieId: galerie.id,
-          },
-        });
-
-        // Fetch signed url if galerie have cover picture.
-        if (currentCoverPicture) {
-          // TODO:
-          // should be fetchCoverPicture file
-          // the issue her that normalierCurrentCoverPicture
-          // return a normalizeFrame
-          // should be a normalizeGaleriePicture
-          normalizeCurrentCoverPicture = await fetchFrame(currentCoverPicture);
-        }
+        const coverPicture = await fetchCoverPicture(galerie);
 
         const userFromGalerie = galerie.users
           .find((user) => user.id === currentUser.id);
 
         return {
           ...galerie.toJSON(),
-          currentCoverPicture: normalizeCurrentCoverPicture
-            ? normalizeCurrentCoverPicture.galeriePictures[0]
-            : null,
+          currentCoverPicture: coverPicture,
           frames: [],
           hasNewFrames: userFromGalerie
             ? userFromGalerie.GalerieUser.hasNewFrames

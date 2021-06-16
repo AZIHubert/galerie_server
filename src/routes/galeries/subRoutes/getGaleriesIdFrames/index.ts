@@ -24,8 +24,11 @@ import {
   galeriePictureExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
-import fetchFrame from '@src/helpers/fetchFrame';
+import {
+  fetchCurrentProfilePicture,
+  fetchFrame,
+} from '@root/src/helpers/fetch';
+
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
