@@ -238,13 +238,13 @@ describe('/galeries', () => {
         const galeriePictures = await GaleriePicture.findAll({
           where: {
             id: createdFrame.galeriePictures
-              .map((galeriePicure) => galeriePicure.id),
+              .map((galeriePicure: GaleriePicture) => galeriePicure.id),
           },
         });
         const images = await Image.findAll({
           where: {
             id: createdFrame.galeriePictures
-              .map((galeriePicure) => galeriePicure.originalImageId),
+              .map((galeriePicure: GaleriePicture) => galeriePicure.originalImageId),
           },
         });
         expect(currentCoverPicture).toBeNull();

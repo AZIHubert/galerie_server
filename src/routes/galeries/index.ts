@@ -8,6 +8,7 @@ import {
 import {
   deleteGaleriesId,
   deleteGaleriesIdFramesId,
+  deleteGaleriesIdInvitations,
   deleteGaleriesIdInvitationsId,
   deleteGaleriesIdUnsubscribe,
   deleteGaleriesIdUsersId,
@@ -39,8 +40,7 @@ const router = Router();
 const galeriesRoutes: () => Router = () => {
   router.delete('/:galerieId/', shouldBeAuth, deleteGaleriesId);
   router.delete('/:galerieId/frames/:frameId/', shouldBeAuth, deleteGaleriesIdFramesId);
-  // TODO:
-  router.delete('/:galerieId/invitations', shouldBeAuth, () => {});
+  router.delete('/:galerieId/invitations', shouldBeAuth, deleteGaleriesIdInvitations);
   // delete all invitations
   // where: time !== null and time > new Date(Date.now())
   // or numOfInvits !== null and numOfInvits < 1

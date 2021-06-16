@@ -11,6 +11,7 @@ export { default as createUser } from './createUser';
 
 export { default as deleteGaleriesId } from './deleteGaleriesId';
 export { default as deleteGaleriesIdFramesId } from './deleteGaleriesIdFramesId';
+export { default as deleteGaleriesIdInvitations } from './deleteGaleriesIdInvitations';
 export { default as deleteGaleriesIdInvitationId } from './deleteGaleriesIdInvitationId';
 export { default as deleteGaleriesIdUsersId } from './deleteGaleriesIdUsersId';
 export { default as deleteGaleriesUnsubscribe } from './deleteGaleriesUnsubscribe';

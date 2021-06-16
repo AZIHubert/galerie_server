@@ -1,5 +1,6 @@
 export { default as deleteGaleriesId } from './deleteGaleriesId';
 export { default as deleteGaleriesIdFramesId } from './deleteGaleriesIdFramesId';
+export { default as deleteGaleriesIdInvitations } from './deleteGaleriesIdInvitations';
 export { default as deleteGaleriesIdInvitationsId } from './deleteGaleriesIdInvitationsId';
 export { default as deleteGaleriesIdUnsubscribe } from './deleteGaleriesIdUnsubscribe';
 export { default as deleteGaleriesIdUsersId } from './deleteGaleriesIdUsersId';
