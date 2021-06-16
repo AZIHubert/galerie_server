@@ -1,3 +1,5 @@
+// GET /users/id/:userId/
+
 import {
   Request,
   Response,
@@ -17,6 +19,7 @@ import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 export default async (req: Request, res: Response) => {
   const { userId } = req.params;
   const currentUser = req.user as User;
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let currentProfilePicture;
   let user: User | null;
   let userIsBlackListed: boolean;
@@ -37,15 +40,10 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Fetch confirmed/non blacklisted user with id.
+  // Fetch confirmed user with id.
   try {
     user = await User.findOne({
-      attributes: {
-        exclude: userExcluder,
-      },
       where: {
-        // TODO:
-        // blackListed: false
         confirmed: true,
         id: userId,
       },
@@ -69,7 +67,7 @@ export default async (req: Request, res: Response) => {
   }
   if (userIsBlackListed) {
     return res.status(404).send({
-      errors: 'user is black listed',
+      errors: MODEL_NOT_FOUND('user'),
     });
   }
 
@@ -80,9 +78,14 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  userExcluder.forEach((e) => {
+    objectUserExcluder[e] = undefined;
+  });
+
   // Compose final returned user.
   const userWithProfilePicture: any = {
     ...user.toJSON(),
+    ...objectUserExcluder,
     currentProfilePicture,
   };
 

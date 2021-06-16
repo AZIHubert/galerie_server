@@ -31,6 +31,8 @@ import {
   createProfilePicture,
   createUser,
   postGaleriesIdFrames,
+  testFrame,
+  testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -137,78 +139,13 @@ describe('/galeries', () => {
             expect(bucketPendingImages.length).toBe(1);
             expect(createdCropedImage).not.toBeNull();
             expect(createdFrames.length).toBe(1);
+            expect(createdFrames[0].numOfLikes).toBe(0);
             expect(createdGaleriePicture.length).toBe(1);
             expect(createdOriginalImage).not.toBeNull();
             expect(createdPendingImage).not.toBeNull();
-            expect(returnedFrame.createdAt).not.toBeUndefined();
-            expect(returnedFrame.description).toBe('');
-            expect(returnedFrame.galerieId).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].current).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].createdAt).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].cropedImageId).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].cropedImage.bucketName).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].cropedImage.createdAt).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].cropedImage.format).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].cropedImage.fileName).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].cropedImage.height).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].cropedImage.id).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].cropedImage.signedUrl).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].cropedImage.size).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].cropedImage.updatedAt).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].cropedImage.width).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].frameId).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].id).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].index).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].originalImageId).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].originalImage.bucketName).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].originalImage.createdAt).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].originalImage.format).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].originalImage.fileName).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].originalImage.height).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].originalImage.id).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].originalImage.signedUrl).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].originalImage.size).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].originalImage.updatedAt).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].originalImage.width).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].pendingImageId).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].pendingImage.bucketName).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].pendingImage.createdAt).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].pendingImage.format).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].pendingImage.fileName).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].pendingImage.height).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].pendingImage.id).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].pendingImage.signedUrl).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].pendingImage.size).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].pendingImage.updatedAt).toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].pendingImage.width).not.toBeUndefined();
-            expect(returnedFrame.galeriePictures[0].updatedAt).toBeUndefined();
-            expect(returnedFrame.id).not.toBeUndefined();
-            expect(returnedFrame.liked).not.toBeUndefined();
-            expect(returnedFrame.numOfLikes).toBe(0);
-            expect(returnedFrame.updatedAt).toBeUndefined();
-            expect(returnedFrame.user.authTokenVersion).toBeUndefined();
-            expect(returnedFrame.user.blackListedAt).toBeUndefined();
-            expect(returnedFrame.user.confirmed).toBeUndefined();
-            expect(returnedFrame.user.confirmedTokenVersion).toBeUndefined();
-            expect(returnedFrame.user.createdAt).not.toBeUndefined();
-            expect(returnedFrame.user.defaultProfilePicture).not.toBeUndefined();
-            expect(returnedFrame.user.emailTokenVersion).toBeUndefined();
-            expect(returnedFrame.user.email).toBeUndefined();
-            expect(returnedFrame.user.facebookId).toBeUndefined();
-            expect(returnedFrame.user.googleId).toBeUndefined();
-            expect(returnedFrame.user.hash).toBeUndefined();
-            expect(returnedFrame.user.id).not.toBeUndefined();
-            expect(returnedFrame.user.isBlackListed).toBeUndefined();
-            expect(returnedFrame.user.pseudonym).not.toBeUndefined();
-            expect(returnedFrame.user.resetPasswordTokenVersion).toBeUndefined();
-            expect(returnedFrame.user.role).not.toBeUndefined();
-            expect(returnedFrame.user.salt).toBeUndefined();
-            expect(returnedFrame.user.socialMediaUserName).not.toBeUndefined();
-            expect(returnedFrame.user.updatedAt).toBeUndefined();
-            expect(returnedFrame.user.updatedEmailTokenVersion).toBeUndefined();
-            expect(returnedFrame.user.userName).not.toBeUndefined();
-            expect(returnedFrame.userId).toBeUndefined();
             expect(returnedGalerieId).toBe(galerieId);
+            testFrame(returnedFrame);
+            testUser(returnedFrame.user, user);
           });
           it('create a frame width 2 images', async () => {
             const {

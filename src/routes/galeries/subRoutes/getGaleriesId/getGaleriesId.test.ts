@@ -24,6 +24,7 @@ import {
   createGalerieUser,
   createUser,
   getGaleriesId,
+  testGalerie,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -102,19 +103,8 @@ describe('/galeries', () => {
             status,
           } = await getGaleriesId(app, token, galerie.id);
           expect(action).toBe('GET');
-          expect(returnedGalerie.archived).toBe(galerie.archived);
-          expect(new Date(returnedGalerie.createdAt)).toEqual(galerie.createdAt);
-          expect(returnedGalerie.currentCoverPicture).toBeNull();
-          expect(returnedGalerie.defaultCoverPicture).toBe(galerie.defaultCoverPicture);
-          expect(returnedGalerie.description).toBe(galerie.description);
-          expect(returnedGalerie.frames.length).toBe(0);
-          expect(returnedGalerie.hasNewFrames).toBe(false);
-          expect(returnedGalerie.id).toBe(galerie.id);
-          expect(returnedGalerie.name).toBe(galerie.name);
-          expect(returnedGalerie.role).toBe('creator');
-          expect(returnedGalerie.updatedAt).toBeUndefined();
-          expect(returnedGalerie.users.length).toBe(0);
           expect(status).toBe(200);
+          testGalerie(returnedGalerie, galerie);
         });
         it('return galerie if user is subscribe to it', async () => {
           const {

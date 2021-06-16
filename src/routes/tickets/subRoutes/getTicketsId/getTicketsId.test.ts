@@ -23,6 +23,7 @@ import {
   createTicket,
   createUser,
   getTicketsId,
+  testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -104,28 +105,7 @@ describe('/tickets', () => {
           expect(ticket.header).toBe(createdTicket.header);
           expect(ticket.id).toBe(createdTicket.id);
           expect(ticket.updatedAt).toBeUndefined();
-          expect(ticket.user.authTokenVersion).toBeUndefined();
-          expect(ticket.user.blackListedAt).toBeUndefined();
-          expect(ticket.user.confirmed).toBeUndefined();
-          expect(ticket.user.confirmTokenVersion).toBeUndefined();
-          expect(new Date(ticket.user.createdAt)).toEqual(user.createdAt);
-          expect(ticket.user.currentProfilePicture).toBeNull();
-          expect(ticket.user.defaultProfilePicture).toBe(user.defaultProfilePicture);
-          expect(ticket.user.email).toBeUndefined();
-          expect(ticket.user.emailTokenVersion).toBeUndefined();
-          expect(ticket.user.facebookId).toBeUndefined();
-          expect(ticket.user.googleId).toBeUndefined();
-          expect(ticket.user.hash).toBeUndefined();
-          expect(ticket.user.id).toBe(user.id);
-          expect(ticket.user.isBlackListed).toBeUndefined();
-          expect(ticket.user.pseudonym).toBe(user.pseudonym);
-          expect(ticket.user.resetPasswordTokenVersion).toBeUndefined();
-          expect(ticket.user.role).toBe(user.role);
-          expect(ticket.user.salt).toBeUndefined();
-          expect(ticket.user.socialMediaUserName).toBe(user.socialMediaUserName);
-          expect(ticket.user.updatedEmailTokenVersion).toBeUndefined();
-          expect(ticket.user.updatedAt).toBeUndefined();
-          expect(ticket.user.userName).toBe(user.userName);
+          testUser(ticket.user, user);
           expect(ticket.userId).toBeUndefined();
         });
         it('and return ticket with user\'s profile picture', async () => {

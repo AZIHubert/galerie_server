@@ -24,6 +24,7 @@ import {
   createProfilePicture,
   createUser,
   postGaleriesIdInvitations,
+  testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -107,26 +108,7 @@ describe('/galeries', () => {
             expect(returnedInvitation.numOfInvits).toBeNull();
             expect(returnedInvitation.time).toBeNull();
             expect(returnedInvitation.updatedAt).toBeUndefined();
-            expect(returnedInvitation.user.authTokenVersion).toBeUndefined();
-            expect(returnedInvitation.user.confirmed).toBeUndefined();
-            expect(returnedInvitation.user.confirmTokenVersion).toBeUndefined();
-            expect(returnedInvitation.user.createdAt).not.toBeUndefined();
-            expect(returnedInvitation.user.currentProfilePicture).not.toBeUndefined();
-            expect(returnedInvitation.user.defaultProfilePicture).not.toBeUndefined();
-            expect(returnedInvitation.user.email).toBeUndefined();
-            expect(returnedInvitation.user.emailTokenVersion).toBeUndefined();
-            expect(returnedInvitation.user.facebookId).toBeUndefined();
-            expect(returnedInvitation.user.googleId).toBeUndefined();
-            expect(returnedInvitation.user.hash).toBeUndefined();
-            expect(returnedInvitation.user.id).not.toBeUndefined();
-            expect(returnedInvitation.user.pseudonym).not.toBeUndefined();
-            expect(returnedInvitation.user.resetPasswordTokenVersion).toBeUndefined();
-            expect(returnedInvitation.user.role).not.toBeUndefined();
-            expect(returnedInvitation.user.salt).toBeUndefined();
-            expect(returnedInvitation.user.socialMediaUserName).not.toBeUndefined();
-            expect(returnedInvitation.user.updatedAt).toBeUndefined();
-            expect(returnedInvitation.user.updatedEmailTokenVersion).toBeUndefined();
-            expect(returnedInvitation.user.userName).not.toBeUndefined();
+            testUser(returnedInvitation.user);
             expect(returnedInvitation.userId).toBeUndefined();
             expect(returnedGalerieId).toBe(galerieId);
             expect(status).toBe(200);

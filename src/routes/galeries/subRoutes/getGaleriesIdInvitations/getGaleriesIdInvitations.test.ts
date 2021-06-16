@@ -26,6 +26,7 @@ import {
   createProfilePicture,
   createUser,
   getGaleriesIdInvitations,
+  testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -126,25 +127,7 @@ describe('/galeries', () => {
             expect(invitations[0].numOfInvits).not.toBeUndefined();
             expect(invitations[0].time).not.toBeUndefined();
             expect(invitations[0].updatedAt).toBeUndefined();
-            expect(invitations[0].user.authTokenVersion).toBeUndefined();
-            expect(invitations[0].user.confirmed).toBeUndefined();
-            expect(invitations[0].user.createdAt).not.toBeUndefined();
-            expect(invitations[0].user.confirmTokenVersion).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture).not.toBeUndefined();
-            expect(invitations[0].user.defaultProfilePicture).not.toBeUndefined();
-            expect(invitations[0].user.email).toBeUndefined();
-            expect(invitations[0].user.emailTokenVersion).toBeUndefined();
-            expect(invitations[0].user.facebookId).toBeUndefined();
-            expect(invitations[0].user.googleId).toBeUndefined();
-            expect(invitations[0].user.hash).toBeUndefined();
-            expect(invitations[0].user.id).not.toBeUndefined();
-            expect(invitations[0].user.pseudonym).not.toBeUndefined();
-            expect(invitations[0].user.resetPasswordTokenVersion).toBeUndefined();
-            expect(invitations[0].user.role).not.toBeUndefined();
-            expect(invitations[0].user.salt).toBeUndefined();
-            expect(invitations[0].user.socialMediaUserName).not.toBeUndefined();
-            expect(invitations[0].user.updatedAt).toBeUndefined();
-            expect(invitations[0].user.updatedEmailTokenVersion).toBeUndefined();
+            testUser(invitations[0].user);
             expect(invitations[0].userId).toBeUndefined();
           });
           it('return invitations if there are not expired', async () => {

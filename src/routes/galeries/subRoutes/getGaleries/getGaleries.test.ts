@@ -19,6 +19,7 @@ import {
   createGalerieUser,
   createUser,
   getGaleries,
+  testGalerie,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -85,18 +86,7 @@ describe('/galeries', () => {
         } = await getGaleries(app, token);
         expect(action).toBe('GET');
         expect(galeries.length).toBe(1);
-        expect(galeries[0].archived).not.toBeUndefined();
-        expect(galeries[0].createdAt).not.toBeUndefined();
-        expect(galeries[0].currentCoverPicture).not.toBeUndefined();
-        expect(galeries[0].defaultCoverPicture).not.toBeUndefined();
-        expect(galeries[0].description).not.toBeUndefined();
-        expect(galeries[0].frames).not.toBeUndefined();
-        expect(galeries[0].hasNewFrames).not.toBeUndefined();
-        expect(galeries[0].id).not.toBeUndefined();
-        expect(galeries[0].name).not.toBeUndefined();
-        expect(galeries[0].role).not.toBeUndefined();
-        expect(galeries[0].updatedAt).toBeUndefined();
-        expect(galeries[0].users).not.toBeUndefined();
+        testGalerie(galeries[0]);
         expect(status).toBe(200);
       });
       it('return a pack of 20 galeries', async () => {

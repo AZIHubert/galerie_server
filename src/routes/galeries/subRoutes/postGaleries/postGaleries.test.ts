@@ -12,6 +12,7 @@ import { signAuthToken } from '@src/helpers/issueJWT';
 import {
   createUser,
   postGaleries,
+  testGalerie,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -84,18 +85,7 @@ describe('/galerie', () => {
         const galerie = await Galerie.findByPk(returnedGalerie.id);
         expect(action).toBe('POST');
         expect(galerie).not.toBeNull();
-        expect(returnedGalerie.archived).toBeFalsy();
-        expect(returnedGalerie.createdAt).not.toBeUndefined();
-        expect(returnedGalerie.currentCoverPicture).toBeNull();
-        expect(returnedGalerie.defaultCoverPicture).not.toBeUndefined();
-        expect(returnedGalerie.description).toBe('');
-        expect(returnedGalerie.frames).toEqual([]);
-        expect(returnedGalerie.hasNewFrames).toBeFalsy();
-        expect(returnedGalerie.id).not.toBeUndefined();
-        expect(returnedGalerie.name).toBe(name);
-        expect(returnedGalerie.role).toBe('creator');
-        expect(returnedGalerie.updatedAt).toBeUndefined();
-        expect(returnedGalerie.users).toEqual([]);
+        testGalerie(returnedGalerie);
         expect(status).toBe(200);
       });
       it('create galerie with descrition', async () => {

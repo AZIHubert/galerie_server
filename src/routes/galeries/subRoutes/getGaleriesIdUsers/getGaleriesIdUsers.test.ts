@@ -23,6 +23,7 @@ import {
   createProfilePicture,
   createUser,
   getGaleriesIdUsers,
+  testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -118,31 +119,7 @@ describe('/galeries', () => {
               },
             } = await getGaleriesIdUsers(app, token, galerieId);
             expect(users.length).toBe(1);
-            expect(users[0].authTokenVersion).toBeUndefined();
-            expect(users[0].blackListedAt).toBeUndefined();
-            expect(users[0].confirmed).toBeUndefined();
-            expect(users[0].confirmTokenVersion).toBeUndefined();
-            expect(users[0].createdAt).not.toBeUndefined();
-            expect(users[0].confirmTokenVersion).toBeUndefined();
-            expect(users[0].currentProfilePicture).not.toBeUndefined();
-            expect(users[0].defaultProfilePicture).not.toBeUndefined();
-            expect(users[0].email).toBeUndefined();
-            expect(users[0].emailTokenVersion).toBeUndefined();
-            expect(users[0].facebookId).toBeUndefined();
-            expect(users[0].galerieRole).not.toBeUndefined();
-            expect(users[0].galeries).toBeUndefined();
-            expect(users[0].googleId).toBeUndefined();
-            expect(users[0].hash).toBeUndefined();
-            expect(users[0].id).not.toBeUndefined();
-            expect(users[0].isBlackListed).toBeUndefined();
-            expect(users[0].pseudonym).not.toBeUndefined();
-            expect(users[0].resetPasswordTokenVersion).toBeUndefined();
-            expect(users[0].role).not.toBeUndefined();
-            expect(users[0].salt).toBeUndefined();
-            expect(users[0].socialMediaUserName).not.toBeUndefined();
-            expect(users[0].updatedAt).toBeUndefined();
-            expect(users[0].updatedEmailTokenVersion).toBeUndefined();
-            expect(users[0].userName).not.toBeUndefined();
+            testUser(users[0]);
           });
           it('return users with their current profile picture', async () => {
             const {

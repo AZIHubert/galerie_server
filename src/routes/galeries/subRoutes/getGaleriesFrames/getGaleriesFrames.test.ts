@@ -23,6 +23,8 @@ import {
   createProfilePicture,
   createUser,
   getGaleriesFrames,
+  testFrame,
+  testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -125,66 +127,8 @@ describe('/galeries', () => {
               },
             },
           } = await getGaleriesFrames(app, token);
-          expect(frames[0].createdAt).not.toBeUndefined();
-          expect(frames[0].description).not.toBeUndefined();
-          expect(frames[0].galerieId).toBeUndefined();
-          expect(frames[0].galeriePictures[0].current).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].createdAt).toBeUndefined();
-          expect(frames[0].galeriePictures[0].cropedImage.createdAt).toBeUndefined();
-          expect(frames[0].galeriePictures[0].cropedImage.format).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].cropedImage.height).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].cropedImage.id).toBeUndefined();
-          expect(frames[0].galeriePictures[0].cropedImage.signedUrl).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].cropedImage.size).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].cropedImage.updatedAt).toBeUndefined();
-          expect(frames[0].galeriePictures[0].cropedImage.width).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].cropedImageId).toBeUndefined();
-          expect(frames[0].galeriePictures[0].id).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].index).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].originalImage.createdAt).toBeUndefined();
-          expect(frames[0].galeriePictures[0].originalImage.format).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].originalImage.height).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].originalImage.id).toBeUndefined();
-          expect(frames[0].galeriePictures[0].originalImage.signedUrl).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].originalImage.size).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].originalImage.updatedAt).toBeUndefined();
-          expect(frames[0].galeriePictures[0].originalImage.width).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].originalImageId).toBeUndefined();
-          expect(frames[0].galeriePictures[0].pendingImage.createdAt).toBeUndefined();
-          expect(frames[0].galeriePictures[0].pendingImage.format).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].pendingImage.height).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].pendingImage.id).toBeUndefined();
-          expect(frames[0].galeriePictures[0].pendingImage.signedUrl).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].pendingImage.size).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].pendingImage.updatedAt).toBeUndefined();
-          expect(frames[0].galeriePictures[0].pendingImage.width).not.toBeUndefined();
-          expect(frames[0].galeriePictures[0].pendingImageId).toBeUndefined();
-          expect(frames[0].id).not.toBeUndefined();
-          expect(frames[0].likes).toBeUndefined();
-          expect(frames[0].liked).not.toBeUndefined();
-          expect(frames[0].numOfLikes).not.toBeUndefined();
-          expect(frames[0].updatedAt).toBeUndefined();
-          expect(frames[0].user.authTokenVersion).toBeUndefined();
-          expect(frames[0].user.blackListedAt).toBeUndefined();
-          expect(frames[0].user.confirmed).toBeUndefined();
-          expect(frames[0].user.confirmTokenVersion).toBeUndefined();
-          expect(frames[0].user.createdAt).not.toBeUndefined();
-          expect(frames[0].user.defaultProfilePicture).not.toBeUndefined();
-          expect(frames[0].user.email).toBeUndefined();
-          expect(frames[0].user.emailTokenVersion).toBeUndefined();
-          expect(frames[0].user.facebookId).toBeUndefined();
-          expect(frames[0].user.googleId).toBeUndefined();
-          expect(frames[0].user.hash).toBeUndefined();
-          expect(frames[0].user.id).not.toBeUndefined();
-          expect(frames[0].user.isBlackListed).toBeUndefined();
-          expect(frames[0].user.pseudonym).not.toBeUndefined();
-          expect(frames[0].user.resetPasswordTokenVersion).toBeUndefined();
-          expect(frames[0].user.role).not.toBeUndefined();
-          expect(frames[0].user.salt).toBeUndefined();
-          expect(frames[0].user.socialMediaUserName).not.toBeUndefined();
-          expect(frames[0].user.updatedAt).toBeUndefined();
-          expect(frames[0].user.updatedEmailTokenVersion).toBeUndefined();
-          expect(frames[0].user.userName).not.toBeUndefined();
+          testFrame(frames[0]);
+          testUser(frames[0].user);
         });
         it('return frames with user with his current profile picture', async () => {
           const { id: galerieId } = await createGalerie({
