@@ -13,6 +13,7 @@ export default async ({
   password = 'Password0!',
   pseudonym,
   role = 'user',
+  socialMediaUserName,
   userName = 'user',
 }: {
   confirmed?: boolean;
@@ -22,7 +23,8 @@ export default async ({
   isBlackListed?: boolean;
   password?: string;
   pseudonym?: string;
-  role?: 'admin' | 'superAdmin' | 'user'
+  role?: 'admin' | 'superAdmin' | 'user';
+  socialMediaUserName?: string;
   userName?: string;
 }) => {
   const newUser = {
@@ -33,6 +35,7 @@ export default async ({
     isBlackListed,
     pseudonym: pseudonym || userName || 'pseudonym',
     role: role || 'superAdmin',
+    socialMediaUserName,
     userName: `@${userName}` || '@userName',
   };
 

@@ -19,6 +19,7 @@ const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 export default async (req: Request, res: Response) => {
   let user: User | null;
 
+  // Validate request.body.
   const {
     error,
     value,
@@ -29,7 +30,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Find user with email.
+  // Fetch user with email.
   // This user shouldn't be register throught
   // Facebook or Google.
   try {
@@ -43,6 +44,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if user exist.
   if (!user) {
     return res.status(404).send({
       errors: {

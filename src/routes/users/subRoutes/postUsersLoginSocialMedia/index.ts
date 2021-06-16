@@ -181,7 +181,9 @@ export default async (req: Request, res: Response) => {
   setRefreshToken(req, user);
   const jwt = signAuthToken(user);
   return res.status(200).send({
-    expiresIn: jwt.expires,
-    token: jwt.token,
+    data: {
+      expiresIn: jwt.expires,
+      token: jwt.token,
+    },
   });
 };

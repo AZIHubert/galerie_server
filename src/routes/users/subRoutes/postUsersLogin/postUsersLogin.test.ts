@@ -19,50 +19,54 @@ import {
 
 import initApp from '@src/server';
 
+let app: Server;
+let password: string;
+let sequelize: Sequelize;
+let user: User;
 describe('/users', () => {
-  let app: Server;
-  let password: string;
-  let sequelize: Sequelize;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      const {
-        password: createdPassword,
-        user: createdUser,
-      } = await createUser({});
-
-      password = createdPassword;
-      user = createdUser;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/login', () => {
     describe('POST', () => {
-      describe('should return status 200 and', () => {
-        it('return token', async () => {
+      beforeAll(() => {
+        sequelize = initSequelize();
+        app = initApp();
+      });
+
+      beforeEach(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
           const {
-            body,
+            password: createdPassword,
+            user: createdUser,
+          } = await createUser({});
+
+          password = createdPassword;
+          user = createdUser;
+        } catch (err) {
+          done(err);
+        }
+        done();
+      });
+
+      afterAll(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
+      describe('should return status 200 and', () => {
+        it('return token and expiredIn', async () => {
+          const {
+            body: {
+              data: {
+                expiresIn,
+                token,
+              },
+            },
             status,
           } = await postUsersLogin(app, {
             body: {
@@ -70,8 +74,8 @@ describe('/users', () => {
               userNameOrEmail: user.email,
             },
           });
-          expect(body.expiresIn).toBe(1800);
-          expect(body.token).not.toBeUndefined();
+          expect(expiresIn).toBe(1800);
+          expect(token).not.toBeUndefined();
           expect(status).toBe(200);
         });
         it('trim request body.userNameOrEmail', async () => {

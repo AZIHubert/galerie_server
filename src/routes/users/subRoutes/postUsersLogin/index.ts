@@ -38,12 +38,6 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Fields from value are trimed.
-  const {
-    password,
-    userNameOrEmail,
-  } = value;
-
   // Find user with userName === userNameOrEmail
   // or email === userNameOrEmail.
   // This user cannot be register
@@ -53,10 +47,10 @@ export default async (req: Request, res: Response) => {
       where: {
         [Op.or]: [
           {
-            userName: `@${userNameOrEmail}`,
+            userName: `@${value.userNameOrEmail}`,
           },
           {
-            email: userNameOrEmail,
+            email: value.userNameOrEmail,
           },
         ],
         facebookId: null,
@@ -100,7 +94,11 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if request.password is valid.
-  const passwordIsValid = validatePassword(password, user.hash, user.salt);
+  const passwordIsValid = validatePassword(
+    value.password,
+    user.hash,
+    user.salt,
+  );
   if (!passwordIsValid) {
     return res.status(400).send({
       errors: {
@@ -113,7 +111,9 @@ export default async (req: Request, res: Response) => {
   setRefreshToken(req, user);
   const jwt = signAuthToken(user);
   return res.status(200).send({
-    expiresIn: jwt.expires,
-    token: jwt.token,
+    data: {
+      expiresIn: jwt.expires,
+      token: jwt.token,
+    },
   });
 };
