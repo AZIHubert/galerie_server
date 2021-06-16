@@ -42,6 +42,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Validate request.body.
   const {
     error,
     value,
@@ -52,6 +53,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Check if email/userName is not already taken.
   try {
     errors = await normalizeSequelizeErrors(
       value.email,
@@ -66,6 +68,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Craete user.
   try {
     const {
       hash,
@@ -93,6 +96,7 @@ export default async (req: Request, res: Response) => {
     ...objectUserExcluder,
     currentProfilePicture: null,
   };
+
   return res.status(200).send({
     action: 'POST',
     data: {

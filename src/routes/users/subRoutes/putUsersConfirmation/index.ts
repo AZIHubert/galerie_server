@@ -21,6 +21,8 @@ export default async (req: Request, res: Response) => {
       errors: verify.errors,
     });
   }
+
+  // Fetch user.
   try {
     user = await User.findOne({
       where: {
@@ -32,11 +34,16 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if user exist.
   if (!user) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('user'),
     });
   }
+
+  // Check if confimTokenVersion
+  // from request.headers.confirmation === user.confirmTokenVersion
   if (user.confirmTokenVersion !== verify.confirmTokenVersion) {
     return res.status(401).send({
       errors: WRONG_TOKEN_VERSION,
@@ -50,13 +57,13 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Increment confirmTokenVersion user's field.
+  // This route is accessible when clicking
+  // on a link send by email.
+  // confirmTokenVersion allow us to verify
+  // that this link should not be
+  // accessible once again.
   try {
-    // Increment confirmTokenVersion user's field.
-    // This route is accessible when clicking
-    // on a link send by email.
-    // confirmTokenVersion allow us to verify
-    // that this link should not be
-    // accessible once again.
     await user.increment({ confirmTokenVersion: 1 });
     await user.update({ confirmed: true });
   } catch (err) {
@@ -69,7 +76,9 @@ export default async (req: Request, res: Response) => {
   const jwt = signAuthToken(user);
   setRefreshToken(req, user);
   return res.status(200).send({
-    expiresIn: jwt.expires,
-    token: jwt.token,
+    data: {
+      expiresIn: jwt.expires,
+      token: jwt.token,
+    },
   });
 };
