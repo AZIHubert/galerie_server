@@ -20,7 +20,6 @@ import { signAuthToken } from '@src/helpers/issueJWT';
 import initSequelize from '@src/helpers/initSequelize.js';
 import signedUrl from '@src/helpers/signedUrl';
 import {
-  cleanGoogleBuckets,
   createBlackList,
   createFrame,
   createGalerie,
@@ -30,6 +29,7 @@ import {
   createUser,
   getGaleriesIdFramesId,
   testFrame,
+  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -61,7 +61,6 @@ describe('/galeries', () => {
               signedUrl: 'signedUrl',
             }));
             try {
-              await cleanGoogleBuckets();
               await sequelize.sync({ force: true });
               const {
                 user: createdUser,
@@ -85,7 +84,6 @@ describe('/galeries', () => {
             mockDate.reset();
             jest.clearAllMocks();
             try {
-              await cleanGoogleBuckets();
               await sequelize.sync({ force: true });
               await sequelize.close();
             } catch (err) {
@@ -133,69 +131,7 @@ describe('/galeries', () => {
                   },
                 },
               } = await getGaleriesIdFramesId(app, token, galerieId, frame.id);
-              expect(returnedFrame.user.currentProfilePicture.createdAt).not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.cropedImageId).toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.cropedImage.bucketName)
-                .toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.cropedImage.createdAt)
-                .toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.cropedImage.format)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.cropedImage.fileName).toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.cropedImage.height)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.cropedImage.id).toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.cropedImage.signedUrl)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.cropedImage.size).not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.cropedImage.updatedAt)
-                .toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.cropedImage.width)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.current).toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.id).toBe(profilePicture.id);
-              expect(returnedFrame.user.currentProfilePicture.originalImageId).toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.originalImage.bucketName)
-                .toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.originalImage.createdAt)
-                .toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.originalImage.format)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.originalImage.fileName)
-                .toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.originalImage.height)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.originalImage.id).toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.originalImage.signedUrl)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.originalImage.size)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.originalImage.updatedAt)
-                .toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.originalImage.width)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.pendingImageId).toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.pendingImage.bucketName)
-                .toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.pendingImage.createdAt)
-                .toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.pendingImage.format)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.pendingImage.fileName)
-                .toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.pendingImage.height)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.pendingImage.id).toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.pendingImage.signedUrl)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.pendingImage.size)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.pendingImage.updatedAt)
-                .toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.pendingImage.width)
-                .not.toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.updatedAt).toBeUndefined();
-              expect(returnedFrame.user.currentProfilePicture.userId).toBeUndefined();
+              testProfilePicture(returnedFrame.user.currentProfilePicture, profilePicture);
             });
             it('return liked === false if user don\'t have liked this frame', async () => {
               const frame = await createFrame({

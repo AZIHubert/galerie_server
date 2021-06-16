@@ -14,11 +14,12 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
-  cleanGoogleBuckets,
   createProfilePicture,
   createTicket,
   createUser,
   getTickets,
+  testProfilePicture,
+  testTicket,
   testUser,
 } from '@src/helpers/test';
 
@@ -46,7 +47,6 @@ describe('/tickets', () => {
     beforeEach(async (done) => {
       try {
         await sequelize.sync({ force: true });
-        await cleanGoogleBuckets();
         const {
           user: createdUser,
         } = await createUser({});
@@ -70,7 +70,6 @@ describe('/tickets', () => {
       jest.clearAllMocks();
       try {
         await sequelize.sync({ force: true });
-        await cleanGoogleBuckets();
         await sequelize.close();
       } catch (err) {
         done(err);
@@ -96,12 +95,7 @@ describe('/tickets', () => {
         expect(action).toBe('GET');
         expect(status).toBe(200);
         expect(tickets.length).toBe(1);
-        expect(tickets[0].body).not.toBeUndefined();
-        expect(tickets[0].createdAt).not.toBeUndefined();
-        expect(tickets[0].header).not.toBeUndefined();
-        expect(tickets[0].id).not.toBeUndefined();
-        expect(tickets[0].updatedAt).toBeUndefined();
-        expect(tickets[0].userId).toBeUndefined();
+        testTicket(tickets[0]);
         testUser(tickets[0].user);
       });
       it('include current profile picture', async () => {
@@ -118,44 +112,7 @@ describe('/tickets', () => {
             },
           },
         } = await getTickets(app, token);
-        expect(tickets[0].user.currentProfilePicture.createdAt).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.cropedImage.bucketName).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.cropedImage.fileName).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.cropedImage.format).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.cropedImage.height).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.cropedImage.id).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.cropedImage.size).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.cropedImage.width).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.cropedImagesId).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.current).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.id).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.originalImage.bucketName).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.originalImage.createdAt).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.originalImage.fileName).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.originalImage.format).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.originalImage.height).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.originalImage.id).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.originalImage.size).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.originalImage.width).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.originalImageId).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.pendingImage.bucketName).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.pendingImage.fileName).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.pendingImage.format).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.pendingImage.height).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.pendingImage.id).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.pendingImage.size).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.pendingImage.width).not.toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.pendingImageId).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.updatedAt).toBeUndefined();
-        expect(tickets[0].user.currentProfilePicture.userId).toBeUndefined();
+        testProfilePicture(tickets[0].user.currentProfilePicture);
       });
       it('do not include profile picture if signedUrl.OK === false', async () => {
         (signedUrl as jest.Mock).mockImplementation(() => ({

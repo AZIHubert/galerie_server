@@ -32,6 +32,7 @@ import {
   createUser,
   postGaleriesIdFrames,
   testFrame,
+  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -518,36 +519,7 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleriesIdFrames(app, token, galerieId);
-            expect(frame.user.currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-            expect(frame.user.currentProfilePicture.cropedImage.format).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.cropedImage.height).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.cropedImage.id).toBeUndefined();
-            expect(frame.user.currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.cropedImage.size).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-            expect(frame.user.currentProfilePicture.cropedImage.width).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.cropedImageId).toBeUndefined();
-            expect(frame.user.currentProfilePicture.id).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.originalImage.createdAt).toBeUndefined();
-            expect(frame.user.currentProfilePicture.originalImage.format).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.originalImage.height).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.originalImage.id).toBeUndefined();
-            expect(frame.user.currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.originalImage.size).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-            expect(frame.user.currentProfilePicture.originalImage.width).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.originalImageId).toBeUndefined();
-            expect(frame.user.currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-            expect(frame.user.currentProfilePicture.pendingImage.format).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.pendingImage.height).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.pendingImage.id).toBeUndefined();
-            expect(frame.user.currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.pendingImage.size).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-            expect(frame.user.currentProfilePicture.pendingImage.width).not.toBeUndefined();
-            expect(frame.user.currentProfilePicture.pendingImageId).toBeUndefined();
-            expect(frame.user.currentProfilePicture.updatedAt).toBeUndefined();
-            expect(frame.user.currentProfilePicture.userId).toBeUndefined();
+            testProfilePicture(frame.user.currentProfilePicture);
           });
           it('post a frame with a description', async () => {
             const description = 'frame\'s description';

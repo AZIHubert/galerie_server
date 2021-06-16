@@ -13,7 +13,6 @@ export default (
   expect(profilePicture.cropedImage.updatedAt).toBeUndefined();
   expect(profilePicture.cropedImage.width).not.toBeUndefined();
   expect(profilePicture.cropedImagesId).toBeUndefined();
-  expect(profilePicture.current).toBeUndefined();
   expect(profilePicture.originalImage.bucketName).toBeUndefined();
   expect(profilePicture.originalImage.createdAt).toBeUndefined();
   expect(profilePicture.originalImage.fileName).toBeUndefined();
@@ -41,8 +40,10 @@ export default (
   if (refProfilePicture) {
     expect(new Date(profilePicture.createdAt)).toEqual(new Date(refProfilePicture.createdAt));
     expect(profilePicture.id).toBe(refProfilePicture.id);
+    expect(profilePicture.current).toBe(refProfilePicture.current);
   } else {
     expect(profilePicture.createdAt).not.toBeUndefined();
     expect(profilePicture.id).not.toBeUndefined();
+    expect(profilePicture.current).not.toBeUndefined();
   }
 };

@@ -16,7 +16,6 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
-  cleanGoogleBuckets,
   createProfilePicture,
   createUser,
   putProfilePicturesId,
@@ -47,7 +46,6 @@ describe('/profilePictures', () => {
         }));
         try {
           await sequelize.sync({ force: true });
-          await cleanGoogleBuckets();
           const {
             user: createdUser,
           } = await createUser({});
@@ -64,7 +62,6 @@ describe('/profilePictures', () => {
         jest.clearAllMocks();
         try {
           await sequelize.sync({ force: true });
-          await cleanGoogleBuckets();
           await sequelize.close();
         } catch (err) {
           done(err);

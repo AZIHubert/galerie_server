@@ -89,6 +89,11 @@ export default async (req: Request, res: Response) => {
 
         // Fetch signed url if galerie have cover picture.
         if (currentCoverPicture) {
+          // TODO:
+          // should be fetchCoverPicture file
+          // the issue her that normalierCurrentCoverPicture
+          // return a normalizeFrame
+          // should be a normalizeGaleriePicture
           normalizeCurrentCoverPicture = await fetchFrame(currentCoverPicture);
         }
 

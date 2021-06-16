@@ -72,5 +72,8 @@ export { default as putUsersPassword } from './putUsersPassword';
 
 export { default as testFrame } from './testFrame';
 export { default as testGalerie } from './testGalerie';
+export { default as testGaleriePicture } from './testGaleriePicture';
+export { default as testInvitation } from './testInvitation';
 export { default as testProfilePicture } from './testProfilePicture';
+export { default as testTicket } from './testTicket';
 export { default as testUser } from './testUser';

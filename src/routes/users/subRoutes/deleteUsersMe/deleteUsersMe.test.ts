@@ -24,7 +24,6 @@ import {
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
-  cleanGoogleBuckets,
   createUser,
   deleteUsersMe,
   postGaleriesIdFrames,
@@ -55,7 +54,6 @@ describe('/users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
       const {
         password: createdPassword,
         user: createdUser,
@@ -80,7 +78,6 @@ describe('/users', () => {
   afterAll(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
       await sequelize.close();
     } catch (err) {
       done(err);

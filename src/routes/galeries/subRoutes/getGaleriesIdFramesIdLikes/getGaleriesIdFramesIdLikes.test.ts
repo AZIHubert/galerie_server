@@ -26,6 +26,7 @@ import {
   createUser,
   getGaleriesIdFramesIdLikes,
   testUser,
+  testProfilePicture,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -187,44 +188,7 @@ describe('/galeries', () => {
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                expect(users[0].currentProfilePicture.createdAt).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImageId).toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.bucketName).toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.fileName).toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.format).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.height).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.id).toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.size).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.width).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.current).toBeUndefined();
-                expect(users[0].currentProfilePicture.id).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImageId).toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.bucketName).toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.createdAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.fileName).toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.format).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.height).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.id).toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.size).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.width).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImageId).toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.bucketName).toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.fileName).toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.format).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.height).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.id).toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.size).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.width).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.updatedAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.userId).toBeUndefined();
+                testProfilePicture(users[0].currentProfilePicture);
               });
               it('return a pack of 20 users', async () => {
                 const NUM = 21;

@@ -18,12 +18,13 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
-  cleanGoogleBuckets,
   createGalerie,
   createGalerieUser,
   createProfilePicture,
   createUser,
   postGaleriesIdInvitations,
+  testInvitation,
+  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -54,7 +55,6 @@ describe('/galeries', () => {
             signedUrl: 'signedUrl',
           }));
           try {
-            await cleanGoogleBuckets();
             await sequelize.sync({ force: true });
             const {
               user: createdUser,
@@ -76,7 +76,6 @@ describe('/galeries', () => {
           mockDate.reset();
           jest.clearAllMocks();
           try {
-            await cleanGoogleBuckets();
             await sequelize.sync({ force: true });
             await sequelize.close();
           } catch (err) {
@@ -101,17 +100,10 @@ describe('/galeries', () => {
             const createdInvitation = await Invitation.findByPk(returnedInvitation.id);
             expect(action).toBe('POST');
             expect(createdInvitation).not.toBeNull();
-            expect(returnedInvitation.code).not.toBeUndefined();
-            expect(returnedInvitation.createdAt).not.toBeUndefined();
-            expect(returnedInvitation.galerieId).toBeUndefined();
-            expect(returnedInvitation.id).not.toBeUndefined();
-            expect(returnedInvitation.numOfInvits).toBeNull();
-            expect(returnedInvitation.time).toBeNull();
-            expect(returnedInvitation.updatedAt).toBeUndefined();
-            testUser(returnedInvitation.user);
-            expect(returnedInvitation.userId).toBeUndefined();
             expect(returnedGalerieId).toBe(galerieId);
             expect(status).toBe(200);
+            testUser(returnedInvitation.user);
+            testInvitation(returnedInvitation);
           });
           it('create an invit with numOfInvits', async () => {
             const numOfInvits = 1;
@@ -182,44 +174,7 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleriesIdInvitations(app, token, galerieId);
-            expect(currentProfilePicture.createdAt).not.toBeUndefined();
-            expect(currentProfilePicture.cropedImageId).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.bucketName).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.fileName).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.format).not.toBeUndefined();
-            expect(currentProfilePicture.cropedImage.height).not.toBeUndefined();
-            expect(currentProfilePicture.cropedImage.id).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-            expect(currentProfilePicture.cropedImage.size).not.toBeUndefined();
-            expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.width).not.toBeUndefined();
-            expect(currentProfilePicture.current).toBeUndefined();
-            expect(currentProfilePicture.originalImageId).toBeUndefined();
-            expect(currentProfilePicture.originalImage.bucketName).toBeUndefined();
-            expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
-            expect(currentProfilePicture.originalImage.fileName).toBeUndefined();
-            expect(currentProfilePicture.originalImage.format).not.toBeUndefined();
-            expect(currentProfilePicture.originalImage.height).not.toBeUndefined();
-            expect(currentProfilePicture.originalImage.id).toBeUndefined();
-            expect(currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
-            expect(currentProfilePicture.originalImage.size).not.toBeUndefined();
-            expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.originalImage.width).not.toBeUndefined();
-            expect(currentProfilePicture.id).not.toBeUndefined();
-            expect(currentProfilePicture.pendingImageId).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.bucketName).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.fileName).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.format).not.toBeUndefined();
-            expect(currentProfilePicture.pendingImage.height).not.toBeUndefined();
-            expect(currentProfilePicture.pendingImage.id).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-            expect(currentProfilePicture.pendingImage.size).not.toBeUndefined();
-            expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.width).not.toBeUndefined();
-            expect(currentProfilePicture.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.userId).toBeUndefined();
+            testProfilePicture(currentProfilePicture);
           });
         });
         describe('Should return status 400 if', () => {

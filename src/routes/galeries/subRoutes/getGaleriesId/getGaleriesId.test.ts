@@ -25,6 +25,7 @@ import {
   createUser,
   getGaleriesId,
   testGalerie,
+  testGaleriePicture,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -138,45 +139,7 @@ describe('/galeries', () => {
               },
             },
           } = await getGaleriesId(app, token, galerie.id);
-          expect(currentCoverPicture.current).not.toBeUndefined();
-          expect(currentCoverPicture.createdAt).toBeUndefined();
-          expect(currentCoverPicture.cropedImageId).toBeUndefined();
-          expect(currentCoverPicture.cropedImage.bucketName).toBeUndefined();
-          expect(currentCoverPicture.cropedImage.createdAt).toBeUndefined();
-          expect(currentCoverPicture.cropedImage.fileName).toBeUndefined();
-          expect(currentCoverPicture.cropedImage.format).not.toBeUndefined();
-          expect(currentCoverPicture.cropedImage.height).not.toBeUndefined();
-          expect(currentCoverPicture.cropedImage.id).toBeUndefined();
-          expect(currentCoverPicture.cropedImage.signedUrl).not.toBeUndefined();
-          expect(currentCoverPicture.cropedImage.size).not.toBeUndefined();
-          expect(currentCoverPicture.cropedImage.updatedAt).toBeUndefined();
-          expect(currentCoverPicture.cropedImage.width).not.toBeUndefined();
-          expect(currentCoverPicture.frameId).toBeUndefined();
-          expect(currentCoverPicture.id).not.toBeUndefined();
-          expect(currentCoverPicture.index).not.toBeUndefined();
-          expect(currentCoverPicture.originalImageId).toBeUndefined();
-          expect(currentCoverPicture.originalImage.bucketName).toBeUndefined();
-          expect(currentCoverPicture.originalImage.createdAt).toBeUndefined();
-          expect(currentCoverPicture.originalImage.fileName).toBeUndefined();
-          expect(currentCoverPicture.originalImage.format).not.toBeUndefined();
-          expect(currentCoverPicture.originalImage.height).not.toBeUndefined();
-          expect(currentCoverPicture.originalImage.id).toBeUndefined();
-          expect(currentCoverPicture.originalImage.signedUrl).not.toBeUndefined();
-          expect(currentCoverPicture.originalImage.size).not.toBeUndefined();
-          expect(currentCoverPicture.originalImage.updatedAt).toBeUndefined();
-          expect(currentCoverPicture.originalImage.width).not.toBeUndefined();
-          expect(currentCoverPicture.pendingImageId).toBeUndefined();
-          expect(currentCoverPicture.pendingImage.bucketName).toBeUndefined();
-          expect(currentCoverPicture.pendingImage.createdAt).toBeUndefined();
-          expect(currentCoverPicture.pendingImage.fileName).toBeUndefined();
-          expect(currentCoverPicture.pendingImage.format).not.toBeUndefined();
-          expect(currentCoverPicture.pendingImage.height).not.toBeUndefined();
-          expect(currentCoverPicture.pendingImage.id).toBeUndefined();
-          expect(currentCoverPicture.pendingImage.signedUrl).not.toBeUndefined();
-          expect(currentCoverPicture.pendingImage.size).not.toBeUndefined();
-          expect(currentCoverPicture.pendingImage.updatedAt).toBeUndefined();
-          expect(currentCoverPicture.pendingImage.width).not.toBeUndefined();
-          expect(currentCoverPicture.updatedAt).toBeUndefined();
+          testGaleriePicture(currentCoverPicture);
         });
         it('set GalerieUser.hasNewFrames to false', async () => {
           const {

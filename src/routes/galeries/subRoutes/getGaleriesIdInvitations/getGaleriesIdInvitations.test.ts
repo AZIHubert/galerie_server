@@ -18,7 +18,6 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
-  cleanGoogleBuckets,
   createBlackList,
   createGalerie,
   createGalerieUser,
@@ -26,6 +25,8 @@ import {
   createProfilePicture,
   createUser,
   getGaleriesIdInvitations,
+  testInvitation,
+  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -56,7 +57,6 @@ describe('/galeries', () => {
             signedUrl: 'signedUrl',
           }));
           try {
-            await cleanGoogleBuckets();
             await sequelize.sync({ force: true });
             const {
               user: createdUser,
@@ -80,7 +80,6 @@ describe('/galeries', () => {
           mockDate.reset();
           jest.clearAllMocks();
           try {
-            await cleanGoogleBuckets();
             await sequelize.sync({ force: true });
             await sequelize.close();
           } catch (err) {
@@ -120,15 +119,8 @@ describe('/galeries', () => {
               },
             } = await getGaleriesIdInvitations(app, token, galerieId);
             expect(invitations.length).toBe(1);
-            expect(invitations[0].code).not.toBeUndefined();
-            expect(invitations[0].createdAt).not.toBeUndefined();
-            expect(invitations[0].galerieId).toBeUndefined();
-            expect(invitations[0].id).not.toBeUndefined();
-            expect(invitations[0].numOfInvits).not.toBeUndefined();
-            expect(invitations[0].time).not.toBeUndefined();
-            expect(invitations[0].updatedAt).toBeUndefined();
+            testInvitation(invitations[0]);
             testUser(invitations[0].user);
-            expect(invitations[0].userId).toBeUndefined();
           });
           it('return invitations if there are not expired', async () => {
             const timeStamp = 1434319925275;
@@ -242,64 +234,7 @@ describe('/galeries', () => {
                 },
               },
             } = await getGaleriesIdInvitations(app, token, galerieId);
-            expect(invitations[0].user.currentProfilePicture.createdAt).not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.cropedImageId).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.cropedImage.bucketName)
-              .toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.cropedImage.fileName).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.cropedImage.format)
-              .not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.cropedImage.height)
-              .not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.cropedImage.id).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.cropedImage.signedUrl)
-              .not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.cropedImage.size).not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.cropedImage.width).not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.current).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.originalImageId).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.originalImage.bucketName)
-              .toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.originalImage.createdAt)
-              .toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.originalImage.fileName)
-              .toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.originalImage.format)
-              .not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.originalImage.height)
-              .not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.originalImage.id).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.originalImage.signedUrl)
-              .not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.originalImage.size)
-              .not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.originalImage.updatedAt)
-              .toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.originalImage.width)
-              .not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.id).not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.pendingImageId).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.pendingImage.bucketName)
-              .toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.pendingImage.createdAt)
-              .toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.pendingImage.fileName).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.pendingImage.format)
-              .not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.pendingImage.height)
-              .not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.pendingImage.id).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.pendingImage.signedUrl)
-              .not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.pendingImage.size).not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.pendingImage.updatedAt)
-              .toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.pendingImage.width)
-              .not.toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.updatedAt).toBeUndefined();
-            expect(invitations[0].user.currentProfilePicture.userId).toBeUndefined();
+            testProfilePicture(invitations[0].user.currentProfilePicture);
           });
           it('not return invitation if it\'s expired', async () => {
             const timeStamp = 1434319925275;

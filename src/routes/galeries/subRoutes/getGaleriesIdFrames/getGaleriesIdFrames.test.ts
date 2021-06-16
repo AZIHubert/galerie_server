@@ -29,6 +29,7 @@ import {
   createUser,
   getGaleriesIdFrames,
   testFrame,
+  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -201,39 +202,7 @@ describe('/galeries', () => {
                 },
               },
             } = await getGaleriesIdFrames(app, token, galerieId);
-            expect(frames[0].user.currentProfilePicture.createdAt).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.cropedImage.format).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.cropedImage.height).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.cropedImage.id).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.cropedImage.size).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.cropedImage.width).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.cropedImageId).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.current).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.id).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.originalImage.createdAt).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.originalImage.format).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.originalImage.height).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.originalImage.id).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.originalImage.signedUrl)
-              .not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.originalImage.size).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.originalImage.width).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.originalImageId).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.pendingImage.format).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.pendingImage.height).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.pendingImage.id).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.pendingImage.size).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.pendingImage.width).not.toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.pendingImageId).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.updatedAt).toBeUndefined();
-            expect(frames[0].user.currentProfilePicture.userId).toBeUndefined();
+            testProfilePicture(frames[0].user.currentProfilePicture);
           });
           it('return with liked === false if user don\'t have like a frame', async () => {
             await createFrame({

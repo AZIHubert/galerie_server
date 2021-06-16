@@ -14,7 +14,6 @@ export default async (user: User, exlude?: Array<string>) => {
     attributes: {
       exclude: exlude || [
         'cropedImageId',
-        'current',
         'originalImageId',
         'pendingImageId',
         'updatedAt',
