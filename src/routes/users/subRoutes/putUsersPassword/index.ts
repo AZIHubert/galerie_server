@@ -53,6 +53,15 @@ export default async (req: Request, res: Response) => {
   // Not confirmed users cannot reset
   // their password.
   if (!user.confirmed) {
+    // increment tokenVersion
+    // to invalidate email.
+    try {
+      await user.increment({
+        resetPasswordTokenVersion: 1,
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
     return res.status(400).send({
       errors: USER_SHOULD_BE_CONFIRMED,
     });
@@ -72,6 +81,13 @@ export default async (req: Request, res: Response) => {
 
   // Check if is correct token version.
   if (verify.resetPasswordTokenVersion !== user.resetPasswordTokenVersion) {
+    try {
+      await user.increment({
+        resetPasswordTokenVersion: 1,
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
     return res.status(401).send({
       errors: WRONG_TOKEN_VERSION,
     });

@@ -6,7 +6,6 @@ import {
 } from 'express';
 
 import {
-  Image,
   ProfilePicture,
   User,
 } from '@src/db/models';
@@ -15,10 +14,6 @@ import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
-import {
-  profilePictureExcluder,
-  imageExcluder,
-} from '@src/helpers/excluders';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -37,32 +32,6 @@ export default async (req: Request, res: Response) => {
   // Fetch profile picture.
   try {
     profilePicture = await ProfilePicture.findOne({
-      attributes: {
-        exclude: profilePictureExcluder,
-      },
-      include: [
-        {
-          as: 'cropedImage',
-          attributes: {
-            exclude: imageExcluder,
-          },
-          model: Image,
-        },
-        {
-          as: 'originalImage',
-          attributes: {
-            exclude: imageExcluder,
-          },
-          model: Image,
-        },
-        {
-          as: 'pendingImage',
-          attributes: {
-            exclude: imageExcluder,
-          },
-          model: Image,
-        },
-      ],
       where: {
         id: profilePictureId,
         userId: currentUser.id,

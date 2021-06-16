@@ -15,7 +15,7 @@ interface InvitationI {
   galerieId: string;
   id: string;
   numOfInvits: number | null;
-  time: number | null;
+  time?: Date;
   userId: string;
 }
 
@@ -62,9 +62,9 @@ export default class Invitation extends Model implements InvitationI {
   // If null, this invitation is avaible
   // for ever.
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.DATE,
   })
-  time!: number | null;
+  time!: Date;
 
   // The user who created this invitation.
   @ForeignKey(() => User)

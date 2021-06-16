@@ -24,8 +24,10 @@ import {
 const RESET_PASSWORD_SECRET = accEnv('RESET_PASSWORD_SECRET');
 
 export default async (req: Request, res: Response) => {
+  let isBlackListed: boolean;
   let user: User | null;
 
+  // Validate request.body.
   const {
     error,
     value,
@@ -36,7 +38,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Find user with request.email.
+  // Fetch user with request.email.
   // Facebook/Google registered users
   // doesn't have a password,
   // they're not included in the request.
@@ -51,6 +53,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if user exist.
   if (!user) {
     return res.status(404).send({
       errors: {
@@ -69,7 +73,11 @@ export default async (req: Request, res: Response) => {
 
   // Black listed users cannot reset
   // their password
-  const isBlackListed = await checkBlackList(user);
+  try {
+    isBlackListed = await checkBlackList(user);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
   if (isBlackListed) {
     return res.status(401).send({
       errors: USER_SHOULD_NOT_BE_BLACK_LISTED,

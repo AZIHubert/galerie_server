@@ -3,10 +3,14 @@ import {
   Response,
 } from 'express';
 
-import { User } from '@src/db/models';
+import {
+  User,
+} from '@src/db/models';
 
-import { userExcluder } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import {
+  userExcluder,
+} from '@src/helpers/excluders';
+import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;

@@ -1,11 +1,11 @@
 import { Server } from 'http';
+import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
 import {
-  Like,
   User,
 } from '@src/db/models';
 
@@ -14,109 +14,103 @@ import {
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
+import signedUrl from '@src/helpers/signedUrl';
 import {
-  cleanGoogleBuckets,
+  createBlackList,
+  createFrame,
+  createGalerie,
+  createGalerieUser,
+  createLike,
+  createProfilePicture,
   createUser,
   getGaleriesIdFramesIdLikes,
-  postGaleries,
-  postGaleriesIdFrames,
-  postGaleriesIdFramesIdLikes,
-  postGaleriesIdInvitations,
-  postGaleriesSubscribe,
-  postProfilePictures,
-  postUsersLogin,
+  testUser,
+  testProfilePicture,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
 
+let app: Server;
+let galerieId: string;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
+
 describe('/galeries', () => {
-  let app: Server;
-  let galerieId: string;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({
-        role: 'superAdmin',
-      });
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-      const {
-        body: {
-          data: {
-            galerie: {
-              id,
-            },
-          },
-        },
-      } = await postGaleries(app, token, {
-        body: {
-          name: 'galerie\'s name',
-        },
-      });
-      galerieId = id;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await cleanGoogleBuckets();
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:galerieId', () => {
     describe('/frames', () => {
       describe('/:frameId', () => {
         describe('/likes', () => {
           describe('GET', () => {
+            beforeAll(() => {
+              sequelize = initSequelize();
+              app = initApp();
+            });
+
+            beforeEach(async (done) => {
+              mockDate.reset();
+              jest.clearAllMocks();
+              (signedUrl as jest.Mock).mockImplementation(() => ({
+                OK: true,
+                signedUrl: 'signedUrl',
+              }));
+              try {
+                await sequelize.sync({ force: true });
+                const {
+                  user: createdUser,
+                } = await createUser({
+                  role: 'superAdmin',
+                });
+                user = createdUser;
+                const jwt = signAuthToken(user);
+                token = jwt.token;
+                const galerie = await createGalerie({
+                  userId: user.id,
+                });
+                galerieId = galerie.id;
+              } catch (err) {
+                done(err);
+              }
+              done();
+            });
+
+            afterAll(async (done) => {
+              mockDate.reset();
+              jest.clearAllMocks();
+              try {
+                await sequelize.sync({ force: true });
+                await sequelize.close();
+              } catch (err) {
+                done(err);
+              }
+              app.close();
+              done();
+            });
+
             describe('should return status 200 and', () => {
               let frameId: string;
+
               beforeEach(async (done) => {
                 try {
-                  const {
-                    body: {
-                      data: {
-                        frame,
-                      },
-                    },
-                  } = await postGaleriesIdFrames(app, token, galerieId);
+                  const frame = await createFrame({
+                    galerieId,
+                    userId: user.id,
+                  });
                   frameId = frame.id;
                 } catch (err) {
                   done(err);
                 }
                 done();
               });
+
               it('should not include current user', async () => {
-                await postGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+                await createLike({
+                  frameId,
+                  userId: user.id,
+                });
                 const {
                   body: {
                     action,
@@ -146,37 +140,19 @@ describe('/galeries', () => {
               });
               it('return One user', async () => {
                 const {
-                  password: passwordTwo,
                   user: userTwo,
                 } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
                 });
-                const {
-                  body: {
-                    token: tokenTwo,
-                  },
-                } = await postUsersLogin(app, {
-                  body: {
-                    password: passwordTwo,
-                    userNameOrEmail: userTwo.email,
-                  },
+                await createGalerieUser({
+                  galerieId,
+                  userId: userTwo.id,
                 });
-                const {
-                  body: {
-                    data: {
-                      invitation: {
-                        code,
-                      },
-                    },
-                  },
-                } = await postGaleriesIdInvitations(app, token, galerieId);
-                await postGaleriesSubscribe(app, tokenTwo, {
-                  body: {
-                    code,
-                  },
+                await createLike({
+                  frameId,
+                  userId: userTwo.id,
                 });
-                await postGaleriesIdFramesIdLikes(app, tokenTwo, galerieId, frameId);
                 const {
                   body: {
                     data: {
@@ -185,61 +161,26 @@ describe('/galeries', () => {
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 expect(users.length).toBe(1);
-                expect(users[0].authTokenVersion).toBeUndefined();
-                expect(users[0].confirmed).toBeUndefined();
-                expect(users[0].confirmTokenVersion).toBeUndefined();
-                expect(users[0].createdAt).not.toBeUndefined();
-                expect(users[0].currentProfilePicture).not.toBeUndefined();
-                expect(users[0].defaultProfilePicture).not.toBeUndefined();
-                expect(users[0].email).toBeUndefined();
-                expect(users[0].emailTokenVersion).toBeUndefined();
-                expect(users[0].facebookId).toBeUndefined();
-                expect(users[0].googleId).toBeUndefined();
-                expect(users[0].hash).toBeUndefined();
-                expect(users[0].id).not.toBeUndefined();
-                expect(users[0].pseudonym).not.toBeUndefined();
-                expect(users[0].resetPasswordTokenVersion).toBeUndefined();
-                expect(users[0].role).not.toBeUndefined();
-                expect(users[0].salt).toBeUndefined();
-                expect(users[0].socialMediaUserName).not.toBeUndefined();
-                expect(users[0].updatedAt).toBeUndefined();
-                expect(users[0].updatedEmailTokenVersion).toBeUndefined();
-                expect(users[0].userName).not.toBeUndefined();
+                testUser(users[0]);
               });
               it('return users with current profile picture', async () => {
                 const {
-                  password: passwordTwo,
                   user: userTwo,
                 } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
                 });
-                const {
-                  body: {
-                    token: tokenTwo,
-                  },
-                } = await postUsersLogin(app, {
-                  body: {
-                    password: passwordTwo,
-                    userNameOrEmail: userTwo.email,
-                  },
+                await createGalerieUser({
+                  galerieId,
+                  userId: userTwo.id,
                 });
-                const {
-                  body: {
-                    data: {
-                      invitation: {
-                        code,
-                      },
-                    },
-                  },
-                } = await postGaleriesIdInvitations(app, token, galerieId);
-                await postGaleriesSubscribe(app, tokenTwo, {
-                  body: {
-                    code,
-                  },
+                await createLike({
+                  frameId,
+                  userId: userTwo.id,
                 });
-                await postGaleriesIdFramesIdLikes(app, tokenTwo, galerieId, frameId);
-                await postProfilePictures(app, tokenTwo);
+                await createProfilePicture({
+                  userId: userTwo.id,
+                });
                 const {
                   body: {
                     data: {
@@ -247,44 +188,7 @@ describe('/galeries', () => {
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                expect(users[0].currentProfilePicture.createdAt).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImageId).toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.bucketName).toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.fileName).toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.format).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.height).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.id).toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.size).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.cropedImage.width).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.current).toBeUndefined();
-                expect(users[0].currentProfilePicture.id).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImageId).toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.bucketName).toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.createdAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.fileName).toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.format).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.height).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.id).toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.size).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.originalImage.width).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImageId).toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.bucketName).toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.fileName).toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.format).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.height).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.id).toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.size).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.pendingImage.width).not.toBeUndefined();
-                expect(users[0].currentProfilePicture.updatedAt).toBeUndefined();
-                expect(users[0].currentProfilePicture.userId).toBeUndefined();
+                testProfilePicture(users[0].currentProfilePicture);
               });
               it('return a pack of 20 users', async () => {
                 const NUM = 21;
@@ -295,7 +199,7 @@ describe('/galeries', () => {
                       email: `user${index + 2}@email.com`,
                       userName: `user${index + 2}`,
                     });
-                    await Like.create({
+                    await createLike({
                       frameId,
                       userId: newUser.id,
                     });
@@ -317,6 +221,124 @@ describe('/galeries', () => {
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId, { page: 2 });
                 expect(firstPack.length).toBe(20);
                 expect(secondPack.length).toBe(1);
+              });
+              it('order users by createdAt', async () => {
+                const { user: userTwo } = await createUser({
+                  email: 'user2@email.com',
+                  userName: 'user2',
+                });
+                const { user: userThree } = await createUser({
+                  email: 'user3@email.com',
+                  userName: 'user3',
+                });
+                const { user: userFour } = await createUser({
+                  email: 'user4@email.com',
+                  userName: 'user4',
+                });
+                const { user: userFive } = await createUser({
+                  email: 'user5@email.com',
+                  userName: 'user5',
+                });
+                const { user: userSix } = await createUser({
+                  email: 'user6@email.com',
+                  userName: 'user6',
+                });
+                await createLike({
+                  frameId,
+                  userId: userTwo.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userThree.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userFour.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userFive.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userSix.id,
+                });
+                const {
+                  body: {
+                    data: {
+                      users,
+                    },
+                  },
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+                expect(users.length).toBe(5);
+                expect(users[0].id).toBe(userSix.id);
+                expect(users[1].id).toBe(userFive.id);
+                expect(users[2].id).toBe(userFour.id);
+                expect(users[3].id).toBe(userThree.id);
+                expect(users[4].id).toBe(userTwo.id);
+              });
+              it('return null if user is black listed', async () => {
+                const { user: userTwo } = await createUser({
+                  email: 'user2@email.com',
+                  userName: 'user2',
+                });
+                await createGalerieUser({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userTwo.id,
+                });
+                await createBlackList({
+                  adminId: user.id,
+                  userId: userTwo.id,
+                });
+                const {
+                  body: {
+                    data: {
+                      users,
+                    },
+                  },
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+                expect(users.length).toBe(1);
+                expect(users[0]).toBeNull();
+              });
+              it('return user if black list has expired', async () => {
+                const timeStamp = 1434319925275;
+                const time = 1000 * 60 * 10;
+                mockDate.set(timeStamp);
+                const {
+                  user: userTwo,
+                } = await createUser({
+                  email: 'user2@email.com',
+                  userName: 'user2',
+                });
+                await createGalerieUser({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userTwo.id,
+                });
+                await createBlackList({
+                  adminId: user.id,
+                  time,
+                  userId: userTwo.id,
+                });
+                mockDate.set(timeStamp + time + 1);
+                const {
+                  body: {
+                    data: {
+                      users,
+                    },
+                  },
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+                await userTwo.reload();
+                expect(users[0]).not.toBeNull();
+                expect(userTwo.blackListedAt).toBeNull();
+                expect(userTwo.isBlackListed).toBe(false);
               });
             });
             describe('should return status 400 if', () => {
@@ -348,37 +370,18 @@ describe('/galeries', () => {
               });
               it('galerie exist but current user is not subscribe to it', async () => {
                 const {
-                  password: passwordTwo,
                   user: userTwo,
                 } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
                 });
-                const {
-                  body: {
-                    token: tokenTwo,
-                  },
-                } = await postUsersLogin(app, {
-                  body: {
-                    password: passwordTwo,
-                    userNameOrEmail: userTwo.email,
-                  },
-                });
-                const {
-                  body: {
-                    data: {
-                      galerie,
-                    },
-                  },
-                } = await postGaleries(app, tokenTwo, {
-                  body: {
-                    name: 'galerie\'s name',
-                  },
+                const galerieTwo = await createGalerie({
+                  userId: userTwo.id,
                 });
                 const {
                   body,
                   status,
-                } = await getGaleriesIdFramesIdLikes(app, token, galerie.id, uuidv4());
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieTwo.id, uuidv4());
                 expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
                 expect(status).toBe(404);
               });
@@ -391,28 +394,17 @@ describe('/galeries', () => {
                 expect(status).toBe(404);
               });
               it('frame exist but is not post on this galerie', async () => {
-                const {
-                  body: {
-                    data: {
-                      galerie,
-                    },
-                  },
-                } = await postGaleries(app, token, {
-                  body: {
-                    name: 'galerie\'s name',
-                  },
+                const galerieTwo = await createGalerie({
+                  userId: user.id,
                 });
-                const {
-                  body: {
-                    data: {
-                      frame,
-                    },
-                  },
-                } = await postGaleriesIdFrames(app, token, galerie.id);
+                const { id: frameId } = await createFrame({
+                  galerieId: galerieTwo.id,
+                  userId: user.id,
+                });
                 const {
                   body,
                   status,
-                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
                 expect(status).toBe(404);
               });

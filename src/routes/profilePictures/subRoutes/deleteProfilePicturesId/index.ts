@@ -32,7 +32,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if profile picture exist.
+  // Fetch profilePicture.
   try {
     profilePicture = await ProfilePicture.findOne({
       include: [
@@ -48,6 +48,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Check if profile picture exist.
   if (!profilePicture) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('profile picture'),

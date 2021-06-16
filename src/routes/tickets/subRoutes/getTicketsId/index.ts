@@ -18,13 +18,14 @@ import {
   ticketExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { ticketId } = req.params;
+  let currentProfilePicture;
+  let returnedTicket = {};
   let ticket: Ticket | null;
-  let returnTicket = {};
 
   // Check if request.params.blackListId
   // is a UUID v4.
@@ -62,26 +63,27 @@ export default async (req: Request, res: Response) => {
   }
 
   // Fetch current profile picture.
-  try {
-    let currentProfilePicture;
-    if (ticket.user) {
+  if (ticket.user) {
+    try {
       currentProfilePicture = await fetchCurrentProfilePicture(ticket.user);
+    } catch (err) {
+      return res.status(500).send(err);
     }
-    returnTicket = {
-      ...ticket.toJSON(),
-      user: ticket.user ? {
-        ...ticket.user.toJSON(),
-        currentProfilePicture,
-      } : null,
-    };
-  } catch (err) {
-    return res.status(500).send(err);
   }
+
+  // Compose returnedTicket.
+  returnedTicket = {
+    ...ticket.toJSON(),
+    user: ticket.user ? {
+      ...ticket.user.toJSON(),
+      currentProfilePicture,
+    } : null,
+  };
 
   return res.status(200).send({
     action: 'GET',
     data: {
-      ticket: returnTicket,
+      ticket: returnedTicket,
     },
   });
 };

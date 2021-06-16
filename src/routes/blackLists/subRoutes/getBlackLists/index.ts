@@ -1,7 +1,10 @@
+// GET /blackLists/
+
 import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   BlackList,
@@ -12,7 +15,7 @@ import {
   blackListExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const {
@@ -20,10 +23,11 @@ export default async (req: Request, res: Response) => {
     page,
   } = req.query;
   const limit = 20;
-  const returnedBlackLists: Array<any> = [];
-  let blackLists: Array<BlackList>;
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let direction = 'DESC';
   let offset: number;
+  let returnedBlackLists: Array<any> = [];
+  let users:Array<User>;
 
   if (typeof page === 'string') {
     offset = ((+page || 1) - 1) * limit;
@@ -38,97 +42,101 @@ export default async (req: Request, res: Response) => {
     direction = queryDirection;
   }
 
+  // Fetch blackLists.
   try {
-    // Get all black listed user
-    blackLists = await BlackList.findAll({
-      attributes: {
-        exclude: blackListExcluder,
-      },
+    users = await User.findAll({
       include: [
         {
-          as: 'admin',
+          as: 'blackListsUser',
           attributes: {
-            exclude: userExcluder,
+            exclude: blackListExcluder,
           },
-          model: User,
-        },
-        {
-          as: 'updatedBy',
-          attributes: {
-            exclude: userExcluder,
+          include: [
+            {
+              as: 'admin',
+              attributes: {
+                exclude: userExcluder,
+              },
+              model: User,
+            },
+            {
+              as: 'updatedBy',
+              attributes: {
+                exclude: userExcluder,
+              },
+              model: User,
+            },
+          ],
+          order: [['createdAt', 'DESC']],
+          model: BlackList,
+          where: {
+            [Op.or]: [
+              {
+                time: {
+                  [Op.gte]: new Date(Date.now()),
+                },
+              },
+              {
+                time: null,
+              },
+            ],
           },
-          model: User,
-        },
-        {
-          as: 'user',
-          attributes: {
-            exclude: userExcluder,
-          },
-          model: User,
         },
       ],
       limit,
       offset,
-      order: [['createdAt', direction]],
+      order: [['blackListedAt', direction]],
+      where: {
+        isBlackListed: true,
+      },
     });
   } catch (err) {
     return res.status(500).send(err);
   }
 
   try {
-    // Get black listed user's current profile picture
-    // with their signed url.
-    await Promise.all(
-      blackLists.map(async (blackList) => {
-        // Check if blackList.user exist
-        if (!blackList.user) {
-          await blackList.destroy();
-        } else {
-          let blackListExpire = false;
+    // Get black listed admin/updatedBy/user's
+    // current profile picture  with their signed url.
+    returnedBlackLists = await Promise.all(
+      users.map(async (user) => {
+        const {
+          blackListsUser: [{
+            admin,
+            updatedBy,
+          }],
+        } = user;
+        const currentProfilePicture = await fetchCurrentProfilePicture(user);
+        let adminCurrentProfilePicture;
+        let updatedByCurrentProfilePicture;
 
-          // Check if black list is expired.
-          if (blackList.time) {
-            const time = new Date(
-              blackList.createdAt.getTime() + blackList.time,
-            );
-            blackListExpire = time < new Date(Date.now());
-          }
-
-          if (blackListExpire) {
-            await blackList.destroy();
-          } else {
-            // Fetch user, admin and updatedBy current profile picture.
-            const currentProfilePicture = await fetchCurrentProfilePicture(blackList.user);
-            let adminCurrentProfilePicture;
-            let updatedByCurrentProfilePicture;
-            if (blackList.admin) {
-              adminCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.admin);
-            }
-            if (blackList.updatedBy) {
-              updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(
-                blackList.updatedBy,
-              );
-            }
-
-            const returnedBlackList = {
-              ...blackList.toJSON(),
-              admin: blackList.admin ? {
-                ...blackList.admin.toJSON(),
-                currentProfilePicture: adminCurrentProfilePicture,
-              } : null,
-              updatedBy: blackList.updatedBy ? {
-                ...blackList.updatedBy.toJSON(),
-                currentProfilePicture: updatedByCurrentProfilePicture,
-              } : null,
-              user: {
-                ...blackList.user.toJSON(),
-                currentProfilePicture,
-              },
-            };
-
-            returnedBlackLists.push(returnedBlackList);
-          }
+        if (admin) {
+          adminCurrentProfilePicture = await fetchCurrentProfilePicture(admin);
         }
+        if (user.blackListsUser[0].updatedBy) {
+          updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(updatedBy);
+        }
+
+        userExcluder.forEach((e) => {
+          objectUserExcluder[e] = undefined;
+        });
+
+        return {
+          ...user.blackListsUser[0].toJSON(),
+          admin: admin ? {
+            ...admin.toJSON(),
+            currentProfilePicture: adminCurrentProfilePicture,
+          } : null,
+          active: true,
+          updatedBy: updatedBy ? {
+            ...updatedBy.toJSON(),
+            currentProfilePicture: updatedByCurrentProfilePicture,
+          } : null,
+          user: {
+            ...user.toJSON(),
+            ...objectUserExcluder,
+            currentProfilePicture,
+          },
+        };
       }),
     );
   } catch (err) {

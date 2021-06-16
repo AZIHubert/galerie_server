@@ -21,6 +21,7 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import {
   createUser,
   postUsersSignin,
+  testUser,
 } from '@src/helpers/test';
 import validatePassword from '@src/helpers/validatePassword';
 
@@ -59,7 +60,7 @@ describe('/users', () => {
       });
 
       describe('should return status 200 and', () => {
-        it('return a user with relevent attributes and create a user with an encrypted password', async () => {
+        it('return a user created with an encrypted password', async () => {
           const email = 'user@email.com';
           const password = 'Password0!';
           const userName = 'user';
@@ -85,31 +86,17 @@ describe('/users', () => {
           expect(passwordIsValid).toBeTruthy();
           expect(status).toBe(200);
           expect(storeUser.authTokenVersion).toBe(0);
+          expect(storeUser.blackListedAt).toBeNull();
           expect(storeUser.confirmed).toBeFalsy();
           expect(storeUser.confirmTokenVersion).toBe(0);
+          expect(storeUser.defaultProfilePicture).toBeNull();
           expect(storeUser.emailTokenVersion).toBe(0);
           expect(storeUser.facebookId).toBeNull();
           expect(storeUser.googleId).toBeNull();
+          expect(storeUser.isBlackListed).toBe(false);
           expect(storeUser.resetPasswordTokenVersion).toBe(0);
-          expect(user.authTokenVersion).toBeUndefined();
-          expect(user.confirmed).toBeUndefined();
-          expect(user.confirmTokenVersion).toBeUndefined();
-          expect(user.currentProfilePicture).toBeNull();
-          expect(user.createdAt).not.toBeUndefined();
-          expect(user.defaultProfilePicture).toBeNull();
-          expect(user.email).toBeUndefined();
-          expect(user.emailTokenVersion).toBeUndefined();
-          expect(user.facebookId).toBeUndefined();
-          expect(user.googleId).toBeUndefined();
-          expect(user.hash).toBeUndefined();
-          expect(user.id).not.toBeUndefined();
-          expect(user.pseudonym).toBe(userName);
-          expect(user.resetPasswordTokenVersion).toBeUndefined();
-          expect(user.role).toBe('user');
-          expect(user.salt).toBeUndefined();
-          expect(user.socialMediaUserName).toBeNull();
-          expect(user.updatedAt).toBeUndefined();
-          expect(user.userName).toBe(`@${userName}`);
+          expect(storeUser.updatedEmailTokenVersion).toBe(0);
+          testUser(user);
         });
         it('trim email and userName', async () => {
           const email = 'user@email.com';

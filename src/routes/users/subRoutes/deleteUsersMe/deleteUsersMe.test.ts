@@ -23,15 +23,14 @@ import {
 } from '@src/helpers/errorMessages';
 import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
 import {
-  cleanGoogleBuckets,
   createUser,
   deleteUsersMe,
   postGaleriesIdFrames,
   postGaleries,
   postGaleriesIdInvitations,
   postProfilePictures,
-  postUsersLogin,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -55,7 +54,6 @@ describe('/users', () => {
   beforeEach(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
       const {
         password: createdPassword,
         user: createdUser,
@@ -63,14 +61,8 @@ describe('/users', () => {
 
       password = createdPassword;
       user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
+      const jwt = signAuthToken(user);
+      token = jwt.token;
     } catch (err) {
       done(err);
     }
@@ -80,7 +72,6 @@ describe('/users', () => {
   afterAll(async (done) => {
     try {
       await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
       await sequelize.close();
     } catch (err) {
       done(err);
@@ -197,25 +188,11 @@ describe('/users', () => {
         });
 
         it('don\'t delete other profile pictures', async () => {
-          const {
-            password: passwordTwo,
-            user: {
-              email,
-            },
-          } = await createUser({
+          const { user: userTwo } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
           });
-          const {
-            body: {
-              token: tokenTwo,
-            },
-          } = await postUsersLogin(app, {
-            body: {
-              password: passwordTwo,
-              userNameOrEmail: email,
-            },
-          });
+          const { token: tokenTwo } = signAuthToken(userTwo);
           await postProfilePictures(app, tokenTwo);
           await deleteUsersMe(app, token, {
             body: {
@@ -293,7 +270,6 @@ describe('/users', () => {
             },
           });
           const {
-            password: passwordTwo,
             user: userTwo,
           } = await createUser({
             email: 'user2@email.com',
@@ -304,16 +280,7 @@ describe('/users', () => {
             galerieId,
             role: 'user',
           });
-          const {
-            body: {
-              token: tokenTwo,
-            },
-          } = await postUsersLogin(app, {
-            body: {
-              password: passwordTwo,
-              userNameOrEmail: userTwo.email,
-            },
-          });
+          const { token: tokenTwo } = signAuthToken(userTwo);
           await postGaleriesIdInvitations(app, tokenTwo, galerieId);
           await deleteUsersMe(app, token, {
             body: {

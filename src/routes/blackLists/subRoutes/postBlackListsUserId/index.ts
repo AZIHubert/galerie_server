@@ -8,7 +8,6 @@ import {
   User,
 } from '@src/db/models';
 
-import checkBlackList from '@src/helpers/checkBlackList';
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
@@ -17,7 +16,7 @@ import {
   blackListExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import {
   normalizeJoiErrors,
   validatePostBlackListsUserIdBody,
@@ -33,7 +32,6 @@ export default async (req: Request, res: Response) => {
   let blackList: BlackList;
   let currentProfilePicture;
   let user: User | null;
-  let userIsBlackListed: boolean;
 
   // Check if request.params.userId
   // is a UUID v4.
@@ -53,9 +51,6 @@ export default async (req: Request, res: Response) => {
   // Fetch user.
   try {
     user = await User.findOne({
-      attributes: {
-        exclude: userExcluder,
-      },
       where: {
         id: userId,
         confirmed: true,
@@ -85,18 +80,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if user is already blackListed.
-  try {
-    userIsBlackListed = await checkBlackList(user);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-  if (userIsBlackListed) {
-    return res.status(400).send({
-      errors: 'user is already black listed',
-    });
-  }
-
+  // Validate request.body
   const {
     error,
     value,
@@ -107,13 +91,24 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // create blackList.
   try {
-    // create blackList.
     blackList = await BlackList.create({
       adminId: currentUser.id,
       reason: value.reason,
-      time: value.time ? value.time : null,
+      time: value.time
+        ? new Date(Date.now() + value.time)
+        : null,
       userId,
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  try {
+    await user.update({
+      blackListedAt: new Date(Date.now()),
+      isBlackListed: true,
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -143,6 +138,7 @@ export default async (req: Request, res: Response) => {
   const returnedBlackList = {
     ...blackList.toJSON(),
     ...objectBlackListExcluder,
+    active: true,
     admin: {
       ...currentUser.toJSON(),
       ...objectUserExcluder,
@@ -151,6 +147,7 @@ export default async (req: Request, res: Response) => {
     updatedBy: null,
     user: {
       ...user.toJSON(),
+      ...objectUserExcluder,
       currentProfilePicture,
     },
   };

@@ -20,7 +20,7 @@ import {
   invitationExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -29,10 +29,10 @@ export default async (req: Request, res: Response) => {
     invitationId,
   } = req.params;
   const currentUser = req.user as User;
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let currentProfilePicture;
   let galerie: Galerie | null;
   let invitation: Invitation | null;
-  let invitationHasExpired = false;
   let userIsBlackListed: boolean;
 
   // Check if request.params.galerieId
@@ -88,9 +88,6 @@ export default async (req: Request, res: Response) => {
         exclude: invitationExcluder,
       },
       include: [{
-        attributes: {
-          exclude: userExcluder,
-        },
         model: User,
       }],
       where: {
@@ -110,16 +107,18 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if invitation is expired.
-  if (invitation.time) {
-    const time = new Date(
-      invitation.createdAt.getTime() + invitation.time,
-    );
-    invitationHasExpired = time < new Date(Date.now());
+  if (invitation.time && invitation.time < new Date(Date.now())) {
+    try {
+      await invitation.destroy();
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+    return res.status(404).send({
+      errors: MODEL_NOT_FOUND('invitation'),
+    });
   }
 
-  // If this invitation is expired,
-  // destroy it and return a 404 error.
-  if (invitationHasExpired) {
+  if (invitation.numOfInvits !== null && invitation.numOfInvits < 1) {
     try {
       await invitation.destroy();
     } catch (err) {
@@ -133,6 +132,9 @@ export default async (req: Request, res: Response) => {
   // Check if user is black listed.
   try {
     userIsBlackListed = await checkBlackList(invitation.user);
+    userExcluder.forEach((e) => {
+      objectUserExcluder[e] = undefined;
+    });
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -147,10 +149,11 @@ export default async (req: Request, res: Response) => {
 
   const returnedInvitation = {
     ...invitation.toJSON(),
-    user: !userIsBlackListed ? {
+    user: userIsBlackListed ? null : {
       ...invitation.user.toJSON(),
+      ...objectUserExcluder,
       currentProfilePicture,
-    } : null,
+    },
   };
 
   return res.status(200).send({

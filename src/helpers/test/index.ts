@@ -1,7 +1,14 @@
 export { default as cleanGoogleBuckets } from './cleanGoogleBuckets';
+export { default as createBlackList } from './createBlackList';
+export { default as createFrame } from './createFrame';
+export { default as createGalerie } from './createGalerie';
+export { default as createGalerieUser } from './createGalerieUser';
+export { default as createInvitation } from './createInvitation';
+export { default as createLike } from './createLike';
+export { default as createProfilePicture } from './createProfilePicture';
+export { default as createTicket } from './createTicket';
 export { default as createUser } from './createUser';
 
-export { default as deleteBlackListsId } from './deleteBlackListsId';
 export { default as deleteGaleriesId } from './deleteGaleriesId';
 export { default as deleteGaleriesIdFramesId } from './deleteGaleriesIdFramesId';
 export { default as deleteGaleriesIdInvitationId } from './deleteGaleriesIdInvitationId';
@@ -28,6 +35,7 @@ export { default as getTickets } from './getTickets';
 export { default as getTicketsId } from './getTicketsId';
 export { default as getUsers } from './getUsers';
 export { default as getUsersIdId } from './getUsersIdId';
+export { default as getUsersIdIdBlackLists } from './getUsersIdIdBlackLists';
 export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
@@ -48,6 +56,7 @@ export { default as postUsersMeEmailConfirm } from './postUsersMeEmailConfirm';
 export { default as postUsersPassword } from './postUsersPassword';
 export { default as postUsersSignin } from './postUsersSignin';
 
+export { default as putBlackLists } from './putBlackLists';
 export { default as putBlackListsId } from './putBlackListsId';
 export { default as putGaleriesId } from './putGaleriesId';
 export { default as putGaleriesIdFramesId } from './putGaleriesIdFramesId';
@@ -60,3 +69,11 @@ export { default as putUsersMeEmail } from './putUsersMeEmail';
 export { default as putUsersMePassword } from './putUsersMePassword';
 export { default as putUsersMePseudonym } from './putUsersMePseudonym';
 export { default as putUsersPassword } from './putUsersPassword';
+
+export { default as testFrame } from './testFrame';
+export { default as testGalerie } from './testGalerie';
+export { default as testGaleriePicture } from './testGaleriePicture';
+export { default as testInvitation } from './testInvitation';
+export { default as testProfilePicture } from './testProfilePicture';
+export { default as testTicket } from './testTicket';
+export { default as testUser } from './testUser';

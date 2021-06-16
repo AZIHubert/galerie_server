@@ -9,18 +9,22 @@ export default async ({
   email = 'user@email.com',
   facebookId,
   googleId,
+  isBlackListed = false,
   password = 'Password0!',
   pseudonym,
   role = 'user',
+  socialMediaUserName,
   userName = 'user',
 }: {
   confirmed?: boolean;
   email?: string;
   facebookId?: string;
   googleId?: string;
+  isBlackListed?: boolean;
   password?: string;
   pseudonym?: string;
-  role?: 'admin' | 'superAdmin' | 'user'
+  role?: 'admin' | 'superAdmin' | 'user';
+  socialMediaUserName?: string;
   userName?: string;
 }) => {
   const newUser = {
@@ -28,8 +32,10 @@ export default async ({
     email: email || 'user@email.com',
     facebookId,
     googleId,
+    isBlackListed,
     pseudonym: pseudonym || userName || 'pseudonym',
     role: role || 'superAdmin',
+    socialMediaUserName,
     userName: `@${userName}` || '@userName',
   };
 

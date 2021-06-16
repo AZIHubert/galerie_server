@@ -1,3 +1,5 @@
+// GET /users/
+
 import {
   Request,
   Response,
@@ -6,9 +8,10 @@ import { Op } from 'sequelize';
 
 import { User } from '@src/db/models';
 
-import checkBlackList from '@src/helpers/checkBlackList';
-import { userExcluder } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import {
+  userExcluder,
+} from '@src/helpers/excluders';
+import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const {
@@ -16,12 +19,13 @@ export default async (req: Request, res: Response) => {
     order: queryOrder,
     page,
   } = req.query;
-  const { id } = req.user as User;
+  const currentUser = req.user as User;
   const limit = 20;
-  const usersWithProfilePicture: Array<any> = [];
-  let direction = 'DESC';
+  let direction = 'ASC';
   let offset: number;
-  let order = 'createdAt';
+  let order = 'pseudonym';
+  let returnedUser;
+  let users: Array<User>;
 
   if (
     queryDirection === 'ASC'
@@ -44,10 +48,10 @@ export default async (req: Request, res: Response) => {
     offset = 0;
   }
 
+  // fetch users exept current one,
+  // black listed and not confirmed.
   try {
-    // Get all users exept current one,
-    // black listed and not confirmed.
-    const users = await User.findAll({
+    users = await User.findAll({
       attributes: {
         exclude: userExcluder,
       },
@@ -57,33 +61,23 @@ export default async (req: Request, res: Response) => {
       where: {
         confirmed: true,
         id: {
-          [Op.not]: id,
+          [Op.not]: currentUser.id,
         },
+        isBlackListed: false,
       },
     });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
-    await Promise.all(
+  try {
+    returnedUser = await Promise.all(
       users.map(async (user) => {
-        // Check user is not black listed.
-        // If true, do not push user
-        // into final returned users.
-        const userIsBlackListed = await checkBlackList(user);
-
-        // TODO:
-        // If currentUser.role === 'admin' || 'superAdmin'
-        // include blackList user with a field user.isBlackListed.
-
-        if (!userIsBlackListed) {
-          // Fetch current profile picture.
-          const currentProfilePicture = await fetchCurrentProfilePicture(user);
-
-          const userWithProfilePicture: any = {
-            ...user.toJSON(),
-            currentProfilePicture,
-          };
-
-          usersWithProfilePicture.push(userWithProfilePicture);
-        }
+        const currentProfilePicture = await fetchCurrentProfilePicture(user);
+        return {
+          ...user.toJSON(),
+          currentProfilePicture,
+        };
       }),
     );
   } catch (err) {
@@ -93,7 +87,7 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'GET',
     data: {
-      users: usersWithProfilePicture,
+      users: returnedUser,
     },
   });
 };

@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
@@ -14,125 +13,120 @@ import {
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
+import signedUrl from '@src/helpers/signedUrl';
 import {
-  cleanGoogleBuckets,
+  createProfilePicture,
   createUser,
-  postProfilePictures,
-  postUsersLogin,
   putProfilePicturesId,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
 
+let app: Server;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
+
 describe('/profilePictures', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    app = initApp();
-    sequelize = initSequelize();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      const {
-        password,
-        user: createdUser,
-      } = await createUser({});
-
-      user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/:profilePictureId', () => {
     describe('PUT', () => {
+      beforeAll(() => {
+        app = initApp();
+        sequelize = initSequelize();
+      });
+
+      beforeEach(async (done) => {
+        jest.clearAllMocks();
+        (signedUrl as jest.Mock).mockImplementation(() => ({
+          OK: true,
+          signedUrl: 'signedUrl',
+        }));
+        try {
+          await sequelize.sync({ force: true });
+          const {
+            user: createdUser,
+          } = await createUser({});
+          user = createdUser;
+          const jwt = signAuthToken(user);
+          token = jwt.token;
+        } catch (err) {
+          done(err);
+        }
+        done();
+      });
+
+      afterAll(async (done) => {
+        jest.clearAllMocks();
+        try {
+          await sequelize.sync({ force: true });
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
       describe('should return status 200 and', () => {
         it('set current to false', async () => {
-          const {
-            body: {
-              data: {
-                profilePicture: {
-                  id: profilePictureId,
-                },
-              },
-            },
-          } = await postProfilePictures(app, token);
+          const profilePicture = await createProfilePicture({
+            userId: user.id,
+          });
           const {
             body: {
               action,
               data: {
                 current,
-                profilePictureId: returnedProfilePictureId,
+                profilePictureId,
               },
             },
             status,
-          } = await putProfilePicturesId(app, token, profilePictureId);
-          const profilePicture = await ProfilePicture.findByPk(profilePictureId) as ProfilePicture;
+          } = await putProfilePicturesId(app, token, profilePicture.id);
+          await profilePicture.reload();
           expect(action).toBe('PUT');
-          expect(current).toBeFalsy();
-          expect(profilePicture.current).toBeFalsy();
-          expect(returnedProfilePictureId).toBe(profilePictureId);
+          expect(current).toBe(false);
+          expect(profilePicture.current).toBe(false);
+          expect(profilePictureId).toBe(profilePicture.id);
           expect(status).toBe(200);
         });
         it('set profile picture to true and the previous current to false', async () => {
-          const {
-            body: {
-              data: {
-                profilePicture: {
-                  id: profilePictureId,
-                },
-              },
-            },
-          } = await postProfilePictures(app, token);
-          const {
-            body: {
-              data: {
-                profilePicture: {
-                  id: previousCurrentId,
-                },
-              },
-            },
-          } = await postProfilePictures(app, token);
+          const profilePictureOne = await createProfilePicture({
+            current: false,
+            userId: user.id,
+          });
+          const profilePictureTwo = await createProfilePicture({
+            userId: user.id,
+          });
           const {
             body: {
               data: {
                 current,
               },
             },
-          } = await putProfilePicturesId(app, token, profilePictureId);
-          const profilePicture = await ProfilePicture.findByPk(profilePictureId) as ProfilePicture;
-          const previousCurrentProfilePicture = await ProfilePicture
-            .findByPk(previousCurrentId) as ProfilePicture;
-          expect(current).toBeTruthy();
-          expect(profilePicture.current).toBeTruthy();
-          expect(previousCurrentProfilePicture.current).toBeFalsy();
+          } = await putProfilePicturesId(app, token, profilePictureOne.id);
+          await profilePictureOne.reload();
+          await profilePictureTwo.reload();
+          expect(current).toBe(true);
+          expect(profilePictureOne.current).toBe(true);
+          expect(profilePictureTwo.current).toBe(false);
+        });
+        it('don\'t update profile pictures posted by other user', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const profilePictureOne = await createProfilePicture({
+            userId: user.id,
+          });
+          const profilePictureTwo = await createProfilePicture({
+            userId: userTwo.id,
+          });
+          await putProfilePicturesId(app, token, profilePictureOne.id);
+          await profilePictureTwo.reload();
+          expect(profilePictureTwo.current).toBe(true);
         });
       });
       describe('should return status 400 if', () => {
@@ -151,6 +145,21 @@ describe('/profilePictures', () => {
             body,
             status,
           } = await putProfilePicturesId(app, token, uuidv4());
+          expect(body.errors).toBe(MODEL_NOT_FOUND('profile picture'));
+          expect(status).toBe(404);
+        });
+        it('profile picture was not post by current user', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: profilePictureId } = await createProfilePicture({
+            userId: userTwo.id,
+          });
+          const {
+            body,
+            status,
+          } = await putProfilePicturesId(app, token, profilePictureId);
           expect(body.errors).toBe(MODEL_NOT_FOUND('profile picture'));
           expect(status).toBe(404);
         });

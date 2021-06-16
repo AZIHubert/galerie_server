@@ -10,6 +10,7 @@ import {
   Galerie,
   GaleriePicture,
   Image,
+  Like,
   User,
 } from '@src/db/models';
 
@@ -21,12 +22,13 @@ import {
 import {
   frameExcluder,
   galeriePictureExcluder,
-  imageExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
-import gc from '@src/helpers/gc';
-import signedUrl from '@src/helpers/signedUrl';
+import {
+  fetchCurrentProfilePicture,
+  fetchFrame,
+} from '@root/src/helpers/fetch';
+
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -34,10 +36,11 @@ export default async (req: Request, res: Response) => {
   const limit = 20;
   const { page } = req.query;
   const currentUser = req.user as User;
-  const returnedFrames: Array<any> = [];
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let frames: Frame[];
   let galerie: Galerie | null;
   let offset: number;
+  let returnedFrames: Array<any>;
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -86,32 +89,28 @@ export default async (req: Request, res: Response) => {
           include: [
             {
               as: 'cropedImage',
-              attributes: {
-                exclude: imageExcluder,
-              },
               model: Image,
             },
             {
               as: 'originalImage',
-              attributes: {
-                exclude: imageExcluder,
-              },
               model: Image,
             },
             {
               as: 'pendingImage',
-              attributes: {
-                exclude: imageExcluder,
-              },
               model: Image,
             },
           ],
           model: GaleriePicture,
-        }, {
-          as: 'user',
-          attributes: {
-            exclude: userExcluder,
+        },
+        {
+          model: Like,
+          required: false,
+          where: {
+            userId: currentUser.id,
           },
+        },
+        {
+          as: 'user',
           model: User,
         },
       ],
@@ -127,156 +126,32 @@ export default async (req: Request, res: Response) => {
   }
 
   try {
-    await Promise.all(
+    returnedFrames = await Promise.all(
       frames.map(async (frame) => {
-        const returnedGaleriePictures: Array<any> = [];
-        let currentProfilePicture;
+        const normalizedFrame = await fetchFrame(frame);
+        let currentProfilePicture: any = null;
 
-        // Fetch signed url for each
-        // galerie pictures images.
-        await Promise.all(
-          frame
-            .galeriePictures
-            .map(async (galeriePicture) => {
-              const {
-                cropedImage,
-                originalImage,
-                pendingImage,
-              } = galeriePicture;
-
-              // Check if all image from galeriePicture
-              // exist, if one of it doesn\'t exist,
-              // destroy this galeriePicture,
-              // all existing images and the image
-              // from Google Bucket.
-              if (
-                cropedImage
-                && originalImage
-                && pendingImage
-              ) {
-                const cropedImageSignedUrl = await signedUrl(
-                  cropedImage.bucketName,
-                  cropedImage.fileName,
-                );
-                const originalImageSignedUrl = await signedUrl(
-                  originalImage.bucketName,
-                  originalImage.fileName,
-                );
-                const pendingImageSignedUrl = await signedUrl(
-                  pendingImage.bucketName,
-                  pendingImage.fileName,
-                );
-
-                // Check if all image from Google Bucket exists.
-                // If one of theme doesn\'t exist,
-                // destroy all images from Google Bucket,
-                // all images and all GalerieImages.
-                if (
-                  cropedImageSignedUrl.OK
-                  && originalImageSignedUrl.OK
-                  && pendingImageSignedUrl.OK
-                ) {
-                  const returnedGaleriePicture = {
-                    ...galeriePicture.toJSON(),
-                    cropedImage: {
-                      ...cropedImage.toJSON(),
-                      bucketName: undefined,
-                      fileName: undefined,
-                      signedUrl: cropedImageSignedUrl.signedUrl,
-                    },
-                    originalImage: {
-                      ...originalImage.toJSON(),
-                      bucketName: undefined,
-                      fileName: undefined,
-                      signedUrl: originalImageSignedUrl.signedUrl,
-                    },
-                    pendingImage: {
-                      ...pendingImage.toJSON(),
-                      bucketName: undefined,
-                      fileName: undefined,
-                      signedUrl: pendingImageSignedUrl.signedUrl,
-                    },
-                  };
-                  returnedGaleriePictures.push(returnedGaleriePicture);
-                } else {
-                  if (cropedImageSignedUrl.OK) {
-                    await gc
-                      .bucket(cropedImage.bucketName)
-                      .file(cropedImage.fileName)
-                      .delete();
-                  }
-                  if (originalImageSignedUrl.OK) {
-                    await gc
-                      .bucket(originalImage.bucketName)
-                      .file(originalImage.fileName)
-                      .delete();
-                  }
-                  if (pendingImageSignedUrl.OK) {
-                    await gc
-                      .bucket(pendingImage.bucketName)
-                      .file(pendingImage.fileName)
-                      .delete();
-                  }
-                  await cropedImage.destroy();
-                  await originalImage.destroy();
-                  await pendingImage.destroy();
-                  await galeriePicture.destroy();
-                }
-              } else {
-                if (cropedImage) {
-                  await cropedImage.destroy();
-                  await gc
-                    .bucket(cropedImage.bucketName)
-                    .file(cropedImage.fileName)
-                    .delete();
-                }
-                if (originalImage) {
-                  await originalImage.destroy();
-                  await gc
-                    .bucket(originalImage.bucketName)
-                    .file(originalImage.fileName)
-                    .delete();
-                }
-                if (pendingImage) {
-                  await pendingImage.destroy();
-                  await gc
-                    .bucket(pendingImage.bucketName)
-                    .file(pendingImage.fileName)
-                    .delete();
-                }
-                await galeriePicture.destroy();
-              }
-            }),
-        );
-
-        // Check if frame have at least
-        // one galeriePicture.
-        if (returnedGaleriePictures.length) {
-          // check if user is not blacklisted.
+        if (normalizedFrame) {
           const userIsBlackListed = await checkBlackList(frame.user);
-
-          // Fetch current profile picture
-          // only if user is not black listed.
           if (!userIsBlackListed) {
-            // Find the current profile picture
-            // of the current user.
             currentProfilePicture = await fetchCurrentProfilePicture(frame.user);
+            userExcluder.forEach((e) => {
+              objectUserExcluder[e] = undefined;
+            });
           }
-
-          // Compose the final frame and push it
-          // to returnedFrames.
-          const returnedFrame = {
-            ...frame.toJSON(),
-            galeriePictures: returnedGaleriePictures,
+          return {
+            ...normalizedFrame,
+            liked: !!frame.likes.length,
+            likes: undefined,
             user: userIsBlackListed ? null : {
               ...frame.user.toJSON(),
+              ...objectUserExcluder,
               currentProfilePicture,
             },
           };
-          returnedFrames.push(returnedFrame);
-        } else {
-          await frame.destroy();
         }
+        await frame.destroy();
+        return null;
       }),
     );
   } catch (err) {

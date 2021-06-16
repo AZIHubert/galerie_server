@@ -1,3 +1,5 @@
+// GET /blackLists/:blackListId/
+
 import {
   Request,
   Response,
@@ -16,14 +18,14 @@ import {
   blackListExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { blackListId } = req.params;
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let adminCurrentProfilePicture;
   let blackList: BlackList | null;
-  let blackListExpire = false;
   let currentProfilePicture;
   let updatedByCurrentProfilePicture;
 
@@ -58,9 +60,6 @@ export default async (req: Request, res: Response) => {
         },
         {
           as: 'user',
-          attributes: {
-            exclude: userExcluder,
-          },
           model: User,
         },
       ],
@@ -76,34 +75,16 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if blackList.user exist.
-  if (!blackList.user) {
-    try {
-      await blackList.destroy();
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('black list'),
-    });
-  }
-
   // Check if black list is expired.
-  if (blackList.time) {
-    const time = new Date(
-      blackList.createdAt.getTime() + blackList.time,
-    );
-    blackListExpire = time < new Date(Date.now());
-  }
-  if (blackListExpire) {
+  if (blackList.time && blackList.time < new Date(Date.now())) {
     try {
-      await blackList.destroy();
+      await blackList.user.update({
+        blackListedAt: null,
+        isBlackListed: false,
+      });
     } catch (err) {
       return res.status(500).send(err);
     }
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('black list'),
-    });
   }
 
   // Fetch user current profile picture
@@ -122,14 +103,22 @@ export default async (req: Request, res: Response) => {
     }
   }
 
+  // Fetch updatedBy current profile picture
   if (blackList.updatedBy) {
-    updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(
-      blackList.updatedBy,
-    );
+    try {
+      updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.updatedBy);
+    } catch (err) {
+      return res.status(500).send(err);
+    }
   }
+
+  userExcluder.forEach((e) => {
+    objectUserExcluder[e] = undefined;
+  });
 
   const returnedBlackList = {
     ...blackList.toJSON(),
+    active: blackList.user.isBlackListed,
     admin: blackList.admin ? {
       ...blackList.admin.toJSON(),
       currentProfilePicture: adminCurrentProfilePicture,
@@ -140,6 +129,7 @@ export default async (req: Request, res: Response) => {
     } : null,
     user: {
       ...blackList.user.toJSON(),
+      ...objectUserExcluder,
       currentProfilePicture,
     },
   };

@@ -85,6 +85,8 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Check if current user have posted
+  // this frame.
   if (frame.userId !== currentUser.id) {
     return res.status(400).send({
       errors: 'you can\'t modify this frame',
@@ -110,21 +112,17 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // update frame.description.
   try {
     await frame.update(value);
   } catch (err) {
     return res.status(500).send(err);
   }
 
-  // Validate req.body
-  // Check if value.description !== frame.description
-  // update frame.
-  // return value.description.
-
   return res.status(200).send({
     action: 'PUT',
     data: {
-      description: frame.description,
+      description: value.description,
       frameId,
       galerieId,
     },

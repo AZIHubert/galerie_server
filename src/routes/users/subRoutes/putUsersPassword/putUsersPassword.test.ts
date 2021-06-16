@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
-  BlackList,
   User,
 } from '@src/db/models';
 
@@ -30,6 +29,7 @@ import validatePassword from '@src/helpers/validatePassword';
 import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 import {
   createUser,
+  createBlackList,
   putUsersPassword,
 } from '@src/helpers/test';
 
@@ -50,8 +50,9 @@ describe('/users', () => {
       beforeEach(async (done) => {
         try {
           await sequelize.sync({ force: true });
-          const { user: createdUser } = await createUser({});
-
+          const { user: createdUser } = await createUser({
+            role: 'superAdmin',
+          });
           user = createdUser;
         } catch (err) {
           done(err);
@@ -154,12 +155,12 @@ describe('/users', () => {
             },
           } = await createUser({
             email: 'user2@email.com',
+            role: 'superAdmin',
             userName: 'user2',
           });
-          await BlackList.create({
-            userId: id,
-            reason: 'black list reason',
+          await createBlackList({
             adminId: user.id,
+            userId: id,
           });
           jest.spyOn(verifyConfirmation, 'resetPassword')
             .mockImplementationOnce(() => ({

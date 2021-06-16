@@ -15,9 +15,9 @@ import {
   FIELD_SHOULD_BE_A_STRING,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
 import {
   createUser,
-  postUsersLogin,
   putUsersMePseudonym,
 } from '@src/helpers/test';
 
@@ -38,19 +38,11 @@ describe('/users', () => {
     try {
       await sequelize.sync({ force: true });
       const {
-        password,
         user: createdUser,
       } = await createUser({});
-
       user = createdUser;
-
-      const { body } = await postUsersLogin(app, {
-        body: {
-          password,
-          userNameOrEmail: user.email,
-        },
-      });
-      token = body.token;
+      const jwt = signAuthToken(user);
+      token = jwt.token;
     } catch (err) {
       done(err);
     }

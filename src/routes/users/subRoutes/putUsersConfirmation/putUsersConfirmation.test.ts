@@ -22,43 +22,43 @@ import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 
 import initApp from '@src/server';
 
+let app: Server;
+let sequelize: Sequelize;
+let user: User;
+
 describe('/users', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let user: User;
-
-  beforeAll(() => {
-    app = initApp();
-    sequelize = initSequelize();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      const { user: createdUser } = await createUser({
-        confirmed: false,
-      });
-
-      user = createdUser;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/confirmation', () => {
     describe('PUT', () => {
+      beforeAll(() => {
+        app = initApp();
+        sequelize = initSequelize();
+      });
+
+      beforeEach(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          const { user: createdUser } = await createUser({
+            confirmed: false,
+          });
+
+          user = createdUser;
+        } catch (err) {
+          done(err);
+        }
+        done();
+      });
+
+      afterAll(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
       describe('should return status 200 and', () => {
         it('return a token', async () => {
           jest.spyOn(verifyConfirmation, 'confirmUser')
@@ -69,8 +69,10 @@ describe('/users', () => {
             }));
           const {
             body: {
-              expiresIn,
-              token,
+              data: {
+                expiresIn,
+                token,
+              },
             },
             status,
           } = await putUsersConfirmation(app, {

@@ -16,10 +16,10 @@ import User from '../user';
 
 interface FrameI {
   description?: string;
-  galerieId?: string;
+  galerieId: string;
   id: string;
   numOfLikes: number;
-  userId?: string;
+  userId: string;
 }
 
 @Table({

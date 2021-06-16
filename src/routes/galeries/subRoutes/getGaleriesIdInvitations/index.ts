@@ -4,6 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Galerie,
@@ -20,17 +21,19 @@ import {
   invitationExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
-  const limit = 20;
   const { galerieId } = req.params;
   const { page } = req.query;
   const currentUser = req.user as User;
-  const returnedInvitations: Array<any> = [];
+  const limit = 20;
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let galerie: Galerie | null;
+  let invitations: Array<Invitation>;
   let offset: number;
+  let returnedInvitations: Array<any>;
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -38,12 +41,6 @@ export default async (req: Request, res: Response) => {
     return res.status(400).send({
       errors: INVALID_UUID('galerie'),
     });
-  }
-
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
   }
 
   // Fetch galerie.
@@ -67,7 +64,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if user'role for this galerie
+  // Check if user role for this galerie
   // is not 'user'.
   const userFromGalerie = galerie.users
     .find((user) => user.id === currentUser.id);
@@ -77,65 +74,82 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  if (typeof page === 'string') {
+    offset = ((+page || 1) - 1) * limit;
+  } else {
+    offset = 0;
+  }
+
+  // Fetch all invitations.
   try {
-    // Fetch all invitations.
-    const invitations = await Invitation.findAll({
+    invitations = await Invitation.findAll({
       attributes: {
         exclude: invitationExcluder,
       },
       include: [{
-        attributes: {
-          exclude: userExcluder,
-        },
         model: User,
       }],
       limit,
       offset,
       order: [['createdAt', 'DESC']],
       where: {
+        [Op.and]: [
+          {
+            [Op.or]: [
+              {
+                numOfInvits: {
+                  [Op.gt]: 0,
+                },
+              },
+              {
+                numOfInvits: {
+                  [Op.eq]: null,
+                },
+              },
+            ],
+          },
+          {
+            [Op.or]: [
+              {
+                time: {
+                  [Op.gt]: new Date(Date.now()),
+                },
+              },
+              {
+                time: null,
+              },
+            ],
+          },
+        ],
         galerieId,
       },
     });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
-    await Promise.all(
+  // Normalize all invitations.
+  try {
+    returnedInvitations = await Promise.all(
       invitations.map(async (invitation) => {
         let currentProfilePicture;
-        let invitationHasExpired = false;
-        let userIsBlackListed: boolean = false;
-        // Check if invitation is not exipired.
-        if (invitation.time) {
-          const time = new Date(
-            invitation.createdAt.getTime() + invitation.time,
-          );
-          invitationHasExpired = time < new Date(Date.now());
+        const userIsBlackListed = await checkBlackList(invitation.user);
+
+        if (!userIsBlackListed) {
+          currentProfilePicture = await fetchCurrentProfilePicture(invitation.user);
+          userExcluder.forEach((e) => {
+            objectUserExcluder[e] = undefined;
+          });
         }
 
-        // If invitation has expired,
-        // destroy this invitation.
-        if (invitationHasExpired) {
-          await invitation.destroy();
-        } else {
-          // check if user is blackListed.
-          userIsBlackListed = await checkBlackList(invitation.user);
-
-          // If user is black listed,
-          // there no need to fetch current profile picture.
-          // invitation.user = null.
-          if (!userIsBlackListed) {
-            // fetch current profile picture.
-            currentProfilePicture = await fetchCurrentProfilePicture(invitation.user);
-          }
-          // Composed final invitation
-          // and push it in returnedInvitations.
-          const invitationWithUserWithProfilePicture: any = {
-            ...invitation.toJSON(),
-            user: !userIsBlackListed ? {
-              ...invitation.user.toJSON(),
-              currentProfilePicture,
-            } : null,
-          };
-          returnedInvitations.push(invitationWithUserWithProfilePicture);
-        }
+        return {
+          ...invitation.toJSON(),
+          user: userIsBlackListed ? null : {
+            ...invitation.user.toJSON(),
+            ...objectUserExcluder,
+            currentProfilePicture,
+          },
+        };
       }),
     );
   } catch (err) {

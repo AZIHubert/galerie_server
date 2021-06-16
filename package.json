@@ -7,6 +7,8 @@
   "license": "MIT",
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack --config webpack.config.js",
+    "db:drop:test": "cross-env NODE_ENV=test sequelize db:drop",
+    "db:create:test": "cross-env NODE_ENV=test sequelize db:create",
     "db:migrate:development": "cross-env NODE_ENV=development sequelize db:migrate",
     "db:migrate:production": "cross-env NODE_ENV=production sequelize db:migrate",
     "db:migrate:test": "cross-env NODE_ENV=test sequelize db:migrate",
@@ -28,7 +30,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --quiet --fix",
     "migration:generate": "sequelize migration:generate --name",
     "start": "cross-env NODE_ENV=development PORT=8000 ts-node src/index.ts",
-    "test": "cross-env NODE_ENV=test PORT=2000 yarn jest --verbose --detectOpenHandles"
+    "test": "cross-env NODE_ENV=test PORT=2000 yarn db:migrate:undo:all:test && yarn db:migrate:test && yarn jest --verbose --detectOpenHandles"
   },
   "_moduleAliases": {
     "@sequelize": "./sequelize",
@@ -46,6 +48,7 @@
     "express-session": "^1.17.1",
     "joi": "^17.3.0",
     "jsonwebtoken": "^8.5.1",
+    "mockdate": "^3.0.5",
     "module-alias": "^2.2.2",
     "multer": "^1.4.2",
     "nanoid": "^3.1.22",

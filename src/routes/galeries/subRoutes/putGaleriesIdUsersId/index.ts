@@ -33,6 +33,7 @@ export default async (req: Request, res: Response) => {
       errors: INVALID_UUID('galerie'),
     });
   }
+
   // Check if request.params.userId
   // is a UUID v4.
   if (!uuidValidatev4(userId)) {

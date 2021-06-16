@@ -88,7 +88,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check invitation's numOfInvits is not null and valid.
+  // Check if invitation's numOfInvits is not null and valid.
   // If it's not valid, destroy the invitation.
   if (invitation.numOfInvits !== null && invitation.numOfInvits < 1) {
     try {
@@ -103,40 +103,38 @@ export default async (req: Request, res: Response) => {
 
   // Check if invitation's time is not null and valid.
   // If it's not valid, destroy the invitation.
-  if (invitation.time) {
-    const time = new Date(
-      invitation.createdAt.getTime() + invitation.time,
-    );
-    const invitationHasExpired = time < new Date(Date.now());
-    if (invitationHasExpired) {
-      try {
-        await invitation.destroy();
-      } catch (err) {
-        return res.status(500).send(err);
-      }
-      return res.status(400).send({
-        errors: 'this invitation is not valid',
-      });
+  if (invitation.time && invitation.time < new Date(Date.now())) {
+    try {
+      await invitation.destroy();
+    } catch (err) {
+      return res.status(500).send(err);
     }
+    return res.status(400).send({
+      errors: 'this invitation is not valid',
+    });
   }
 
+  // Create GalerieUser.
   try {
-    // If invitation's numOfInvits is not null,
-    // descrement numOfInvits and destroy invitation
-    // if numOfInvits < 1.
+    await GalerieUser.create({
+      userId: currentUser.id,
+      galerieId: invitation.galerieId,
+      role: 'user',
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // If invitation's numOfInvits is not null,
+  // descrement numOfInvits and destroy invitation
+  // if numOfInvits < 1.
+  try {
     if (invitation.numOfInvits) {
       await invitation.decrement({ numOfInvits: 1 });
       if (invitation.numOfInvits < 1) {
         await invitation.destroy();
       }
     }
-
-    // Create GalerieUser.
-    await GalerieUser.create({
-      userId: currentUser.id,
-      galerieId: invitation.galerieId,
-      role: 'user',
-    });
   } catch (err) {
     return res.status(500).send(err);
   }

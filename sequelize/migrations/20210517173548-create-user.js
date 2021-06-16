@@ -4,6 +4,10 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
     default: 0,
     type: DataTypes.INTEGER,
   },
+  blackListedAt: {
+    default: null,
+    type: DataTypes.DATE,
+  },
   confirmed: {
     allowNull: false,
     default: false,
@@ -46,6 +50,11 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     type: DataTypes.UUID,
+  },
+  isBlackListed: {
+    allowNull: false,
+    defaultValue: false,
+    type: DataTypes.BOOLEAN,
   },
   pseudonym: {
     allowNull: false,

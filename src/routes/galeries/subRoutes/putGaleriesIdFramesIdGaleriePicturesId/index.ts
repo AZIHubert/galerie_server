@@ -39,6 +39,7 @@ export default async (req: Request, res: Response) => {
       errors: INVALID_UUID('galerie'),
     });
   }
+
   // Check if request.params.frameId
   // is a UUID v4.
   if (!uuidValidatev4(frameId)) {
@@ -46,6 +47,7 @@ export default async (req: Request, res: Response) => {
       errors: INVALID_UUID('frame'),
     });
   }
+
   // Check if request.params.galeriePictureId
   // is a UUID v4.
   if (!uuidValidatev4(galeriePictureId)) {

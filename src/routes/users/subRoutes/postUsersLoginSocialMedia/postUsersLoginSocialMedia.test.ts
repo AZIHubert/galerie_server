@@ -4,54 +4,51 @@ import { Sequelize } from 'sequelize';
 import '@src/helpers/initEnv';
 
 import {
-  BlackList,
   User,
 } from '@src/db/models';
 
 import { USER_SHOULD_NOT_BE_BLACK_LISTED } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import {
-  cleanGoogleBuckets,
+  createBlackList,
   createUser,
   postUsersLoginSocialMedia,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
 
+let app: Server;
+let sequelize: Sequelize;
+
 describe('/users', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-
-  beforeAll(() => {
-    app = initApp();
-    sequelize = initSequelize();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await cleanGoogleBuckets();
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/login', () => {
     describe('/socialMedia', () => {
       describe('POST', () => {
+        beforeAll(() => {
+          app = initApp();
+          sequelize = initSequelize();
+        });
+
+        beforeEach(async (done) => {
+          try {
+            await sequelize.sync({ force: true });
+          } catch (err) {
+            done(err);
+          }
+          done();
+        });
+
+        afterAll(async (done) => {
+          try {
+            await sequelize.sync({ force: true });
+            await sequelize.close();
+          } catch (err) {
+            done(err);
+          }
+          app.close();
+          done();
+        });
+
         describe('should return status 200 and', () => {
           it('create a user if type is Facebook and no other user with same FacebookId exist', async () => {
             const facebookId = '1';
@@ -61,8 +58,10 @@ describe('/users', () => {
             });
             const {
               body: {
-                expiresIn,
-                token: loginToken,
+                data: {
+                  expiresIn,
+                  token: loginToken,
+                },
               },
               status,
             } = await postUsersLoginSocialMedia(app, {
@@ -79,7 +78,7 @@ describe('/users', () => {
             }) as User;
             expect(expiresIn).toBe(1800);
             expect(facebookUser).not.toBeNull();
-            expect(facebookUser.confirmed).toBeTruthy();
+            expect(facebookUser.confirmed).toBe(true);
             expect(facebookUser.defaultProfilePicture).toBeNull();
             expect(facebookUser.email).toBeNull();
             expect(facebookUser.facebookId).toBe(facebookId);
@@ -101,8 +100,10 @@ describe('/users', () => {
             });
             const {
               body: {
-                expiresIn,
-                token: loginToken,
+                data: {
+                  expiresIn,
+                  token: loginToken,
+                },
               },
             } = await postUsersLoginSocialMedia(app, {
               body: {
@@ -294,30 +295,18 @@ describe('/users', () => {
           });
           it('user exist and is black listed', async () => {
             const facebookId = '1';
-            const {
-              user: {
-                id: adminId,
-              },
-            } = await createUser({
+            const { user } = await createUser({
               role: 'admin',
             });
-            await postUsersLoginSocialMedia(app, {
-              body: {
-                id: facebookId,
-                userName: 'user',
-                email: 'user2@email.com',
-                type: 'Facebook',
-              },
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              facebookId,
+              userName: 'user2',
+              socialMediaUserName: 'user',
             });
-            const { id } = await User.findOne({
-              where: {
-                facebookId,
-              },
-            }) as User;
-            await BlackList.create({
-              userId: id,
-              reason: 'black list user',
-              adminId,
+            await createBlackList({
+              adminId: user.id,
+              userId: userTwo.id,
             });
             const {
               body,

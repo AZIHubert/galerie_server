@@ -4,20 +4,25 @@ import { Sequelize } from 'sequelize';
 import '@src/helpers/initEnv';
 
 import {
-  BlackList,
+  Image,
+  ProfilePicture,
   User,
 } from '@src/db/models';
 
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
+import signedUrl from '@src/helpers/signedUrl';
 import {
-  cleanGoogleBuckets,
   createUser,
+  createProfilePicture,
   getUsers,
-  postProfilePictures,
-  postUsersLogin,
+  testProfilePicture,
+  testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
+
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let sequelize: Sequelize;
@@ -27,6 +32,11 @@ let user: User;
 describe('/users', () => {
   describe('GET', () => {
     beforeAll(() => {
+      jest.clearAllMocks();
+      (signedUrl as jest.Mock).mockImplementation(() => ({
+        OK: true,
+        signedUrl: 'signedUrl',
+      }));
       sequelize = initSequelize();
       app = initApp();
     });
@@ -34,21 +44,12 @@ describe('/users', () => {
     beforeEach(async (done) => {
       try {
         await sequelize.sync({ force: true });
-        await cleanGoogleBuckets();
         const {
-          password,
           user: createdUser,
         } = await createUser({});
-
         user = createdUser;
-
-        const { body } = await postUsersLogin(app, {
-          body: {
-            password,
-            userNameOrEmail: user.email,
-          },
-        });
-        token = body.token;
+        const jwt = signAuthToken(user);
+        token = jwt.token;
       } catch (err) {
         done(err);
       }
@@ -56,9 +57,9 @@ describe('/users', () => {
     });
 
     afterAll(async (done) => {
+      jest.clearAllMocks();
       try {
         await sequelize.sync({ force: true });
-        await cleanGoogleBuckets();
         await sequelize.close();
       } catch (err) {
         done(err);
@@ -83,6 +84,21 @@ describe('/users', () => {
           expect(users.length).toBe(0);
           expect(status).toBe(200);
         });
+        it('return one user', async () => {
+          await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getUsers(app, token);
+          expect(users.length).toBe(1);
+          testUser(users[0]);
+        });
         it('exept not confirmed', async () => {
           await createUser({
             confirmed: false,
@@ -99,18 +115,10 @@ describe('/users', () => {
           expect(users.length).toBe(0);
         });
         it('exept black listed users', async () => {
-          const {
-            user: {
-              id,
-            },
-          } = await createUser({
+          await createUser({
             email: 'user2@email.com',
+            isBlackListed: true,
             userName: 'user2',
-          });
-          await BlackList.create({
-            adminId: user.id,
-            reason: 'black list user',
-            userId: id,
           });
           const {
             body: {
@@ -149,76 +157,49 @@ describe('/users', () => {
           expect(firstPack.length).toBe(20);
           expect(secondPack.length).toBe(1);
         });
-        it('return only relevent attributes', async () => {
-          const {
-            user: {
-              id,
-              pseudonym,
-              role,
-              userName,
-            },
-          } = await createUser({
+        it('order by pseudonym', async () => {
+          const { user: userTwo } = await createUser({
             email: 'user2@email.com',
-            userName: 'user2',
+            userName: 'a',
+          });
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'b',
+          });
+          const { user: userFour } = await createUser({
+            email: 'user4@email.com',
+            userName: 'c',
+          });
+          const { user: userFive } = await createUser({
+            email: 'user5@email.com',
+            userName: 'd',
+          });
+          const { user: userSix } = await createUser({
+            email: 'user6@email.com',
+            userName: 'e',
           });
           const {
             body: {
               data: {
-                users: [returnedUser],
+                users,
               },
             },
           } = await getUsers(app, token);
-          expect(returnedUser.authTokenVersion).toBeUndefined();
-          expect(returnedUser.blackList).toBeUndefined();
-          expect(returnedUser.confirmed).toBeUndefined();
-          expect(returnedUser.confirmTokenVersion).toBeUndefined();
-          expect(returnedUser.createdAt).not.toBeUndefined();
-          expect(returnedUser.defaultProfilePicture).toBeNull();
-          expect(returnedUser.emailTokenVersion).toBeUndefined();
-          expect(returnedUser.email).toBeUndefined();
-          expect(returnedUser.emailTokenVersion).toBeUndefined();
-          expect(returnedUser.facebookId).toBeUndefined();
-          expect(returnedUser.googleId).toBeUndefined();
-          expect(returnedUser.hash).toBeUndefined();
-          expect(returnedUser.id).toEqual(id);
-          expect(returnedUser.pseudonym).toEqual(pseudonym);
-          expect(returnedUser.resetPasswordTokenVersion).toBeUndefined();
-          expect(returnedUser.role).toEqual(role);
-          expect(returnedUser.resetPasswordTokenVersion).toBeUndefined();
-          expect(returnedUser.salt).toBeUndefined();
-          expect(returnedUser.socialMediaUserName).not.toBeUndefined();
-          expect(returnedUser.updatedAt).toBeUndefined();
-          expect(returnedUser.userName).toEqual(userName);
+          expect(users.length).toBe(5);
+          expect(users[0].id).toBe(userTwo.id);
+          expect(users[1].id).toBe(userThree.id);
+          expect(users[2].id).toBe(userFour.id);
+          expect(users[3].id).toBe(userFive.id);
+          expect(users[4].id).toBe(userSix.id);
         });
         it('include current profile picture', async () => {
-          const {
-            password,
-            user: {
-              email,
-            },
-          } = await createUser({
+          const { user: userTwo } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
           });
-          const {
-            body: {
-              token: tokenTwo,
-            },
-          } = await postUsersLogin(app, {
-            body: {
-              password,
-              userNameOrEmail: email,
-            },
+          const profilePicture = await createProfilePicture({
+            userId: userTwo.id,
           });
-          const {
-            body: {
-              data: {
-                profilePicture: {
-                  id,
-                },
-              },
-            },
-          } = await postProfilePictures(app, tokenTwo);
           const {
             body: {
               data: {
@@ -228,23 +209,33 @@ describe('/users', () => {
               },
             },
           } = await getUsers(app, token);
-          expect(currentProfilePicture.createdAt).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImageId).toBeUndefined();
-          expect(currentProfilePicture.current).toBeUndefined();
-          expect(currentProfilePicture.id).toEqual(id);
-          expect(currentProfilePicture.originalImageId).toBeUndefined();
-          expect(currentProfilePicture.pendingImageId).toBeUndefined();
-          expect(currentProfilePicture.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.userId).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
+          testProfilePicture(currentProfilePicture, profilePicture);
+        });
+        it('do not include profile picture if signedUrl.OK === false', async () => {
+          (signedUrl as jest.Mock).mockImplementation(() => ({
+            OK: false,
+          }));
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: profilePictureId } = await createProfilePicture({
+            userId: userTwo.id,
+          });
+          const {
+            body: {
+              data: {
+                users: [{
+                  currentProfilePicture,
+                }],
+              },
+            },
+          } = await getUsers(app, token);
+          const images = await Image.findAll();
+          const profilePicture = await ProfilePicture.findByPk(profilePictureId);
+          expect(images.length).toBe(0);
+          expect(profilePicture).toBeNull();
+          expect(currentProfilePicture).toBeNull();
         });
       });
     });

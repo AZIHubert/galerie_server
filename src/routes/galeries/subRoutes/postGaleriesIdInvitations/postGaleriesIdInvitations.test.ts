@@ -1,4 +1,5 @@
 import { Server } from 'http';
+import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -14,23 +15,25 @@ import {
   User,
 } from '@src/db/models';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
+import signedUrl from '@src/helpers/signedUrl';
 import {
-  cleanGoogleBuckets,
+  createGalerie,
+  createGalerieUser,
+  createProfilePicture,
   createUser,
-  deleteUsersMe,
-  postGaleries,
   postGaleriesIdInvitations,
-  postGaleriesSubscribe,
-  postProfilePictures,
-  postUsersLogin,
-  putGaleriesIdUsersId,
+  testInvitation,
+  testProfilePicture,
+  testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
 
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
+
 let app: Server;
 let galerieId: string;
-let password: string;
 let sequelize: Sequelize;
 let token: string;
 let user: User;
@@ -45,38 +48,24 @@ describe('/galeries', () => {
         });
 
         beforeEach(async (done) => {
+          mockDate.reset();
+          jest.clearAllMocks();
+          (signedUrl as jest.Mock).mockImplementation(() => ({
+            OK: true,
+            signedUrl: 'signedUrl',
+          }));
           try {
-            await cleanGoogleBuckets();
             await sequelize.sync({ force: true });
             const {
-              password: createdPassword,
               user: createdUser,
             } = await createUser({});
-
-            password = createdPassword;
             user = createdUser;
-
-            const { body } = await postUsersLogin(app, {
-              body: {
-                password,
-                userNameOrEmail: user.email,
-              },
+            const jwt = signAuthToken(user);
+            token = jwt.token;
+            const galerie = await createGalerie({
+              userId: user.id,
             });
-            token = body.token;
-            const {
-              body: {
-                data: {
-                  galerie: {
-                    id,
-                  },
-                },
-              },
-            } = await postGaleries(app, token, {
-              body: {
-                name: 'galerie\'s name',
-              },
-            });
-            galerieId = id;
+            galerieId = galerie.id;
           } catch (err) {
             done(err);
           }
@@ -84,8 +73,9 @@ describe('/galeries', () => {
         });
 
         afterAll(async (done) => {
+          mockDate.reset();
+          jest.clearAllMocks();
           try {
-            await cleanGoogleBuckets();
             await sequelize.sync({ force: true });
             await sequelize.close();
           } catch (err) {
@@ -110,38 +100,12 @@ describe('/galeries', () => {
             const createdInvitation = await Invitation.findByPk(returnedInvitation.id);
             expect(action).toBe('POST');
             expect(createdInvitation).not.toBeNull();
-            expect(returnedInvitation.code).not.toBeUndefined();
-            expect(returnedInvitation.createdAt).not.toBeUndefined();
-            expect(returnedInvitation.galerieId).toBeUndefined();
-            expect(returnedInvitation.id).not.toBeUndefined();
-            expect(returnedInvitation.numOfInvits).toBeNull();
-            expect(returnedInvitation.time).toBeNull();
-            expect(returnedInvitation.updatedAt).toBeUndefined();
-            expect(returnedInvitation.user.authTokenVersion).toBeUndefined();
-            expect(returnedInvitation.user.confirmed).toBeUndefined();
-            expect(returnedInvitation.user.confirmTokenVersion).toBeUndefined();
-            expect(returnedInvitation.user.createdAt).not.toBeUndefined();
-            expect(returnedInvitation.user.currentProfilePicture).not.toBeUndefined();
-            expect(returnedInvitation.user.defaultProfilePicture).not.toBeUndefined();
-            expect(returnedInvitation.user.email).toBeUndefined();
-            expect(returnedInvitation.user.emailTokenVersion).toBeUndefined();
-            expect(returnedInvitation.user.facebookId).toBeUndefined();
-            expect(returnedInvitation.user.googleId).toBeUndefined();
-            expect(returnedInvitation.user.hash).toBeUndefined();
-            expect(returnedInvitation.user.id).not.toBeUndefined();
-            expect(returnedInvitation.user.pseudonym).not.toBeUndefined();
-            expect(returnedInvitation.user.resetPasswordTokenVersion).toBeUndefined();
-            expect(returnedInvitation.user.role).not.toBeUndefined();
-            expect(returnedInvitation.user.salt).toBeUndefined();
-            expect(returnedInvitation.user.socialMediaUserName).not.toBeUndefined();
-            expect(returnedInvitation.user.updatedAt).toBeUndefined();
-            expect(returnedInvitation.user.updatedEmailTokenVersion).toBeUndefined();
-            expect(returnedInvitation.user.userName).not.toBeUndefined();
-            expect(returnedInvitation.userId).toBeUndefined();
             expect(returnedGalerieId).toBe(galerieId);
             expect(status).toBe(200);
+            testUser(returnedInvitation.user);
+            testInvitation(returnedInvitation);
           });
-          it('create an invit with time === null', async () => {
+          it('create an invit with numOfInvits', async () => {
             const numOfInvits = 1;
             const {
               body: {
@@ -157,8 +121,10 @@ describe('/galeries', () => {
             expect(invitation.numOfInvits).toBe(numOfInvits);
             expect(invitation.time).toBeNull();
           });
-          it('create an invit with numOfTime === null', async () => {
-            const time = 1000 * 60 * 5;
+          it('create an invit with time', async () => {
+            const timeStamp = 1434319925275;
+            const time = 1000 * 60 * 10;
+            mockDate.set(timeStamp);
             const {
               body: {
                 data: {
@@ -171,11 +137,13 @@ describe('/galeries', () => {
               },
             });
             expect(invitation.numOfInvits).toBeNull();
-            expect(invitation.time).toBe(time);
+            expect(new Date(invitation.time)).toEqual(new Date(timeStamp + time));
           });
-          it('create an invit with time/numOfTime', async () => {
+          it('create an invit with time && numOfTime', async () => {
             const numOfInvits = 1;
-            const time = 1000 * 60 * 5;
+            const timeStamp = 1434319925275;
+            const time = 1000 * 60 * 10;
+            mockDate.set(timeStamp);
             const {
               body: {
                 data: {
@@ -189,10 +157,12 @@ describe('/galeries', () => {
               },
             });
             expect(invitation.numOfInvits).toBe(numOfInvits);
-            expect(invitation.time).toBe(time);
+            expect(new Date(invitation.time)).toEqual(new Date(timeStamp + time));
           });
           it('should incude profile picture', async () => {
-            await postProfilePictures(app, token);
+            await createProfilePicture({
+              userId: user.id,
+            });
             const {
               body: {
                 data: {
@@ -204,44 +174,7 @@ describe('/galeries', () => {
                 },
               },
             } = await postGaleriesIdInvitations(app, token, galerieId);
-            expect(currentProfilePicture.createdAt).not.toBeUndefined();
-            expect(currentProfilePicture.cropedImageId).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.bucketName).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.fileName).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.format).not.toBeUndefined();
-            expect(currentProfilePicture.cropedImage.height).not.toBeUndefined();
-            expect(currentProfilePicture.cropedImage.id).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-            expect(currentProfilePicture.cropedImage.size).not.toBeUndefined();
-            expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.cropedImage.width).not.toBeUndefined();
-            expect(currentProfilePicture.current).toBeUndefined();
-            expect(currentProfilePicture.originalImageId).toBeUndefined();
-            expect(currentProfilePicture.originalImage.bucketName).toBeUndefined();
-            expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
-            expect(currentProfilePicture.originalImage.fileName).toBeUndefined();
-            expect(currentProfilePicture.originalImage.format).not.toBeUndefined();
-            expect(currentProfilePicture.originalImage.height).not.toBeUndefined();
-            expect(currentProfilePicture.originalImage.id).toBeUndefined();
-            expect(currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
-            expect(currentProfilePicture.originalImage.size).not.toBeUndefined();
-            expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.originalImage.width).not.toBeUndefined();
-            expect(currentProfilePicture.id).not.toBeUndefined();
-            expect(currentProfilePicture.pendingImageId).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.bucketName).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.fileName).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.format).not.toBeUndefined();
-            expect(currentProfilePicture.pendingImage.height).not.toBeUndefined();
-            expect(currentProfilePicture.pendingImage.id).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-            expect(currentProfilePicture.pendingImage.size).not.toBeUndefined();
-            expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.pendingImage.width).not.toBeUndefined();
-            expect(currentProfilePicture.updatedAt).toBeUndefined();
-            expect(currentProfilePicture.userId).toBeUndefined();
+            testProfilePicture(currentProfilePicture);
           });
         });
         describe('Should return status 400 if', () => {
@@ -255,35 +188,15 @@ describe('/galeries', () => {
           });
           it('user\'s role is \'user\'', async () => {
             const {
-              password: passwordTwo,
               user: userTwo,
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
-            const {
-              body: {
-                token: tokenTwo,
-              },
-            } = await postUsersLogin(app, {
-              body: {
-                password: passwordTwo,
-                userNameOrEmail: userTwo.email,
-              },
-            });
-            const {
-              body: {
-                data: {
-                  invitation: {
-                    code,
-                  },
-                },
-              },
-            } = await postGaleriesIdInvitations(app, token, galerieId);
-            await postGaleriesSubscribe(app, tokenTwo, {
-              body: {
-                code,
-              },
+            const { token: tokenTwo } = signAuthToken(userTwo);
+            await createGalerieUser({
+              galerieId,
+              userId: userTwo.id,
             });
             const {
               body,
@@ -293,49 +206,14 @@ describe('/galeries', () => {
             expect(status).toBe(400);
           });
           it('galerie is archived', async () => {
-            const {
-              password: passwordTwo,
-              user: userTwo,
-            } = await createUser({
-              email: 'user2@email.com',
-              userName: 'user2',
-            });
-            const {
-              body: {
-                token: tokenTwo,
-              },
-            } = await postUsersLogin(app, {
-              body: {
-                password: passwordTwo,
-                userNameOrEmail: userTwo.email,
-              },
-            });
-            const {
-              body: {
-                data: {
-                  invitation: {
-                    code,
-                  },
-                },
-              },
-            } = await postGaleriesIdInvitations(app, token, galerieId);
-            await postGaleriesSubscribe(app, tokenTwo, {
-              body: {
-                code,
-              },
-            });
-            await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
-            await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 'delete my account',
-                password,
-                userNameOrEmail: user.email,
-              },
+            const galerieTwo = await createGalerie({
+              archived: true,
+              userId: user.id,
             });
             const {
               body,
               status,
-            } = await postGaleriesIdInvitations(app, tokenTwo, galerieId);
+            } = await postGaleriesIdInvitations(app, token, galerieTwo.id);
             expect(body.errors).toBe('you cannot post invitation on an archived galerie');
             expect(status).toBe(400);
           });
@@ -439,39 +317,18 @@ describe('/galeries', () => {
           });
           it('galerie exist but user is not subscribe to it', async () => {
             const {
-              password: passwordTwo,
               user: userTwo,
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
-            const {
-              body: {
-                token: tokenTwo,
-              },
-            } = await postUsersLogin(app, {
-              body: {
-                password: passwordTwo,
-                userNameOrEmail: userTwo.email,
-              },
-            });
-            const {
-              body: {
-                data: {
-                  galerie: {
-                    id,
-                  },
-                },
-              },
-            } = await postGaleries(app, tokenTwo, {
-              body: {
-                name: 'galeries\'s name',
-              },
+            const galerieTwo = await createGalerie({
+              userId: userTwo.id,
             });
             const {
               body,
               status,
-            } = await postGaleriesIdInvitations(app, token, id);
+            } = await postGaleriesIdInvitations(app, token, galerieTwo.id);
             expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });

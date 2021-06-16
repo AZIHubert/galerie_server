@@ -7,6 +7,7 @@ import {
 
 import {
   Galerie,
+  GalerieUser,
   Invitation,
   User,
 } from '@src/db/models';
@@ -24,6 +25,7 @@ export default async (req: Request, res: Response) => {
   } = req.params;
   const currentUser = req.user as User;
   let galerie: Galerie | null;
+  let galerieUser: GalerieUser | null;
   let invitation: Invitation | null;
 
   // Check if request.params.galerieId
@@ -69,7 +71,7 @@ export default async (req: Request, res: Response) => {
     .find((user) => user.id === currentUser.id);
   if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'user') {
     return res.status(400).send({
-      errors: 'your not allow to delete invitations',
+      errors: 'you\'re not allow to delete this invitation',
     });
   }
 
@@ -89,6 +91,35 @@ export default async (req: Request, res: Response) => {
   if (!invitation) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('invitation'),
+    });
+  }
+
+  // Fetch galerieUser for
+  // the user who post this invitation.
+  try {
+    galerieUser = await GalerieUser.findOne({
+      where: {
+        galerieId,
+        userId: invitation.userId,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // If this invitation was not posted by
+  // the current user but was posted by
+  // the creator of this galerie,
+  // return an error.
+  if (
+    invitation.userId !== currentUser.id
+    && (
+      galerieUser
+      && galerieUser.role === 'creator'
+    )
+  ) {
+    return res.status(400).send({
+      errors: 'you\'re not allow to delete this invitation',
     });
   }
 

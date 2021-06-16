@@ -13,12 +13,13 @@ import {
   User,
 } from '@src/db/models';
 
+import checkBlackList from '@src/helpers/checkBlackList';
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import { userExcluder } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@src/helpers/fetchCurrentProfilePicture';
+import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -29,11 +30,12 @@ export default async (req: Request, res: Response) => {
   const limit = 20;
   const { page } = req.query;
   const currentUser = req.user as User;
-  const usersWithProfilePicture: Array<any> = [];
+  const objectUserExcluder: { [key: string]: undefined } = {};
   let frame: Frame | null;
   let galerie: Galerie | null;
   let likes: Array<Like>;
   let offset: number;
+  let returnedUsers: Array<any>;
 
   if (typeof page === 'string') {
     offset = ((+page || 1) - 1) * limit;
@@ -101,9 +103,6 @@ export default async (req: Request, res: Response) => {
     likes = await Like.findAll({
       include: [
         {
-          attributes: {
-            exclude: userExcluder,
-          },
           model: User,
           where: {
             id: {
@@ -114,9 +113,7 @@ export default async (req: Request, res: Response) => {
       ],
       limit,
       offset,
-      order: [
-        ['createdAt', 'DESC'],
-      ],
+      order: [['createdAt', 'DESC']],
       where: {
         frameId,
       },
@@ -127,16 +124,22 @@ export default async (req: Request, res: Response) => {
 
   // Fetch users profile pictures.
   try {
-    await Promise.all(
-      likes.map(async (like) => {
-        const currentProfilePicture = await fetchCurrentProfilePicture(like.user);
+    returnedUsers = await Promise.all(
+      likes.map(async ({ user }) => {
+        const userIsBlackListed = await checkBlackList(user);
+        if (userIsBlackListed) {
+          return null;
+        }
+        const currentProfilePicture = await fetchCurrentProfilePicture(user);
+        userExcluder.forEach((e) => {
+          objectUserExcluder[e] = undefined;
+        });
 
-        const returnedUser = {
-          ...like.user.toJSON(),
+        return {
+          ...user.toJSON(),
+          ...objectUserExcluder,
           currentProfilePicture,
         };
-
-        usersWithProfilePicture.push(returnedUser);
       }),
     );
   } catch (err) {
@@ -148,7 +151,7 @@ export default async (req: Request, res: Response) => {
     data: {
       galerieId,
       frameId,
-      users: usersWithProfilePicture,
+      users: returnedUsers,
     },
   });
 };

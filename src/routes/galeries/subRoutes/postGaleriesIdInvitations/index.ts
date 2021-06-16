@@ -20,7 +20,7 @@ import {
   invitationExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import fetchCurrentProfilePicture from '@root/src/helpers/fetchCurrentProfilePicture';
+import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import {
   normalizeJoiErrors,
   validatePostGaleriesIdInvationsBody,
@@ -96,10 +96,11 @@ export default async (req: Request, res: Response) => {
   // create invitation.
   try {
     invitation = await Invitation.create({
-      ...value,
-      userId: currentUser.id,
-      galerieId,
       code: `${customAlphabet('1234567890', 4)()}-${customAlphabet('abcdefghjkmnpqrstuvwxyz23456789', 10)()}`,
+      galerieId,
+      numOfInvits: value.numOfInvits,
+      time: value.time ? new Date(Date.now() + value.time) : null,
+      userId: currentUser.id,
     });
   } catch (err) {
     return res.status(500).send(err);

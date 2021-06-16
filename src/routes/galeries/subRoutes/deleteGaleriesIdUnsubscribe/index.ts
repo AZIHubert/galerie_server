@@ -26,6 +26,7 @@ import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   const { galerieId } = req.params;
+  let framesLikeByCurrentUser: Frame[];
   let galerie: Galerie | null;
   let galerieUsers: GalerieUser[];
 
@@ -68,33 +69,36 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Fetch all galerieUser...
   try {
-    // Fetch all galerieUser.
     galerieUsers = await GalerieUser.findAll({
       where: {
         galerieId,
       },
     });
-
-    // Destroy the one of the current user.
-    const galerieUser = galerieUsers.find((gu) => gu.userId === currentUser.id);
-    if (galerieUser) {
-      await galerieUser.destroy();
-    }
   } catch (err) {
     return res.status(500).send(err);
+  }
+
+  // ...and destroy the one of the current user.
+  const galerieUser = galerieUsers
+    .find((gu) => gu.userId === currentUser.id);
+  if (galerieUser) {
+    try {
+      await galerieUser.destroy();
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+  } else {
+    return res.status(500).send({
+      errors: 'something went wrong',
+    });
   }
 
   // If there is no more user
   // subscribe to this galerie...
   if (galerieUsers.length - 1 < 1) {
     let frames: Frame[];
-    // ...destroy galerie...
-    try {
-      await galerie.destroy();
-    } catch (err) {
-      return res.status(500).send(err);
-    }
 
     try {
       frames = await Frame.findAll({
@@ -105,10 +109,14 @@ export default async (req: Request, res: Response) => {
           }],
         }],
         where: {
-          galerieId: galerie.id,
+          galerieId,
         },
       });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
 
+    try {
       await Promise.all(
         frames.map(async (frame) => {
           // ...destroy all frames
@@ -158,26 +166,15 @@ export default async (req: Request, res: Response) => {
               },
             ),
           );
-
-          // ...destroy all likes...
-          await Like.destroy({
-            where: {
-              frameId: frame.id,
-            },
-          });
         }),
       );
     } catch (err) {
       return res.status(500).send(err);
     }
 
-    // ...destroy all invitations...
+    // ...and destroy galerie.
     try {
-      await Invitation.destroy({
-        where: {
-          galerieId: galerie.id,
-        },
-      });
+      await galerie.destroy();
     } catch (err) {
       return res.status(500).send(err);
     }
@@ -244,21 +241,55 @@ export default async (req: Request, res: Response) => {
               },
             ),
           );
-          await Like.destroy({
-            where: {
-              frameId: frame.id,
-            },
-          });
         }),
       );
     } catch (err) {
       return res.status(500).send(err);
     }
+
+    // ...destroy all likes posted
+    // (and decrement frame.numOfLikes)
+    // by this user...
     try {
-      // ...and destroy all likes posted
-      // by this user.
-      await Like.destroy({
+      framesLikeByCurrentUser = await Frame.findAll({
+        include: [
+          {
+            model: Like,
+            where: {
+              userId: currentUser.id,
+            },
+          },
+        ],
         where: {
+          galerieId,
+        },
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+    if (framesLikeByCurrentUser) {
+      try {
+        await Promise.all(
+          framesLikeByCurrentUser.map(async (frame) => {
+            await frame.decrement({ numOfLikes: 1 });
+            await Promise.all(
+              frame.likes.map(async (like) => {
+                await like.destroy();
+              }),
+            );
+          }),
+        );
+      } catch (err) {
+        return res.status(500).send(err);
+      }
+    }
+
+    // ...and destroy all invitations
+    // posted by this user.
+    try {
+      await Invitation.destroy({
+        where: {
+          galerieId,
           userId: currentUser.id,
         },
       });

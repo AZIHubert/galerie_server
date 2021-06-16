@@ -1,21 +1,19 @@
+// PUT /blackLists/:blackListId/
+
 import {
   Request,
   Response,
 } from 'express';
 
 import {
-  BlackList,
   User,
+  BlackList,
 } from '@src/db/models';
 
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
-import {
-  normalizeJoiErrors,
-  validatePutBlackListsIdBody,
-} from '@src/helpers/schemas';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -36,8 +34,16 @@ export default async (req: Request, res: Response) => {
     blackList = await BlackList.findByPk(blackListId, {
       include: [
         {
+          as: 'admin',
+          model: User,
+        },
+        {
           as: 'user',
           model: User,
+          required: false,
+          where: {
+            isBlackListed: true,
+          },
         },
       ],
     });
@@ -52,59 +58,48 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if blackList.user exist.
+  // Check if blackList is active.
   if (!blackList.user) {
-    try {
-      await blackList.destroy();
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('black list'),
+    return res.status(400).send({
+      errors: 'not allow to update a non active black list',
     });
   }
 
   // Check if black list is expired.
-  if (blackList.time) {
-    const time = new Date(
-      blackList.createdAt.getTime() + blackList.time,
-    );
-    const blackListIsExpired = time < new Date(Date.now());
-
-    if (blackListIsExpired) {
-      try {
-        await blackList.destroy();
-      } catch (err) {
-        return res.status(500).send(err);
-      }
-      return res.status(404).send({
-        errors: MODEL_NOT_FOUND('black list'),
+  if (blackList.time && blackList.time < new Date(Date.now())) {
+    try {
+      await blackList.user.update({
+        blackListedAt: null,
+        isBlackListed: false,
       });
+    } catch (err) {
+      return res.status(500).send(err);
     }
-  }
-
-  // Validate request.body.
-  const {
-    error,
-    value,
-  } = validatePutBlackListsIdBody(req.body);
-  if (error) {
     return res.status(400).send({
-      errors: normalizeJoiErrors(error),
+      errors: 'not allow to update a non active black list',
     });
   }
 
-  if ((value.time || null) === blackList.time) {
+  // admin are not allow to
+  // update blackList posted by
+  // superAdmin.
+  if (
+    currentUser.role === 'admin'
+    && blackList.admin.role === 'superAdmin'
+  ) {
     return res.status(400).send({
-      errors: 'no change submited',
+      errors: 'you\'re not allow to update this blackList',
     });
   }
 
-  // Update black list.
+  // Set active to false.
   try {
     await blackList.update({
-      time: value.time || null,
       updatedById: currentUser.id,
+    });
+    await blackList.user.update({
+      blackListedAt: null,
+      isBlackListed: false,
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -114,8 +109,6 @@ export default async (req: Request, res: Response) => {
     action: 'PUT',
     data: {
       blackListId,
-      time: value.time || null,
-      updatedAt: blackList.updatedAt,
     },
   });
 };

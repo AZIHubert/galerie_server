@@ -27,6 +27,7 @@ export default async (req: Request, res: Response) => {
   let frame: Frame | null;
   let galerie: Galerie | null;
   let like: Like | null;
+  let liked: boolean;
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -99,7 +100,8 @@ export default async (req: Request, res: Response) => {
   // decrement frame.numOfLike
   if (like) {
     await like.destroy();
-    await frame.increment({ numOfLikes: -1 });
+    await frame.decrement({ numOfLikes: 1 });
+    liked = false;
 
   // Else, create one
   // increment frame.numOfLike
@@ -109,6 +111,7 @@ export default async (req: Request, res: Response) => {
       userId: currentUser.id,
     });
     await frame.increment({ numOfLikes: 1 });
+    liked = true;
   }
 
   return res.status(200).send({
@@ -116,6 +119,7 @@ export default async (req: Request, res: Response) => {
     data: {
       frameId,
       galerieId,
+      liked,
       numOfLikes: frame.numOfLikes,
     },
   });

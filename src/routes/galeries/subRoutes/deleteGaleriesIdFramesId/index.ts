@@ -10,6 +10,7 @@ import {
   Frame,
   Galerie,
   GaleriePicture,
+  GalerieUser,
   Image,
   Like,
   User,
@@ -28,8 +29,9 @@ export default async (req: Request, res: Response) => {
     frameId,
   } = req.params;
   const currentUser = req.user as User;
-  let galerie: Galerie | null;
   let frame: Frame | null;
+  let galerie: Galerie | null;
+  let galerieUser: GalerieUser | null;
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -92,15 +94,36 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Only creator/admin or the user
-  // who post the frame can deleted it.
+  // Fetch galerieUser
+  // to know the role of the user
+  // who post this frame.
+  try {
+    galerieUser = await GalerieUser.findOne({
+      where: {
+        galerieId,
+        userId: frame.userId,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Only creator/admin
+  // or if user.role === 'admin' | 'superAdmin'
+  // or the user who post the frame
+  // can deleted it.
   const userFromGalerie = galerie.users
     .find((user) => user.id === currentUser.id);
   if (
     currentUser.id !== frame.userId
     && (
-      !userFromGalerie
-      || userFromGalerie.GalerieUser.role === 'user'
+      (
+        !userFromGalerie
+        || userFromGalerie.GalerieUser.role === 'user'
+      ) || (
+        galerieUser
+        && galerieUser.role === 'creator'
+      )
     )
   ) {
     return res.status(400).send({
@@ -159,7 +182,7 @@ export default async (req: Request, res: Response) => {
       ),
     );
   } catch (err) {
-    return res.status(500).end();
+    return res.status(500).send(err);
   }
 
   return res.status(200).send({

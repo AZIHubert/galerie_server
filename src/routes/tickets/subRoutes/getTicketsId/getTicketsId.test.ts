@@ -5,7 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
-  Ticket,
+  Image,
+  ProfilePicture,
   User,
 } from '@src/db/models';
 
@@ -14,21 +15,23 @@ import {
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
+import signedUrl from '@src/helpers/signedUrl';
 import {
-  cleanGoogleBuckets,
+  createProfilePicture,
+  createTicket,
   createUser,
   getTicketsId,
-  deleteUsersMe,
-  postProfilePictures,
-  postTickets,
-  postUsersLogin,
+  testProfilePicture,
+  testTicket,
+  testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
 
-let adminToken: string;
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
+
 let app: Server;
-let password: string;
 let sequelize: Sequelize;
 let token: string;
 let user: User;
@@ -42,39 +45,26 @@ describe('/tickets', () => {
       });
 
       beforeEach(async (done) => {
+        jest.clearAllMocks();
+        (signedUrl as jest.Mock).mockImplementation(() => ({
+          OK: true,
+          signedUrl: 'signedUrl',
+        }));
         try {
           await sequelize.sync({ force: true });
-          await cleanGoogleBuckets();
           const {
-            password: createdPassword,
             user: createdUser,
           } = await createUser({});
           const {
-            password: passwordTwo,
             user: admin,
           } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
             role: 'superAdmin',
           });
-
-          password = createdPassword;
           user = createdUser;
-
-          const { body } = await postUsersLogin(app, {
-            body: {
-              password,
-              userNameOrEmail: user.email,
-            },
-          });
-          const { body: adminLoginBody } = await postUsersLogin(app, {
-            body: {
-              password: passwordTwo,
-              userNameOrEmail: admin.email,
-            },
-          });
-          token = body.token;
-          adminToken = adminLoginBody.token;
+          const jwt = signAuthToken(admin);
+          token = jwt.token;
         } catch (err) {
           done(err);
         }
@@ -82,9 +72,9 @@ describe('/tickets', () => {
       });
 
       afterAll(async (done) => {
+        jest.clearAllMocks();
         try {
           await sequelize.sync({ force: true });
-          await cleanGoogleBuckets();
           await sequelize.close();
         } catch (err) {
           done(err);
@@ -95,68 +85,30 @@ describe('/tickets', () => {
 
       describe('should return status 200 and', () => {
         it('return a ticket', async () => {
-          const body = 'ticket\'s body';
-          const header = 'ticket\'s header';
-          await postTickets(app, token, {
-            body: {
-              body,
-              header,
-            },
+          const createdTicket = await createTicket({
+            userId: user.id,
           });
-          const [ticket] = await Ticket.findAll();
           const {
             body: {
               action,
               data: {
-                ticket: returnedTicket,
+                ticket,
               },
             },
             status,
-          } = await getTicketsId(app, adminToken, ticket.id);
+          } = await getTicketsId(app, token, createdTicket.id);
           expect(action).toBe('GET');
           expect(status).toBe(200);
-          expect(returnedTicket.body).toBe(body);
-          expect(new Date(returnedTicket.createdAt)).toEqual(ticket.createdAt);
-          expect(returnedTicket.header).toBe(header);
-          expect(returnedTicket.id).toBe(ticket.id);
-          expect(returnedTicket.updatedAt).toBeUndefined();
-          expect(returnedTicket.user.authTokenVersion).toBeUndefined();
-          expect(returnedTicket.user.confirmed).toBeUndefined();
-          expect(returnedTicket.user.confirmTokenVersion).toBeUndefined();
-          expect(new Date(returnedTicket.user.createdAt)).toEqual(user.createdAt);
-          expect(returnedTicket.user.currentProfilePicture).toBeNull();
-          expect(returnedTicket.user.defaultProfilePicture).toBeNull();
-          expect(returnedTicket.user.email).toBeUndefined();
-          expect(returnedTicket.user.emailTokenVersion).toBeUndefined();
-          expect(returnedTicket.user.facebookId).toBeUndefined();
-          expect(returnedTicket.user.googleId).toBeUndefined();
-          expect(returnedTicket.user.hash).toBeUndefined();
-          expect(returnedTicket.user.id).toBe(user.id);
-          expect(returnedTicket.user.pseudonym).toBe(user.pseudonym);
-          expect(returnedTicket.user.resetPasswordTokenVersion).toBeUndefined();
-          expect(returnedTicket.user.role).toBe(user.role);
-          expect(returnedTicket.user.salt).toBeUndefined();
-          expect(returnedTicket.user.socialMediaUserName).toBe(user.socialMediaUserName);
-          expect(returnedTicket.user.updatedEmailTokenVersion).toBeUndefined();
-          expect(returnedTicket.user.updatedAt).toBeUndefined();
-          expect(returnedTicket.user.userName).toBe(user.userName);
-          expect(returnedTicket.userId).toBeUndefined();
+          testTicket(ticket, createdTicket);
+          testUser(ticket.user, user);
         });
         it('and return ticket with user\'s profile picture', async () => {
-          await postTickets(app, token, {
-            body: {
-              body: 'ticket\'s body',
-              header: 'ticket\'s header',
-            },
+          const { id: ticketId } = await createTicket({
+            userId: user.id,
           });
-          const {
-            body: {
-              data: {
-                profilePicture,
-              },
-            },
-          } = await postProfilePictures(app, token);
-          const [ticket] = await Ticket.findAll();
+          const profilePicture = await createProfilePicture({
+            userId: user.id,
+          });
           const {
             body: {
               data: {
@@ -167,69 +119,46 @@ describe('/tickets', () => {
                 },
               },
             },
-          } = await getTicketsId(app, adminToken, ticket.id);
-          expect(currentProfilePicture.createdAt).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.bucketName).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.fileName).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.format).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.height).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.id).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.size).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.cropedImage.width).not.toBeUndefined();
-          expect(currentProfilePicture.cropedImagesId).toBeUndefined();
-          expect(currentProfilePicture.current).toBeUndefined();
-          expect(currentProfilePicture.id).toBe(profilePicture.id);
-          expect(currentProfilePicture.originalImage.bucketName).toBeUndefined();
-          expect(currentProfilePicture.originalImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.originalImage.fileName).toBeUndefined();
-          expect(currentProfilePicture.originalImage.format).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.height).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.id).toBeUndefined();
-          expect(currentProfilePicture.originalImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.size).not.toBeUndefined();
-          expect(currentProfilePicture.originalImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.originalImage.width).not.toBeUndefined();
-          expect(currentProfilePicture.originalImageId).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.bucketName).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.createdAt).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.fileName).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.format).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.height).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.id).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.signedUrl).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.size).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImage.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.pendingImage.width).not.toBeUndefined();
-          expect(currentProfilePicture.pendingImageId).toBeUndefined();
-          expect(currentProfilePicture.updatedAt).toBeUndefined();
-          expect(currentProfilePicture.userId).toBeUndefined();
+          } = await getTicketsId(app, token, ticketId);
+          testProfilePicture(currentProfilePicture, profilePicture);
         });
-        it('return ticket event if his user has deleted his account', async () => {
-          await postTickets(app, token, {
-            body: {
-              body: 'ticket\'s body',
-              header: 'ticket\'s header',
-            },
-          });
-          await deleteUsersMe(app, token, {
-            body: {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: user.email,
-            },
-          });
-          const [ticket] = await Ticket.findAll();
+        it('return ticket.user === null if ticket.userId === null', async () => {
+          const { id: ticketId } = await createTicket({});
           const {
             body: {
               data: {
                 ticket: returnedTicket,
               },
             },
-          } = await getTicketsId(app, adminToken, ticket.id);
+          } = await getTicketsId(app, token, ticketId);
           expect(returnedTicket.user).toBeNull();
+        });
+        it('do not include profile picture if signedUrl.OK === false', async () => {
+          (signedUrl as jest.Mock).mockImplementation(() => ({
+            OK: false,
+          }));
+          const { id: ticketId } = await createTicket({
+            userId: user.id,
+          });
+          const { id: profilePictureId } = await createProfilePicture({
+            userId: user.id,
+          });
+          const {
+            body: {
+              data: {
+                ticket: {
+                  user: {
+                    currentProfilePicture,
+                  },
+                },
+              },
+            },
+          } = await getTicketsId(app, token, ticketId);
+          const image = await Image.findAll();
+          const profilePicture = await ProfilePicture.findByPk(profilePictureId);
+          expect(currentProfilePicture).toBeNull();
+          expect(image.length).toBe(0);
+          expect(profilePicture).toBeNull();
         });
       });
       describe('should return status 400 if', () => {
@@ -237,7 +166,7 @@ describe('/tickets', () => {
           const {
             body,
             status,
-          } = await getTicketsId(app, adminToken, '100');
+          } = await getTicketsId(app, token, '100');
           expect(body.errors).toBe(INVALID_UUID('ticket'));
           expect(status).toBe(400);
         });
@@ -247,7 +176,7 @@ describe('/tickets', () => {
           const {
             body,
             status,
-          } = await getTicketsId(app, adminToken, uuidv4());
+          } = await getTicketsId(app, token, uuidv4());
           expect(body.errors).toBe(MODEL_NOT_FOUND('ticket'));
           expect(status).toBe(404);
         });
