@@ -77,10 +77,3 @@ const galeriesRoutes: () => Router = () => {
 };
 
 export default galeriesRoutes;
-
-// TODO:
-// when delete/blackList user
-// set galerieBlacklist.adminis === false
-// where galerieBlackList.adminId === user.id
-// Check if user is blackListed to a galerie
-// when he try to subscribe.

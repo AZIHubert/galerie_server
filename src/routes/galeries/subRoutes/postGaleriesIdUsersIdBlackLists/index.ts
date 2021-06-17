@@ -100,7 +100,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // TODO:
+  // TODO: for later
   // when request created
   // if(!user)
   // find user with galerieBlackList where galerieId === galerieId

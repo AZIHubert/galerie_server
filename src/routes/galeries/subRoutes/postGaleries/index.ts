@@ -19,7 +19,7 @@ import {
   validatePostGaleriesBody,
 } from '@src/helpers/schemas';
 
-// TODO:
+// TODO: for later
 // add field galerie.blackListLimit: number (<5) | null
 // if a user try to subscribe to this galerie
 // and galerie.blackListsLimit !== null

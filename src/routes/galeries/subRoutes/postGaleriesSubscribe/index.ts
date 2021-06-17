@@ -7,6 +7,7 @@ import {
 
 import {
   Invitation,
+  GalerieBlackList,
   GalerieUser,
   Galerie,
   User,
@@ -23,6 +24,7 @@ import {
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   let galerie: Galerie | null;
+  let galerieBlackList: GalerieBlackList | null;
   let galerieUser: GalerieUser | null;
   let invitation: Invitation | null;
 
@@ -50,6 +52,26 @@ export default async (req: Request, res: Response) => {
 
   // Check if invitation exist.
   if (!invitation) {
+    return res.status(404).send({
+      errors: MODEL_NOT_FOUND('invitation'),
+    });
+  }
+
+  // Fetch galerieBlackList.
+  try {
+    galerieBlackList = await GalerieBlackList.findOne({
+      where: {
+        galerieId: invitation.galerieId,
+        userId: currentUser.id,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // If galerieBlackList exist
+  // return a 404 error
+  if (galerieBlackList) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('invitation'),
     });
