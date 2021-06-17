@@ -398,6 +398,20 @@ describe('/galeries', () => {
                 const likes = await Like.findAll();
                 expect(likes.length).toBe(0);
               });
+              it('decrement all frames.numOfLikes liked by the black listed user', async () => {
+                const { id: frameId } = await createFrame({
+                  galerieId,
+                  userId: user.id,
+                });
+                await createLike({
+                  frameId,
+                  incrementNumOfLikes: true,
+                  userId: userTwo.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const frame = await Frame.findByPk(frameId) as Frame;
+                expect(frame.numOfLikes).toBe(0);
+              });
               it('do not delete likes posted by other user', async () => {
                 const { id: frameId } = await createFrame({
                   galerieId,

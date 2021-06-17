@@ -9,6 +9,7 @@ import { Op } from 'sequelize';
 import {
   Frame,
   Galerie,
+  GalerieBlackList,
   GalerieUser,
   Image,
   Invitation,
@@ -252,6 +253,21 @@ export default async (req: Request, res: Response) => {
       where: {
         galerieId,
         userId,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Set adminId === nul for all galerieBlackList
+  // posted by deleted user
+  try {
+    await GalerieBlackList.update({
+      adminId: null,
+    }, {
+      where: {
+        galerieId,
+        adminId: user.id,
       },
     });
   } catch (err) {
