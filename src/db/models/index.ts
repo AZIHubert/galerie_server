@@ -1,7 +1,8 @@
 export { default as BlackList } from './blackList';
 export { default as Frame } from './frame';
-export { default as GaleriePicture } from './galeriePicture';
 export { default as Galerie } from './galerie';
+export { default as GaleriBlackList } from './galerieBlackLists';
+export { default as GaleriePicture } from './galeriePicture';
 export { default as GalerieUser } from './galerieUser';
 export { default as Image } from './image';
 export { default as Invitation } from './invitation';

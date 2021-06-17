@@ -1,5 +1,6 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('galerieBlackList', {
   adminId: {
+    allowNull: true,
     references: {
       key: 'id',
       model: 'users',
