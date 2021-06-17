@@ -16,3 +16,8 @@ initSequelize(() => {
     console.log(`App start on port ${PORT}`);
   });
 });
+
+// TODO:
+// when fetch user at any place on galerie
+// return user with isBlackListed
+// instead of null.
