@@ -11,6 +11,7 @@ export { default as createTicket } from './createTicket';
 export { default as createUser } from './createUser';
 
 export { default as deleteGaleriesId } from './deleteGaleriesId';
+export { default as deleteGaleriesIdBlackListsId } from './deleteGaleriesIdBlackListsId';
 export { default as deleteGaleriesIdFramesId } from './deleteGaleriesIdFramesId';
 export { default as deleteGaleriesIdInvitations } from './deleteGaleriesIdInvitations';
 export { default as deleteGaleriesIdInvitationId } from './deleteGaleriesIdInvitationId';

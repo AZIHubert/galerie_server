@@ -7,6 +7,7 @@ import {
 
 import {
   deleteGaleriesId,
+  deleteGaleriesIdBlackListsId,
   deleteGaleriesIdFramesId,
   deleteGaleriesIdInvitations,
   deleteGaleriesIdInvitationsId,
@@ -29,7 +30,7 @@ import {
   postGaleriesIdFrames,
   postGaleriesIdFramesIdLikes,
   postGaleriesIdInvitations,
-  postGaleriesIdUserUserIdBlackLists,
+  postGaleriesIdUsersIdBlackLists,
   postGaleriesSubscribe,
 
   putGaleriesId,
@@ -42,14 +43,12 @@ const router = Router();
 
 const galeriesRoutes: () => Router = () => {
   router.delete('/:galerieId/', shouldBeAuth, deleteGaleriesId);
+  router.delete('/:galerieId/blackLists/:blackListId', shouldBeAuth, deleteGaleriesIdBlackListsId);
   router.delete('/:galerieId/frames/:frameId/', shouldBeAuth, deleteGaleriesIdFramesId);
   router.delete('/:galerieId/invitations', shouldBeAuth, deleteGaleriesIdInvitations);
   router.delete('/:galerieId/invitations/:invitationId', shouldBeAuth, deleteGaleriesIdInvitationsId);
   router.delete('/:galerieId/unsubscribe/', shouldBeAuth, deleteGaleriesIdUnsubscribe);
   router.delete('/:galerieId/users/:userId', shouldBeAuth, deleteGaleriesIdUsersId);
-  // TODO:
-  router.delete('/:galerieId/users/:userId/blackLists/:blackListId');
-  // delete a blackList
 
   router.get('/', shouldBeAuth, getGaleries);
   router.get('/frames', shouldBeAuth, getGaleriesFrames);
@@ -64,7 +63,7 @@ const galeriesRoutes: () => Router = () => {
   router.get('/:galerieId/users', shouldBeAuth, getGaleriesIdUsers);
 
   router.post('/', shouldBeAuth, postGaleries);
-  router.post('/:galerieId/users/:userId/blackLists/', shouldBeAuth, postGaleriesIdUserUserIdBlackLists);
+  router.post('/:galerieId/users/:userId/blackLists/', shouldBeAuth, postGaleriesIdUsersIdBlackLists);
   router.post('/:galerieId/frames/', shouldBeAuth, uploadFiles, postGaleriesIdFrames);
   router.post('/:galerieId/frames/:frameId/likes/', shouldBeAuth, postGaleriesIdFramesIdLikes);
   router.post('/:galerieId/invitations/', shouldBeAuth, postGaleriesIdInvitations);
@@ -78,3 +77,10 @@ const galeriesRoutes: () => Router = () => {
 };
 
 export default galeriesRoutes;
+
+// TODO:
+// when delete/blackList user
+// set galerieBlacklist.adminis === false
+// where galerieBlackList.adminId === user.id
+// Check if user is blackListed to a galerie
+// when he try to subscribe.
