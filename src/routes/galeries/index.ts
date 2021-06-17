@@ -7,6 +7,7 @@ import {
 
 import {
   deleteGaleriesId,
+  deleteGaleriesIdBlackListsId,
   deleteGaleriesIdFramesId,
   deleteGaleriesIdInvitations,
   deleteGaleriesIdInvitationsId,
@@ -16,6 +17,8 @@ import {
   getGaleries,
   getGaleriesFrames,
   getGaleriesId,
+  getGaleriesIdBlackLists,
+  getGaleriesIdBlackListsId,
   getGaleriesIdFrames,
   getGaleriesIdFramesId,
   getGaleriesIdFramesIdLikes,
@@ -27,6 +30,7 @@ import {
   postGaleriesIdFrames,
   postGaleriesIdFramesIdLikes,
   postGaleriesIdInvitations,
+  postGaleriesIdUsersIdBlackLists,
   postGaleriesSubscribe,
 
   putGaleriesId,
@@ -39,35 +43,27 @@ const router = Router();
 
 const galeriesRoutes: () => Router = () => {
   router.delete('/:galerieId/', shouldBeAuth, deleteGaleriesId);
+  router.delete('/:galerieId/blackLists/:blackListId', shouldBeAuth, deleteGaleriesIdBlackListsId);
   router.delete('/:galerieId/frames/:frameId/', shouldBeAuth, deleteGaleriesIdFramesId);
   router.delete('/:galerieId/invitations', shouldBeAuth, deleteGaleriesIdInvitations);
-  // delete all invitations
-  // where: time !== null and time > new Date(Date.now())
-  // or numOfInvits !== null and numOfInvits < 1
   router.delete('/:galerieId/invitations/:invitationId', shouldBeAuth, deleteGaleriesIdInvitationsId);
   router.delete('/:galerieId/unsubscribe/', shouldBeAuth, deleteGaleriesIdUnsubscribe);
   router.delete('/:galerieId/users/:userId', shouldBeAuth, deleteGaleriesIdUsersId);
-  // TODO:
-  router.delete('/:galerieId/users/:userId/blackLists/:blackListId');
-  // delete a blackList
 
   router.get('/', shouldBeAuth, getGaleries);
   router.get('/frames', shouldBeAuth, getGaleriesFrames);
   router.get('/:galerieId/', shouldBeAuth, getGaleriesId);
+  router.get('/:galerieId/blackLists', shouldBeAuth, getGaleriesIdBlackLists);
+  router.get('/:galerieId/blackLists/:blackListId', shouldBeAuth, getGaleriesIdBlackListsId);
   router.get('/:galerieId/frames/', shouldBeAuth, getGaleriesIdFrames);
   router.get('/:galerieId/frames/:frameId/', shouldBeAuth, getGaleriesIdFramesId);
   router.get('/:galerieId/frames/:frameId/likes', shouldBeAuth, getGaleriesIdFramesIdLikes);
   router.get('/:galerieId/invitations/', shouldBeAuth, getGaleriesIdInvitations);
   router.get('/:galerieId/invitations/:invitationId/', shouldBeAuth, getGaleriesIdInvitationsId);
   router.get('/:galerieId/users', shouldBeAuth, getGaleriesIdUsers);
-  // TODO:
-  router.get('/:galerieId/users/blackLists', shouldBeAuth, () => {});
-  // return all users blackListed from this galerie
 
   router.post('/', shouldBeAuth, postGaleries);
-  // TODO:
-  router.post('/:galerieId/users/:userId/blackLists/', shouldBeAuth, () => {});
-  // create a galerieBlackList
+  router.post('/:galerieId/users/:userId/blackLists/', shouldBeAuth, postGaleriesIdUsersIdBlackLists);
   router.post('/:galerieId/frames/', shouldBeAuth, uploadFiles, postGaleriesIdFrames);
   router.post('/:galerieId/frames/:frameId/likes/', shouldBeAuth, postGaleriesIdFramesIdLikes);
   router.post('/:galerieId/invitations/', shouldBeAuth, postGaleriesIdInvitations);

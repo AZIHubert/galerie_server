@@ -92,7 +92,6 @@ describe('/profilePictures', () => {
             },
           },
         } = await getProfilePictures(app, token);
-        console.log(profilePictures[0]);
         testProfilePicture(profilePictures[0], profilePicture);
       });
       it('should return a pack of 20 profile pictures', async () => {

@@ -19,6 +19,27 @@ import {
   validatePostGaleriesBody,
 } from '@src/helpers/schemas';
 
+// TODO: for later
+// add field galerie.blackListLimit: number (<5) | null
+// if a user try to subscribe to this galerie
+// and galerie.blackListsLimit !== null
+// check if user.galerieBlackLits.length <= galerie.blackListLimit
+// if true
+//  admins/creator need to validate his inscription
+// need to create model galerieRequest
+//  with fields
+//    galerieId
+//    userId
+// Need to create route
+//  GET /galeries/:galerieId/requests
+//    (get all request from this galerie)
+//  GET /galeries/:galerieId/requests/:requestId
+//    (get single request from this galerie)
+//  POST /galeries/:galerieId/request/:requestId
+//    (create GalerieUser for galerieRequest.userId and delete GalerieRequest)
+// an admin can accept the request or blackList the user
+// Only the creator can change this feature
+
 const colors = [
   [
     '#C10500',

@@ -9,6 +9,7 @@ import {
 } from 'sequelize-typescript';
 
 import Frame from '../frame';
+import GalerieBlackList from '../galerieBlackLists';
 import GalerieUser from '../galerieUser';
 import Invitation from '../invitation';
 import User from '../user';
@@ -73,6 +74,9 @@ export default class Galerie extends Model implements GalerieI {
 
   @HasMany(() => Frame)
   frames!: Frame[];
+
+  @HasMany(() => GalerieBlackList)
+  galerieBlackLists!: GalerieBlackList[];
 
   @HasMany(() => Invitation)
   invitations!: Invitation[];

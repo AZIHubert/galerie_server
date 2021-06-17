@@ -20,6 +20,7 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import {
   createGalerie,
+  createGalerieBlackList,
   createGalerieUser,
   createInvitation,
   createUser,
@@ -204,6 +205,37 @@ describe('/galeries', () => {
           });
           expect(status).toBe(200);
         });
+        it('subscribe to this galerie even if current user is black listed from other galeries', async () => {
+          const galerieTwo = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieBlackList({
+            adminId: userTwo.id,
+            galerieId: galerieTwo.id,
+            userId: user.id,
+          });
+          const {
+            code,
+          } = await createInvitation({
+            galerieId,
+            userId: userTwo.id,
+          });
+          const {
+            status,
+          } = await postGaleriesSubscribe(app, token, {
+            body: {
+              code,
+            },
+          });
+          const galerieUser = await GalerieUser.findOne({
+            where: {
+              galerieId,
+              userId: user.id,
+            },
+          });
+          expect(status).toBe(200);
+          expect(galerieUser).not.toBeNull();
+        });
       });
       describe('should return error 400 if', () => {
         it('invitation.numOfInvits < 1', async () => {
@@ -343,6 +375,27 @@ describe('/galeries', () => {
           } = await postGaleriesSubscribe(app, token, {
             body: {
               code: 'wrong code',
+            },
+          });
+          expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
+          expect(status).toBe(404);
+        });
+        it('user is black listed from this galerie', async () => {
+          const { code } = await createInvitation({
+            galerieId,
+            userId: userTwo.id,
+          });
+          await createGalerieBlackList({
+            adminId: userTwo.id,
+            galerieId,
+            userId: user.id,
+          });
+          const {
+            body,
+            status,
+          } = await postGaleriesSubscribe(app, token, {
+            body: {
+              code,
             },
           });
           expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));

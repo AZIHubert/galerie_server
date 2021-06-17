@@ -20,7 +20,7 @@ import {
   invitationExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
+import { fetchCurrentProfilePicture } from '@src/helpers/fetch';
 import {
   normalizeJoiErrors,
   validatePostGaleriesIdInvationsBody,
