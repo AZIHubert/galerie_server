@@ -9,6 +9,7 @@ export { default as getGaleries } from './getGaleries';
 export { default as getGaleriesFrames } from './getGaleriesFrames';
 export { default as getGaleriesId } from './getGaleriesId';
 export { default as getGaleriesIdBlackLists } from './getGaleriesIdBlackLists';
+export { default as getGaleriesIdBlackListsId } from './getGaleriesIdBlackListsId';
 export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';
 export { default as getGaleriesIdFramesIdLikes } from './getGaleriesIdFramesIdLikes';
 export { default as getGaleriesIdFramesId } from './getGaleriesIdFramesId';
