@@ -5,9 +5,13 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
+  Frame,
   GalerieBlackList,
+  GaleriePicture,
   GalerieUser,
   Image,
+  Invitation,
+  Like,
   ProfilePicture,
   User,
 } from '@src/db/models';
@@ -20,9 +24,12 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
+  createFrame,
   createGalerie,
   createGalerieBlackList,
   createGalerieUser,
+  createInvitation,
+  createLike,
   createProfilePicture,
   createUser,
   postGaleriesIdUserUserIdBlackLists,
@@ -34,6 +41,16 @@ import {
 import initApp from '@src/server';
 
 jest.mock('@src/helpers/signedUrl', () => jest.fn());
+jest.mock('@src/helpers/gc', () => ({
+  __esModule: true,
+  default: ({
+    bucket: () => ({
+      file: () => ({
+        delete: () => Promise.resolve(),
+      }),
+    }),
+  }),
+}));
 
 let app: Server;
 let galerieId: string;
@@ -284,6 +301,161 @@ describe('/galeries', () => {
                   status,
                 } = await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
                 expect(status).toBe(200);
+              });
+              it('delete all frames/galeriePictures/images posted by the black listed user', async () => {
+                await createFrame({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await createFrame({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const frames = await Frame.findAll();
+                const galeriePictures = await GaleriePicture.findAll();
+                const images = await Image.findAll();
+                expect(frames.length).toBe(0);
+                expect(galeriePictures.length).toBe(0);
+                expect(images.length).toBe(0);
+              });
+              it('do not delete frames/galeriePictures/images posted by other users', async () => {
+                const { user: userThree } = await createUser({
+                  email: 'user3@email.com',
+                  userName: 'user3',
+                });
+                await createGalerieUser({
+                  galerieId,
+                  userId: userThree.id,
+                });
+                await createFrame({
+                  galerieId,
+                  userId: userThree.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const frames = await Frame.findAll();
+                expect(frames.length).toBe(1);
+              });
+              it('do not delete frames/galeriePictures/images posted by the black listed user on other galeries', async () => {
+                const galerieTwo = await createGalerie({
+                  userId: userTwo.id,
+                });
+                await createFrame({
+                  galerieId: galerieTwo.id,
+                  userId: userTwo.id,
+                });
+                await createFrame({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const frames = await Frame.findAll();
+                expect(frames.length).toBe(1);
+              });
+              it('delete all likes posted on frames posted by the black listed user', async () => {
+                const { id: frameId } = await createFrame({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: user.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const likes = await Like.findAll();
+                expect(likes.length).toBe(0);
+              });
+              it('do not delete likes posted on frames posted by the black listed user on other galeries', async () => {
+                const galerieTwo = await createGalerie({
+                  userId: userTwo.id,
+                });
+                await createGalerieUser({
+                  galerieId: galerieTwo.id,
+                  userId: user.id,
+                });
+                const { id: frameId } = await createFrame({
+                  galerieId: galerieTwo.id,
+                  userId: userTwo.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: user.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const likes = await Like.findAll();
+                expect(likes.length).toBe(1);
+              });
+              it('delete all likes posted by the deleted user', async () => {
+                const { id: frameId } = await createFrame({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userTwo.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const likes = await Like.findAll();
+                expect(likes.length).toBe(0);
+              });
+              it('do not delete likes posted by other user', async () => {
+                const { id: frameId } = await createFrame({
+                  galerieId,
+                  userId: user.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: user.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const likes = await Like.findAll();
+                expect(likes.length).toBe(1);
+              });
+              it('do not delete likes posted by the deleted user on other galeries', async () => {
+                const galerieTwo = await createGalerie({
+                  userId: userTwo.id,
+                });
+                const { id: frameId } = await createFrame({
+                  galerieId: galerieTwo.id,
+                  userId: userTwo.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: userTwo.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const likes = await Like.findAll();
+                expect(likes.length).toBe(1);
+              });
+              it('delete all invitations posted by the deleted user', async () => {
+                await createInvitation({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const invitations = await Invitation.findAll();
+                expect(invitations.length).toBe(0);
+              });
+              it('do not delete invitations posted by other users', async () => {
+                await createInvitation({
+                  galerieId,
+                  userId: user.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const invitations = await Invitation.findAll();
+                expect(invitations.length).toBe(1);
+              });
+              it('do not delete invitations posted by the deleted user on other galeries', async () => {
+                const galerieTwo = await createGalerie({
+                  userId: userTwo.id,
+                });
+                await createInvitation({
+                  galerieId: galerieTwo.id,
+                  userId: user.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const invitations = await Invitation.findAll();
+                expect(invitations.length).toBe(1);
               });
             });
             describe('should return status 400 if', () => {

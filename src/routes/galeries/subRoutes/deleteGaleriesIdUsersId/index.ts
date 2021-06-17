@@ -29,7 +29,6 @@ export default async (req: Request, res: Response) => {
     userId,
   } = req.params;
   const currentUser = req.user as User;
-  let framesLikeByCurrentUser: Array<Frame>;
   let galerie: Galerie | null;
   let user: User | null;
 
@@ -214,7 +213,7 @@ export default async (req: Request, res: Response) => {
   // deleted user on this galerie.
   // and decrement frames.numOfLikes.
   try {
-    framesLikeByCurrentUser = await Frame.findAll({
+    const framesLikeByCurrentUser = await Frame.findAll({
       include: [
         {
           model: Like,
@@ -227,24 +226,24 @@ export default async (req: Request, res: Response) => {
         galerieId,
       },
     });
+    if (framesLikeByCurrentUser) {
+      try {
+        await Promise.all(
+          framesLikeByCurrentUser.map(async (frame) => {
+            await frame.decrement({ numOfLikes: 1 });
+            await Promise.all(
+              frame.likes.map(async (like) => {
+                await like.destroy();
+              }),
+            );
+          }),
+        );
+      } catch (err) {
+        return res.status(500).send(err);
+      }
+    }
   } catch (err) {
     return res.status(500).send(err);
-  }
-  if (framesLikeByCurrentUser) {
-    try {
-      await Promise.all(
-        framesLikeByCurrentUser.map(async (frame) => {
-          await frame.decrement({ numOfLikes: 1 });
-          await Promise.all(
-            frame.likes.map(async (like) => {
-              await like.destroy();
-            }),
-          );
-        }),
-      );
-    } catch (err) {
-      return res.status(500).send(err);
-    }
   }
 
   // Destroy invitation posted by deleted user.

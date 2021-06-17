@@ -4,10 +4,15 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
+  Frame,
   Galerie,
   GalerieBlackList,
+  Image,
+  Invitation,
+  Like,
   User,
 } from '@src/db/models';
 
@@ -22,6 +27,7 @@ import {
 import {
   fetchCurrentProfilePicture,
 } from '@src/helpers/fetch';
+import gc from '@src/helpers/gc';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -55,8 +61,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // TODO:
-  // check that currentUser.id !== userId
+  // Check that currentUser.id !== userId
   if (currentUser.id === userId) {
     return res.status(400).send({
       errors: 'you can\'t black list yourself',
@@ -175,6 +180,117 @@ export default async (req: Request, res: Response) => {
 
   try {
     await galerieFromeUser.GalerieUser.destroy();
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Destroy all frames/galeriePictures/images
+  // images from Goofle Buckets/likes.
+  try {
+    const frames = await Frame.findAll({
+      include: [{
+        all: true,
+        include: [{
+          all: true,
+        }],
+      }],
+      where: {
+        galerieId,
+        userId: user.id,
+      },
+    });
+    await Promise.all(
+      frames.map(async (frame) => {
+        await frame.destroy();
+        await Promise.all(
+          frame.galeriePictures.map(
+            async (galeriePicture) => {
+              const {
+                originalImage,
+                cropedImage,
+                pendingImage,
+              } = galeriePicture;
+              await Image.destroy({
+                where: {
+                  [Op.or]: [
+                    {
+                      id: cropedImage.id,
+                    },
+                    {
+                      id: originalImage.id,
+                    },
+                    {
+                      id: pendingImage.id,
+                    },
+                  ],
+                },
+              });
+              await gc
+                .bucket(pendingImage.bucketName)
+                .file(pendingImage.fileName)
+                .delete();
+              await gc
+                .bucket(originalImage.bucketName)
+                .file(originalImage.fileName)
+                .delete();
+              await gc
+                .bucket(cropedImage.bucketName)
+                .file(cropedImage.fileName)
+                .delete();
+            },
+          ),
+        );
+      }),
+    );
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Destroy all likes post by
+  // deleted user on this galerie.
+  // and decrement frames.numOfLikes.
+  try {
+    const framesLikeByCurrentUser = await Frame.findAll({
+      include: [
+        {
+          model: Like,
+          where: {
+            userId: user.id,
+          },
+        },
+      ],
+      where: {
+        galerieId,
+      },
+    });
+    if (framesLikeByCurrentUser) {
+      try {
+        await Promise.all(
+          framesLikeByCurrentUser.map(async (frame) => {
+            await frame.decrement({ numOfLikes: 1 });
+            await Promise.all(
+              frame.likes.map(async (like) => {
+                await like.destroy();
+              }),
+            );
+          }),
+        );
+      } catch (err) {
+        return res.status(500).send(err);
+      }
+    }
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Destroy invitation posted by deleted user.
+  try {
+    await Invitation.destroy({
+      where: {
+        galerieId,
+        userId,
+      },
+    });
   } catch (err) {
     return res.status(500).send(err);
   }
