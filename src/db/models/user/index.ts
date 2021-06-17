@@ -11,6 +11,7 @@ import {
 import BlackList from '../blackList';
 import Frame from '../frame';
 import Galerie from '../galerie';
+import GalerieBlackList from '../galerieBlackLists';
 import GalerieUser from '../galerieUser';
 import Invitation from '../invitation';
 import Like from '../like';
@@ -221,6 +222,12 @@ export default class User extends Model implements UserI {
 
   @HasMany(() => BlackList, 'userId')
   blackListsUser!: BlackList[];
+
+  @HasMany(() => GalerieBlackList, 'adminId')
+  galerieBlackListsAdmin!: GalerieBlackList[];
+
+  @HasMany(() => GalerieBlackList, 'userId')
+  galerieBlackListsUser!: GalerieBlackList[];
 
   @HasMany(() => Frame)
   frames!: Frame[];

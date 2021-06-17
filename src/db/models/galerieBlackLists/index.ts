@@ -1,4 +1,5 @@
 import {
+  BelongsTo,
   Column,
   DataType,
   ForeignKey,
@@ -47,4 +48,13 @@ export default class GalerieBlackList extends Model implements GalerieBlackListI
     type: DataType.UUID,
   })
   userId!: string;
+
+  @BelongsTo(() => User, 'adminId')
+  admin!: User;
+
+  @BelongsTo(() => Galerie)
+  galerie!: Galerie;
+
+  @BelongsTo(() => User, 'userId')
+  user!: User;
 }

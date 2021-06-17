@@ -1,6 +1,7 @@
 export { default as blackListExcluder } from './blackListExcluder';
 export { default as frameExcluder } from './frameExcluder';
 export { default as galerieExcluder } from './galerieExcluder';
+export { default as galerieBlackListExcluder } from './galerieBlackListExcluder';
 export { default as galeriePictureExcluder } from './galeriePictureExcluder';
 export { default as imageExcluder } from './imageExcluder';
 export { default as invitationExcluder } from './invitationExcluder';

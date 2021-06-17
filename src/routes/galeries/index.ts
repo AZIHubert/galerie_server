@@ -27,6 +27,7 @@ import {
   postGaleriesIdFrames,
   postGaleriesIdFramesIdLikes,
   postGaleriesIdInvitations,
+  postGaleriesIdUserUserIdBlackLists,
   postGaleriesSubscribe,
 
   putGaleriesId,
@@ -65,9 +66,7 @@ const galeriesRoutes: () => Router = () => {
   // return all users blackListed from this galerie
 
   router.post('/', shouldBeAuth, postGaleries);
-  // TODO:
-  router.post('/:galerieId/users/:userId/blackLists/', shouldBeAuth, () => {});
-  // create a galerieBlackList
+  router.post('/:galerieId/users/:userId/blackLists/', shouldBeAuth, postGaleriesIdUserUserIdBlackLists);
   router.post('/:galerieId/frames/', shouldBeAuth, uploadFiles, postGaleriesIdFrames);
   router.post('/:galerieId/frames/:frameId/likes/', shouldBeAuth, postGaleriesIdFramesIdLikes);
   router.post('/:galerieId/invitations/', shouldBeAuth, postGaleriesIdInvitations);
