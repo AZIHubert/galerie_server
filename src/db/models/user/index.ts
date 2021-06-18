@@ -8,6 +8,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 
+import BetaKey from '../betaKey';
 import BlackList from '../blackList';
 import Frame from '../frame';
 import Galerie from '../galerie';
@@ -213,6 +214,12 @@ export default class User extends Model implements UserI {
 
   // @BelongsToMany(() => Notification, () => NotificationUser)
   // notificationsUser!: Notification[]
+
+  @HasMany(() => BetaKey, 'createdById')
+  betaKeyCreatedBy!: BetaKey[];
+
+  @HasMany(() => BetaKey, 'userId')
+  betaKeyUser!: BetaKey[];
 
   @HasMany(() => BlackList, 'adminId')
   blackListsAdmin!: BlackList[];
