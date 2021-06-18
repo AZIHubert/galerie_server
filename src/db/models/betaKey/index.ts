@@ -12,6 +12,7 @@ import User from '../user';
 interface BetaKeyI {
   code: string;
   createdById?: string;
+  email?: string;
   id: string;
   usedAt?: Date;
   userId: string;
@@ -32,6 +33,11 @@ export default class BetaKey extends Model implements BetaKeyI {
     type: DataType.UUID,
   })
   createdById!: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  email!: string;
 
   @Column({
     allowNull: false,

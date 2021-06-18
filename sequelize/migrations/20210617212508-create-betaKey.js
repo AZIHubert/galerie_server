@@ -13,6 +13,9 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('b
     allowNull: false,
     type: DataTypes.DATE,
   },
+  email: {
+    type: DataTypes.STRING,
+  },
   id: {
     allowNull: false,
     defaultValue: DataTypes.UUIDV4,

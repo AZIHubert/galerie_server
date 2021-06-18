@@ -10,6 +10,10 @@ import {
   User,
 } from '@src/db/models';
 
+import {
+  FIELD_SHOULD_BE_A_STRING,
+  FIELD_SHOULD_BE_AN_EMAIL,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
@@ -87,9 +91,77 @@ describe('/betaKeys', () => {
         expect(action).toBe('POST');
         expect(status).toBe(200);
         expect(createdBetaKey).not.toBeNull();
+        expect(createdBetaKey.email).toBeNull();
         expect(createdBetaKey.userId).toBeNull();
         testBetaKey(betaKey);
         testUser(betaKey.createdBy, user);
+      });
+      it('create a betaKey with email', async () => {
+        const email = 'user2@email.com';
+        const {
+          body: {
+            data: {
+              betaKey,
+            },
+          },
+        } = await postBetaKey(app, token, {
+          body: {
+            email,
+          },
+        });
+        const createdBetaKey = await BetaKey.findByPk(betaKey.id) as BetaKey;
+        expect(betaKey.email).toBe(email);
+        expect(createdBetaKey.email).toBe(email);
+      });
+      it('create a betaKey without an email if request.body.email === \'\'', async () => {
+        const {
+          body: {
+            data: {
+              betaKey,
+            },
+          },
+        } = await postBetaKey(app, token, {
+          body: {
+            email: '',
+          },
+        });
+        const createdBetaKey = await BetaKey.findByPk(betaKey.id) as BetaKey;
+        expect(betaKey.email).toBeNull();
+        expect(createdBetaKey.email).toBeNull();
+      });
+      it('should trim email', async () => {
+        const email = 'user@email.com';
+        const {
+          body: {
+            data: {
+              betaKey,
+            },
+          },
+        } = await postBetaKey(app, token, {
+          body: {
+            email: ` ${email} `,
+          },
+        });
+        const createdBetaKey = await BetaKey.findByPk(betaKey.id) as BetaKey;
+        expect(betaKey.email).toBe(email);
+        expect(createdBetaKey.email).toBe(email);
+      });
+      it('should set req.body.email to lowercase', async () => {
+        const email = 'user@email.com';
+        const {
+          body: {
+            data: {
+              betaKey,
+            },
+          },
+        } = await postBetaKey(app, token, {
+          body: {
+            email: email.toUpperCase(),
+          },
+        });
+        const createdBetaKey = await BetaKey.findByPk(betaKey.id) as BetaKey;
+        expect(betaKey.email).toBe(email);
+        expect(createdBetaKey.email).toBe(email);
       });
       it('include createdBy current profile picture', async () => {
         const profilePicture = await createProfilePicture({
@@ -132,11 +204,38 @@ describe('/betaKeys', () => {
         expect(images.length).toBe(0);
         expect(profilePictures.length).toBe(0);
       });
-      it('TODO: send an email if request.body.sendTo is send', async () => {});
     });
-    describe('TODO: should return status 400 if', () => {
-      // TODO:
-      // test that request.body.email is of type email.
+    describe('should return status 400 if', () => {
+      describe('email', () => {
+        it('is not a string', async () => {
+          const {
+            body,
+            status,
+          } = await postBetaKey(app, token, {
+            body: {
+              email: 1234,
+            },
+          });
+          expect(body.errors).toEqual({
+            email: FIELD_SHOULD_BE_A_STRING,
+          });
+          expect(status).toBe(400);
+        });
+        it('is not an email', async () => {
+          const {
+            body,
+            status,
+          } = await postBetaKey(app, token, {
+            body: {
+              email: 'not an email',
+            },
+          });
+          expect(body.errors).toEqual({
+            email: FIELD_SHOULD_BE_AN_EMAIL,
+          });
+          expect(status).toBe(400);
+        });
+      });
     });
   });
 });
