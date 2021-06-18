@@ -41,11 +41,6 @@ export default class BetaKey extends Model implements BetaKeyI {
   })
   id!: string;
 
-  @Column({
-    type: DataType.DATE,
-  })
-  usedAt!: Date;
-
   @ForeignKey(() => User)
   @Column({
     type: DataType.UUID,

@@ -87,7 +87,6 @@ describe('/betaKeys', () => {
         expect(action).toBe('POST');
         expect(status).toBe(200);
         expect(createdBetaKey).not.toBeNull();
-        expect(createdBetaKey.usedAt).toBeNull();
         expect(createdBetaKey.userId).toBeNull();
         testBetaKey(betaKey);
         testUser(betaKey.createdBy, user);

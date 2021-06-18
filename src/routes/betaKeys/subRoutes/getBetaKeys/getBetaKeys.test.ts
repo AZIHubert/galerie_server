@@ -240,28 +240,10 @@ describe('/betaKeys', () => {
         expect(firstPack.length).toBe(20);
         expect(secondPack.length).toBe(1);
       });
-      it('order by usedAt first then order by createdAt', async () => {
-        const { user: userTwo } = await createUser({
-          email: 'user2@email.com',
-          userName: 'user2',
-        });
-        const { user: userThree } = await createUser({
-          email: 'user3@email.com',
-          userName: 'user3',
-        });
-        const { user: userFour } = await createUser({
-          email: 'user4@email.com',
-          userName: 'user4',
-        });
-        const betaKeyOne = await createBetaKey({
-          userId: userTwo.id,
-        });
-        const betaKeyTwo = await createBetaKey({
-          userId: userThree.id,
-        });
-        const betaKeyThree = await createBetaKey({
-          userId: userFour.id,
-        });
+      it('order by createdAt', async () => {
+        const betaKeyOne = await createBetaKey({});
+        const betaKeyTwo = await createBetaKey({});
+        const betaKeyThree = await createBetaKey({});
         const betaKeyFour = await createBetaKey({});
         const betaKeyFive = await createBetaKey({});
         const betaKeySix = await createBetaKey({});
@@ -273,12 +255,12 @@ describe('/betaKeys', () => {
           },
         } = await getBetaKeys(app, token);
         expect(betaKeys.length).toBe(6);
-        expect(betaKeys[0].id).toBe(betaKeyOne.id);
-        expect(betaKeys[1].id).toBe(betaKeyTwo.id);
-        expect(betaKeys[2].id).toBe(betaKeyThree.id);
-        expect(betaKeys[3].id).toBe(betaKeySix.id);
-        expect(betaKeys[4].id).toBe(betaKeyFive.id);
-        expect(betaKeys[5].id).toBe(betaKeyFour.id);
+        expect(betaKeys[0].id).toBe(betaKeySix.id);
+        expect(betaKeys[1].id).toBe(betaKeyFive.id);
+        expect(betaKeys[2].id).toBe(betaKeyFour.id);
+        expect(betaKeys[3].id).toBe(betaKeyThree.id);
+        expect(betaKeys[4].id).toBe(betaKeyTwo.id);
+        expect(betaKeys[5].id).toBe(betaKeyOne.id);
       });
       describe('return only betaKey', () => {
         it('used', async () => {
@@ -306,8 +288,8 @@ describe('/betaKeys', () => {
             },
           } = await getBetaKeys(app, token, { used: 'true' });
           expect(betaKeys.length).toBe(2);
-          expect(betaKeys[0].id).toBe(betaKeyOne.id);
-          expect(betaKeys[1].id).toBe(betaKeyTwo.id);
+          expect(betaKeys[0].id).toBe(betaKeyTwo.id);
+          expect(betaKeys[1].id).toBe(betaKeyOne.id);
         });
         it('not used', async () => {
           const { user: userTwo } = await createUser({
@@ -389,8 +371,8 @@ describe('/betaKeys', () => {
             used: 'true',
           });
           expect(betaKeys.length).toBe(2);
-          expect(betaKeys[0].id).toBe(betaKeyOne.id);
-          expect(betaKeys[1].id).toBe(betaKeyTwo.id);
+          expect(betaKeys[0].id).toBe(betaKeyTwo.id);
+          expect(betaKeys[1].id).toBe(betaKeyOne.id);
         });
         it('created by current user and not used', async () => {
           const { user: userTwo } = await createUser({

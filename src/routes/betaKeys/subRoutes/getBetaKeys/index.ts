@@ -4,7 +4,9 @@ import {
   Request,
   Response,
 } from 'express';
-import { Op } from 'sequelize';
+import {
+  Op,
+} from 'sequelize';
 
 import {
   BetaKey,
@@ -30,7 +32,7 @@ export default async (req: Request, res: Response) => {
   let betaKeys: Array<BetaKey>;
   const where: {
     createdById?: string;
-    usedAt?: any;
+    userId?: any;
   } = {};
   let normalizeBetaKeys: Array<any>;
   let offset: number;
@@ -52,14 +54,14 @@ export default async (req: Request, res: Response) => {
     // If ?used='true'
     // return only used betaKey.
     case 'true':
-      where.usedAt = {
+      where.userId = {
         [Op.not]: null,
       };
       break;
     // If ?used='false'
     // return only not used betaKey.
     case 'false':
-      where.usedAt = {
+      where.userId = {
         [Op.eq]: null,
       };
       break;
@@ -92,7 +94,6 @@ export default async (req: Request, res: Response) => {
       limit,
       offset,
       order: [
-        ['usedAt', 'ASC'],
         ['createdAt', 'DESC'],
       ],
       where,
