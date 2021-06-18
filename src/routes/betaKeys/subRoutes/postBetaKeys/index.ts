@@ -41,6 +41,8 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Email should be unique
+
   // Create betaKey.
   try {
     betaKey = await BetaKey.create({

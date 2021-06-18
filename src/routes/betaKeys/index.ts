@@ -1,7 +1,3 @@
-// BetaKey
-//  code
-//  userId (the user who use this beta key to subscribe)
-
 import { Router } from 'express';
 
 import {
@@ -14,6 +10,8 @@ import {
   getBetaKeysId,
 
   postBetaKeys,
+
+  putBetaKeysId,
 } from './subRoutes';
 
 const router = Router();
@@ -24,26 +22,18 @@ const betaKeyRoutes: () => Router = () => {
   router.get('/', shouldBeAuth, shouldBeSuperAdmin, getBetaKeys);
   router.get('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, getBetaKeysId);
 
-  // Search for blackList send to
-  router.get('/sendTo/:sendTo', shouldBeAuth, shouldBeSuperAdmin, () => {});
-
   // TODO:
-  // send an email with the beta key
-  // add field
-  // send to.
+  router.get('/email/:email', shouldBeAuth, shouldBeSuperAdmin, () => {});
+
   router.post('/', shouldBeAuth, shouldBeSuperAdmin, postBetaKeys);
+  router.post('/:betaKeyId/send', shouldBeAuth, shouldBeSuperAdmin, () => {});
 
-  // TODO:
-  router.put('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, () => {});
-  // update only betaKey where sendTo === null
-  // and send an email.
+  router.put('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, putBetaKeysId);
 
   return router;
 };
 
 export default betaKeyRoutes;
 
-// TODO:
-// return updatedAt
-// actually,
-// updatedAt === usedAt
+// betaKey.email should be unique
+// betaKey.email should not be used by a user.
