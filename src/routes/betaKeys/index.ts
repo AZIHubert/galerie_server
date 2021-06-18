@@ -10,6 +10,8 @@ import {
 } from '@src/helpers/middlewares';
 
 import {
+  getBetaKeys,
+
   postBetaKey,
 } from './subRoutes';
 
@@ -18,7 +20,7 @@ const router = Router();
 const betaKeyRoutes: () => Router = () => {
   router.delete('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, () => {});
 
-  router.get('/', shouldBeAuth, shouldBeSuperAdmin, () => {});
+  router.get('/', shouldBeAuth, shouldBeSuperAdmin, getBetaKeys);
   router.get('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, () => {});
   router.get('/me', shouldBeAuth, shouldBeSuperAdmin, () => {});
   router.get('/used', shouldBeAuth, shouldBeSuperAdmin, () => {});
@@ -29,9 +31,3 @@ const betaKeyRoutes: () => Router = () => {
 };
 
 export default betaKeyRoutes;
-
-// TODO:
-// BetaKey model
-//  adminId
-//  userId
-//  usedAt

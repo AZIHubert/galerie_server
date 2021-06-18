@@ -9,7 +9,7 @@ import {
 
 import User from '../user';
 
-interface BlackListI {
+interface BetaKeyI {
   code: string;
   createdById?: string;
   id: string;
@@ -20,7 +20,7 @@ interface BlackListI {
 @Table({
   tableName: 'betaKey',
 })
-export default class BlackList extends Model implements BlackListI {
+export default class BetaKey extends Model implements BetaKeyI {
   @Column({
     allowNull: false,
     type: DataType.STRING,

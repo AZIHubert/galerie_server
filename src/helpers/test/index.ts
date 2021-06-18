@@ -1,4 +1,6 @@
 export { default as cleanGoogleBuckets } from './cleanGoogleBuckets';
+
+export { default as createBetaKey } from './createBetaKey';
 export { default as createBlackList } from './createBlackList';
 export { default as createFrame } from './createFrame';
 export { default as createGalerie } from './createGalerie';
@@ -21,6 +23,7 @@ export { default as deleteProfilePicturesId } from './deleteProfilePicturesId';
 export { default as deleteTicketsId } from './deleteTicketsId';
 export { default as deleteUsersMe } from './deleteUsersMe';
 
+export { default as getBetaKeys } from './getBetaKeys';
 export { default as getBlackLists } from './getBlackLists';
 export { default as getBlackListsId } from './getBlackListsId';
 export { default as getGaleries } from './getGaleries';
