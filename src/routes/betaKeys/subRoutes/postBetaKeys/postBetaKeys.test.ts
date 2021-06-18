@@ -133,6 +133,11 @@ describe('/betaKeys', () => {
         expect(images.length).toBe(0);
         expect(profilePictures.length).toBe(0);
       });
+      it('TODO: send an email if request.body.sendTo is send', async () => {});
+    });
+    describe('TODO: should return status 400 if', () => {
+      // TODO:
+      // test that request.body.email is of type email.
     });
   });
 });

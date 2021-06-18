@@ -98,7 +98,6 @@ export default async (req: Request, res: Response) => {
       where,
     });
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
 

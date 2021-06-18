@@ -11,8 +11,9 @@ import {
 
 import {
   getBetaKeys,
+  getBetaKeysId,
 
-  postBetaKey,
+  postBetaKeys,
 } from './subRoutes';
 
 const router = Router();
@@ -21,13 +22,28 @@ const betaKeyRoutes: () => Router = () => {
   router.delete('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, () => {});
 
   router.get('/', shouldBeAuth, shouldBeSuperAdmin, getBetaKeys);
-  router.get('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, () => {});
-  router.get('/me', shouldBeAuth, shouldBeSuperAdmin, () => {});
-  router.get('/used', shouldBeAuth, shouldBeSuperAdmin, () => {});
+  router.get('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, getBetaKeysId);
 
-  router.post('/', shouldBeAuth, shouldBeSuperAdmin, postBetaKey);
+  // Search for blackList send to
+  router.get('/sendTo/:sendTo', shouldBeAuth, shouldBeSuperAdmin, () => {});
+
+  // TODO:
+  // send an email with the beta key
+  // add field
+  // send to.
+  router.post('/', shouldBeAuth, shouldBeSuperAdmin, postBetaKeys);
+
+  // TODO:
+  router.put('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, () => {});
+  // update only betaKey where sendTo === null
+  // and send an email.
 
   return router;
 };
 
 export default betaKeyRoutes;
+
+// TODO:
+// return updatedAt
+// actually,
+// updatedAt === usedAt

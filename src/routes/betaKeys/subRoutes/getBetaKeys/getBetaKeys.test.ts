@@ -4,7 +4,6 @@ import { Sequelize } from 'sequelize';
 import '@src/helpers/initEnv';
 
 import {
-  // BetaKey,
   Image,
   ProfilePicture,
   User,

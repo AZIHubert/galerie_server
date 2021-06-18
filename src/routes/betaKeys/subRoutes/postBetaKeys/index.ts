@@ -33,7 +33,6 @@ export default async (req: Request, res: Response) => {
       createdById: currentUser.id,
     });
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
 
