@@ -7,6 +7,7 @@ import {
 
 import {
   getBetaKeys,
+  getBetaKeysEmailEmail,
   getBetaKeysId,
 
   postBetaKeys,
@@ -20,10 +21,8 @@ const betaKeyRoutes: () => Router = () => {
   router.delete('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, () => {});
 
   router.get('/', shouldBeAuth, shouldBeSuperAdmin, getBetaKeys);
+  router.get('/email/:email', shouldBeAuth, shouldBeSuperAdmin, getBetaKeysEmailEmail);
   router.get('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, getBetaKeysId);
-
-  // TODO:
-  router.get('/email/:email', shouldBeAuth, shouldBeSuperAdmin, () => {});
 
   router.post('/', shouldBeAuth, shouldBeSuperAdmin, postBetaKeys);
   router.post('/:betaKeyId/send', shouldBeAuth, shouldBeSuperAdmin, () => {});

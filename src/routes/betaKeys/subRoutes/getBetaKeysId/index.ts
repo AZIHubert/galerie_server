@@ -25,7 +25,6 @@ export default async (req: Request, res: Response) => {
   const {
     betaKeyId,
   } = req.params;
-  const objectUserExcluder: {[key: string]: undefined} = {};
   let betaKey: BetaKey | null;
   let createdByCurrentProfilePicture;
   let userCurrentProfilePicture;
@@ -43,10 +42,16 @@ export default async (req: Request, res: Response) => {
       },
       include: [
         {
+          attributes: {
+            exclude: userExcluder,
+          },
           as: 'createdBy',
           model: User,
         },
         {
+          attributes: {
+            exclude: userExcluder,
+          },
           as: 'user',
           model: User,
         },
@@ -78,20 +83,14 @@ export default async (req: Request, res: Response) => {
     }
   }
 
-  userExcluder.forEach((e) => {
-    objectUserExcluder[e] = undefined;
-  });
-
   const normalizeBetaKey = {
     ...betaKey.toJSON(),
     createdBy: !betaKey.createdBy ? null : {
       ...betaKey.createdBy.toJSON(),
-      ...objectUserExcluder,
       currentProfilePicture: createdByCurrentProfilePicture,
     },
     user: !betaKey.user ? null : {
       ...betaKey.user.toJSON(),
-      ...objectUserExcluder,
       currentProfilePicture: userCurrentProfilePicture,
     },
   };
