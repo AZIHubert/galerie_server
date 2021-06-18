@@ -5,20 +5,25 @@
 import { Router } from 'express';
 
 import {
+  shouldBeAuth,
   shouldBeSuperAdmin,
 } from '@src/helpers/middlewares';
+
+import {
+  postBetaKey,
+} from './subRoutes';
 
 const router = Router();
 
 const betaKeyRoutes: () => Router = () => {
-  router.delete('/:betaKeyId', shouldBeSuperAdmin, () => {});
+  router.delete('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, () => {});
 
-  router.get('/', shouldBeSuperAdmin, () => {});
-  router.get('/:betaKeyId', shouldBeSuperAdmin, () => {});
-  router.get('/me', shouldBeSuperAdmin, () => {});
-  router.get('/used', shouldBeSuperAdmin, () => {});
+  router.get('/', shouldBeAuth, shouldBeSuperAdmin, () => {});
+  router.get('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, () => {});
+  router.get('/me', shouldBeAuth, shouldBeSuperAdmin, () => {});
+  router.get('/used', shouldBeAuth, shouldBeSuperAdmin, () => {});
 
-  router.post('/', shouldBeSuperAdmin, () => {});
+  router.post('/', shouldBeAuth, shouldBeSuperAdmin, postBetaKey);
 
   return router;
 };

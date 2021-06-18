@@ -12,12 +12,13 @@ import User from '../user';
 interface BlackListI {
   code: string;
   createdById?: string;
+  id: string;
   usedAt?: Date;
   userId: string;
 }
 
 @Table({
-  tableName: 'blackList',
+  tableName: 'betaKey',
 })
 export default class BlackList extends Model implements BlackListI {
   @Column({
@@ -34,13 +35,19 @@ export default class BlackList extends Model implements BlackListI {
 
   @Column({
     allowNull: false,
+    defaultValue: DataType.UUIDV4,
+    primaryKey: true,
+    type: DataType.UUID,
+  })
+  id!: string;
+
+  @Column({
     type: DataType.DATE,
   })
   usedAt!: Date;
 
   @ForeignKey(() => User)
   @Column({
-    allowNull: false,
     type: DataType.UUID,
   })
   userId!: string;

@@ -45,6 +45,7 @@ export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 
+export { default as postBetaKey } from './postBetaKey';
 export { default as postBlackListUserId } from './postBlackListUserId';
 export { default as postGaleries } from './postGaleries';
 export { default as postGaleriesIdFrames } from './postGaleriesIdFrames';
@@ -76,6 +77,7 @@ export { default as putUsersMePassword } from './putUsersMePassword';
 export { default as putUsersMePseudonym } from './putUsersMePseudonym';
 export { default as putUsersPassword } from './putUsersPassword';
 
+export { default as testBetaKey } from './testBetaKey';
 export { default as testFrame } from './testFrame';
 export { default as testGalerie } from './testGalerie';
 export { default as testGalerieBlackList } from './testGalerieBlackList';
