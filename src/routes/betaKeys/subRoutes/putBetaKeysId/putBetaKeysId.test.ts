@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
+  BetaKey,
   User,
 } from '@src/db/models';
 
@@ -184,15 +185,89 @@ describe('/betaKeys', () => {
           expect(body.errors).toBe('you can\'t update an beta key if email is already defined');
           expect(status).toBe(400);
         });
-        describe('a user is already register with', () => {
-          it('request.body.email', async () => {
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              userName: 'user2',
-            });
-            const { id: betaKeyId } = await createBetaKey({
+        describe('a betaKey with email equal', () => {
+          let betaKeyOne: BetaKey;
+
+          beforeEach(async (done) => {
+            try {
+              betaKeyOne = await createBetaKey({
+                createdById: user.id,
+                email: 'user2@email.com',
+              });
+            } catch (err) {
+              done(err);
+            }
+            done();
+          });
+
+          it('request.body.email already exist', async () => {
+            const betaKeyTwo = await createBetaKey({
               createdById: user.id,
             });
+            const {
+              body,
+              status,
+            } = await putBetaKeysId(app, token, betaKeyTwo.id, {
+              body: {
+                email: betaKeyOne.email,
+              },
+            });
+            expect(body.errors).toBe('this email is already used on a beta key');
+            expect(status).toBe(400);
+          });
+          it('trimed request.body.email already exist', async () => {
+            const betaKeyTwo = await createBetaKey({
+              createdById: user.id,
+            });
+            const {
+              body,
+              status,
+            } = await putBetaKeysId(app, token, betaKeyTwo.id, {
+              body: {
+                email: ` ${betaKeyOne.email} `,
+              },
+            });
+            expect(body.errors).toBe('this email is already used on a beta key');
+            expect(status).toBe(400);
+          });
+          it('request.body.email to upper case already exist', async () => {
+            const betaKeyTwo = await createBetaKey({
+              createdById: user.id,
+            });
+            const {
+              body,
+              status,
+            } = await putBetaKeysId(app, token, betaKeyTwo.id, {
+              body: {
+                email: betaKeyOne.email.toUpperCase(),
+              },
+            });
+            expect(body.errors).toBe('this email is already used on a beta key');
+            expect(status).toBe(400);
+          });
+        });
+        describe('a user is already register with', () => {
+          let betaKeyId: string;
+          let userTwo: User;
+
+          beforeEach(async (done) => {
+            try {
+              const { user: createdUser } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              const betaKey = await createBetaKey({
+                createdById: user.id,
+              });
+              userTwo = createdUser;
+              betaKeyId = betaKey.id;
+            } catch (err) {
+              done(err);
+            }
+            done();
+          });
+
+          it('request.body.email', async () => {
             const {
               body,
               status,
@@ -207,13 +282,6 @@ describe('/betaKeys', () => {
             expect(status).toBe(400);
           });
           it('trim request.body.email', async () => {
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              userName: 'user2',
-            });
-            const { id: betaKeyId } = await createBetaKey({
-              createdById: user.id,
-            });
             const {
               body,
               status,
@@ -228,13 +296,6 @@ describe('/betaKeys', () => {
             expect(status).toBe(400);
           });
           it('request.body.email.toLowerCase()', async () => {
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              userName: 'user2',
-            });
-            const { id: betaKeyId } = await createBetaKey({
-              createdById: user.id,
-            });
             const {
               body,
               status,

@@ -24,6 +24,7 @@ export default async (req: Request, res: Response) => {
   } = req.params;
   const currentUser = req.user as User;
   let betaKey: BetaKey | null;
+  let betaKeyWithEmail: BetaKey | null;
   let user: User | null;
 
   // Check if request.params.betaKeyId is a UUIDv4.
@@ -71,6 +72,24 @@ export default async (req: Request, res: Response) => {
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
+    });
+  }
+
+  // the updated email
+  // can\'t be already
+  // registered on a beta key.
+  try {
+    betaKeyWithEmail = await BetaKey.findOne({
+      where: {
+        email: value.email,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  if (betaKeyWithEmail) {
+    return res.status(400).send({
+      errors: 'this email is already used on a beta key',
     });
   }
 

@@ -88,7 +88,9 @@ describe('/betaKeys', () => {
         expect(status).toBe(200);
       });
       it('return one betaKey', async () => {
-        await createBetaKey({});
+        await createBetaKey({
+          createdById: user.id,
+        });
         const {
           body: {
             data: {
@@ -220,7 +222,9 @@ describe('/betaKeys', () => {
         const numOfBetaKeys = new Array(NUM).fill(0);
         await Promise.all(
           numOfBetaKeys.map(async () => {
-            await createBetaKey({});
+            await createBetaKey({
+              createdById: user.id,
+            });
           }),
         );
         const {
@@ -241,12 +245,24 @@ describe('/betaKeys', () => {
         expect(secondPack.length).toBe(1);
       });
       it('order by createdAt', async () => {
-        const betaKeyOne = await createBetaKey({});
-        const betaKeyTwo = await createBetaKey({});
-        const betaKeyThree = await createBetaKey({});
-        const betaKeyFour = await createBetaKey({});
-        const betaKeyFive = await createBetaKey({});
-        const betaKeySix = await createBetaKey({});
+        const betaKeyOne = await createBetaKey({
+          createdById: user.id,
+        });
+        const betaKeyTwo = await createBetaKey({
+          createdById: user.id,
+        });
+        const betaKeyThree = await createBetaKey({
+          createdById: user.id,
+        });
+        const betaKeyFour = await createBetaKey({
+          createdById: user.id,
+        });
+        const betaKeyFive = await createBetaKey({
+          createdById: user.id,
+        });
+        const betaKeySix = await createBetaKey({
+          createdById: user.id,
+        });
         const {
           body: {
             data: {
@@ -272,13 +288,25 @@ describe('/betaKeys', () => {
             email: 'user3@email.com',
             userName: 'user3',
           });
+          // me = true && used = true
           const betaKeyOne = await createBetaKey({
+            createdById: user.id,
             userId: userTwo.id,
           });
+          // me = true && used = true
           const betaKeyTwo = await createBetaKey({
+            createdById: user.id,
             userId: userThree.id,
           });
-          await createBetaKey({});
+          // me = true && used = false
+          await createBetaKey({
+            createdById: user.id,
+          });
+          // me = false && used = true
+          await createBetaKey({
+            userId: userTwo.id,
+          });
+          // me = false && used = false
           await createBetaKey({});
           const {
             body: {
@@ -296,18 +324,24 @@ describe('/betaKeys', () => {
             email: 'user2@email.com',
             userName: 'user2',
           });
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
+          // me = true && used = false
+          const betaKeyOne = await createBetaKey({
+            createdById: user.id,
           });
+          // me = true && used = false
+          const betaKeyTwo = await createBetaKey({
+            createdById: user.id,
+          });
+          // me = true && used = true
+          await createBetaKey({
+            createdById: user.id,
+            userId: userTwo.id,
+          });
+          // me = false && used = true
           await createBetaKey({
             userId: userTwo.id,
           });
-          await createBetaKey({
-            userId: userThree.id,
-          });
-          const betaKeyOne = await createBetaKey({});
-          const betaKeyTwo = await createBetaKey({});
+          await createBetaKey({});
           const {
             body: {
               data: {
@@ -319,11 +353,11 @@ describe('/betaKeys', () => {
           expect(betaKeys[0].id).toBe(betaKeyTwo.id);
           expect(betaKeys[1].id).toBe(betaKeyOne.id);
         });
-        it('created by current user', async () => {
-          const betaKeyOne = await createBetaKey({
+        it('created by all users', async () => {
+          await createBetaKey({
             createdById: user.id,
           });
-          const betaKeyTwo = await createBetaKey({
+          await createBetaKey({
             createdById: user.id,
           });
           await createBetaKey({});
@@ -334,31 +368,32 @@ describe('/betaKeys', () => {
                 betaKeys,
               },
             },
-          } = await getBetaKeys(app, token, { me: 'true' });
-          expect(betaKeys.length).toBe(2);
-          expect(betaKeys[0].id).toBe(betaKeyTwo.id);
-          expect(betaKeys[1].id).toBe(betaKeyOne.id);
+          } = await getBetaKeys(app, token, { me: 'false' });
+          expect(betaKeys.length).toBe(4);
         });
-        it('created by current user and used', async () => {
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
+        it('created by all users and used', async () => {
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
           });
+          const { user: userFour } = await createUser({
+            email: 'user4@email.com',
+            userName: 'user4',
+          });
+          // me = true && used = true
           const betaKeyOne = await createBetaKey({
             createdById: user.id,
-            userId: userTwo.id,
+            userId: userThree.id,
           });
+          // me = false && used = true
           const betaKeyTwo = await createBetaKey({
-            createdById: user.id,
-            userId: userTwo.id,
+            userId: userFour.id,
           });
+          // me = true && used = false
           await createBetaKey({
             createdById: user.id,
           });
-          await createBetaKey({
-            createdById: user.id,
-          });
-          await createBetaKey({});
+          // me = false && userd = false
           await createBetaKey({});
           const {
             body: {
@@ -367,34 +402,37 @@ describe('/betaKeys', () => {
               },
             },
           } = await getBetaKeys(app, token, {
-            me: 'true',
+            me: 'false',
             used: 'true',
           });
           expect(betaKeys.length).toBe(2);
           expect(betaKeys[0].id).toBe(betaKeyTwo.id);
           expect(betaKeys[1].id).toBe(betaKeyOne.id);
         });
-        it('created by current user and not used', async () => {
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
+        it('created by all users and not used', async () => {
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
           });
+          const { user: userFour } = await createUser({
+            email: 'user4@email.com',
+            userName: 'user4',
+          });
+          // me = true && used = true
           await createBetaKey({
             createdById: user.id,
-            userId: userTwo.id,
+            userId: userThree.id,
           });
+          // me = false && used = true
           await createBetaKey({
-            createdById: user.id,
-            userId: userTwo.id,
+            userId: userFour.id,
           });
+          // me = true && used = false
           const betaKeyOne = await createBetaKey({
             createdById: user.id,
           });
-          const betaKeyTwo = await createBetaKey({
-            createdById: user.id,
-          });
-          await createBetaKey({});
-          await createBetaKey({});
+          // me = false && userd = false
+          const betaKeyTwo = await createBetaKey({});
           const {
             body: {
               data: {
@@ -402,7 +440,7 @@ describe('/betaKeys', () => {
               },
             },
           } = await getBetaKeys(app, token, {
-            me: 'true',
+            me: 'false',
             used: 'false',
           });
           expect(betaKeys.length).toBe(2);

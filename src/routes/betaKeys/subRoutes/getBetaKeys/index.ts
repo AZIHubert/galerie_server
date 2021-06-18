@@ -37,11 +37,17 @@ export default async (req: Request, res: Response) => {
   let normalizeBetaKeys: Array<any>;
   let offset: number;
 
-  // If ?me='true'
-  // return only betaKey created
-  // by current user.
-  if (me === 'true') {
-    where.createdById = currentUser.id;
+  // If ?me='false'
+  // return all betaKey created
+  // by any users.
+  switch (me) {
+    case 'true':
+      where.createdById = currentUser.id;
+      break;
+    case 'false':
+      break;
+    default:
+      where.createdById = currentUser.id;
   }
 
   if (typeof page === 'string') {

@@ -29,6 +29,8 @@ export default async (req: Request, res: Response) => {
   const objectUserExcluder: {[key: string]: undefined} = {};
   let currentProfilePicture;
   let betaKey: BetaKey;
+  let betaKeyWithEmail: BetaKey | null;
+  let user: User | null;
 
   const {
     error,
@@ -41,7 +43,44 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Email should be unique
+  if (value.email) {
+    // the updated email
+    // can\'t be already
+    // registered on a beta key.
+    try {
+      betaKeyWithEmail = await BetaKey.findOne({
+        where: {
+          email: value.email,
+        },
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+    if (betaKeyWithEmail) {
+      return res.status(400).send({
+        errors: 'this email is already used on a beta key',
+      });
+    }
+
+    // the updated email
+    // can't be used by a registered user.
+    try {
+      user = await User.findOne({
+        where: {
+          email: value.email,
+        },
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+    if (user) {
+      return res.status(400).send({
+        errors: {
+          email: 'this email is already used with this email',
+        },
+      });
+    }
+  }
 
   // Create betaKey.
   try {

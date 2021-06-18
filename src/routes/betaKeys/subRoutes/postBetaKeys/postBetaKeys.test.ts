@@ -19,6 +19,7 @@ import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
   createProfilePicture,
+  createBetaKey,
   createUser,
   postBetaKey,
   testProfilePicture,
@@ -130,7 +131,7 @@ describe('/betaKeys', () => {
         expect(createdBetaKey.email).toBeNull();
       });
       it('should trim email', async () => {
-        const email = 'user@email.com';
+        const email = 'user2@email.com';
         const {
           body: {
             data: {
@@ -147,7 +148,7 @@ describe('/betaKeys', () => {
         expect(createdBetaKey.email).toBe(email);
       });
       it('should set req.body.email to lowercase', async () => {
-        const email = 'user@email.com';
+        const email = 'user2@email.com';
         const {
           body: {
             data: {
@@ -206,6 +207,117 @@ describe('/betaKeys', () => {
       });
     });
     describe('should return status 400 if', () => {
+      describe('a betaKey with email equal', () => {
+        let betaKey: BetaKey;
+
+        beforeEach(async (done) => {
+          try {
+            betaKey = await createBetaKey({
+              createdById: user.id,
+              email: 'user2@email.com',
+            });
+          } catch (err) {
+            done(err);
+          }
+          done();
+        });
+
+        it('request.body.email already exist', async () => {
+          const {
+            body,
+            status,
+          } = await postBetaKey(app, token, {
+            body: {
+              email: betaKey.email,
+            },
+          });
+          expect(body.errors).toBe('this email is already used on a beta key');
+          expect(status).toBe(400);
+        });
+        it('trimed request.body.email already exist', async () => {
+          const {
+            body,
+            status,
+          } = await postBetaKey(app, token, {
+            body: {
+              email: ` ${betaKey.email} `,
+            },
+          });
+          expect(body.errors).toBe('this email is already used on a beta key');
+          expect(status).toBe(400);
+        });
+        it('request.body.email to upper case already exist', async () => {
+          const {
+            body,
+            status,
+          } = await postBetaKey(app, token, {
+            body: {
+              email: betaKey.email.toUpperCase(),
+            },
+          });
+          expect(body.errors).toBe('this email is already used on a beta key');
+          expect(status).toBe(400);
+        });
+      });
+      describe('a user is already register with', () => {
+        let userTwo: User;
+
+        beforeEach(async (done) => {
+          try {
+            const { user: createdUser } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            userTwo = createdUser;
+          } catch (err) {
+            done(err);
+          }
+          done();
+        });
+
+        it('request.body.email', async () => {
+          const {
+            body,
+            status,
+          } = await postBetaKey(app, token, {
+            body: {
+              email: userTwo.email,
+            },
+          });
+          expect(body.errors).toEqual({
+            email: 'this email is already used with this email',
+          });
+          expect(status).toBe(400);
+        });
+        it('trim request.body.email', async () => {
+          const {
+            body,
+            status,
+          } = await postBetaKey(app, token, {
+            body: {
+              email: ` ${userTwo.email} `,
+            },
+          });
+          expect(body.errors).toEqual({
+            email: 'this email is already used with this email',
+          });
+          expect(status).toBe(400);
+        });
+        it('request.body.email.toLowerCase()', async () => {
+          const {
+            body,
+            status,
+          } = await postBetaKey(app, token, {
+            body: {
+              email: userTwo.email.toUpperCase(),
+            },
+          });
+          expect(body.errors).toEqual({
+            email: 'this email is already used with this email',
+          });
+          expect(status).toBe(400);
+        });
+      });
       describe('email', () => {
         it('is not a string', async () => {
           const {
