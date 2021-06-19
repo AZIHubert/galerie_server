@@ -1,3 +1,5 @@
+export { default as deleteBetaKeysId } from './deleteBetaKeysId';
+
 export { default as getBetaKeys } from './getBetaKeys';
 export { default as getBetaKeysEmailEmail } from './getBetaKeysEmailEmail';
 export { default as getBetaKeysId } from './getBetaKeysId';

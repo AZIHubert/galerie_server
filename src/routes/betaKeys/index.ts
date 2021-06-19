@@ -6,6 +6,8 @@ import {
 } from '@src/helpers/middlewares';
 
 import {
+  deleteBetaKeysId,
+
   getBetaKeys,
   getBetaKeysEmailEmail,
   getBetaKeysId,
@@ -18,7 +20,7 @@ import {
 const router = Router();
 
 const betaKeyRoutes: () => Router = () => {
-  router.delete('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, () => {});
+  router.delete('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, deleteBetaKeysId);
 
   router.get('/', shouldBeAuth, shouldBeSuperAdmin, getBetaKeys);
   router.get('/email/:email', shouldBeAuth, shouldBeSuperAdmin, getBetaKeysEmailEmail);
