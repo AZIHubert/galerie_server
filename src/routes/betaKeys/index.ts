@@ -13,6 +13,7 @@ import {
   getBetaKeysId,
 
   postBetaKeys,
+  postBetaKeysIdSend,
 
   putBetaKeysId,
 } from './subRoutes';
@@ -27,7 +28,7 @@ const betaKeyRoutes: () => Router = () => {
   router.get('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, getBetaKeysId);
 
   router.post('/', shouldBeAuth, shouldBeSuperAdmin, postBetaKeys);
-  router.post('/:betaKeyId/send', shouldBeAuth, shouldBeSuperAdmin, () => {});
+  router.post('/:betaKeyId/send', shouldBeAuth, shouldBeSuperAdmin, postBetaKeysIdSend);
 
   router.put('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, putBetaKeysId);
 

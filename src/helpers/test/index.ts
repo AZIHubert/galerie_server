@@ -52,6 +52,7 @@ export { default as getUsersRefreshToken } from './getUsersRefreshToken';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 
 export { default as postBetaKey } from './postBetaKey';
+export { default as postBetaKeysIdSend } from './postBetaKeysIdSend';
 export { default as postBlackListUserId } from './postBlackListUserId';
 export { default as postGaleries } from './postGaleries';
 export { default as postGaleriesIdFrames } from './postGaleriesIdFrames';
