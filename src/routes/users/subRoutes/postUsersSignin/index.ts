@@ -18,7 +18,7 @@ import {
   validatePostUsersSigninBody,
 } from '@src/helpers/schemas';
 
-const IS_BETA = accEnv('IS_BETA', 'true');
+const IS_BETA = accEnv('IS_BETA', 'false');
 
 // Normalize Sequelize errors for response
 // if email or `@{userName}` are already registered.
