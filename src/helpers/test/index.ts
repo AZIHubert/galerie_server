@@ -1,4 +1,6 @@
 export { default as cleanGoogleBuckets } from './cleanGoogleBuckets';
+
+export { default as createBetaKey } from './createBetaKey';
 export { default as createBlackList } from './createBlackList';
 export { default as createFrame } from './createFrame';
 export { default as createGalerie } from './createGalerie';
@@ -10,6 +12,7 @@ export { default as createProfilePicture } from './createProfilePicture';
 export { default as createTicket } from './createTicket';
 export { default as createUser } from './createUser';
 
+export { default as deleteBetaKeysId } from './deleteBetaKeysId';
 export { default as deleteGaleriesId } from './deleteGaleriesId';
 export { default as deleteGaleriesIdBlackListsId } from './deleteGaleriesIdBlackListsId';
 export { default as deleteGaleriesIdFramesId } from './deleteGaleriesIdFramesId';
@@ -21,6 +24,9 @@ export { default as deleteProfilePicturesId } from './deleteProfilePicturesId';
 export { default as deleteTicketsId } from './deleteTicketsId';
 export { default as deleteUsersMe } from './deleteUsersMe';
 
+export { default as getBetaKeys } from './getBetaKeys';
+export { default as getBetaKeysEmailEmail } from './getBetaKeysEmailEmail';
+export { default as getBetaKeysId } from './getBetaKeysId';
 export { default as getBlackLists } from './getBlackLists';
 export { default as getBlackListsId } from './getBlackListsId';
 export { default as getGaleries } from './getGaleries';
@@ -45,6 +51,8 @@ export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 
+export { default as postBetaKey } from './postBetaKey';
+export { default as postBetaKeysIdSend } from './postBetaKeysIdSend';
 export { default as postBlackListUserId } from './postBlackListUserId';
 export { default as postGaleries } from './postGaleries';
 export { default as postGaleriesIdFrames } from './postGaleriesIdFrames';
@@ -61,7 +69,9 @@ export { default as postUsersMeEmail } from './postUsersMeEmail';
 export { default as postUsersMeEmailConfirm } from './postUsersMeEmailConfirm';
 export { default as postUsersPassword } from './postUsersPassword';
 export { default as postUsersSignin } from './postUsersSignin';
+export { default as postUsersSigninBeta } from './postUsersSigninBeta';
 
+export { default as putBetaKeysId } from './putBetaKeysId';
 export { default as putBlackLists } from './putBlackLists';
 export { default as putBlackListsId } from './putBlackListsId';
 export { default as putGaleriesId } from './putGaleriesId';
@@ -76,6 +86,7 @@ export { default as putUsersMePassword } from './putUsersMePassword';
 export { default as putUsersMePseudonym } from './putUsersMePseudonym';
 export { default as putUsersPassword } from './putUsersPassword';
 
+export { default as testBetaKey } from './testBetaKey';
 export { default as testFrame } from './testFrame';
 export { default as testGalerie } from './testGalerie';
 export { default as testGalerieBlackList } from './testGalerieBlackList';

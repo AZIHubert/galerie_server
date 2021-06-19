@@ -17,6 +17,7 @@ export const FILE_SHOULD_BE_AN_IMAGE = 'uploaded file must be an image';
 export const FILES_ARE_REQUIRED = 'files are required';
 export const INVALID_UUID = (
   type:
+  'beta key' |
   'black list' |
   'frame' |
   'galerie' |
@@ -28,6 +29,7 @@ export const INVALID_UUID = (
 ) => `${type} id is not valide`;
 export const MODEL_NOT_FOUND = (
   type:
+  'beta key' |
   'black list' |
   'frame' |
   'galerie' |

@@ -3,7 +3,10 @@ import {
   Response,
 } from 'express';
 
-import { User } from '@src/db/models';
+import {
+  BetaKey,
+  User,
+} from '@src/db/models';
 
 import accEnv from '@src/helpers/accEnv';
 import {
@@ -15,10 +18,10 @@ import {
 import genPassword from '@src/helpers/genPassword';
 import {
   normalizeJoiErrors,
-  validatePostUsersSigninBody,
+  validatePostUsersSigninBetaBody,
 } from '@src/helpers/schemas';
 
-const IS_BETA = accEnv('IS_BETA', 'false');
+const IS_BETA = accEnv('IS_BETA', 'true');
 
 // Normalize Sequelize errors for response
 // if email or `@{userName}` are already registered.
@@ -35,14 +38,17 @@ const normalizeSequelizeErrors = async (email: string, userName: string) => {
   return normalizeErrors;
 };
 
+// Check if betaKey is not already used.
+
 export default async (req: Request, res: Response) => {
   const objectUserExcluder: { [key: string]: undefined } = {};
+  let betaKey: BetaKey | null;
   let errors: any;
   let newUser: User;
 
-  if (IS_BETA === 'true') {
+  if (IS_BETA === 'false') {
     return res.status(400).send({
-      errors: 'you can\'t signin with this route in beta',
+      errors: 'you can\'t signin with this route',
     });
   }
 
@@ -50,10 +56,39 @@ export default async (req: Request, res: Response) => {
   const {
     error,
     value,
-  } = validatePostUsersSigninBody(req.body);
+  } = validatePostUsersSigninBetaBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
+    });
+  }
+
+  // Fetch betaKey.
+  try {
+    betaKey = await BetaKey.findOne({
+      where: {
+        code: value.betaKey,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Check if betaKey exist.
+  if (!betaKey) {
+    return res.status(400).send({
+      errors: {
+        betaKey: 'this betaKey doesn\'t exist',
+      },
+    });
+  }
+
+  // Check if betaKey is not already used.
+  if (betaKey.userId) {
+    return res.status(400).send({
+      errors: {
+        betaKey: 'this beta key is already used',
+      },
     });
   }
 
@@ -85,6 +120,13 @@ export default async (req: Request, res: Response) => {
       salt,
       userName: `@${value.userName}`,
     });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Update betaKey
+  try {
+    await betaKey.update({ userId: newUser.id });
   } catch (err) {
     return res.status(500).send(err);
   }

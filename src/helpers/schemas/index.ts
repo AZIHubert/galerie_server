@@ -2,6 +2,7 @@ export { default as normalizeJoiErrors } from './normalizeJoiErrors';
 
 export { default as validateDeleteGaleriesIdBody } from './validateDeleteGaleriesIdBody';
 export { default as validateDeleteUserMeBody } from './validateDeleteUserMeBody';
+export { default as validatePostBetaKeysBody } from './validatePostBetaKeysBody';
 export { default as validatePostBlackListsUserIdBody } from './validatePostBlackListsUserIdBody';
 export { default as validatePostGaleriesBody } from './validatePostGaleriesBody';
 export { default as validatePostGaleriesIdFramesBody } from './validatePostGaleriesIdFramesBody';
@@ -12,8 +13,10 @@ export { default as validatePostUsersLoginBody } from './validatePostUsersLoginB
 export { default as validatePostUsersMeUpdateEmailBody } from './validatePostUsersMeUpdateEmailBody';
 export { default as validatePostUsersMeUpdateEmailConfirmBody } from './validatePostUsersMeUpdateEmailConfirmBody';
 export { default as validatePostUsersResetPasswordBody } from './validatePostUsersResetPasswordBody';
+export { default as validatePostUsersSigninBetaBody } from './validatePostUsersSigninBetaBody';
 export { default as validatePostUsersSigninBody } from './validatePostUsersSigninBody';
 export { default as validatePostTicketBody } from './validatePostTicketBody';
+export { default as validatePutBetaKeysIdBody } from './validatePutBetaKeysIdBody';
 export { default as validatePutBlackListsIdBody } from './validatePutBlackListsIdBody';
 export { default as validatePutGaleriesIdBody } from './validatePutGaleriesIdBody';
 export { default as validatePutGaleriesIdFramesIdBody } from './validatePutGaleriesIdFramesIdBody';

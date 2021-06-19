@@ -1,3 +1,4 @@
+export { default as BetaKey } from './betaKey';
 export { default as BlackList } from './blackList';
 export { default as Frame } from './frame';
 export { default as Galerie } from './galerie';

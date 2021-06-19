@@ -14,6 +14,24 @@ const mailConfig = {
   port: 587,
 };
 
+const betaKeyMessage = (email: string, code: string) => ({
+  html: `<html>
+    <body>
+      <h1>Galeries</h1>
+      <p>You've receive a betaKey to use Galerie</p>
+      <h2>betaKey</h2>
+      <p>${code}</p>
+      <a target="_blank" href='https://www.localhost:1234/'>
+        signin
+      </a>
+    </body>
+  </html>`,
+  from: 'Galeries <sender@mail.com>',
+  subject: 'validate your email',
+  text: 'Hello',
+  to: email,
+});
+
 const confirmAccountMessage = (email: string, token: string) => ({
   html: `<html>
     <body>
@@ -79,6 +97,16 @@ const validateEmailMessage = (email: string, token: string) => ({
   to: email,
 });
 
+export const sendBetaKey = (email: string, code: string) => {
+  const transporter = nodemailer.createTransport(mailConfig);
+  transporter.sendMail(
+    betaKeyMessage(email, code),
+    (err) => {
+      if (err) transporter.close();
+    },
+  );
+  transporter.close();
+};
 export const sendConfirmAccount = (email: string, token: string) => {
   const transporter = nodemailer.createTransport(mailConfig);
   transporter.sendMail(

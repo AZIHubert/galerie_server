@@ -1,3 +1,4 @@
+export { default as betaKeyExcluder } from './betaKeyExcluder';
 export { default as blackListExcluder } from './blackListExcluder';
 export { default as frameExcluder } from './frameExcluder';
 export { default as galerieExcluder } from './galerieExcluder';

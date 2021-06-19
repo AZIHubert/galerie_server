@@ -7,6 +7,7 @@ import {
 import { Op } from 'sequelize';
 
 import {
+  BetaKey,
   BlackList,
   Frame,
   Galerie,
@@ -348,6 +349,25 @@ export default async (req: Request, res: Response) => {
     await Invitation.destroy({
       where: {
         userId: user.id,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // TODO: test
+  // Destroy all created and used betaKey.
+  try {
+    await BetaKey.destroy({
+      where: {
+        [Op.or]: [
+          {
+            createdById: user.id,
+          },
+          {
+            userId: user.id,
+          },
+        ],
       },
     });
   } catch (err) {

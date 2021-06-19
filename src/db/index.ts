@@ -3,6 +3,7 @@ import { Sequelize } from 'sequelize-typescript';
 import accessEnv from '@src/helpers/accEnv';
 
 import {
+  BetaKey,
   BlackList,
   Frame,
   Galerie,
@@ -31,6 +32,7 @@ const sequelize = new Sequelize({
   storage: ':memory:',
   logging: false,
   models: [
+    BetaKey,
     BlackList,
     Frame,
     Galerie,
