@@ -11,6 +11,7 @@ import {
   BlackList,
   Frame,
   Galerie,
+  GalerieBlackList,
   GalerieUser,
   Image,
   Invitation,
@@ -30,6 +31,9 @@ import {
 } from '@src/helpers/schemas';
 import validatePassword from '@src/helpers/validatePassword';
 
+// TODO:
+// order deletions.
+
 export default async (req: Request, res: Response) => {
   const user = req.user as User;
 
@@ -37,7 +41,7 @@ export default async (req: Request, res: Response) => {
   // If true, the user can't delete his account.
   // (you need a password for it,
   // but account created with Google or Facebook doesn't have one).
-  if (user.facebookId || user.googleId) {
+  if (!!user.facebookId || !!user.googleId) {
     return res.status(400).send({
       errors: 'you can\'t delete your account if you\'re logged in with Facebook or Google',
     });
@@ -139,7 +143,6 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // TODO: test this features
   // set Ticket.userId to null
   // if current user is the author
   // of the ticket.
@@ -155,10 +158,8 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // TODO: Test it.
-  // Destroy all black list where blackList.userId === currentUser.id.
-  // Put blackList.adminId to null where blackList.adminId === currentUser.id.
-  // Put blackList.updatedById to null where blackList.updatedById === currentUser.id.
+  // Destroy all black list where
+  // blackList.userId === currentUser.id.
   try {
     await BlackList.destroy({
       where: {
@@ -168,6 +169,9 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // Put blackList.adminId to null where
+  // blackList.adminId === currentUser.id.
   try {
     await BlackList.update(
       { adminId: null },
@@ -180,6 +184,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+  // Put blackList.updatedById to null
+  // where blackList.updatedById === currentUser.id.
   try {
     await BlackList.update(
       { updatedById: null },
@@ -194,7 +200,7 @@ export default async (req: Request, res: Response) => {
   }
 
   // Destroy all frames/galeriePictures/images
-  // and images from Google buckets.
+  // likes post on frames and images from Google buckets.
   try {
     const frames = await Frame.findAll({
       include: [{
@@ -218,9 +224,6 @@ export default async (req: Request, res: Response) => {
                 originalImage,
                 pendingImage,
               } = galeriePicture;
-              // TODO:
-              // not sure it's required.
-              await galeriePicture.destroy();
               await Image.destroy({
                 where: {
                   [Op.or]: [
@@ -263,8 +266,6 @@ export default async (req: Request, res: Response) => {
 
   // Destroy all likes and decrement there
   // relative frame.
-  // TODO:
-  // Need to test it.
   try {
     const likes = await Like.findAll({
       where: {
@@ -282,7 +283,6 @@ export default async (req: Request, res: Response) => {
           },
         });
       }),
-
     );
   } catch (err) {
     return res.status(500).send(err);
@@ -300,43 +300,41 @@ export default async (req: Request, res: Response) => {
       },
     });
 
-    // Destroy all galerieUsers.
     await Promise.all(
       galerieUsers.map(async (galerieUser) => {
         await galerieUser.destroy();
-        // If user's role is 'creator'
-        // destroy all invitations.
-        // if there is still user remain
-        // on this galerie, set galerie.archived === true
-        // else destroy this galerie.
-        // TODO:
-        // test it.
-        if (galerieUser.role === 'creator') {
+        const allUsers = await GalerieUser.findAll({
+          where: {
+            galerieId: galerieUser.galerieId,
+          },
+        });
+        // If a user is the last
+        // user subscribe to a galerie
+        // destroy the galerie.
+        if (allUsers.length === 0) {
+          await Galerie.destroy({
+            where: {
+              id: galerieUser.galerieId,
+            },
+          });
+
+        // If there is still users subscribe to it
+        // and currentUser was the creator of this galerie.
+        // set galerie.archived to true
+        // and destroy all invitations of this galerie.
+        } else if (galerieUser.role === 'creator') {
+          await Galerie.update({
+            archived: true,
+          }, {
+            where: {
+              id: galerieUser.galerieId,
+            },
+          });
           await Invitation.destroy({
             where: {
               galerieId: galerieUser.galerieId,
             },
           });
-          const allUsers = await GalerieUser.findAll({
-            where: {
-              galerieId: galerieUser.galerieId,
-            },
-          });
-          if (allUsers.length === 0) {
-            await Galerie.destroy({
-              where: {
-                id: galerieUser.galerieId,
-              },
-            });
-          } else {
-            await Galerie.update({
-              archived: true,
-            }, {
-              where: {
-                id: galerieUser.galerieId,
-              },
-            });
-          }
         }
       }),
     );
@@ -355,19 +353,69 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // TODO: test
-  // Destroy all created and used betaKey.
+  // Destoy all non used betaKey created by current user.
   try {
     await BetaKey.destroy({
       where: {
-        [Op.or]: [
-          {
-            createdById: user.id,
-          },
-          {
-            userId: user.id,
-          },
-        ],
+        createdById: user.id,
+        userId: {
+          [Op.eq]: null,
+        },
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // set betaKey.createdById === null
+  // to all used betaKey created by current user.
+  try {
+    await BetaKey.update({
+      createdById: null,
+    }, {
+      where: {
+        createdById: user.id,
+        userId: {
+          [Op.not]: null,
+        },
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Destroy the beta Key used by current user.
+  try {
+    await BetaKey.destroy({
+      where: {
+        userId: user.id,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Set galerieBlackList.adminId === null
+  // for all galerieBlackLists created by
+  // this user.
+  try {
+    await GalerieBlackList.update({
+      adminId: null,
+    }, {
+      where: {
+        adminId: user.id,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Destroy all galerieBlackList
+  // where galerieBlackList.userId === user.id
+  try {
+    await GalerieBlackList.destroy({
+      where: {
+        userId: user.id,
       },
     });
   } catch (err) {
@@ -390,6 +438,7 @@ export default async (req: Request, res: Response) => {
       });
     }
   });
+
   return res.status(200).send({
     action: 'DELETE',
   });

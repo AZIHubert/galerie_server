@@ -4,97 +4,640 @@ import { Sequelize } from 'sequelize';
 import '@src/helpers/initEnv';
 
 import {
+  BetaKey,
+  BlackList,
   Frame,
   Galerie,
+  GalerieBlackList,
   GaleriePicture,
   GalerieUser,
   Image,
   Invitation,
+  Like,
   ProfilePicture,
   User,
 } from '@src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
 import {
   FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
   FIELD_SHOULD_BE_A_STRING,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
-import gc from '@src/helpers/gc';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import {
+  createBetaKey,
+  createBlackList,
+  createFrame,
+  createGalerie,
+  createGalerieBlackList,
+  createGalerieUser,
+  createInvitation,
+  createLike,
+  createProfilePicture,
+  createTicket,
   createUser,
   deleteUsersMe,
-  postGaleriesIdFrames,
-  postGaleries,
-  postGaleriesIdInvitations,
-  postProfilePictures,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
 
-const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
-const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
+let app: Server;
+let sequelize: Sequelize;
+let password: string;
+let token: string;
+let user: User;
+
+jest.mock('@src/helpers/gc', () => ({
+  __esModule: true,
+  default: ({
+    bucket: () => ({
+      file: () => ({
+        delete: () => Promise.resolve(),
+      }),
+    }),
+  }),
+}));
 
 describe('/users', () => {
-  let app: Server;
-  let password: string;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    sequelize = initSequelize();
-    app = initApp();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      const {
-        password: createdPassword,
-        user: createdUser,
-      } = await createUser({});
-
-      password = createdPassword;
-      user = createdUser;
-      const jwt = signAuthToken(user);
-      token = jwt.token;
-    } catch (err) {
-      done(err);
-    }
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/me', () => {
-    // TODO:
-    it('don\'t delete other galeries', () => {});
-    it('delete galerieUsers and frames/invitations post by this deleted user on other galeries', () => {});
-    it('doesn\'t delete frames posted by other users', () => {});
-    it('should destroy all likes', () => {});
-    it('destroy all blacklist', () => {});
-    it('set to null blacklist\'s field where adminId === user.id', () => {});
-    it('set ticket.userId to null if user is the author', () => {});
-
     describe('DELETE', () => {
-      describe('should return status 200 and', () => {
-        it('delete user', async () => {
+      beforeAll(() => {
+        sequelize = initSequelize();
+        app = initApp();
+      });
+
+      beforeEach(async (done) => {
+        jest.clearAllMocks();
+        try {
+          await sequelize.sync({ force: true });
           const {
-            body,
+            password: createdPassword,
+            user: createdUser,
+          } = await createUser({
+            role: 'superAdmin',
+          });
+          password = createdPassword;
+          user = createdUser;
+          const jwt = signAuthToken(user);
+          token = jwt.token;
+        } catch (err) {
+          done(err);
+        }
+        done();
+      });
+
+      afterAll(async (done) => {
+        jest.clearAllMocks();
+        try {
+          await sequelize.sync({ force: true });
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
+      describe('should return status 200 and', () => {
+        it('destoy all profile pictures/images posted by the currentUser', async () => {
+          await createProfilePicture({
+            userId: user.id,
+          });
+          const {
+            body: {
+              action,
+            },
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const images = await Image.findAll();
+          const profilePictures = await ProfilePicture.findAll();
+          expect(action).toBe('DELETE');
+          expect(images.length).toBe(0);
+          expect(profilePictures.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('set ticket.userId === null for all tickets created by the currentUser', async () => {
+          const ticket = await createTicket({
+            userId: user.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          await ticket.reload();
+          expect(status).toBe(200);
+          expect(ticket.userId).toBeNull();
+        });
+        it('destoy all blackList where userId === currentUser.id', async () => {
+          await createBlackList({
+            active: false,
+            userId: user.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const blackLists = await BlackList.findAll();
+          expect(blackLists.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('set blackList.adminId === null to all blackLists posted by the current user', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const blackList = await createBlackList({
+            adminId: user.id,
+            userId: userTwo.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          await blackList.reload();
+          expect(blackList.adminId).toBeNull();
+          expect(status).toBe(200);
+        });
+        it('set blackList.updatedById === null to all blackLists updated by the current user', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const blackList = await createBlackList({
+            updatedById: user.id,
+            userId: userTwo.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          await blackList.reload();
+          expect(blackList.updatedById).toBeNull();
+          expect(status).toBe(200);
+        });
+        it('delete all frames/galeriePictures/images posted by the current users', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: user.id,
+          });
+          await createFrame({
+            galerieId,
+            userId: user.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const frames = await Frame.findAll();
+          const galeriePictures = await GaleriePicture.findAll();
+          const images = await Image.findAll();
+          expect(frames.length).toBe(0);
+          expect(galeriePictures.length).toBe(0);
+          expect(images.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('delete likes posted on frames posted by the current user', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: user.id,
+          });
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: user.id,
+          });
+          await createLike({
+            frameId,
+            userId: userTwo.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const likes = await Like.findAll();
+          expect(likes.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('delete likes posted by the currentUser', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: user.id,
+          });
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: userTwo.id,
+          });
+          await createLike({
+            frameId,
+            userId: user.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const likes = await Like.findAll();
+          expect(likes.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('delete all galerieUser where userId === currentUser.id', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: user.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const galerieUser = await GalerieUser.findAll({
+            where: {
+              userId: user.id,
+            },
+          });
+          expect(galerieUser.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('destroy galerie if the currentUser was the creator and the last user remain', async () => {
+          const { id: galerieId } = await createGalerie({
+            userId: user.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const galerie = await Galerie.findByPk(galerieId);
+          const galerieUsers = await GalerieUser.findAll({
+            where: {
+              userId: user.id,
+            },
+          });
+          expect(galerie).toBeNull();
+          expect(galerieUsers.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('destroy galerie if the currentUser was the last user remain', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: user.id,
+          });
+          await GalerieUser.destroy({
+            where: {
+              galerieId,
+              userId: userTwo.id,
+            },
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const galerie = await Galerie.findByPk(galerieId);
+          const galerieUsers = await GalerieUser.findAll({
+            where: {
+              userId: user.id,
+            },
+          });
+          expect(galerie).toBeNull();
+          expect(galerieUsers.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('destoy all invitations from the galerie even posted by other user if the creator was the last user subscribe to it', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: user.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            role: 'admin',
+            userId: userTwo.id,
+          });
+          await createInvitation({
+            galerieId,
+            userId: user.id,
+          });
+          await createInvitation({
+            galerieId,
+            userId: userTwo.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const invitations = await Invitation.findAll();
+          expect(invitations.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('set galerie.archived === true if he was the creator of this galerie and it was still other users subscribe to it', async () => {
+          const galerie = await createGalerie({
+            userId: user.id,
+          });
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await createGalerieUser({
+            galerieId: galerie.id,
+            userId: userTwo.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const galerieUser = await GalerieUser.findOne({
+            where: {
+              galerieId: galerie.id,
+              userId: userTwo.id,
+            },
+          });
+          await galerie.reload();
+          expect(galerie.archived).toBe(true);
+          expect(galerieUser).not.toBeNull();
+          expect(status).toBe(200);
+        });
+        it('destroy all invitation to the galeries where user was the creator and there is still users subscribe to it', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: user.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: userTwo.id,
+          });
+          await createInvitation({
+            galerieId,
+            userId: user.id,
+          });
+          await createInvitation({
+            galerieId,
+            userId: userTwo.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const invitations = await Invitation.findAll();
+          expect(invitations.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('destroy all invitations posted by the currentUser', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: user.id,
+          });
+          await createInvitation({
+            galerieId,
+            userId: user.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const invitations = await Invitation.findAll();
+          expect(invitations.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('set galerieBlackList.adminId === null to all galerieBlackList posted by this user', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            role: 'admin',
+            userId: user.id,
+          });
+          const galerieBlackList = await createGalerieBlackList({
+            galerieId,
+            userId: userThree.id,
+            adminId: user.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          await galerieBlackList.reload();
+          expect(galerieBlackList.adminId).toBeNull();
+          expect(status).toBe(200);
+        });
+        it('destroy all galerieBlackList where userId === currentUser.id', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: user.id,
+          });
+          await createGalerieBlackList({
+            adminId: userTwo.id,
+            galerieId,
+            userId: user.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const galerieBlackLists = await GalerieBlackList.findAll();
+          expect(galerieBlackLists.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('destroy all non used betaKey posted by the currentUser', async () => {
+          await createBetaKey({
+            createdById: user.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const betaKeys = await BetaKey.findAll();
+          expect(betaKeys.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('set betaKey.createdById === null to all used betaKey created by the currentUser', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const betaKey = await createBetaKey({
+            createdById: user.id,
+            userId: userTwo.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          await betaKey.reload();
+          expect(betaKey.createdById).toBeNull();
+          expect(status).toBe(200);
+        });
+        it('destoy betakey used by the current user', async () => {
+          await createBetaKey({
+            userId: user.id,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const betaKeys = await BetaKey.findAll();
+          expect(betaKeys.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('destroy the current user', async () => {
+          const {
             status,
           } = await deleteUsersMe(app, token, {
             body: {
@@ -104,378 +647,628 @@ describe('/users', () => {
             },
           });
           const users = await User.findAll();
-          expect(body).toEqual({
-            action: 'DELETE',
-          });
           expect(status).toBe(200);
           expect(users.length).toBe(0);
         });
 
-        it('destroy all profile pictures profile picture\'s image and images from Google buckets', async () => {
-          await postProfilePictures(app, token);
-          await deleteUsersMe(app, token, {
-            body: {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: user.email,
-            },
+        describe('do not', () => {
+          let userTwo: User;
+          beforeEach(async (done) => {
+            try {
+              const { user: newUser } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              userTwo = newUser;
+            } catch (err) {
+              done(err);
+            }
+            done();
           });
-          const [bucketCropedImages] = await gc
-            .bucket(GALERIES_BUCKET_PP_CROP)
-            .getFiles();
-          const [bucketOriginalImages] = await gc
-            .bucket(GALERIES_BUCKET_PP)
-            .getFiles();
-          const [bucketPendingImages] = await gc
-            .bucket(GALERIES_BUCKET_PP_PENDING)
-            .getFiles();
-          const images = await Image.findAll();
-          const profilePictures = await ProfilePicture.findAll();
-          expect(bucketCropedImages.length).toBe(0);
-          expect(bucketOriginalImages.length).toBe(0);
-          expect(bucketPendingImages.length).toBe(0);
-          expect(images.length).toBe(0);
-          expect(profilePictures.length).toBe(0);
-        });
-
-        it('delete all frames/galeries/images/invitations and all images from Google buckets', async () => {
-          const {
-            body: {
-              data: {
-                galerie: {
-                  id: galerieId,
-                },
+          it('destroy profile pictures/images from other users', async () => {
+            await createProfilePicture({
+              userId: userTwo.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
               },
-            },
-          } = await postGaleries(app, token, {
-            body: {
-              name: 'galerie\'s name',
-            },
+            });
+            const images = await Image.findAll();
+            const profilePictures = await ProfilePicture.findAll();
+            expect(images.length).toBeTruthy();
+            expect(profilePictures.length).toBe(1);
+            expect(status).toBe(200);
           });
-          await postGaleriesIdFrames(app, token, galerieId);
-          await postGaleriesIdInvitations(app, token, galerieId);
-          await deleteUsersMe(app, token, {
-            body: {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: user.email,
-            },
-          });
-          const [bucketCropedImages] = await gc
-            .bucket(GALERIES_BUCKET_PP_CROP)
-            .getFiles();
-          const [bucketOriginalImages] = await gc
-            .bucket(GALERIES_BUCKET_PP)
-            .getFiles();
-          const [bucketPendingImages] = await gc
-            .bucket(GALERIES_BUCKET_PP_PENDING)
-            .getFiles();
-          const frames = await Frame.findAll();
-          const galeries = await Galerie.findAll();
-          const galeriePictures = await GaleriePicture.findAll();
-          const galerieUsers = await GalerieUser.findAll();
-          const images = await Image.findAll();
-          const invitations = await Invitation.findAll();
-          expect(bucketCropedImages.length).toBe(0);
-          expect(bucketOriginalImages.length).toBe(0);
-          expect(bucketPendingImages.length).toBe(0);
-          expect(frames.length).toEqual(0);
-          expect(galeries.length).toEqual(0);
-          expect(galeriePictures.length).toEqual(0);
-          expect(galerieUsers.length).toEqual(0);
-          expect(images.length).toBe(0);
-          expect(invitations.length).toEqual(0);
-        });
-
-        it('don\'t delete other profile pictures', async () => {
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          const { token: tokenTwo } = signAuthToken(userTwo);
-          await postProfilePictures(app, tokenTwo);
-          await deleteUsersMe(app, token, {
-            body: {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: user.email,
-            },
-          });
-          const [bucketCropedImages] = await gc
-            .bucket(GALERIES_BUCKET_PP_CROP)
-            .getFiles();
-          const [bucketOriginalImages] = await gc
-            .bucket(GALERIES_BUCKET_PP)
-            .getFiles();
-          const [bucketPendingImages] = await gc
-            .bucket(GALERIES_BUCKET_PP_PENDING)
-            .getFiles();
-          const images = await Image.findAll();
-          const profilePictures = await ProfilePicture.findAll();
-          expect(bucketCropedImages.length).toBe(1);
-          expect(bucketOriginalImages.length).toBe(1);
-          expect(bucketPendingImages.length).toBe(1);
-          expect(images.length).toBe(3);
-          expect(profilePictures.length).toBe(1);
-        });
-
-        it('should archive galeries if one other user is still subscribe to it', async () => {
-          const {
-            body: {
-              data: {
-                galerie: {
-                  id: galerieId,
-                },
+          it('set ticket.user === null for tickets created by other users', async () => {
+            const ticket = await createTicket({
+              userId: userTwo.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
               },
-            },
-          } = await postGaleries(app, token, {
-            body: {
-              name: 'galerie\'s name',
-            },
+            });
+            await ticket.reload();
+            expect(status).toBe(200);
+            expect(ticket.userId).toBe(userTwo.id);
           });
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          await GalerieUser.create({
-            galerieId,
-            role: 'user',
-            userId: userTwo.id,
-          });
-          await deleteUsersMe(app, token, {
-            body: {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: user.email,
-            },
-          });
-          const galerie = await Galerie.findByPk(galerieId) as Galerie;
-          const galerieUsers = await GalerieUser.findAll();
-          expect(galerie.archived).toBeTruthy();
-          expect(galerieUsers.length).toEqual(1);
-        });
-
-        it('should destroy all invitations if a galerie is archived', async () => {
-          const {
-            body: {
-              data: {
-                galerie: {
-                  id: galerieId,
-                },
+          it('destroy other blackList', async () => {
+            await createBlackList({
+              userId: userTwo.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
               },
-            },
-          } = await postGaleries(app, token, {
-            body: {
-              name: 'galeries\'s name',
-            },
+            });
+            const blackLists = await BlackList.findAll();
+            expect(blackLists.length).toBe(1);
+            expect(status).toBe(200);
           });
-          const {
-            user: userTwo,
-          } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
+          it('set blackList.adminId === false to all blackLists posted by other users', async () => {
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              userName: 'user3',
+            });
+            const blackList = await createBlackList({
+              adminId: userTwo.id,
+              userId: userThree.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            await blackList.reload();
+            expect(blackList.adminId).toBe(userTwo.id);
+            expect(status).toBe(200);
           });
-          await GalerieUser.create({
-            userId: userTwo.id,
-            galerieId,
-            role: 'user',
+          it('set blackList.adminId === null to all blackList updated by other users', async () => {
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              userName: 'user3',
+            });
+            const blackList = await createBlackList({
+              updatedById: userTwo.id,
+              userId: userThree.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            await blackList.reload();
+            expect(blackList.updatedById).toBe(userTwo.id);
+            expect(status).toBe(200);
           });
-          const { token: tokenTwo } = signAuthToken(userTwo);
-          await postGaleriesIdInvitations(app, tokenTwo, galerieId);
-          await deleteUsersMe(app, token, {
-            body: {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: user.email,
-            },
+          it('delete frames/galeriePictures/images posted by other users', async () => {
+            const { id: galerieId } = await createGalerie({
+              userId: userTwo.id,
+            });
+            await createFrame({
+              galerieId,
+              userId: userTwo.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            const frames = await Frame.findAll();
+            const galeriePictures = await GaleriePicture.findAll();
+            const images = await Image.findAll();
+            expect(frames.length).toBe(1);
+            expect(galeriePictures.length).toBeTruthy();
+            expect(images.length).toBeTruthy();
+            expect(status).toBe(200);
           });
-          const invitations = await Invitation.findAll();
-          expect(invitations.length).toEqual(0);
+          it('delete likes posted by other users', async () => {
+            const { id: galerieId } = await createGalerie({
+              userId: userTwo.id,
+            });
+            const { id: frameId } = await createFrame({
+              galerieId,
+              userId: userTwo.id,
+            });
+            const { id: likeId } = await createLike({
+              frameId,
+              userId: userTwo.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            const like = await Like.findByPk(likeId);
+            expect(like).not.toBeNull();
+            expect(status).toBe(200);
+          });
+          it('delete galereUser from other users', async () => {
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              userName: 'user3',
+            });
+            const { id: galerieId } = await createGalerie({
+              userId: userThree.id,
+            });
+            await createGalerieUser({
+              galerieId,
+              userId: userTwo.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            const galerieUsers = await GalerieUser.findAll({
+              where: {
+                userId: userTwo.id,
+              },
+            });
+            expect(galerieUsers.length).toBe(1);
+            expect(status).toBe(200);
+          });
+          it('destroy the galerie if there is still other users subscribe to it', async () => {
+            const { id: galerieId } = await createGalerie({
+              userId: userTwo.id,
+            });
+            await createGalerieUser({
+              galerieId,
+              userId: user.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            const galerie = await Galerie.findByPk(galerieId);
+            expect(galerie).not.toBeNull();
+            expect(status).toBe(200);
+          });
+          it('set galerie.archived === true if he wasn\'t the creator og this galerie and it was still other users subscribe to it', async () => {
+            const galerie = await createGalerie({
+              userId: userTwo.id,
+            });
+            await createGalerieUser({
+              galerieId: galerie.id,
+              userId: user.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            await galerie.reload();
+            expect(galerie.archived).toBe(false);
+            expect(status).toBe(200);
+          });
+          it('destroy invitation posted by other users', async () => {
+            const { id: galerieId } = await createGalerie({
+              userId: userTwo.id,
+            });
+            await createInvitation({
+              galerieId,
+              userId: userTwo.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            const invitations = await Invitation.findAll();
+            expect(invitations.length).toBe(1);
+            expect(status).toBe(200);
+          });
+          it('set galerieBlackList.adminId === null to all galerieBlackList posted by other users', async () => {
+            const { id: galerieId } = await createGalerie({
+              userId: userTwo.id,
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              userName: 'user3',
+            });
+            const galerieBlackList = await createGalerieBlackList({
+              adminId: userTwo.id,
+              galerieId,
+              userId: userThree.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            await galerieBlackList.reload();
+            expect(galerieBlackList.adminId).toBe(userTwo.id);
+            expect(status).toBe(200);
+          });
+          it('destroy all galerieBlackList where userId !== currentUser.id', async () => {
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              userName: 'user3',
+            });
+            const { id: galerieId } = await createGalerie({
+              userId: userTwo.id,
+            });
+            await createGalerieBlackList({
+              adminId: userTwo.id,
+              galerieId,
+              userId: userThree.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            const galerieBlackLists = await GalerieBlackList.findAll();
+            expect(galerieBlackLists.length).toBe(1);
+            expect(status).toBe(200);
+          });
+          it('destroy all non used betaKey posted by other users', async () => {
+            await createBetaKey({
+              createdById: userTwo.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            const betaKeys = await BetaKey.findAll();
+            expect(betaKeys.length).toBe(1);
+            expect(status).toBe(200);
+          });
+          it('set betaKey.createdById === null to all used betaKey created by other users', async () => {
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              userName: 'user3',
+            });
+            const betaKey = await createBetaKey({
+              createdById: userTwo.id,
+              userId: userThree.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            await betaKey.reload();
+            expect(betaKey.createdById).toBe(userTwo.id);
+            expect(status).toBe(200);
+          });
+          it('destroy betaKey used by other users', async () => {
+            await createBetaKey({
+              userId: userTwo.id,
+            });
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            const betaKeys = await BetaKey.findAll();
+            expect(betaKeys.length).toBe(1);
+            expect(status).toBe(200);
+          });
+          it('destoy other user', async () => {
+            const {
+              status,
+            } = await deleteUsersMe(app, token, {
+              body: {
+                deleteAccountSentence: 'delete my account',
+                password,
+                userNameOrEmail: user.email,
+              },
+            });
+            const users = await User.findAll();
+            expect(status).toBe(200);
+            expect(users.length).toBe(1);
+          });
         });
       });
       describe('should return status 400 if', () => {
-        describe('deleteAccountSentence', () => {
-          it('is not send', async () => {
-            const { body, status } = await deleteUsersMe(app, token, {
-              body: {
-                password,
-                userNameOrEmail: user.email,
-              },
-            });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
+        it('user was registered through Facebook', async () => {
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
+            email: 'user2@email.com',
+            facebookId: '1',
+            userName: 'user2',
+          });
+          const { token: tokenTwo } = signAuthToken(userTwo);
+          const {
+            body,
+            status,
+          } = await deleteUsersMe(app, tokenTwo, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password: passwordTwo,
+              userNameOrEmail: userTwo.email,
+            },
+          });
+          expect(body.errors).toBe('you can\'t delete your account if you\'re logged in with Facebook or Google');
+          expect(status).toBe(400);
+        });
+        it('user was registered through Google', async () => {
+          const {
+            password: passwordTwo,
+            user: userTwo,
+          } = await createUser({
+            email: 'user2@email.com',
+            googleId: '1',
+            userName: 'user2',
+          });
+          const { token: tokenTwo } = signAuthToken(userTwo);
+          const {
+            body,
+            status,
+          } = await deleteUsersMe(app, tokenTwo, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password: passwordTwo,
+              userNameOrEmail: userTwo.email,
+            },
+          });
+          expect(body.errors).toBe('you can\'t delete your account if you\'re logged in with Facebook or Google');
+          expect(status).toBe(400);
+        });
+        describe('request.body', () => {
+          describe('.deleteAccountSentence', () => {
+            it('is not send', async () => {
+              const {
+                body,
+                status,
+              } = await deleteUsersMe(app, token, {
+                body: {
+                  password,
+                  userNameOrEmail: user.email,
+                },
+              });
+              expect(body.errors).toEqual({
                 deleteAccountSentence: FIELD_IS_REQUIRED,
-              },
+              });
+              expect(status).toBe(400);
             });
-          });
-          it('is not a string', async () => {
-            const { body, status } = await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 1234,
-                password,
-                userNameOrEmail: user.email,
-              },
-            });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
+            it('is not a string', async () => {
+              const {
+                body,
+                status,
+              } = await deleteUsersMe(app, token, {
+                body: {
+                  deleteAccountSentence: 1234,
+                  password,
+                  userNameOrEmail: user.email,
+                },
+              });
+              expect(body.errors).toEqual({
                 deleteAccountSentence: FIELD_SHOULD_BE_A_STRING,
-              },
+              });
+              expect(status).toBe(400);
             });
-          });
-          it('is an empty string', async () => {
-            const { body, status } = await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: '',
-                password,
-                userNameOrEmail: user.email,
-              },
-            });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
+            it('is an empty string', async () => {
+              const {
+                body,
+                status,
+              } = await deleteUsersMe(app, token, {
+                body: {
+                  deleteAccountSentence: '',
+                  password,
+                  userNameOrEmail: user.email,
+                },
+              });
+              expect(body.errors).toEqual({
                 deleteAccountSentence: FIELD_CANNOT_BE_EMPTY,
-              },
+              });
+              expect(status).toBe(400);
+            });
+            it('do not match \'delete my account\'', async () => {
+              const {
+                body,
+                status,
+              } = await deleteUsersMe(app, token, {
+                body: {
+                  deleteAccountSentence: 'wrong sentence',
+                  password,
+                  userNameOrEmail: user.email,
+                },
+              });
+              expect(body.errors).toEqual({
+                deleteAccountSentence: 'wrong sentence',
+              });
+              expect(status).toBe(400);
             });
           });
-          it('not match', async () => {
-            const { body, status } = await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 'wrong sentence',
-                password,
-                userNameOrEmail: user.email,
-              },
-            });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
-                deleteAccountSentence: 'wrong sentence',
-              },
-            });
-          });
-        });
-
-        describe('password', () => {
-          it('is not send', async () => {
-            const { body, status } = await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 'delete my account',
-                userNameOrEmail: user.email,
-              },
-            });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
+          describe('.password', () => {
+            it('is not send', async () => {
+              const {
+                body,
+                status,
+              } = await deleteUsersMe(app, token, {
+                body: {
+                  deleteAccountSentence: 'delete my account',
+                  userNameOrEmail: user.email,
+                },
+              });
+              expect(body.errors).toEqual({
                 password: FIELD_IS_REQUIRED,
-              },
+              });
+              expect(status).toBe(400);
             });
-          });
-          it('is not a string', async () => {
-            const { body, status } = await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 'delete my account',
-                password: 1234,
-                userNameOrEmail: user.email,
-              },
-            });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
+            it('is not a string', async () => {
+              const {
+                body,
+                status,
+              } = await deleteUsersMe(app, token, {
+                body: {
+                  deleteAccountSentence: 'delete my account',
+                  password: 1234,
+                  userNameOrEmail: user.email,
+                },
+              });
+              expect(body.errors).toEqual({
                 password: FIELD_SHOULD_BE_A_STRING,
-              },
+              });
+              expect(status).toBe(400);
             });
-          });
-          it('is an empty string', async () => {
-            const { body, status } = await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 'delete my account',
-                password: '',
-                userNameOrEmail: user.email,
-              },
-            });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
+            it('is an empty string', async () => {
+              const {
+                body,
+                status,
+              } = await deleteUsersMe(app, token, {
+                body: {
+                  deleteAccountSentence: 'delete my account',
+                  password: '',
+                  userNameOrEmail: user.email,
+                },
+              });
+              expect(body.errors).toEqual({
                 password: FIELD_CANNOT_BE_EMPTY,
-              },
+              });
+              expect(status).toBe(400);
             });
-          });
-          it('not match', async () => {
-            const { body, status } = await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 'delete my account',
-                password: 'wrong password',
-                userNameOrEmail: user.email,
-              },
-            });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
+            it('do not match user.password', async () => {
+              const {
+                body,
+                status,
+              } = await deleteUsersMe(app, token, {
+                body: {
+                  deleteAccountSentence: 'delete my account',
+                  password: 'wrongPassword',
+                  userNameOrEmail: user.email,
+                },
+              });
+              expect(body.errors).toEqual({
                 password: WRONG_PASSWORD,
-              },
+              });
+              expect(status).toBe(400);
             });
           });
-        });
-
-        describe('userNameOrEmail', () => {
-          it('is not send', async () => {
-            const { body, status } = await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 'delete my account',
-                password,
-              },
-            });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
+          describe('.userNameOrEmail', () => {
+            it('is not send', async () => {
+              const {
+                body,
+                status,
+              } = await deleteUsersMe(app, token, {
+                body: {
+                  deleteAccountSentence: 'delete my account',
+                  password,
+                },
+              });
+              expect(body.errors).toEqual({
                 userNameOrEmail: FIELD_IS_REQUIRED,
-              },
+              });
+              expect(status).toBe(400);
             });
-          });
-          it('is not a string', async () => {
-            const { body, status } = await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 'delete my account',
-                password,
-                userNameOrEmail: 1234,
-              },
-            });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
+            it('is not a string', async () => {
+              const {
+                body,
+                status,
+              } = await deleteUsersMe(app, token, {
+                body: {
+                  deleteAccountSentence: 'delete my account',
+                  password,
+                  userNameOrEmail: 1234,
+                },
+              });
+              expect(body.errors).toEqual({
                 userNameOrEmail: FIELD_SHOULD_BE_A_STRING,
-              },
+              });
+              expect(status).toBe(400);
             });
-          });
-          it('is an empty string', async () => {
-            const { body, status } = await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 'delete my account',
-                password,
-                userNameOrEmail: '',
-              },
-            });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
+            it('is an empty string', async () => {
+              const {
+                body,
+                status,
+              } = await deleteUsersMe(app, token, {
+                body: {
+                  deleteAccountSentence: 'delete my account',
+                  password,
+                  userNameOrEmail: '',
+                },
+              });
+              expect(body.errors).toEqual({
                 userNameOrEmail: FIELD_CANNOT_BE_EMPTY,
-              },
+              });
+              expect(status).toBe(400);
             });
-          });
-          it('not match', async () => {
-            const { body, status } = await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 'delete my account',
-                password,
-                userNameOrEmail: 'wrong email',
-              },
-            });
-            expect(status).toBe(400);
-            expect(body).toStrictEqual({
-              errors: {
+            it('do not match user.email or user.userName', async () => {
+              const {
+                body,
+                status,
+              } = await deleteUsersMe(app, token, {
+                body: {
+                  deleteAccountSentence: 'delete my account',
+                  password,
+                  userNameOrEmail: 'wrongEmail',
+                },
+              });
+              expect(body.errors).toEqual({
                 userNameOrEmail: 'wrong user name or email',
-              },
+              });
+              expect(status).toBe(400);
             });
           });
         });
