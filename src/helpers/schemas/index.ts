@@ -13,6 +13,7 @@ export { default as validatePostUsersLoginBody } from './validatePostUsersLoginB
 export { default as validatePostUsersMeUpdateEmailBody } from './validatePostUsersMeUpdateEmailBody';
 export { default as validatePostUsersMeUpdateEmailConfirmBody } from './validatePostUsersMeUpdateEmailConfirmBody';
 export { default as validatePostUsersResetPasswordBody } from './validatePostUsersResetPasswordBody';
+export { default as validatePostUsersSigninBetaBody } from './validatePostUsersSigninBetaBody';
 export { default as validatePostUsersSigninBody } from './validatePostUsersSigninBody';
 export { default as validatePostTicketBody } from './validatePostTicketBody';
 export { default as validatePutBetaKeysIdBody } from './validatePutBetaKeysIdBody';

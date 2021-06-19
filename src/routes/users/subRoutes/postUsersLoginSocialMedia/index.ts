@@ -15,7 +15,7 @@ import {
 } from '@src/helpers/issueJWT';
 import setRefreshToken from '@src/helpers/setRefreshToken';
 
-const IS_BETA = accEnv('IS_BETA');
+const IS_BETA = accEnv('IS_BETA', 'true');
 
 export default async (req: Request, res: Response) => {
   const {

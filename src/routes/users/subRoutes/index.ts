@@ -14,6 +14,7 @@ export { default as postUsersMeEmail } from './postUsersMeEmail';
 export { default as postUsersMeEmailConfirm } from './postUsersMeEmailConfirm';
 export { default as postUsersPassword } from './postUsersPassword';
 export { default as postUsersSignin } from './postUsersSignin';
+export { default as postUsersSigninBeta } from './postUsersSigninBeta';
 
 export { default as putUsersConfirmation } from './putUsersConfirmation';
 export { default as putUsersMeEmail } from './putUsersMeEmail';

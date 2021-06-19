@@ -23,6 +23,7 @@ import {
   postUsersMeEmailConfirm,
   postUsersPassword,
   postUsersSignin,
+  postUsersSigninBeta,
 
   putUsersConfirmation,
   putUsersMeEmail,
@@ -49,10 +50,8 @@ const usersRoutes: () => Router = () => {
   router.post('/me/email/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, postUsersMeEmail);
   router.post('/me/email/confirm/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, postUsersMeEmailConfirm);
   router.post('/password/', shouldNotBeAuth, postUsersPassword);
-  router.post('/signin/', postUsersSignin);
-  // TODO:
-  // POST /signin/beta/
-  // same as Signin but with a beta key code required
+  router.post('/signin/', shouldNotBeAuth, postUsersSignin);
+  router.post('/signin/beta', shouldNotBeAuth, postUsersSigninBeta);
 
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.put('/me/email/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, putUsersMeEmail);
