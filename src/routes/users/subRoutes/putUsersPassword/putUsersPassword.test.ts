@@ -1,6 +1,7 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
+import { sign } from 'jsonwebtoken';
 
 import '@src/helpers/initEnv';
 
@@ -8,7 +9,9 @@ import {
   User,
 } from '@src/db/models';
 
+import accEnv from '@src/helpers/accEnv';
 import {
+  INVALID_UUID,
   FIELD_CANNOT_CONTAIN_SPACES,
   FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
@@ -35,6 +38,7 @@ import {
 
 import initApp from '@src/server';
 
+const RESET_PASSWORD_SECRET = accEnv('RESET_PASSWORD_SECRET');
 let app: Server;
 let sequelize: Sequelize;
 let user: User;
@@ -115,6 +119,31 @@ describe('/users', () => {
         });
       });
       describe('should return status 400 if', () => {
+        it('confirmToken.id is not a UUIDv4', async () => {
+          const newPassword = 'NewPassword0!';
+          const confirmToken = sign(
+            {
+              id: '100',
+              resetPasswordTokenVersion: user.resetPasswordTokenVersion,
+            },
+            RESET_PASSWORD_SECRET,
+            {
+              expiresIn: '30m',
+            },
+          );
+          const {
+            body,
+            status,
+          } = await putUsersPassword(app, {
+            body: {
+              password: newPassword,
+              confirmPassword: newPassword,
+            },
+            confirmToken: `Bearer ${confirmToken}`,
+          });
+          expect(body.errors).toBe(`confirmation token error: ${INVALID_UUID('user')}`);
+          expect(status).toBe(400);
+        });
         it('user is not confirmed', async () => {
           const newPassword = 'NewPassword0!';
           const {
