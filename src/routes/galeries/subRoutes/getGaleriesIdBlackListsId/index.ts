@@ -32,8 +32,8 @@ export default async (req: Request, res: Response) => {
   } = req.params;
   const currentUser = req.user as User;
   const objectUserExcluder: { [key: string]: undefined } = {};
-  let adminIsBlackList: boolean = false;
-  let adminCurrentProfilePicture;
+  let createdByIsBlackList: boolean = false;
+  let createdByCurrentProfilePicture;
   let currentProfilePicture;
   let galerie: Galerie | null;
   let galerieBlackList: GalerieBlackList | null;
@@ -102,7 +102,7 @@ export default async (req: Request, res: Response) => {
           },
         },
         {
-          as: 'admin',
+          as: 'createdBy',
           model: User,
         },
         {
@@ -137,16 +137,18 @@ export default async (req: Request, res: Response) => {
     }
   }
 
-  if (galerieBlackList.admin) {
-    // Check if admin is black listed.
+  if (galerieBlackList.createdBy) {
+    // Check if createdBy is black listed.
     try {
-      adminIsBlackList = await checkBlackList(galerieBlackList.admin);
+      createdByIsBlackList = await checkBlackList(galerieBlackList.createdBy);
     } catch (err) {
       return res.status(500).send(err);
     }
-    if (!adminIsBlackList) {
+    if (!createdByIsBlackList) {
       try {
-        adminCurrentProfilePicture = await fetchCurrentProfilePicture(galerieBlackList.admin);
+        createdByCurrentProfilePicture = await fetchCurrentProfilePicture(
+          galerieBlackList.createdBy,
+        );
       } catch (err) {
         return res.status(500).send(err);
       }
@@ -159,10 +161,10 @@ export default async (req: Request, res: Response) => {
 
   const normalizeGalerieBlackList = {
     ...galerieBlackList.toJSON(),
-    admin: galerieBlackList.admin && !adminIsBlackList ? {
-      ...galerieBlackList.admin.toJSON(),
+    createdBy: galerieBlackList.createdBy && !createdByIsBlackList ? {
+      ...galerieBlackList.createdBy.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture: adminCurrentProfilePicture,
+      currentProfilePicture: createdByCurrentProfilePicture,
     } : null,
     galerie: undefined,
     user: galerieBlackList.user && !userIsBlackList ? {

@@ -110,7 +110,7 @@ export default async (req: Request, res: Response) => {
           },
         },
         {
-          as: 'admin',
+          as: 'createdBy',
           model: User,
         },
         {
@@ -133,17 +133,17 @@ export default async (req: Request, res: Response) => {
     normalizeBlackLists = await Promise.all(
       blackLists.map(async (blackList) => {
         const userIsBlackList = await checkBlackList(blackList.user);
-        let adminIsBlackList;
-        let adminCurrentProfilePicture;
+        let createdByIsBlackList;
+        let createdByCurrentProfilePicture;
         let currentProfilePicture;
 
         if (!userIsBlackList) {
           currentProfilePicture = await fetchCurrentProfilePicture(blackList.user);
         }
-        if (blackList.admin) {
-          adminIsBlackList = await checkBlackList(blackList.admin);
-          if (!adminIsBlackList) {
-            adminCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.admin);
+        if (blackList.createdBy) {
+          createdByIsBlackList = await checkBlackList(blackList.createdBy);
+          if (!createdByIsBlackList) {
+            createdByCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.createdBy);
           }
         }
 
@@ -153,10 +153,10 @@ export default async (req: Request, res: Response) => {
 
         return {
           ...blackList.toJSON(),
-          admin: blackList.admin && !adminIsBlackList ? {
-            ...blackList.admin.toJSON(),
+          createdBy: blackList.createdBy && !createdByIsBlackList ? {
+            ...blackList.createdBy.toJSON(),
             ...objectUserExcluder,
-            currentProfilePicture: adminCurrentProfilePicture,
+            currentProfilePicture: createdByCurrentProfilePicture,
           } : null,
           user: blackList.user && !userIsBlackList ? {
             ...blackList.user.toJSON(),

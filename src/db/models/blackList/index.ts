@@ -22,7 +22,7 @@ interface BlackListI {
   tableName: 'blackList',
 })
 export default class BlackList extends Model implements BlackListI {
-  // Id of the admin who
+  // Id of the user who
   // created the black list.
   @ForeignKey(() => User)
   @Column({

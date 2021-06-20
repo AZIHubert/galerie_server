@@ -305,7 +305,7 @@ describe('/users', () => {
               socialMediaUserName: 'user',
             });
             await createBlackList({
-              adminId: user.id,
+              createdById: user.id,
               userId: userTwo.id,
             });
             const {

@@ -71,7 +71,7 @@ describe('/blackLists', () => {
             userName: 'user2',
           });
           await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             time,
             userId: userTwo.id,
           });
@@ -95,12 +95,12 @@ describe('/blackLists', () => {
             userName: 'user3',
           });
           await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             time,
             userId: userTwo.id,
           });
           await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             time,
             userId: userThree.id,
           });
@@ -134,22 +134,22 @@ describe('/blackLists', () => {
             userName: 'user5',
           });
           await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             time,
             userId: userTwo.id,
           });
           await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             time,
             userId: userThree.id,
           });
           await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             time,
             userId: userFour.id,
           });
           await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             time,
             userId: userFive.id,
           });
@@ -174,7 +174,7 @@ describe('/blackLists', () => {
             userName: 'user2',
           });
           await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             userId: userTwo.id,
           });
           await putBlackLists(app, token);
@@ -191,7 +191,7 @@ describe('/blackLists', () => {
             userName: 'user2',
           });
           await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             time,
             userId: userTwo.id,
           });

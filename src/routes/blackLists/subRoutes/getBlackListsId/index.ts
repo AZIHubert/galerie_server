@@ -24,7 +24,7 @@ import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 export default async (req: Request, res: Response) => {
   const { blackListId } = req.params;
   const objectUserExcluder: { [key: string]: undefined } = {};
-  let adminCurrentProfilePicture;
+  let createdByCurrentProfilePicture;
   let blackList: BlackList | null;
   let currentProfilePicture;
   let updatedByCurrentProfilePicture;
@@ -94,10 +94,10 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Fetch admin current profile picture
+  // Fetch createdBy current profile picture
   if (blackList.createdBy) {
     try {
-      adminCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.createdBy);
+      createdByCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.createdBy);
     } catch (err) {
       return res.status(500).send(err);
     }
@@ -121,7 +121,7 @@ export default async (req: Request, res: Response) => {
     active: blackList.user.isBlackListed,
     createdBy: blackList.createdBy ? {
       ...blackList.createdBy.toJSON(),
-      currentProfilePicture: adminCurrentProfilePicture,
+      currentProfilePicture: createdByCurrentProfilePicture,
     } : null,
     updatedBy: blackList.updatedBy ? {
       ...blackList.updatedBy.toJSON(),

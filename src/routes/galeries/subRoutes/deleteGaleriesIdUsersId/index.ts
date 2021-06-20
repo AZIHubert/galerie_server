@@ -259,15 +259,15 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Set adminId === nul for all galerieBlackList
+  // Set createdById === nul for all galerieBlackList
   // posted by deleted user
   try {
     await GalerieBlackList.update({
-      adminId: null,
+      createdById: null,
     }, {
       where: {
         galerieId,
-        adminId: user.id,
+        createdById: user.id,
       },
     });
   } catch (err) {

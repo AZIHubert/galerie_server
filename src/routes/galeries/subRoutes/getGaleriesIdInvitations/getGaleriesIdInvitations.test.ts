@@ -287,7 +287,7 @@ describe('/galeries', () => {
               userId: userTwo.id,
             });
             await createBlackList({
-              adminId: user.id,
+              createdById: user.id,
               userId: userTwo.id,
             });
             const {
@@ -321,7 +321,7 @@ describe('/galeries', () => {
               userId: userTwo.id,
             });
             await createBlackList({
-              adminId: user.id,
+              createdById: user.id,
               time,
               userId: userTwo.id,
             });

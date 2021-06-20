@@ -2,7 +2,7 @@ export default (
   galerieBlackList: any,
   refGalerieBlackList?: any,
 ) => {
-  expect(galerieBlackList.adminId).toBeUndefined();
+  expect(galerieBlackList.createdById).toBeUndefined();
   expect(galerieBlackList.galerieId).toBeUndefined();
   expect(galerieBlackList.updatedAt).toBeUndefined();
   expect(galerieBlackList.userId).toBeUndefined();

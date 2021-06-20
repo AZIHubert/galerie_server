@@ -1,15 +1,15 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('galerieBlackList', {
-  adminId: {
+  createdAt: {
+    allowNull: false,
+    type: DataTypes.DATE,
+  },
+  createdById: {
     allowNull: true,
     references: {
       key: 'id',
       model: 'users',
     },
     type: DataTypes.UUID,
-  },
-  createdAt: {
-    allowNull: false,
-    type: DataTypes.DATE,
   },
   galerieId: {
     allowNull: false,

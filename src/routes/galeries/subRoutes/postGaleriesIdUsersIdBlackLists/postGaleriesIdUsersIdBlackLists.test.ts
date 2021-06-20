@@ -144,7 +144,7 @@ describe('/galeries', () => {
                 expect(userId).toBe(userTwo.id);
                 expect(status).toBe(200);
                 testGalerieBlackList(galerieBlackList);
-                testUser(galerieBlackList.admin);
+                testUser(galerieBlackList.createdBy);
                 testUser(galerieBlackList.user);
               });
               it('include user current profile picture', async () => {
@@ -164,7 +164,7 @@ describe('/galeries', () => {
                 } = await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
                 testProfilePicture(currentProfilePicture);
               });
-              it('include admin current profile picture', async () => {
+              it('include createdBy current profile picture', async () => {
                 await createProfilePicture({
                   userId: user.id,
                 });
@@ -172,7 +172,7 @@ describe('/galeries', () => {
                   body: {
                     data: {
                       galerieBlackList: {
-                        admin: {
+                        createdBy: {
                           currentProfilePicture,
                         },
                       },
@@ -216,7 +216,7 @@ describe('/galeries', () => {
                   body: {
                     data: {
                       galerieBlackList: {
-                        admin: {
+                        createdBy: {
                           currentProfilePicture,
                         },
                       },
@@ -293,7 +293,7 @@ describe('/galeries', () => {
                   userId: user.id,
                 });
                 await createGalerieBlackList({
-                  adminId: user.id,
+                  createdById: user.id,
                   galerieId: galerieTwo.id,
                   userId: userTwo.id,
                 });
@@ -471,35 +471,35 @@ describe('/galeries', () => {
                 const invitations = await Invitation.findAll();
                 expect(invitations.length).toBe(1);
               });
-              it('set adminId === null for all galerieBlackLists posted by the black listed user', async () => {
+              it('set createdBy === null for all galerieBlackLists posted by the black listed user', async () => {
                 const { user: userThree } = await createUser({
                   email: 'user3@email.com',
                   userName: 'user3',
                 });
                 const galerieBlackList = await createGalerieBlackList({
-                  adminId: userTwo.id,
+                  createdById: userTwo.id,
                   galerieId,
                   userId: userThree.id,
                 });
                 await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
                 await galerieBlackList.reload();
-                expect(galerieBlackList.adminId).toBeNull();
+                expect(galerieBlackList.createdById).toBeNull();
               });
-              it('do not set adminId === null for galerieBlackLists posted by other user', async () => {
+              it('do not set createdBy === null for galerieBlackLists posted by other user', async () => {
                 const { user: userThree } = await createUser({
                   email: 'user3@email.com',
                   userName: 'user3',
                 });
                 const galerieBlackList = await createGalerieBlackList({
-                  adminId: user.id,
+                  createdById: user.id,
                   galerieId,
                   userId: userThree.id,
                 });
                 await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
                 await galerieBlackList.reload();
-                expect(galerieBlackList.adminId).toBe(user.id);
+                expect(galerieBlackList.createdById).toBe(user.id);
               });
-              it('do not set adminId === null for galerieBlackLists posted by the black listed user on other galeries', async () => {
+              it('do not set createdById === null for galerieBlackLists posted by the black listed user on other galeries', async () => {
                 const { user: userThree } = await createUser({
                   email: 'user3@email.com',
                   userName: 'user3',
@@ -508,13 +508,13 @@ describe('/galeries', () => {
                   userId: userTwo.id,
                 });
                 const galerieBlackList = await createGalerieBlackList({
-                  adminId: userTwo.id,
+                  createdById: userTwo.id,
                   galerieId: galerieTwo.id,
                   userId: userThree.id,
                 });
                 await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
                 await galerieBlackList.reload();
-                expect(galerieBlackList.adminId).toBe(userTwo.id);
+                expect(galerieBlackList.createdById).toBe(userTwo.id);
               });
             });
             describe('should return status 400 if', () => {
@@ -632,7 +632,7 @@ describe('/galeries', () => {
                   userId: userTwo.id,
                 });
                 await createGalerieBlackList({
-                  adminId: user.id,
+                  createdById: user.id,
                   galerieId,
                   userId: userTwo.id,
                 });

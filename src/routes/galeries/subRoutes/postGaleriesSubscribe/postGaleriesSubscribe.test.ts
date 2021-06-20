@@ -210,7 +210,7 @@ describe('/galeries', () => {
             userId: userTwo.id,
           });
           await createGalerieBlackList({
-            adminId: userTwo.id,
+            createdById: userTwo.id,
             galerieId: galerieTwo.id,
             userId: user.id,
           });
@@ -386,7 +386,7 @@ describe('/galeries', () => {
             userId: userTwo.id,
           });
           await createGalerieBlackList({
-            adminId: userTwo.id,
+            createdById: userTwo.id,
             galerieId,
             userId: user.id,
           });

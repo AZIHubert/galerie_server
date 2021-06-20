@@ -1,5 +1,5 @@
 export default [
-  'adminId',
+  'createdById',
   'galerieId',
   'updatedAt',
   'userId',

@@ -143,8 +143,8 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  // Put blackList.adminId to null where
-  // blackList.adminId === currentUser.id.
+  // Put blackList.createdById to null where
+  // blackList.createdById === currentUser.id.
   try {
     await BlackList.update(
       { createdById: null },
@@ -299,15 +299,15 @@ export default async (req: Request, res: Response) => {
   // .....................
   // GalerieBlackLists
   // .....................
-  // Set galerieBlackList.adminId === null
+  // Set galerieBlackList.createdById === null
   // for all galerieBlackLists created by
   // this user.
   try {
     await GalerieBlackList.update({
-      adminId: null,
+      createdById: null,
     }, {
       where: {
-        adminId: user.id,
+        createdById: user.id,
       },
     });
   } catch (err) {

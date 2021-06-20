@@ -95,7 +95,7 @@ export default async (req: Request, res: Response) => {
   }
 
   try {
-    // Get black listed admin/updatedBy/user's
+    // Get black listed createdBy/updatedBy/user's
     // current profile picture  with their signed url.
     returnedBlackLists = await Promise.all(
       users.map(async (user) => {

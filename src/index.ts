@@ -22,6 +22,5 @@ initSequelize(() => {
 // return user with isBlackListed
 // instead of null.
 // userName cannot contain '@' or '.'
-// adminId fields => createdById
 // betaKey.userId unique
 // betaKey.code unique

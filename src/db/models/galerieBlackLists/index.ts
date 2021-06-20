@@ -11,7 +11,7 @@ import Galerie from '../galerie';
 import User from '../user';
 
 interface GalerieBlackListI {
-  adminId?: string;
+  createdById?: string;
   galerieId: string;
   id: string;
   userId: string;
@@ -25,7 +25,7 @@ export default class GalerieBlackList extends Model implements GalerieBlackListI
   @Column({
     type: DataType.UUID,
   })
-  adminId!: string;
+  createdById!: string;
 
   @ForeignKey(() => Galerie)
   @Column({
@@ -49,8 +49,8 @@ export default class GalerieBlackList extends Model implements GalerieBlackListI
   })
   userId!: string;
 
-  @BelongsTo(() => User, 'adminId')
-  admin!: User;
+  @BelongsTo(() => User, 'createdById')
+  createdBy!: User;
 
   @BelongsTo(() => Galerie)
   galerie!: Galerie;
