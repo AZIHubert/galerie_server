@@ -29,6 +29,24 @@ import {
 } from '@src/helpers/schemas';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
+// Recursive function to check if code is unique
+const checkIfCodeExis = async (limit: number) => {
+  const code = `${customAlphabet('1234567890', 4)()}-${customAlphabet('abcdefghjkmnpqrstuvwxyz23456789', 10)()}`;
+  const betaKeyWithCodeExist = await Invitation.findOne({
+    where: {
+      code,
+    },
+  });
+  if (betaKeyWithCodeExist) {
+    if (limit < 15) {
+      await checkIfCodeExis(limit + 1);
+    } else {
+      return false;
+    }
+  }
+  return code;
+};
+
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
   const currentUser = req.user as User;
@@ -95,10 +113,17 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  const code = await checkIfCodeExis(0);
+  if (!code) {
+    return res.status(500).send({
+      errors: 'something went wrong',
+    });
+  }
+
   // create invitation.
   try {
     invitation = await Invitation.create({
-      code: `${customAlphabet('1234567890', 4)()}-${customAlphabet('abcdefghjkmnpqrstuvwxyz23456789', 10)()}`,
+      code,
       galerieId,
       numOfInvits: value.numOfInvits,
       time: value.time ? new Date(Date.now() + value.time) : null,

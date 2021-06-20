@@ -28,6 +28,7 @@ export default class Invitation extends Model implements InvitationI {
   @Column({
     allowNull: false,
     type: DataType.STRING,
+    unique: true,
   })
   code!: string;
 

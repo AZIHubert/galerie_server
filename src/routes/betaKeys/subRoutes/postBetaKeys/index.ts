@@ -23,6 +23,24 @@ import {
   validatePostBetaKeysBody,
 } from '@src/helpers/schemas';
 
+// Recursive function to check if code is unique
+const checkIfCodeExis = async (limit: number) => {
+  const code = `${customAlphabet('1234567890', 4)()}-${customAlphabet('abcdefghjkmnpqrstuvwxyz23456789', 10)()}`;
+  const betaKeyWithCodeExist = await BetaKey.findOne({
+    where: {
+      code,
+    },
+  });
+  if (betaKeyWithCodeExist) {
+    if (limit < 15) {
+      await checkIfCodeExis(limit + 1);
+    } else {
+      return false;
+    }
+  }
+  return code;
+};
+
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   const objectBetaKeyExcluder: {[key: string]: undefined} = {};
@@ -82,10 +100,17 @@ export default async (req: Request, res: Response) => {
     }
   }
 
+  const code = await checkIfCodeExis(0);
+  if (!code) {
+    return res.status(500).send({
+      errors: 'something went wrong',
+    });
+  }
+
   // Create betaKey.
   try {
     betaKey = await BetaKey.create({
-      code: `${customAlphabet('1234567890', 4)()}-${customAlphabet('abcdefghjkmnpqrstuvwxyz23456789', 10)()}`,
+      code,
       createdById: currentUser.id,
       email: value.email ? value.email : null,
     });

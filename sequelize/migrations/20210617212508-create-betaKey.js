@@ -1,6 +1,7 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('betaKey', {
   code: {
     type: DataTypes.STRING,
+    unique: true,
   },
   createdById: {
     references: {
