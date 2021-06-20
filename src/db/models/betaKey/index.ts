@@ -49,6 +49,7 @@ export default class BetaKey extends Model implements BetaKeyI {
 
   @ForeignKey(() => User)
   @Column({
+    unique: true,
     type: DataType.UUID,
   })
   userId!: string;

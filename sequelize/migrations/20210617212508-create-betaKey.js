@@ -31,6 +31,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('b
       key: 'id',
       model: 'users',
     },
+    unique: true,
     type: DataTypes.UUID,
   },
 }, {

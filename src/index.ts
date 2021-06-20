@@ -22,5 +22,4 @@ initSequelize(() => {
 // return user with isBlackListed
 // instead of null.
 // userName cannot contain '@' or '.'
-// betaKey.userId unique
 // betaKey.code unique
