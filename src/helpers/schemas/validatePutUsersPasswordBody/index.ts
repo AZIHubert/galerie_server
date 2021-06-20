@@ -8,6 +8,10 @@ import {
   FIELD_SHOULD_BE_A_STRING,
   FIELD_SHOULD_MATCH,
 } from '@src/helpers/errorMessages';
+import {
+  PASSWORD_ERROR,
+  SPACES_ERROR,
+} from '@root/src/helpers/patternErrorsName';
 
 import options from '../options';
 
@@ -28,14 +32,10 @@ const modifyPasswordSchema = Joi.object({
   password: Joi.string()
     .required()
     .empty()
-    .pattern(
-      new RegExp(/^\S*$/),
-      { name: 'spacesError' },
-    )
-    .pattern(
-      new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,30}$'),
-      { name: 'passwordError' },
-    )
+    .pattern(new RegExp(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{0,}$/), {
+      name: PASSWORD_ERROR,
+    })
+    .pattern(new RegExp(/^\S*$/), { name: SPACES_ERROR })
     .max(PASSWORD_MAX_LENGTH)
     .min(PASSWORD_MIN_LENGTH)
     // Minimum 9 chars.

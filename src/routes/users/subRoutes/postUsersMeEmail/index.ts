@@ -11,6 +11,7 @@ import {
   sendUpdateEmailMessage,
 } from '@src/helpers/email';
 import {
+  DEFAULT_ERROR_MESSAGE,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
 import {
@@ -58,7 +59,7 @@ export default async (req: Request, res: Response) => {
         expiresIn: '30m',
       },
       (err, emailToken) => {
-        if (err) throw new Error(`something went wrong: ${err}`);
+        if (err) throw new Error(`${DEFAULT_ERROR_MESSAGE}: ${err}`);
         if (emailToken) {
           sendUpdateEmailMessage(user.email, emailToken);
         }

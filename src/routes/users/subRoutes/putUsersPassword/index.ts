@@ -1,3 +1,5 @@
+// PUT /users/password/
+
 import {
   Request,
   Response,
@@ -15,7 +17,7 @@ import {
 import genPassword from '@src/helpers/genPassword';
 import {
   normalizeJoiErrors,
-  validatePutUsersResetPasswordBody,
+  validatePutUsersPasswordBody,
 } from '@src/helpers/schemas';
 import { resetPassword } from '@src/helpers/verifyConfirmation';
 
@@ -92,7 +94,7 @@ export default async (req: Request, res: Response) => {
       errors: WRONG_TOKEN_VERSION,
     });
   }
-  const { error } = validatePutUsersResetPasswordBody(req.body);
+  const { error } = validatePutUsersPasswordBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),

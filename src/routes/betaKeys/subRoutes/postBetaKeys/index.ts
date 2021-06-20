@@ -12,6 +12,9 @@ import {
 } from '@src/db/models';
 
 import {
+  DEFAULT_ERROR_MESSAGE,
+} from '@src/helpers/errorMessages';
+import {
   betaKeyExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
@@ -103,7 +106,7 @@ export default async (req: Request, res: Response) => {
   const code = await checkIfCodeExis(0);
   if (!code) {
     return res.status(500).send({
-      errors: 'something went wrong',
+      errors: DEFAULT_ERROR_MESSAGE,
     });
   }
 

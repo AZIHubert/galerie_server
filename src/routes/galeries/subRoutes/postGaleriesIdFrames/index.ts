@@ -20,6 +20,7 @@ import {
 import accEnv from '@src/helpers/accEnv';
 import checkExtension from '@src/helpers/checkExtension';
 import {
+  DEFAULT_ERROR_MESSAGE,
   FILE_SHOULD_BE_AN_IMAGE,
   FILES_ARE_REQUIRED,
   INVALID_UUID,
@@ -395,7 +396,7 @@ export default async (req: Request, res: Response) => {
           await cropedImage.destroy();
           await originalImage.destroy();
           await pendingImage.destroy();
-          throw new Error('something went wrong');
+          throw new Error(DEFAULT_ERROR_MESSAGE);
         } catch (err) {
           throw new Error(err);
         }

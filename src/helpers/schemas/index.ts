@@ -24,5 +24,5 @@ export { default as validatePutUsersMeEmailBody } from './validatePutUsersMeEmai
 export { default as validatePutUsersMeEmailConfirmToken } from './validatePutUsersMeEmailConfirmToken';
 export { default as validatePutUsersMePasswordBody } from './validatePutUsersMePasswordBody';
 export { default as validatePutUsersMePseudonymBody } from './validatePutUsersMePseudonymBody';
-export { default as validatePutUsersResetPasswordBody } from './validatePutUsersResetPasswordBody';
+export { default as validatePutUsersPasswordBody } from './validatePutUsersPasswordBody';
 export { default as validatePutUsersRoleIdBody } from './validatePutUsersRoleIdBody';

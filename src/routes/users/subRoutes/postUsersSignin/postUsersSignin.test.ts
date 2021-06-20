@@ -7,6 +7,7 @@ import { User } from '@src/db/models';
 
 import {
   FIELD_CANNOT_CONTAIN_SPACES,
+  FIELD_CANNOT_CONTAIN_SPECIAL_CHARS,
   FIELD_CANNOT_BE_EMPTY,
   FIELD_SHOULD_BE_A_PASSWORD,
   FIELD_IS_ALREADY_TAKEN,
@@ -194,6 +195,49 @@ describe('/users', () => {
             });
             expect(body.errors).toEqual({
               userName: FIELD_CANNOT_CONTAIN_SPACES,
+            });
+            expect(status).toBe(400);
+          });
+          it('contain a special characters (#?!@$%^&*-.)', async () => {
+            const password = 'Password0!';
+            const body = {
+              confirmPassword: password,
+              email: 'user@email.com',
+              password,
+            };
+            const {
+              body: bodyOne,
+              status,
+            } = await postUsersSignin(app, {
+              body: {
+                ...body,
+                userName: 'user.Name',
+              },
+            });
+            const {
+              body: bodyTwo,
+            } = await postUsersSignin(app, {
+              body: {
+                ...body,
+                userName: 'us@erName',
+              },
+            });
+            const {
+              body: bodyThree,
+            } = await postUsersSignin(app, {
+              body: {
+                ...body,
+                userName: 'userNa?me',
+              },
+            });
+            expect(bodyOne.errors).toEqual({
+              userName: FIELD_CANNOT_CONTAIN_SPECIAL_CHARS,
+            });
+            expect(bodyTwo.errors).toEqual({
+              userName: FIELD_CANNOT_CONTAIN_SPECIAL_CHARS,
+            });
+            expect(bodyThree.errors).toEqual({
+              userName: FIELD_CANNOT_CONTAIN_SPECIAL_CHARS,
             });
             expect(status).toBe(400);
           });

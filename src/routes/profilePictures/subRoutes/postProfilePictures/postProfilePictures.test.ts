@@ -9,6 +9,9 @@ import {
   User,
 } from '@src/db/models';
 
+import {
+  DEFAULT_ERROR_MESSAGE,
+} from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
@@ -115,7 +118,7 @@ describe('/profilePicture', () => {
             userId: user.id,
           },
         });
-        expect(body.errors).toBe('something went wrong');
+        expect(body.errors).toBe(DEFAULT_ERROR_MESSAGE);
         expect(images.length).toBe(0);
         expect(profilePicture).toBeNull();
         expect(status).toBe(500);

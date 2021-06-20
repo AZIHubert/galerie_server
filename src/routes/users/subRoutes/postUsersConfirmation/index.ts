@@ -6,6 +6,7 @@ import { User } from '@src/db/models';
 import accEnv from '@src/helpers/accEnv';
 import { sendConfirmAccount } from '@src/helpers/email';
 import {
+  DEFAULT_ERROR_MESSAGE,
   MODEL_NOT_FOUND,
   USER_SHOULD_NOT_BE_CONFIRMED,
 } from '@src/helpers/errorMessages';
@@ -84,7 +85,7 @@ export default async (req: Request, res: Response) => {
         expiresIn: '2d',
       },
       (err, emailToken) => {
-        if (err) throw new Error(`something went wrong: ${err}`);
+        if (err) throw new Error(`${DEFAULT_ERROR_MESSAGE}: ${err}`);
         if (emailToken) sendConfirmAccount(user!.email, emailToken);
       },
     );

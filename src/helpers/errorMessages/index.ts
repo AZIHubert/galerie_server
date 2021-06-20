@@ -1,5 +1,7 @@
+export const DEFAULT_ERROR_MESSAGE = 'something went wrong';
 export const FIELD_CANNOT_BE_EMPTY = 'cannot be an empty field';
-export const FIELD_CANNOT_CONTAIN_SPACES = 'can not contain spaces';
+export const FIELD_CANNOT_CONTAIN_SPECIAL_CHARS = 'can not contain any special characters';
+export const FIELD_CANNOT_CONTAIN_SPACES = 'can not contain any spaces';
 export const FIELD_IS_ALREADY_TAKEN = 'already taken';
 export const FIELD_IS_REQUIRED = 'is required';
 export const FIELD_MAX_LENGTH = (number: number) => `should have a maximum length of ${number}`;

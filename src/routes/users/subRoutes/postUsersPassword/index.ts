@@ -12,6 +12,7 @@ import accEnv from '@src/helpers/accEnv';
 import { sendResetPassword } from '@src/helpers/email';
 import checkBlackList from '@src/helpers/checkBlackList';
 import {
+  DEFAULT_ERROR_MESSAGE,
   MODEL_NOT_FOUND,
   USER_SHOULD_BE_CONFIRMED,
   USER_SHOULD_NOT_BE_BLACK_LISTED,
@@ -100,7 +101,7 @@ export default async (req: Request, res: Response) => {
         expiresIn: '30m',
       },
       (err, emailToken) => {
-        if (err) throw new Error(`something went wrong: ${err}`);
+        if (err) throw new Error(`${DEFAULT_ERROR_MESSAGE}: ${err}`);
         if (emailToken) sendResetPassword(value.email, emailToken);
       },
     );
