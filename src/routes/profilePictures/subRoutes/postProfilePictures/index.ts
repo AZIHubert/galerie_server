@@ -62,7 +62,7 @@ export default async (req: Request, res: Response) => {
 
   // Save a croped image on Google Bucket.
   const cropedImagePromise: Promise<Image> = new Promise((resolve, reject) => {
-    const fileName = `${Date.now()}_${uuidv4()}.jpg`;
+    const fileName = `croped_${Date.now()}_${uuidv4()}.jpg`;
     const image = sharp(buffer)
       .resize(600, 600);
 
@@ -120,7 +120,7 @@ export default async (req: Request, res: Response) => {
 
   // Save the original image on Google Bucket.
   const originalImagePromise: Promise<Image> = new Promise((resolve, reject) => {
-    const fileName = `${Date.now()}_${uuidv4()}.jpg`;
+    const fileName = `original_${Date.now()}_${uuidv4()}.jpg`;
     const image = sharp(buffer);
     image
       .toBuffer({ resolveWithObject: true })
@@ -176,7 +176,7 @@ export default async (req: Request, res: Response) => {
 
   // Save a pending image (1x1px) on Google Bucket.
   const pendingImagePromise: Promise<Image> = new Promise((resolve, reject) => {
-    const fileName = `${Date.now()}_${uuidv4()}.jpg`;
+    const fileName = `pending_${Date.now()}_${uuidv4()}.jpg`;
     // Need to twist saturation and brightness,
     // if not, the image is to grayish.
     const image = sharp(buffer)
@@ -313,7 +313,7 @@ export default async (req: Request, res: Response) => {
     if (
       !cropedImageSignedUrl.OK
       || !originalImageSignedUrl.OK
-      || !originalImageSignedUrl.OK
+      || !pendingImageSignedUrl.OK
     ) {
       if (cropedImageSignedUrl.OK) {
         await gc
@@ -372,21 +372,21 @@ export default async (req: Request, res: Response) => {
       ...objectImageExcluder,
       bucketName: undefined,
       fileName: undefined,
-      signedUrl: cropedImageSignedUrl,
+      signedUrl: cropedImageSignedUrl.signedUrl,
     },
     originalImage: {
       ...originalImage.toJSON(),
       ...objectImageExcluder,
       bucketName: undefined,
       fileName: undefined,
-      signedUrl: originalImageSignedUrl,
+      signedUrl: originalImageSignedUrl.signedUrl,
     },
     pendingImage: {
       ...pendingImage.toJSON(),
       ...objectImageExcluder,
       bucketName: undefined,
       fileName: undefined,
-      signedUrl: pendingImageSignedUrl,
+      signedUrl: pendingImageSignedUrl.signedUrl,
     },
   };
 

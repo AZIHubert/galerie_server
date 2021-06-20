@@ -8,7 +8,7 @@ export default (
   expect(profilePicture.cropedImage.format).not.toBeUndefined();
   expect(profilePicture.cropedImage.height).not.toBeUndefined();
   expect(profilePicture.cropedImage.id).toBeUndefined();
-  expect(profilePicture.cropedImage.signedUrl).not.toBeUndefined();
+  expect(typeof profilePicture.cropedImage.signedUrl).toBe('string');
   expect(profilePicture.cropedImage.size).not.toBeUndefined();
   expect(profilePicture.cropedImage.updatedAt).toBeUndefined();
   expect(profilePicture.cropedImage.width).not.toBeUndefined();
@@ -19,7 +19,7 @@ export default (
   expect(profilePicture.originalImage.format).not.toBeUndefined();
   expect(profilePicture.originalImage.height).not.toBeUndefined();
   expect(profilePicture.originalImage.id).toBeUndefined();
-  expect(profilePicture.originalImage.signedUrl).not.toBeUndefined();
+  expect(typeof profilePicture.originalImage.signedUrl).toBe('string');
   expect(profilePicture.originalImage.size).not.toBeUndefined();
   expect(profilePicture.originalImage.updatedAt).toBeUndefined();
   expect(profilePicture.originalImage.width).not.toBeUndefined();
@@ -30,7 +30,7 @@ export default (
   expect(profilePicture.pendingImage.format).not.toBeUndefined();
   expect(profilePicture.pendingImage.height).not.toBeUndefined();
   expect(profilePicture.pendingImage.id).toBeUndefined();
-  expect(profilePicture.pendingImage.signedUrl).not.toBeUndefined();
+  expect(typeof profilePicture.pendingImage.signedUrl).toBe('string');
   expect(profilePicture.pendingImage.size).not.toBeUndefined();
   expect(profilePicture.pendingImage.updatedAt).toBeUndefined();
   expect(profilePicture.pendingImage.width).not.toBeUndefined();
