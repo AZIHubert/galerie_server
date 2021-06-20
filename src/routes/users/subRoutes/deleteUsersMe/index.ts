@@ -89,68 +89,42 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Destroy all profile pictures/images
-  // and images from Google buckets.
+  // .....................
+  // BetaKeys
+  // .....................
+  // Destoy all non used betaKey created by current user.
   try {
-    const profilePictures = await ProfilePicture.findAll({
-      include: [
-        {
-          all: true,
-        },
-      ],
+    await BetaKey.destroy({
       where: {
-        userId: user.id,
+        createdById: user.id,
+        userId: {
+          [Op.eq]: null,
+        },
       },
     });
-    await Promise.all(
-      profilePictures.map(async (profilePicture) => {
-        const {
-          cropedImage,
-          originalImage,
-          pendingImage,
-        } = profilePicture;
-        await profilePicture.destroy();
-        await Image.destroy({
-          where: {
-            [Op.or]: [
-              {
-                id: cropedImage.id,
-              },
-              {
-                id: originalImage.id,
-              },
-              {
-                id: pendingImage.id,
-              },
-            ],
-          },
-        });
-        await gc
-          .bucket(cropedImage.bucketName)
-          .file(cropedImage.fileName)
-          .delete();
-        await gc
-          .bucket(originalImage.bucketName)
-          .file(originalImage.fileName)
-          .delete();
-        await gc
-          .bucket(pendingImage.bucketName)
-          .file(pendingImage.fileName)
-          .delete();
-      }),
-    );
   } catch (err) {
     return res.status(500).send(err);
   }
-
-  // set Ticket.userId to null
-  // if current user is the author
-  // of the ticket.
+  // set betaKey.createdById === null
+  // to all used betaKey created by current user.
   try {
-    await Ticket.update({
-      userId: null,
+    await BetaKey.update({
+      createdById: null,
     }, {
       where: {
+        createdById: user.id,
+        userId: {
+          [Op.not]: null,
+        },
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  // Destroy the beta Key used by current user.
+  try {
+    await BetaKey.destroy({
+      where: {
         userId: user.id,
       },
     });
@@ -158,6 +132,9 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  // .....................
+  // BlackLists
+  // .....................
   // Destroy all black list where
   // blackList.userId === currentUser.id.
   try {
@@ -169,7 +146,6 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-
   // Put blackList.adminId to null where
   // blackList.adminId === currentUser.id.
   try {
@@ -199,6 +175,9 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  // .....................
+  // Frames
+  // .....................
   // Destroy all frames/galeriePictures/images
   // likes post on frames and images from Google buckets.
   try {
@@ -264,30 +243,9 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Destroy all likes and decrement there
-  // relative frame.
-  try {
-    const likes = await Like.findAll({
-      where: {
-        userId: user.id,
-      },
-    });
-    await Promise.all(
-      likes.map(async (like) => {
-        await like.destroy();
-        await Frame.increment({
-          numOfLikes: -1,
-        }, {
-          where: {
-            id: like.id,
-          },
-        });
-      }),
-    );
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
+  // .....................
+  // Galeries/GalerieUsers
+  // .....................
   // Destroy all galerieUser related to this user.
   // If user is the creator of the galerie
   // and if it is the only one left on this galerie,
@@ -299,7 +257,6 @@ export default async (req: Request, res: Response) => {
         userId: user.id,
       },
     });
-
     await Promise.all(
       galerieUsers.map(async (galerieUser) => {
         await galerieUser.destroy();
@@ -342,59 +299,9 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Destroy all invitations.
-  try {
-    await Invitation.destroy({
-      where: {
-        userId: user.id,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // Destoy all non used betaKey created by current user.
-  try {
-    await BetaKey.destroy({
-      where: {
-        createdById: user.id,
-        userId: {
-          [Op.eq]: null,
-        },
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // set betaKey.createdById === null
-  // to all used betaKey created by current user.
-  try {
-    await BetaKey.update({
-      createdById: null,
-    }, {
-      where: {
-        createdById: user.id,
-        userId: {
-          [Op.not]: null,
-        },
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // Destroy the beta Key used by current user.
-  try {
-    await BetaKey.destroy({
-      where: {
-        userId: user.id,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
+  // .....................
+  // GalerieBlackLists
+  // .....................
   // Set galerieBlackList.adminId === null
   // for all galerieBlackLists created by
   // this user.
@@ -409,11 +316,126 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-
   // Destroy all galerieBlackList
   // where galerieBlackList.userId === user.id
   try {
     await GalerieBlackList.destroy({
+      where: {
+        userId: user.id,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // .....................
+  // Invitations
+  // .....................
+  // Destroy all invitations.
+  try {
+    await Invitation.destroy({
+      where: {
+        userId: user.id,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // .....................
+  // Likes
+  // .....................
+  // Destroy all likes and decrement there
+  // relative frame.
+  try {
+    const likes = await Like.findAll({
+      where: {
+        userId: user.id,
+      },
+    });
+    await Promise.all(
+      likes.map(async (like) => {
+        await like.destroy();
+        await Frame.increment({
+          numOfLikes: -1,
+        }, {
+          where: {
+            id: like.id,
+          },
+        });
+      }),
+    );
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // .....................
+  // ProfilePictures
+  // .....................
+  // Destroy all profile pictures/images
+  // and images from Google buckets.
+  try {
+    const profilePictures = await ProfilePicture.findAll({
+      include: [
+        {
+          all: true,
+        },
+      ],
+      where: {
+        userId: user.id,
+      },
+    });
+    await Promise.all(
+      profilePictures.map(async (profilePicture) => {
+        const {
+          cropedImage,
+          originalImage,
+          pendingImage,
+        } = profilePicture;
+        await profilePicture.destroy();
+        await Image.destroy({
+          where: {
+            [Op.or]: [
+              {
+                id: cropedImage.id,
+              },
+              {
+                id: originalImage.id,
+              },
+              {
+                id: pendingImage.id,
+              },
+            ],
+          },
+        });
+        await gc
+          .bucket(cropedImage.bucketName)
+          .file(cropedImage.fileName)
+          .delete();
+        await gc
+          .bucket(originalImage.bucketName)
+          .file(originalImage.fileName)
+          .delete();
+        await gc
+          .bucket(pendingImage.bucketName)
+          .file(pendingImage.fileName)
+          .delete();
+      }),
+    );
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // .....................
+  // Tickets
+  // .....................
+  // set Ticket.userId to null
+  // if current user is the author
+  // of the ticket.
+  try {
+    await Ticket.update({
+      userId: null,
+    }, {
       where: {
         userId: user.id,
       },
