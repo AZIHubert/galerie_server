@@ -11,12 +11,14 @@ import path from 'path';
 import { User } from '@src/db/models';
 
 import {
+  INVALID_UUID,
   MODEL_NOT_FOUND,
   TOKEN_NOT_FOUND,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import setRefreshToken from '@src/helpers/setRefreshToken';
+import uuidValidateV4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.refreshToken.pem'));
@@ -52,8 +54,11 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // TODO:
-  // check if id is a uuidv4.
+  if (!uuidValidateV4(id)) {
+    return res.status(400).send({
+      errors: INVALID_UUID('user'),
+    });
+  }
 
   // Fetch user corresponding to decrypted token.id.
   try {

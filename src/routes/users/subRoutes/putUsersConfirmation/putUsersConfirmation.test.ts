@@ -1,15 +1,20 @@
 import { Server } from 'http';
+import { sign } from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
-import { User } from '@src/db/models';
-
 import {
-  TOKEN_NOT_FOUND,
+  User,
+} from '@src/db/models';
+
+import accEnv from '@src/helpers/accEnv';
+import {
+  INVALID_UUID,
   MODEL_NOT_FOUND,
   USER_SHOULD_NOT_BE_CONFIRMED,
+  TOKEN_NOT_FOUND,
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
 } from '@src/helpers/errorMessages';
@@ -22,6 +27,7 @@ import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 
 import initApp from '@src/server';
 
+const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 let app: Server;
 let sequelize: Sequelize;
 let user: User;
@@ -96,6 +102,28 @@ describe('/users', () => {
           const { confirmed } = await user.reload();
           expect(confirmed).toBeTruthy();
           expect(user.confirmTokenVersion).toBe(confirmTokenVersion + 1);
+        });
+      });
+      describe('should return status 400 if', () => {
+        it('confirmToken.id is not a UUIDv4', async () => {
+          const confirmToken = sign(
+            {
+              id: '100',
+              confirmTokenVersion: user.confirmTokenVersion,
+            },
+            CONFIRM_SECRET,
+            {
+              expiresIn: '2d',
+            },
+          );
+          const {
+            body,
+            status,
+          } = await putUsersConfirmation(app, {
+            confirmToken: `Bearer ${confirmToken}`,
+          });
+          expect(body.errors).toBe(`confirmation token error: ${INVALID_UUID('user')}`);
+          expect(status).toBe(400);
         });
       });
       describe('should return status 401 if', () => {

@@ -3,9 +3,11 @@ import { verify } from 'jsonwebtoken';
 
 import accEnv from '@src/helpers/accEnv';
 import {
+  INVALID_UUID,
   TOKEN_NOT_FOUND,
   WRONG_TOKEN,
 } from '@src/helpers/errorMessages';
+import uuidValidateV4 from '@src/helpers/uuidValidateV4';
 
 const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 
@@ -60,6 +62,15 @@ export default (req: Request) => {
       status: 500,
     } as Error;
   }
+
+  if (!uuidValidateV4(id)) {
+    return {
+      OK: false,
+      errors: `confirmation token error: ${INVALID_UUID('user')}`,
+      status: 400,
+    } as Error;
+  }
+
   return {
     OK: true,
     emailTokenVersion,
