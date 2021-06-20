@@ -25,6 +25,7 @@ export default class BetaKey extends Model implements BetaKeyI {
   @Column({
     allowNull: false,
     type: DataType.STRING,
+    unique: true,
   })
   code!: string;
 
