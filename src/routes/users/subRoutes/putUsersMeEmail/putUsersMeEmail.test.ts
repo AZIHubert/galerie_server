@@ -1,16 +1,20 @@
 import { Server } from 'http';
+import { sign } from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@src/helpers/initEnv';
 
 import { User } from '@src/db/models';
 
+import accEnv from '@src/helpers/accEnv';
 import {
   FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_ALREADY_TAKEN,
   FIELD_IS_REQUIRED,
   FIELD_SHOULD_BE_A_STRING,
   FIELD_SHOULD_BE_AN_EMAIL,
+  INVALID_UUID,
   TOKEN_NOT_FOUND,
   WRONG_PASSWORD,
   WRONG_TOKEN,
@@ -19,7 +23,6 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
 import {
   createUser,
   putUsersMeEmail,
@@ -27,11 +30,14 @@ import {
 
 import initApp from '@src/server';
 
+const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
 let app: Server;
 let password: string;
 let sequelize: Sequelize;
+let updatedEmail: string;
 let user: User;
 let token: string;
+let wrightToken: string;
 
 describe('/users', () => {
   describe('/me', () => {
@@ -54,6 +60,18 @@ describe('/users', () => {
             user = createdUser;
             const jwt = signAuthToken(user);
             token = jwt.token;
+            updatedEmail = `new${user.email}`;
+            wrightToken = sign(
+              {
+                id: user.id,
+                updatedEmail,
+                updatedEmailTokenVersion: user.updatedEmailTokenVersion,
+              },
+              UPDATE_EMAIL_SECRET,
+              {
+                expiresIn: '2d',
+              },
+            );
           } catch (err) {
             done(err);
           }
@@ -72,16 +90,7 @@ describe('/users', () => {
         });
 
         describe('should return status 200 and', () => {
-          const updatedEmail = 'newemail@email.com';
-
           it('return token', async () => {
-            jest.spyOn(verifyConfirmation, 'updateEmailToken')
-              .mockImplementationOnce(() => ({
-                OK: true,
-                id: user.id,
-                updatedEmailTokenVersion: user.updatedEmailTokenVersion,
-                updatedEmail,
-              }));
             const {
               body: {
                 data: {
@@ -94,25 +103,18 @@ describe('/users', () => {
               body: {
                 password,
               },
-              confirmToken: 'Bearer token',
+              confirmToken: `Bearer ${wrightToken}`,
             });
             expect(expiresIn).toBe(1800);
             expect(returnedToken).not.toBeUndefined();
             expect(status).toBe(200);
           });
           it('increment updatedEmailTokenVersion and authToken', async () => {
-            jest.spyOn(verifyConfirmation, 'updateEmailToken')
-              .mockImplementationOnce(() => ({
-                OK: true,
-                id: user.id,
-                updatedEmailTokenVersion: user.updatedEmailTokenVersion,
-                updatedEmail,
-              }));
             await putUsersMeEmail(app, token, {
               body: {
                 password,
               },
-              confirmToken: 'Bearer token',
+              confirmToken: `Bearer ${wrightToken}`,
             });
             const {
               authTokenVersion,
@@ -123,35 +125,32 @@ describe('/users', () => {
             expect(user.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion + 1);
           });
           it('update user\'s email', async () => {
-            jest.spyOn(verifyConfirmation, 'updateEmailToken')
-              .mockImplementationOnce(() => ({
-                OK: true,
-                id: user.id,
-                updatedEmailTokenVersion: user.updatedEmailTokenVersion,
-                updatedEmail,
-              }));
             await putUsersMeEmail(app, token, {
               body: {
                 password,
               },
-              confirmToken: 'Bearer token',
+              confirmToken: `Bearer ${wrightToken}`,
             });
             const { email } = await user.reload();
             expect(email).toBe(updatedEmail);
           });
           it('trim email', async () => {
-            jest.spyOn(verifyConfirmation, 'updateEmailToken')
-              .mockImplementationOnce(() => ({
-                OK: true,
+            const trimWringToken = sign(
+              {
                 id: user.id,
-                updatedEmailTokenVersion: user.updatedEmailTokenVersion,
                 updatedEmail: ` ${updatedEmail} `,
-              }));
+                updatedEmailTokenVersion: user.updatedEmailTokenVersion,
+              },
+              UPDATE_EMAIL_SECRET,
+              {
+                expiresIn: '2d',
+              },
+            );
             await putUsersMeEmail(app, token, {
               body: {
                 password,
               },
-              confirmToken: 'Bearer token',
+              confirmToken: `Bearer ${trimWringToken}`,
             });
             const { email } = await user.reload();
             expect(email).toBe(updatedEmail);
@@ -159,21 +158,33 @@ describe('/users', () => {
         });
         describe('should return status 400 if', () => {
           describe('password', () => {
-            beforeEach(() => {
-              jest.spyOn(verifyConfirmation, 'updateEmailToken')
-                .mockImplementationOnce(() => ({
-                  OK: true,
-                  id: user.id,
-                  updatedEmailTokenVersion: user.updatedEmailTokenVersion,
-                  updatedEmail: 'newemail@email.com',
-                }));
+            it('confirmPassword.id is not a UUIDv4', async () => {
+              const wrongToken = sign(
+                {
+                  id: '100',
+                  updatedEmail,
+                  updatedEmailTokenVersion: user.updatedEmailTokenVersion + 1,
+                },
+                UPDATE_EMAIL_SECRET,
+                {
+                  expiresIn: '2d',
+                },
+              );
+              const {
+                body,
+                status,
+              } = await putUsersMeEmail(app, token, {
+                confirmToken: `Bearer ${wrongToken}`,
+              });
+              expect(body.errors).toBe(`confirmation token error: ${INVALID_UUID('user')}`);
+              expect(status).toBe(400);
             });
             it('is not send', async () => {
               const {
                 body,
                 status,
               } = await putUsersMeEmail(app, token, {
-                confirmToken: 'Bearer token',
+                confirmToken: `Bearer ${wrightToken}`,
               });
               expect(body.errors).toEqual({
                 password: FIELD_IS_REQUIRED,
@@ -188,7 +199,7 @@ describe('/users', () => {
                 body: {
                   password: '',
                 },
-                confirmToken: 'Bearer token',
+                confirmToken: `Bearer ${wrightToken}`,
               });
               expect(body.errors).toEqual({
                 password: FIELD_CANNOT_BE_EMPTY,
@@ -203,7 +214,7 @@ describe('/users', () => {
                 body: {
                   password: 1234,
                 },
-                confirmToken: 'Bearer token',
+                confirmToken: `Bearer ${wrightToken}`,
               });
               expect(body.errors).toEqual({
                 password: FIELD_SHOULD_BE_A_STRING,
@@ -218,7 +229,7 @@ describe('/users', () => {
                 body: {
                   password: 'wrong password',
                 },
-                confirmToken: 'Bearer token',
+                confirmToken: `Bearer ${wrightToken}`,
               });
               expect(body.errors).toEqual({
                 password: WRONG_PASSWORD,
@@ -249,19 +260,23 @@ describe('/users', () => {
                 body: {
                   password,
                 },
-                confirmToken: 'token',
+                confirmToken: wrightToken,
               });
               expect(body.errors).toBe(WRONG_TOKEN);
               expect(status).toBe(401);
             });
             it('is not correct version', async () => {
-              jest.spyOn(verifyConfirmation, 'updateEmailToken')
-                .mockImplementationOnce(() => ({
-                  OK: true,
+              const wrongToken = sign(
+                {
                   id: user.id,
+                  updatedEmail,
                   updatedEmailTokenVersion: user.updatedEmailTokenVersion + 1,
-                  updatedEmail: 'newemail@email.com',
-                }));
+                },
+                UPDATE_EMAIL_SECRET,
+                {
+                  expiresIn: '2d',
+                },
+              );
               const {
                 body,
                 status,
@@ -269,19 +284,23 @@ describe('/users', () => {
                 body: {
                   password,
                 },
-                confirmToken: 'Bearer token',
+                confirmToken: `Bearer ${wrongToken}`,
               });
               expect(body.errors).toBe(WRONG_TOKEN_VERSION);
               expect(status).toBe(401);
             });
             it('is not correct user', async () => {
-              jest.spyOn(verifyConfirmation, 'updateEmailToken')
-                .mockImplementationOnce(() => ({
-                  OK: true,
-                  id: `${user.id}${user.id}`,
-                  updatedEmailTokenVersion: user.updatedEmailTokenVersion,
-                  updatedEmail: 'newemail@email.com',
-                }));
+              const wrongToken = sign(
+                {
+                  id: uuidv4(),
+                  updatedEmail,
+                  updatedEmailTokenVersion: user.updatedEmailTokenVersion + 1,
+                },
+                UPDATE_EMAIL_SECRET,
+                {
+                  expiresIn: '2d',
+                },
+              );
               const {
                 body,
                 status,
@@ -289,7 +308,7 @@ describe('/users', () => {
                 body: {
                   password,
                 },
-                confirmToken: 'Bearer token',
+                confirmToken: `Bearer ${wrongToken}`,
               });
               const {
                 authTokenVersion,
@@ -301,14 +320,18 @@ describe('/users', () => {
               expect(user.authTokenVersion).toBe(authTokenVersion);
               expect(user.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion);
             });
-            describe('.email', () => {
+            describe('.updatedEmail', () => {
               it('is not set', async () => {
-                jest.spyOn(verifyConfirmation, 'updateEmailToken')
-                  .mockImplementationOnce(() => ({
-                    OK: true,
+                const wrongToken = sign(
+                  {
                     id: user.id,
                     updatedEmailTokenVersion: user.updatedEmailTokenVersion,
-                  }));
+                  },
+                  UPDATE_EMAIL_SECRET,
+                  {
+                    expiresIn: '2d',
+                  },
+                );
                 const {
                   body,
                   status,
@@ -316,7 +339,7 @@ describe('/users', () => {
                   body: {
                     password,
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrongToken}`,
                 });
                 const {
                   authTokenVersion,
@@ -329,13 +352,17 @@ describe('/users', () => {
                 expect(user.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion + 1);
               });
               it('is an empty string', async () => {
-                jest.spyOn(verifyConfirmation, 'updateEmailToken')
-                  .mockImplementationOnce(() => ({
-                    OK: true,
+                const wrongToken = sign(
+                  {
                     id: user.id,
-                    updatedEmailTokenVersion: user.updatedEmailTokenVersion,
                     updatedEmail: '',
-                  }));
+                    updatedEmailTokenVersion: user.updatedEmailTokenVersion,
+                  },
+                  UPDATE_EMAIL_SECRET,
+                  {
+                    expiresIn: '2d',
+                  },
+                );
                 const {
                   body,
                   status,
@@ -343,7 +370,7 @@ describe('/users', () => {
                   body: {
                     password,
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrongToken}`,
                 });
                 const {
                   authTokenVersion,
@@ -356,13 +383,17 @@ describe('/users', () => {
                 expect(user.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion + 1);
               });
               it('is not a string', async () => {
-                jest.spyOn(verifyConfirmation, 'updateEmailToken')
-                  .mockImplementationOnce(() => ({
-                    OK: true,
+                const wrongToken = sign(
+                  {
                     id: user.id,
-                    updatedEmailTokenVersion: user.updatedEmailTokenVersion,
                     updatedEmail: 1234,
-                  }));
+                    updatedEmailTokenVersion: user.updatedEmailTokenVersion,
+                  },
+                  UPDATE_EMAIL_SECRET,
+                  {
+                    expiresIn: '2d',
+                  },
+                );
                 const {
                   body,
                   status,
@@ -370,7 +401,7 @@ describe('/users', () => {
                   body: {
                     password,
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrongToken}`,
                 });
                 const {
                   authTokenVersion,
@@ -383,13 +414,17 @@ describe('/users', () => {
                 expect(user.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion + 1);
               });
               it('is not an email', async () => {
-                jest.spyOn(verifyConfirmation, 'updateEmailToken')
-                  .mockImplementationOnce(() => ({
-                    OK: true,
+                const wrongToken = sign(
+                  {
                     id: user.id,
+                    updatedEmail: 'notAnEmail',
                     updatedEmailTokenVersion: user.updatedEmailTokenVersion,
-                    updatedEmail: 'not an email',
-                  }));
+                  },
+                  UPDATE_EMAIL_SECRET,
+                  {
+                    expiresIn: '2d',
+                  },
+                );
                 const {
                   body,
                   status,
@@ -397,7 +432,7 @@ describe('/users', () => {
                   body: {
                     password,
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrongToken}`,
                 });
                 const {
                   authTokenVersion,
@@ -410,13 +445,17 @@ describe('/users', () => {
                 expect(user.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion + 1);
               });
               it('is the same has the old one', async () => {
-                jest.spyOn(verifyConfirmation, 'updateEmailToken')
-                  .mockImplementationOnce(() => ({
-                    OK: true,
+                const wrongToken = sign(
+                  {
                     id: user.id,
-                    updatedEmailTokenVersion: user.updatedEmailTokenVersion,
                     updatedEmail: user.email,
-                  }));
+                    updatedEmailTokenVersion: user.updatedEmailTokenVersion,
+                  },
+                  UPDATE_EMAIL_SECRET,
+                  {
+                    expiresIn: '2d',
+                  },
+                );
                 const {
                   body,
                   status,
@@ -424,7 +463,7 @@ describe('/users', () => {
                   body: {
                     password,
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrongToken}`,
                 });
                 const {
                   authTokenVersion,
@@ -437,14 +476,6 @@ describe('/users', () => {
                 expect(user.updatedEmailTokenVersion).toBe(updatedEmailTokenVersion + 1);
               });
               it('is already used', async () => {
-                const updatedEmail = 'newemail@email.com';
-                jest.spyOn(verifyConfirmation, 'updateEmailToken')
-                  .mockImplementationOnce(() => ({
-                    OK: true,
-                    id: user.id,
-                    updatedEmailTokenVersion: user.updatedEmailTokenVersion,
-                    updatedEmail,
-                  }));
                 await createUser({
                   email: updatedEmail,
                   userName: 'user2',
@@ -456,7 +487,7 @@ describe('/users', () => {
                   body: {
                     password,
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrightToken}`,
                 });
                 const {
                   authTokenVersion,
