@@ -3,16 +3,16 @@ import {
 } from '@src/db/models';
 
 export default async ({
-  adminId,
+  createdById,
   galerieId,
   userId,
 } : {
-  adminId?: string;
+  createdById?: string;
   galerieId: string;
   userId: string;
 }) => {
   const galerieBlackList = await GalerieBlackList.create({
-    adminId,
+    createdById,
     galerieId,
     userId,
   });

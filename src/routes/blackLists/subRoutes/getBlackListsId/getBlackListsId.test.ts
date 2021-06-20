@@ -21,7 +21,6 @@ import {
   createBlackList,
   createProfilePicture,
   createUser,
-  deleteUsersMe,
   getBlackListsId,
   testProfilePicture,
   testUser,
@@ -102,7 +101,7 @@ describe('/blackLists', () => {
 
         it('return black list', async () => {
           const { id: blackListId } = await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             userId: userTwo.id,
           });
           const {
@@ -116,7 +115,7 @@ describe('/blackLists', () => {
           } = await getBlackListsId(app, token, blackListId);
           expect(action).toBe('GET');
           expect(blackList.active).not.toBeUndefined();
-          expect(blackList.adminId).toBeUndefined();
+          expect(blackList.createdById).toBeUndefined();
           expect(blackList.createdAt).not.toBeUndefined();
           expect(blackList.id).not.toBeUndefined();
           expect(blackList.reason).not.toBeUndefined();
@@ -126,12 +125,12 @@ describe('/blackLists', () => {
           expect(blackList.userId).toBeUndefined();
           expect(status).toBe(200);
           testUser(blackList.user);
-          testUser(blackList.admin);
+          testUser(blackList.createdBy);
         });
         it('include blackList.updatedBy', async () => {
           const { id: blackListId } = await createBlackList({
             active: false,
-            adminId: user.id,
+            createdById: user.id,
             updatedById: user.id,
             userId: userTwo.id,
           });
@@ -171,7 +170,7 @@ describe('/blackLists', () => {
             userId: userTwo.id,
           });
           const { id: blackListId } = await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             userId: userTwo.id,
           });
           const {
@@ -187,19 +186,19 @@ describe('/blackLists', () => {
           } = await getBlackListsId(app, token, blackListId);
           testProfilePicture(currentProfilePicture);
         });
-        it('include admin current profile picture', async () => {
+        it('include createdBy current profile picture', async () => {
           await createProfilePicture({
             userId: user.id,
           });
           const { id: blackListId } = await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             userId: userTwo.id,
           });
           const {
             body: {
               data: {
                 blackList: {
-                  admin: {
+                  createdBy: {
                     currentProfilePicture,
                   },
                 },
@@ -214,7 +213,7 @@ describe('/blackLists', () => {
           });
           const { id: blackListId } = await createBlackList({
             active: false,
-            adminId: user.id,
+            createdById: user.id,
             updatedById: user.id,
             userId: userTwo.id,
           });
@@ -231,44 +230,27 @@ describe('/blackLists', () => {
           } = await getBlackListsId(app, token, blackListId);
           testProfilePicture(currentProfilePicture);
         });
-        it('do not include admin if he have delete his account', async () => {
-          const {
-            password: passwordThree,
-            user: userThree,
-          } = await createUser({
-            email: 'user3@email.com',
-            role: 'admin',
-            userName: 'user3',
-          });
-          const { token: tokenThree } = signAuthToken(userThree);
+        it('do not include createdBy if he have delete his account', async () => {
           const { id: blackListId } = await createBlackList({
-            adminId: userThree.id,
             userId: userTwo.id,
-          });
-          await deleteUsersMe(app, tokenThree, {
-            body: {
-              deleteAccountSentence: 'delete my account',
-              password: passwordThree,
-              userNameOrEmail: userThree.email,
-            },
           });
           const {
             body: {
               data: {
                 blackList: {
-                  admin,
+                  createdBy,
                 },
               },
             },
           } = await getBlackListsId(app, token, blackListId);
-          expect(admin).toBeNull();
+          expect(createdBy).toBeNull();
         });
         it('set user.isBlackListed === false and user.blackListedAt === null if it\'s expired', async () => {
           const timeStamp = 1434319925275;
           const time = 1000 * 60 * 10;
           mockDate.set(timeStamp);
           const blackList = await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             time,
             userId: userTwo.id,
           });

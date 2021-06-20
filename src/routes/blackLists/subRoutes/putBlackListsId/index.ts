@@ -34,7 +34,7 @@ export default async (req: Request, res: Response) => {
     blackList = await BlackList.findByPk(blackListId, {
       include: [
         {
-          as: 'admin',
+          as: 'createdBy',
           model: User,
         },
         {
@@ -85,7 +85,7 @@ export default async (req: Request, res: Response) => {
   // superAdmin.
   if (
     currentUser.role === 'admin'
-    && blackList.admin.role === 'superAdmin'
+    && blackList.createdBy.role === 'superAdmin'
   ) {
     return res.status(400).send({
       errors: 'you\'re not allow to update this blackList',

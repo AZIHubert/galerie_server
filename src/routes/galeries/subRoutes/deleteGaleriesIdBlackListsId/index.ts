@@ -86,7 +86,7 @@ export default async (req: Request, res: Response) => {
           },
         },
         {
-          as: 'admin',
+          as: 'createdBy',
           model: User,
         },
       ],
@@ -111,7 +111,7 @@ export default async (req: Request, res: Response) => {
   // of this galerie.
   if (
     (!userFromGalerie || userFromGalerie.GalerieUser.role !== 'creator')
-    || (galerieBlackList.adminId && currentUser.id !== galerieBlackList.adminId)
+    || (galerieBlackList.createdById && currentUser.id !== galerieBlackList.createdById)
   ) {
     let galerieUser: GalerieUser | null;
 
@@ -119,7 +119,7 @@ export default async (req: Request, res: Response) => {
       galerieUser = await GalerieUser.findOne({
         where: {
           galerieId,
-          userId: galerieBlackList.adminId,
+          userId: galerieBlackList.createdById,
         },
       });
     } catch (err) {

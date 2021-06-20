@@ -38,7 +38,7 @@ export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   const objectUserExcluder: { [key:string]: undefined} = {};
   const objectGalerieBlackListExcluder: { [key:string]: undefined} = {};
-  let adminCurrentProfilePicture;
+  let createdByCurrentProfilePicture;
   let currentProfilePicture;
   let galerie: Galerie | null;
   let galerieBlackList: GalerieBlackList;
@@ -295,15 +295,15 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Set adminId === nul for all galerieBlackList
+  // Set createdById === nul for all galerieBlackList
   // posted by deleted user
   try {
     await GalerieBlackList.update({
-      adminId: null,
+      createdById: null,
     }, {
       where: {
         galerieId,
-        adminId: user.id,
+        createdById: user.id,
       },
     });
   } catch (err) {
@@ -312,7 +312,7 @@ export default async (req: Request, res: Response) => {
 
   try {
     galerieBlackList = await GalerieBlackList.create({
-      adminId: currentUser.id,
+      createdById: currentUser.id,
       galerieId,
       userId: user.id,
     });
@@ -322,7 +322,7 @@ export default async (req: Request, res: Response) => {
 
   // Fetch admin current profile picture.
   try {
-    adminCurrentProfilePicture = await fetchCurrentProfilePicture(currentUser);
+    createdByCurrentProfilePicture = await fetchCurrentProfilePicture(currentUser);
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -345,10 +345,10 @@ export default async (req: Request, res: Response) => {
   const normalizeGalerieBlackList = {
     ...galerieBlackList.toJSON(),
     ...objectGalerieBlackListExcluder,
-    admin: {
+    createdBy: {
       ...currentUser.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture: adminCurrentProfilePicture,
+      currentProfilePicture: createdByCurrentProfilePicture,
     },
     user: {
       ...user.toJSON(),

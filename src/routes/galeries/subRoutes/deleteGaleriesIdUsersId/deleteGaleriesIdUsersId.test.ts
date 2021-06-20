@@ -212,35 +212,35 @@ describe('/galeries', () => {
               const invitation = await Invitation.findByPk(invitationId);
               expect(invitation).toBeNull();
             });
-            it('set adminId === null for all galerieBlackLists posted by the deleted user', async () => {
+            it('set createdById === null for all galerieBlackLists posted by the deleted user', async () => {
               const { user: userThree } = await createUser({
                 email: 'user3@email.com',
                 userName: 'user3',
               });
               const galerieBlackList = await createGalerieBlackList({
-                adminId: userTwo.id,
+                createdById: userTwo.id,
                 galerieId,
                 userId: userThree.id,
               });
               await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               await galerieBlackList.reload();
-              expect(galerieBlackList.adminId).toBeNull();
+              expect(galerieBlackList.createdById).toBeNull();
             });
-            it('do not set adminId === null for galerieBlackLists posted by other user', async () => {
+            it('do not set createdById === null for galerieBlackLists posted by other user', async () => {
               const { user: userThree } = await createUser({
                 email: 'user3@email.com',
                 userName: 'user3',
               });
               const galerieBlackList = await createGalerieBlackList({
-                adminId: user.id,
+                createdById: user.id,
                 galerieId,
                 userId: userThree.id,
               });
               await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               await galerieBlackList.reload();
-              expect(galerieBlackList.adminId).toBe(user.id);
+              expect(galerieBlackList.createdById).toBe(user.id);
             });
-            it('do not set adminId === null for galerieBlackLists posted by the black listed user on other galeries', async () => {
+            it('do not set createdById === null for galerieBlackLists posted by the black listed user on other galeries', async () => {
               const { user: userThree } = await createUser({
                 email: 'user3@email.com',
                 userName: 'user3',
@@ -249,13 +249,13 @@ describe('/galeries', () => {
                 userId: userTwo.id,
               });
               const galerieBlackList = await createGalerieBlackList({
-                adminId: userTwo.id,
+                createdById: userTwo.id,
                 galerieId: galerieTwo.id,
                 userId: userThree.id,
               });
               await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               await galerieBlackList.reload();
-              expect(galerieBlackList.adminId).toBe(userTwo.id);
+              expect(galerieBlackList.createdById).toBe(userTwo.id);
             });
             it('delete user if is an admin and current user is creator of this galerie', async () => {
               const {

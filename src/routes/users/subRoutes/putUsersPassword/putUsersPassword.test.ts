@@ -188,7 +188,7 @@ describe('/users', () => {
             userName: 'user2',
           });
           await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             userId: id,
           });
           jest.spyOn(verifyConfirmation, 'resetPassword')

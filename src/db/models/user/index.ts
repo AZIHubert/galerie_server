@@ -221,8 +221,8 @@ export default class User extends Model implements UserI {
   @HasMany(() => BetaKey, 'userId')
   betaKeyUser!: BetaKey[];
 
-  @HasMany(() => BlackList, 'adminId')
-  blackListsAdmin!: BlackList[];
+  @HasMany(() => BlackList, 'createdById')
+  blackListsCreated!: BlackList[];
 
   @HasMany(() => BlackList, 'updatedById')
   blackListsUpdatedBy!: BlackList[];
@@ -230,8 +230,8 @@ export default class User extends Model implements UserI {
   @HasMany(() => BlackList, 'userId')
   blackListsUser!: BlackList[];
 
-  @HasMany(() => GalerieBlackList, 'adminId')
-  galerieBlackListsAdmin!: GalerieBlackList[];
+  @HasMany(() => GalerieBlackList, 'createdById')
+  galerieBlackListsCreated!: GalerieBlackList[];
 
   @HasMany(() => GalerieBlackList, 'userId')
   galerieBlackListsUser!: GalerieBlackList[];

@@ -5,21 +5,21 @@ import {
 
 export default async ({
   active = true,
-  adminId,
+  createdById,
   reason = 'black list\'s reason',
   time,
   updatedById,
   userId,
 } : {
   active?: boolean;
-  adminId?: string;
+  createdById?: string;
   reason?: string;
   time?: number;
   updatedById?: string;
   userId: string;
 }) => {
   const blackList = await BlackList.create({
-    adminId,
+    createdById,
     reason,
     time: time ? new Date(Date.now() + time) : null,
     updatedById,

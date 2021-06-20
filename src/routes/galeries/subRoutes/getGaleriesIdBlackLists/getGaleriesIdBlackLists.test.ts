@@ -110,7 +110,7 @@ describe('/galeries', () => {
               userName: 'user2',
             });
             await createGalerieBlackList({
-              adminId: user.id,
+              createdById: user.id,
               galerieId,
               userId: userTwo.id,
             });
@@ -123,7 +123,7 @@ describe('/galeries', () => {
             } = await getGaleriesIdBlackLists(app, token, galerieId);
             expect(blackLists.length).toBe(1);
             testGalerieBlackList(blackLists[0]);
-            testUser(blackLists[0].admin);
+            testUser(blackLists[0].createdBy);
             testUser(blackLists[0].user);
           });
           it('return a pack of 20 galerieBlackLists', async () => {
@@ -136,7 +136,7 @@ describe('/galeries', () => {
                   userName: `user${index + 2}`,
                 });
                 await createGalerieBlackList({
-                  adminId: user.id,
+                  createdById: user.id,
                   galerieId,
                   userId: newUser.id,
                 });
@@ -181,27 +181,27 @@ describe('/galeries', () => {
               userName: 'user6',
             });
             await createGalerieBlackList({
-              adminId: user.id,
+              createdById: user.id,
               galerieId,
               userId: userTwo.id,
             });
             await createGalerieBlackList({
-              adminId: user.id,
+              createdById: user.id,
               galerieId,
               userId: userThree.id,
             });
             await createGalerieBlackList({
-              adminId: user.id,
+              createdById: user.id,
               galerieId,
               userId: userFour.id,
             });
             await createGalerieBlackList({
-              adminId: user.id,
+              createdById: user.id,
               galerieId,
               userId: userFive.id,
             });
             await createGalerieBlackList({
-              adminId: user.id,
+              createdById: user.id,
               galerieId,
               userId: userSix.id,
             });
@@ -225,11 +225,11 @@ describe('/galeries', () => {
               userName: 'user2',
             });
             await createBlackList({
-              adminId: user.id,
+              createdById: user.id,
               userId: userTwo.id,
             });
             await createGalerieBlackList({
-              adminId: user.id,
+              createdById: user.id,
               galerieId,
               userId: userTwo.id,
             });
@@ -248,7 +248,7 @@ describe('/galeries', () => {
               userName: 'user2',
             });
             await createGalerieBlackList({
-              adminId: user.id,
+              createdById: user.id,
               galerieId,
               userId: userTwo.id,
             });
@@ -273,7 +273,7 @@ describe('/galeries', () => {
               userName: 'user2',
             });
             await createGalerieBlackList({
-              adminId: user.id,
+              createdById: user.id,
               galerieId,
               userId: userTwo.id,
             });
@@ -293,7 +293,7 @@ describe('/galeries', () => {
             expect(profilePicture).toBeNull();
             expect(images.length).toBe(0);
           });
-          it('do not include admin if galerieBlackList.adminId === null', async () => {
+          it('do not include createdBy if galerieBlackList.createdById === null', async () => {
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
@@ -309,9 +309,9 @@ describe('/galeries', () => {
                 },
               },
             } = await getGaleriesIdBlackLists(app, token, galerieId);
-            expect(blackLists[0].admin).toBeNull();
+            expect(blackLists[0].createdBy).toBeNull();
           });
-          it('do not include admin if he is \'globally\' black listed', async () => {
+          it('do not include createdBy if he is \'globally\' black listed', async () => {
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
@@ -325,12 +325,12 @@ describe('/galeries', () => {
               userId: userThree.id,
             });
             await createGalerieBlackList({
-              adminId: userThree.id,
+              createdById: userThree.id,
               galerieId,
               userId: userTwo.id,
             });
             await createBlackList({
-              adminId: user.id,
+              createdById: user.id,
               userId: userThree.id,
             });
             const {
@@ -340,9 +340,9 @@ describe('/galeries', () => {
                 },
               },
             } = await getGaleriesIdBlackLists(app, token, galerieId);
-            expect(blackLists[0].admin).toBeNull();
+            expect(blackLists[0].createdBy).toBeNull();
           });
-          it('include admin current profile picture', async () => {
+          it('include createdBy current profile picture', async () => {
             await createProfilePicture({
               userId: user.id,
             });
@@ -351,7 +351,7 @@ describe('/galeries', () => {
               userName: 'user2',
             });
             await createGalerieBlackList({
-              adminId: user.id,
+              createdById: user.id,
               galerieId,
               userId: userTwo.id,
             });
@@ -362,9 +362,9 @@ describe('/galeries', () => {
                 },
               },
             } = await getGaleriesIdBlackLists(app, token, galerieId);
-            testProfilePicture(blackLists[0].admin.currentProfilePicture);
+            testProfilePicture(blackLists[0].createdBy.currentProfilePicture);
           });
-          it('do not include admin current profile picture if signedUrl.OK === false', async () => {
+          it('do not include createdBy current profile picture if signedUrl.OK === false', async () => {
             (signedUrl as jest.Mock).mockImplementation(() => ({
               OK: false,
             }));
@@ -373,7 +373,7 @@ describe('/galeries', () => {
               userName: 'user2',
             });
             await createGalerieBlackList({
-              adminId: user.id,
+              createdById: user.id,
               galerieId,
               userId: userTwo.id,
             });
@@ -389,7 +389,7 @@ describe('/galeries', () => {
             } = await getGaleriesIdBlackLists(app, token, galerieId);
             const profilePicture = await ProfilePicture.findByPk(profilePictureId);
             const images = await Image.findAll();
-            expect(blackLists[0].admin.currentProfilePicture).toBeNull();
+            expect(blackLists[0].createdBy.currentProfilePicture).toBeNull();
             expect(profilePicture).toBeNull();
             expect(images.length).toBe(0);
           });

@@ -91,7 +91,7 @@ describe('/galeries', () => {
 
             it('delete a galerieBlackList', async () => {
               const { id: galerieBlackListId } = await createGalerieBlackList({
-                adminId: user.id,
+                createdById: user.id,
                 galerieId,
                 userId: userTwo.id,
               });
@@ -136,7 +136,7 @@ describe('/galeries', () => {
                 done();
               });
 
-              it('current user\'s role for this galerie is \'admin\' but galerieBlackList.adminId === null', async () => {
+              it('current user\'s role for this galerie is \'admin\' but galerieBlackList.createdById === null', async () => {
                 const { id: galerieBlackListId } = await createGalerieBlackList({
                   galerieId,
                   userId: userTwo.id,
@@ -155,7 +155,7 @@ describe('/galeries', () => {
               });
               it('this galerieBlackList was posted by him', async () => {
                 const { id: galerieBlackListId } = await createGalerieBlackList({
-                  adminId: userThree.id,
+                  createdById: userThree.id,
                   galerieId,
                   userId: userTwo.id,
                 });
@@ -182,7 +182,7 @@ describe('/galeries', () => {
                   userId: userFour.id,
                 });
                 const { id: galerieBlackListId } = await createGalerieBlackList({
-                  adminId: userFour.id,
+                  createdById: userFour.id,
                   galerieId,
                   userId: userTwo.id,
                 });
@@ -232,7 +232,7 @@ describe('/galeries', () => {
                 userId: userTwo.id,
               });
               const { id: galerieBlackListId } = await createGalerieBlackList({
-                adminId: user.id,
+                createdById: user.id,
                 galerieId,
                 userId: userThree.id,
               });
@@ -259,7 +259,7 @@ describe('/galeries', () => {
                 userId: userTwo.id,
               });
               const { id: galerieBlackListId } = await createGalerieBlackList({
-                adminId: user.id,
+                createdById: user.id,
                 galerieId,
                 userId: userThree.id,
               });
@@ -312,7 +312,7 @@ describe('/galeries', () => {
                 userId: user.id,
               });
               const { id: galerieBlackListId } = await createGalerieBlackList({
-                adminId: user.id,
+                createdById: user.id,
                 galerieId: galerieTwo.id,
                 userId: userTwo.id,
               });
