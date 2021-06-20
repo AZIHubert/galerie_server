@@ -6,12 +6,14 @@ import '@src/helpers/initEnv';
 
 import User from '@src/db/models/user';
 
+import accEnv from '@src/helpers/accEnv';
 import * as email from '@src/helpers/email';
 import {
   FIELD_CANNOT_BE_EMPTY,
   FIELD_SHOULD_BE_AN_EMAIL,
   FIELD_IS_REQUIRED,
   FIELD_SHOULD_BE_A_STRING,
+  INVALID_UUID,
   TOKEN_NOT_FOUND,
   WRONG_PASSWORD,
   WRONG_TOKEN,
@@ -28,14 +30,15 @@ import {
 
 import initApp from '@src/server';
 
+const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 const emailMocked = jest.spyOn(email, 'sendValidateEmailMessage');
 const signMocked = jest.spyOn(jwt, 'sign');
-
 let app: Server;
 let password: string;
 let sequelize: Sequelize;
 let token: string;
 let user: User;
+let wrightConfirmToken: string;
 
 describe('/users', () => {
   describe('/me', () => {
@@ -58,6 +61,16 @@ describe('/users', () => {
               user = createdUser;
               const jsonwebtoken = signAuthToken(user);
               token = jsonwebtoken.token;
+              wrightConfirmToken = jwt.sign(
+                {
+                  emailTokenVersion: user.emailTokenVersion,
+                  id: user.id,
+                },
+                SEND_EMAIL_SECRET,
+                {
+                  expiresIn: '30m',
+                },
+              );
             } catch (err) {
               done(err);
             }
@@ -79,18 +92,12 @@ describe('/users', () => {
           describe('should return status 204 and', () => {
             it('send an email and sign a token', async () => {
               const newEmail = 'user2@email.com';
-              jest.spyOn(verifyConfirmation, 'sendEmailToken')
-                .mockImplementationOnce(() => ({
-                  OK: true,
-                  emailTokenVersion: user.emailTokenVersion,
-                  id: user.id,
-                }));
               const { status } = await postUsersMeEmailConfirm(app, token, {
                 body: {
                   email: newEmail,
                   password,
                 },
-                confirmToken: 'Bearer token',
+                confirmToken: `Bearer ${wrightConfirmToken}`,
               });
               expect(status).toBe(204);
               expect(signMocked)
@@ -101,18 +108,12 @@ describe('/users', () => {
                 .toHaveBeenCalledTimes(1);
             });
             it('should increment emailTokenVersion and updateEmailTokenVersion', async () => {
-              jest.spyOn(verifyConfirmation, 'sendEmailToken')
-                .mockImplementationOnce(() => ({
-                  OK: true,
-                  emailTokenVersion: user.emailTokenVersion,
-                  id: user.id,
-                }));
               await postUsersMeEmailConfirm(app, token, {
                 body: {
                   email: 'user2@email.com',
                   password,
                 },
-                confirmToken: 'Bearer token',
+                confirmToken: `Bearer ${wrightConfirmToken}`,
               });
               const {
                 emailTokenVersion,
@@ -126,31 +127,41 @@ describe('/users', () => {
             });
             it('should trim req email and password', async () => {
               const newEmail = 'user2@email.com';
-              jest.spyOn(verifyConfirmation, 'sendEmailToken')
-                .mockImplementationOnce(() => ({
-                  OK: true,
-                  id: user.id,
-                  emailTokenVersion: user.emailTokenVersion,
-                }));
               await postUsersMeEmailConfirm(app, token, {
                 body: {
                   email: ` ${newEmail} `,
                   password,
                 },
-                confirmToken: 'Bearer token',
+                confirmToken: `Bearer ${wrightConfirmToken}`,
               });
               expect(emailMocked)
                 .toBeCalledWith(newEmail, expect.any(String));
             });
           });
-          describe('should return 400', () => {
-            beforeEach(() => {
-              jest.spyOn(verifyConfirmation, 'sendEmailToken')
-                .mockImplementationOnce(() => ({
-                  OK: true,
-                  id: user.id,
+          describe('should return status 400', () => {
+            it('if confirmToken is is not a UUIDv4', async () => {
+              const wrongConfirmToken = jwt.sign(
+                {
                   emailTokenVersion: user.emailTokenVersion,
-                }));
+                  id: '100',
+                },
+                SEND_EMAIL_SECRET,
+                {
+                  expiresIn: '30m',
+                },
+              );
+              const {
+                body,
+                status,
+              } = await postUsersMeEmailConfirm(app, token, {
+                body: {
+                  email: 'user2@email.com',
+                  password,
+                },
+                confirmToken: `Bearer ${wrongConfirmToken}`,
+              });
+              expect(body.errors).toBe(`confirmation token error: ${INVALID_UUID('user')}`);
+              expect(status).toBe(400);
             });
             describe('if email', () => {
               it('is not set', async () => {
@@ -163,7 +174,7 @@ describe('/users', () => {
                   body: {
                     password,
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrightConfirmToken}`,
                 });
                 expect(errors).toEqual({
                   email: FIELD_IS_REQUIRED,
@@ -181,7 +192,7 @@ describe('/users', () => {
                     email: '',
                     password,
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrightConfirmToken}`,
                 });
                 expect(errors).toEqual({
                   email: FIELD_CANNOT_BE_EMPTY,
@@ -199,7 +210,7 @@ describe('/users', () => {
                     email: 1234,
                     password,
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrightConfirmToken}`,
                 });
                 expect(errors).toEqual({
                   email: FIELD_SHOULD_BE_A_STRING,
@@ -217,7 +228,7 @@ describe('/users', () => {
                     email: 'not an email',
                     password,
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrightConfirmToken}`,
                 });
                 expect(errors).toEqual({
                   email: FIELD_SHOULD_BE_AN_EMAIL,
@@ -235,7 +246,7 @@ describe('/users', () => {
                     email: user.email,
                     password,
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrightConfirmToken}`,
                 });
                 expect(errors).toEqual({
                   email: 'should be a different one',
@@ -254,7 +265,7 @@ describe('/users', () => {
                   body: {
                     email: 'user2@email.com',
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrightConfirmToken}`,
                 });
                 expect(errors).toEqual({
                   password: FIELD_IS_REQUIRED,
@@ -272,7 +283,7 @@ describe('/users', () => {
                     email: 'user2@email.com',
                     password: 'wrong password',
                   },
-                  confirmToken: 'Bearer token',
+                  confirmToken: `Bearer ${wrightConfirmToken}`,
                 });
                 expect(errors).toEqual({
                   password: WRONG_PASSWORD,
