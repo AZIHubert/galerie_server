@@ -18,7 +18,13 @@ initSequelize(() => {
 });
 
 // TODO:
+// Refactor POST /galeries/:galerieId/frames/
+// to be the same as POST /profilePictures/
+// TODO:
+// GET /users/me/currentProfilePicture/
+// TODO:
+// GET /users/:userId/currentProfilePicture/
+// TODO:
 // when fetch user at any place on galerie
 // return user with isBlackListed
 // instead of null.
-// userName cannot contain '@' or '.'

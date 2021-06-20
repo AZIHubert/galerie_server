@@ -16,6 +16,7 @@ import {
 import accEnv from '@src/helpers/accEnv';
 import checkExtension from '@src/helpers/checkExtension';
 import {
+  DEFAULT_ERROR_MESSAGE,
   FILE_SHOULD_BE_AN_IMAGE,
   FILE_IS_REQUIRED,
 } from '@src/helpers/errorMessages';
@@ -95,7 +96,7 @@ export default async (req: Request, res: Response) => {
               } catch (err) {
                 reject(err);
               }
-              reject(new Error('something went wrong'));
+              reject(new Error(DEFAULT_ERROR_MESSAGE));
             } else {
               try {
                 const cropedImage = await Image.create({
@@ -151,7 +152,7 @@ export default async (req: Request, res: Response) => {
               } catch (err) {
                 reject(err);
               }
-              reject(new Error('something went wrong'));
+              reject(new Error(DEFAULT_ERROR_MESSAGE));
             } else {
               try {
                 const originalImage = await Image.create({
@@ -215,7 +216,7 @@ export default async (req: Request, res: Response) => {
               } catch (err) {
                 reject(err);
               }
-              reject(new Error('something went wrong'));
+              reject(new Error(DEFAULT_ERROR_MESSAGE));
             }
             try {
               const pendingImage = await Image.create({
@@ -336,7 +337,7 @@ export default async (req: Request, res: Response) => {
       await originalImage.destroy();
       await pendingImage.destroy();
       return res.status(500).send({
-        errors: 'something went wrong',
+        errors: DEFAULT_ERROR_MESSAGE,
       });
     }
   } catch (err) {

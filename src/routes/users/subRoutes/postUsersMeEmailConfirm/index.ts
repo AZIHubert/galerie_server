@@ -11,6 +11,7 @@ import {
   sendValidateEmailMessage,
 } from '@src/helpers/email';
 import {
+  DEFAULT_ERROR_MESSAGE,
   WRONG_PASSWORD,
   WRONG_TOKEN_USER_ID,
   WRONG_TOKEN_VERSION,
@@ -105,7 +106,7 @@ export default async (req: Request, res: Response) => {
         expiresIn: '2d',
       },
       (err, emailToken) => {
-        if (err) throw new Error(`something went wrong: ${err}`);
+        if (err) throw new Error(`${DEFAULT_ERROR_MESSAGE}: ${err}`);
         if (emailToken) sendValidateEmailMessage(value.email, emailToken);
       },
     );

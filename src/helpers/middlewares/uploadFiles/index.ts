@@ -5,6 +5,10 @@ import {
 } from 'express';
 import multer from 'multer';
 
+import {
+  DEFAULT_ERROR_MESSAGE,
+} from '@src/helpers/errorMessages';
+
 export default (
   req: Request,
   res: Response,
@@ -26,7 +30,7 @@ export default (
       }
       if (err.message === 'Unexpected field') {
         return res.status(400).send({
-          errors: 'something went wrong with attached file',
+          errors: DEFAULT_ERROR_MESSAGE,
         });
       }
       return res.status(500).send(err);

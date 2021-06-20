@@ -2,13 +2,16 @@ import Joi from 'joi';
 
 import {
   FIELD_CANNOT_BE_EMPTY,
-  FIELD_SHOULD_BE_A_PASSWORD,
   FIELD_IS_REQUIRED,
   FIELD_MAX_LENGTH,
   FIELD_MIN_LENGTH,
   FIELD_SHOULD_BE_A_STRING,
   FIELD_SHOULD_MATCH,
 } from '@src/helpers/errorMessages';
+import {
+  PASSWORD_ERROR,
+  SPACES_ERROR,
+} from '@root/src/helpers/patternErrorsName';
 
 import options from '../options';
 
@@ -37,14 +40,10 @@ const sendUpdatePassword = Joi.object({
   newPassword: Joi.string()
     .required()
     .empty()
-    .pattern(
-      new RegExp(/^\S*$/),
-      { name: 'spacesError' },
-    )
-    .pattern(
-      new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,30}$'),
-      { name: 'passwordError' },
-    )
+    .pattern(new RegExp(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{0,}$/), {
+      name: PASSWORD_ERROR,
+    })
+    .pattern(new RegExp(/^\S*$/), { name: SPACES_ERROR })
     .max(NEW_PASSWORD_MAX_LENGTH)
     .min(NEW_PASSWORD_MIN_LENGTH)
     .messages({
@@ -53,7 +52,6 @@ const sendUpdatePassword = Joi.object({
       'string.empty': FIELD_CANNOT_BE_EMPTY,
       'string.max': FIELD_MAX_LENGTH(NEW_PASSWORD_MAX_LENGTH),
       'string.min': FIELD_MIN_LENGTH(NEW_PASSWORD_MIN_LENGTH),
-      'string.pattern.base': FIELD_SHOULD_BE_A_PASSWORD,
     }),
 });
 

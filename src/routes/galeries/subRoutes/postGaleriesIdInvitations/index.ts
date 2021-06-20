@@ -13,6 +13,7 @@ import {
 } from '@src/db/models';
 
 import {
+  DEFAULT_ERROR_MESSAGE,
   INVALID_UUID,
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
@@ -116,7 +117,7 @@ export default async (req: Request, res: Response) => {
   const code = await checkIfCodeExis(0);
   if (!code) {
     return res.status(500).send({
-      errors: 'something went wrong',
+      errors: DEFAULT_ERROR_MESSAGE,
     });
   }
 

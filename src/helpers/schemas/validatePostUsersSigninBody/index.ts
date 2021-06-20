@@ -9,6 +9,11 @@ import {
   FIELD_SHOULD_BE_AN_EMAIL,
   FIELD_SHOULD_MATCH,
 } from '@src/helpers/errorMessages';
+import {
+  SPECIAL_CHARS_ERROR,
+  PASSWORD_ERROR,
+  SPACES_ERROR,
+} from '@root/src/helpers/patternErrorsName';
 
 import options from '../options';
 
@@ -42,8 +47,10 @@ const userSignInSchema = Joi.object({
   password: Joi.string()
     .required()
     .empty()
-    .pattern(new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,30}$'), { name: 'passwordError' })
-    .pattern(new RegExp(/^\S*$/), { name: 'spacesError' })
+    .pattern(new RegExp(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{0,}$/), {
+      name: PASSWORD_ERROR,
+    })
+    .pattern(new RegExp(/^\S*$/), { name: SPACES_ERROR })
     .min(PASSWORD_MIN_LENGTH)
     .max(PASSWORD_MAX_LENGTH)
     // Minimum 9 chars.
@@ -61,7 +68,11 @@ const userSignInSchema = Joi.object({
     }),
   userName: Joi.string()
     .trim()
-    .pattern(new RegExp(/^\S*$/), { name: 'spacesError' })
+    .pattern(new RegExp(/^\S*$/), { name: SPACES_ERROR })
+    .pattern(new RegExp(/^\S*$/), { name: SPACES_ERROR })
+    .pattern(new RegExp(/^[^#?!@$%^&*-.]*$/), {
+      name: SPECIAL_CHARS_ERROR,
+    })
     .empty()
     .min(USERNAME_MIN_LENGTH)
     .max(USERNAME_MAX_LENGTH)
