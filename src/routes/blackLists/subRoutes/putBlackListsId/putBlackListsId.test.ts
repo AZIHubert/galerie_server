@@ -89,7 +89,7 @@ describe('/blackLists', () => {
 
         it('return blackListId', async () => {
           const { id: blackListId } = await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             userId: userTwo.id,
           });
           const {
@@ -107,7 +107,7 @@ describe('/blackLists', () => {
         });
         it('set user.blackListedAt === null && user.isBlackListed === false', async () => {
           const blackList = await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             userId: userTwo.id,
           });
           await putBlackListsId(app, token, blackList.id);
@@ -117,7 +117,7 @@ describe('/blackLists', () => {
         });
         it('set blackList.updatedById === currentUser.id', async () => {
           const blackList = await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             userId: userTwo.id,
           });
           await putBlackListsId(app, token, blackList.id);
@@ -133,7 +133,7 @@ describe('/blackLists', () => {
             userName: 'user3',
           });
           const { id: blackListId } = await createBlackList({
-            adminId: userThree.id,
+            createdById: userThree.id,
             userId: userTwo.id,
           });
           const {
@@ -141,7 +141,7 @@ describe('/blackLists', () => {
           } = await putBlackListsId(app, token, blackListId);
           expect(status).toBe(200);
         });
-        it('don\'t return error if currentUser.role === \'admin\' and blackList.admin.role === \'admin\'', async () => {
+        it('don\'t return error if currentUser.role === \'admin\' and blackList.createdBy.role === \'admin\'', async () => {
           const {
             user: userThree,
           } = await createUser({
@@ -158,7 +158,7 @@ describe('/blackLists', () => {
           });
           const { token: tokenFour } = signAuthToken(userFour);
           const { id: blackListId } = await createBlackList({
-            adminId: userThree.id,
+            createdById: userThree.id,
             userId: userTwo.id,
           });
           const {
@@ -185,7 +185,7 @@ describe('/blackLists', () => {
           });
           const { id: blackListId } = await createBlackList({
             active: false,
-            adminId: user.id,
+            createdById: user.id,
             userId: userTwo.id,
           });
           const {
@@ -195,7 +195,7 @@ describe('/blackLists', () => {
           expect(body.errors).toBe('not allow to update a non active black list');
           expect(status).toBe(400);
         });
-        it('currentUser.role === \'admin\' and blackList.admin.role === \'superAdmin\'', async () => {
+        it('currentUser.role === \'admin\' and blackList.createdBy.role === \'superAdmin\'', async () => {
           const {
             user: userTwo,
           } = await createUser({
@@ -211,7 +211,7 @@ describe('/blackLists', () => {
           });
           const { token: tokenThree } = signAuthToken(userThree);
           const { id: blackListId } = await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             userId: userTwo.id,
           });
           const {
@@ -230,7 +230,7 @@ describe('/blackLists', () => {
             userName: 'user2',
           });
           const blackList = await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             time,
             userId: userTwo.id,
           });

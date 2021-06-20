@@ -122,13 +122,13 @@ describe('/blackLists', () => {
           });
           const blackList = await BlackList.findOne({
             where: {
-              adminId: user.id,
+              createdById: user.id,
               userId: userTwo.id,
             },
           });
           expect(action).toBe('POST');
           expect(blackList).not.toBeNull();
-          expect(returnedBlackList.adminId).toBeUndefined();
+          expect(returnedBlackList.createdById).toBeUndefined();
           expect(returnedBlackList.active).toBe(true);
           expect(returnedBlackList.createdAt).not.toBeUndefined();
           expect(returnedBlackList.id).not.toBeUndefined();
@@ -139,7 +139,7 @@ describe('/blackLists', () => {
           expect(returnedBlackList.updatedBy).toBeNull();
           expect(returnedBlackList.userId).toBeUndefined();
           expect(status).toBe(200);
-          testUser(returnedBlackList.admin);
+          testUser(returnedBlackList.createdBy);
           testUser(returnedBlackList.user);
         });
         it('post black list with a time', async () => {
@@ -227,7 +227,7 @@ describe('/blackLists', () => {
           });
           testProfilePicture(currentProfilePicture);
         });
-        it('return admin/superAdmin current profile picture', async () => {
+        it('return createdBy current profile picture', async () => {
           await createProfilePicture({
             userId: user.id,
           });
@@ -235,7 +235,7 @@ describe('/blackLists', () => {
             body: {
               data: {
                 blackList: {
-                  admin: {
+                  createdBy: {
                     currentProfilePicture,
                   },
                 },

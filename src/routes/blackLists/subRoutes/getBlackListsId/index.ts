@@ -45,7 +45,7 @@ export default async (req: Request, res: Response) => {
       },
       include: [
         {
-          as: 'admin',
+          as: 'createdBy',
           attributes: {
             exclude: userExcluder,
           },
@@ -95,9 +95,9 @@ export default async (req: Request, res: Response) => {
   }
 
   // Fetch admin current profile picture
-  if (blackList.admin) {
+  if (blackList.createdBy) {
     try {
-      adminCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.admin);
+      adminCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.createdBy);
     } catch (err) {
       return res.status(500).send(err);
     }
@@ -119,8 +119,8 @@ export default async (req: Request, res: Response) => {
   const returnedBlackList = {
     ...blackList.toJSON(),
     active: blackList.user.isBlackListed,
-    admin: blackList.admin ? {
-      ...blackList.admin.toJSON(),
+    createdBy: blackList.createdBy ? {
+      ...blackList.createdBy.toJSON(),
       currentProfilePicture: adminCurrentProfilePicture,
     } : null,
     updatedBy: blackList.updatedBy ? {

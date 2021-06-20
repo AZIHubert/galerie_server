@@ -53,7 +53,7 @@ export default async (req: Request, res: Response) => {
           },
           include: [
             {
-              as: 'admin',
+              as: 'createdBy',
               attributes: {
                 exclude: userExcluder,
               },
@@ -101,16 +101,16 @@ export default async (req: Request, res: Response) => {
       users.map(async (user) => {
         const {
           blackListsUser: [{
-            admin,
+            createdBy,
             updatedBy,
           }],
         } = user;
         const currentProfilePicture = await fetchCurrentProfilePicture(user);
-        let adminCurrentProfilePicture;
+        let createdByCurrentProfilePicture;
         let updatedByCurrentProfilePicture;
 
-        if (admin) {
-          adminCurrentProfilePicture = await fetchCurrentProfilePicture(admin);
+        if (createdBy) {
+          createdByCurrentProfilePicture = await fetchCurrentProfilePicture(createdBy);
         }
         if (user.blackListsUser[0].updatedBy) {
           updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(updatedBy);
@@ -122,9 +122,9 @@ export default async (req: Request, res: Response) => {
 
         return {
           ...user.blackListsUser[0].toJSON(),
-          admin: admin ? {
-            ...admin.toJSON(),
-            currentProfilePicture: adminCurrentProfilePicture,
+          createdBy: createdBy ? {
+            ...createdBy.toJSON(),
+            currentProfilePicture: createdByCurrentProfilePicture,
           } : null,
           active: true,
           updatedBy: updatedBy ? {

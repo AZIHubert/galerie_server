@@ -147,10 +147,10 @@ export default async (req: Request, res: Response) => {
   // blackList.adminId === currentUser.id.
   try {
     await BlackList.update(
-      { adminId: null },
+      { createdById: null },
       {
         where: {
-          adminId: user.id,
+          createdById: user.id,
         },
       },
     );

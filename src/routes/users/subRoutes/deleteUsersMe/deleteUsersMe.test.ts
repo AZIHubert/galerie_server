@@ -165,7 +165,7 @@ describe('/users', () => {
             userName: 'user2',
           });
           const blackList = await createBlackList({
-            adminId: user.id,
+            createdById: user.id,
             userId: userTwo.id,
           });
           const {
@@ -178,7 +178,7 @@ describe('/users', () => {
             },
           });
           await blackList.reload();
-          expect(blackList.adminId).toBeNull();
+          expect(blackList.createdById).toBeNull();
           expect(status).toBe(200);
         });
         it('set blackList.updatedById === null to all blackLists updated by the current user', async () => {
@@ -724,7 +724,7 @@ describe('/users', () => {
               userName: 'user3',
             });
             const blackList = await createBlackList({
-              adminId: userTwo.id,
+              createdById: userTwo.id,
               userId: userThree.id,
             });
             const {
@@ -737,7 +737,7 @@ describe('/users', () => {
               },
             });
             await blackList.reload();
-            expect(blackList.adminId).toBe(userTwo.id);
+            expect(blackList.createdById).toBe(userTwo.id);
             expect(status).toBe(200);
           });
           it('set blackList.adminId === null to all blackList updated by other users', async () => {

@@ -28,7 +28,7 @@ export default async (req: Request, res: Response) => {
   const objectBlackListExcluder: { [key: string]: undefined } = {};
   const objectUserExcluder: { [key: string]: undefined } = {};
   const { userId } = req.params;
-  let adminCurrentProfilePicture;
+  let createdByCurrentProfilePicture;
   let blackList: BlackList;
   let currentProfilePicture;
   let user: User | null;
@@ -94,7 +94,7 @@ export default async (req: Request, res: Response) => {
   // create blackList.
   try {
     blackList = await BlackList.create({
-      adminId: currentUser.id,
+      createdById: currentUser.id,
       reason: value.reason,
       time: value.time
         ? new Date(Date.now() + value.time)
@@ -123,7 +123,7 @@ export default async (req: Request, res: Response) => {
 
   // Fetch admin current profile picture.
   try {
-    adminCurrentProfilePicture = await fetchCurrentProfilePicture(currentUser);
+    createdByCurrentProfilePicture = await fetchCurrentProfilePicture(currentUser);
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -139,10 +139,10 @@ export default async (req: Request, res: Response) => {
     ...blackList.toJSON(),
     ...objectBlackListExcluder,
     active: true,
-    admin: {
+    createdBy: {
       ...currentUser.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture: adminCurrentProfilePicture,
+      currentProfilePicture: createdByCurrentProfilePicture,
     },
     updatedBy: null,
     user: {

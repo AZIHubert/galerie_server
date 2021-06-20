@@ -10,7 +10,7 @@ import {
 import User from '../user';
 
 interface BlackListI {
-  adminId?: string;
+  createdById?: string;
   id: string;
   reason: string;
   time?: Date;
@@ -22,12 +22,13 @@ interface BlackListI {
   tableName: 'blackList',
 })
 export default class BlackList extends Model implements BlackListI {
-  // Id of the admin who created the black list.
+  // Id of the admin who
+  // created the black list.
   @ForeignKey(() => User)
   @Column({
     type: DataType.UUID,
   })
-  adminId!: string;
+  createdById!: string;
 
   @Column({
     allowNull: false,
@@ -67,8 +68,8 @@ export default class BlackList extends Model implements BlackListI {
   })
   updatedById!: string;
 
-  @BelongsTo(() => User, 'adminId')
-  admin!: User;
+  @BelongsTo(() => User, 'createdById')
+  createdBy!: User;
 
   @BelongsTo(() => User, 'updatedById')
   updatedBy!: User;
