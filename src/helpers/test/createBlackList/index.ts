@@ -12,7 +12,7 @@ export default async ({
   userId,
 } : {
   active?: boolean;
-  adminId: string;
+  adminId?: string;
   reason?: string;
   time?: number;
   updatedById?: string;
