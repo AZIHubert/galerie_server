@@ -9,7 +9,7 @@ export default (
   expect(frame.galeriePictures[0].cropedImage.format).not.toBeUndefined();
   expect(frame.galeriePictures[0].cropedImage.height).not.toBeUndefined();
   expect(frame.galeriePictures[0].cropedImage.id).toBeUndefined();
-  expect(frame.galeriePictures[0].cropedImage.signedUrl).not.toBeUndefined();
+  expect(typeof frame.galeriePictures[0].cropedImage.signedUrl).toBe('string');
   expect(frame.galeriePictures[0].cropedImage.size).not.toBeUndefined();
   expect(frame.galeriePictures[0].cropedImage.updatedAt).toBeUndefined();
   expect(frame.galeriePictures[0].cropedImage.width).not.toBeUndefined();
@@ -19,7 +19,7 @@ export default (
   expect(frame.galeriePictures[0].originalImage.format).not.toBeUndefined();
   expect(frame.galeriePictures[0].originalImage.height).not.toBeUndefined();
   expect(frame.galeriePictures[0].originalImage.id).toBeUndefined();
-  expect(frame.galeriePictures[0].originalImage.signedUrl).not.toBeUndefined();
+  expect(typeof frame.galeriePictures[0].originalImage.signedUrl).toBe('string');
   expect(frame.galeriePictures[0].originalImage.size).not.toBeUndefined();
   expect(frame.galeriePictures[0].originalImage.updatedAt).toBeUndefined();
   expect(frame.galeriePictures[0].originalImage.width).not.toBeUndefined();
@@ -28,7 +28,7 @@ export default (
   expect(frame.galeriePictures[0].pendingImage.format).not.toBeUndefined();
   expect(frame.galeriePictures[0].pendingImage.height).not.toBeUndefined();
   expect(frame.galeriePictures[0].pendingImage.id).toBeUndefined();
-  expect(frame.galeriePictures[0].pendingImage.signedUrl).not.toBeUndefined();
+  expect(typeof frame.galeriePictures[0].pendingImage.signedUrl).toBe('string');
   expect(frame.galeriePictures[0].pendingImage.size).not.toBeUndefined();
   expect(frame.galeriePictures[0].pendingImage.updatedAt).toBeUndefined();
   expect(frame.galeriePictures[0].pendingImage.width).not.toBeUndefined();

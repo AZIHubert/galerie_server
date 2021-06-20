@@ -48,6 +48,7 @@ const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 export default async (req: Request, res: Response) => {
   const { files } = req;
   const { galerieId } = req.params;
+  const createdImages: Array<Image> = [];
   const currentUser = req.user as User;
   const objectFrameExcluder: { [key: string]: undefined } = {};
   const objectGaleriePictureExcluder: { [key: string]: undefined } = {};
@@ -57,6 +58,8 @@ export default async (req: Request, res: Response) => {
   let errors;
   let frame: Frame;
   let galerie: Galerie | null;
+  let images: Image[][];
+  let rejection: boolean = false;
   let returnedGaleriePictures: Array<any>;
 
   // Check if request.params.galerieId
@@ -157,6 +160,7 @@ export default async (req: Request, res: Response) => {
   const promiseImages = convertToArray().map((file) => {
     const { buffer } = file;
     const cropedImagePromise: Promise<Image> = new Promise((resolve, reject) => {
+      const fileName = `croped_${Date.now()}_${uuidv4()}.jpg`;
       const image = sharp(buffer)
         .resize(600, 600);
       image
@@ -170,7 +174,6 @@ export default async (req: Request, res: Response) => {
               height,
             },
           } = e;
-          const fileName = `croped_${Date.now()}_${uuidv4()}.jpg`;
           const blobStream = gc
             .bucket(GALERIES_BUCKET_PP_CROP)
             .file(fileName)
@@ -182,23 +185,37 @@ export default async (req: Request, res: Response) => {
             .on('error', (err) => {
               reject(err);
             }).on('finish', async () => {
-              try {
-                const cropedImage = await Image.create({
-                  bucketName: GALERIES_BUCKET_PP_CROP,
-                  fileName,
-                  format,
-                  height,
-                  size,
-                  width,
-                });
-                resolve(cropedImage);
-              } catch (err) {
-                reject(err);
+              if (rejection) {
+                try {
+                  gc
+                    .bucket(GALERIES_BUCKET_PP_CROP)
+                    .file(fileName)
+                    .delete();
+                } catch (err) {
+                  reject(err);
+                }
+                reject(new Error(DEFAULT_ERROR_MESSAGE));
+              } else {
+                try {
+                  const cropedImage = await Image.create({
+                    bucketName: GALERIES_BUCKET_PP_CROP,
+                    fileName,
+                    format,
+                    height,
+                    size,
+                    width,
+                  });
+                  createdImages.push(cropedImage);
+                  resolve(cropedImage);
+                } catch (err) {
+                  reject(err);
+                }
               }
             });
         });
     });
     const originalImagePromise: Promise<Image> = new Promise((resolve, reject) => {
+      const fileName = `original_${Date.now()}_${uuidv4()}.jpg`;
       const image = sharp(buffer);
       image
         .toBuffer({ resolveWithObject: true })
@@ -211,7 +228,6 @@ export default async (req: Request, res: Response) => {
               height,
             },
           } = e;
-          const fileName = `original_${Date.now()}_${uuidv4()}.jpg`;
           const blobStream = gc
             .bucket(GALERIES_BUCKET_PP)
             .file(fileName)
@@ -223,23 +239,37 @@ export default async (req: Request, res: Response) => {
             .on('error', (err) => {
               reject(err);
             }).on('finish', async () => {
-              try {
-                const originalImage = await Image.create({
-                  bucketName: GALERIES_BUCKET_PP,
-                  fileName,
-                  format,
-                  height,
-                  size,
-                  width,
-                });
-                resolve(originalImage);
-              } catch (err) {
-                reject(err);
+              if (rejection) {
+                try {
+                  gc
+                    .bucket(GALERIES_BUCKET_PP)
+                    .file(fileName)
+                    .delete();
+                } catch (err) {
+                  reject(err);
+                }
+                reject(new Error(DEFAULT_ERROR_MESSAGE));
+              } else {
+                try {
+                  const originalImage = await Image.create({
+                    bucketName: GALERIES_BUCKET_PP,
+                    fileName,
+                    format,
+                    height,
+                    size,
+                    width,
+                  });
+                  createdImages.push(originalImage);
+                  resolve(originalImage);
+                } catch (err) {
+                  reject(err);
+                }
               }
             });
         });
     });
     const pendingImagePromise: Promise<Image> = new Promise((resolve, reject) => {
+      const fileName = `penging_${Date.now()}_${uuidv4()}.jpg`;
       const image = sharp(buffer)
         .blur(10)
         .modulate({
@@ -258,7 +288,6 @@ export default async (req: Request, res: Response) => {
               height,
             },
           } = e;
-          const fileName = `penging_${Date.now()}_${uuidv4()}.jpg`;
           const blobStream = gc
             .bucket(GALERIES_BUCKET_PP_PENDING)
             .file(fileName)
@@ -270,18 +299,31 @@ export default async (req: Request, res: Response) => {
             .on('error', (err) => {
               reject(err);
             }).on('finish', async () => {
-              try {
-                const pendingImage = await Image.create({
-                  bucketName: GALERIES_BUCKET_PP_PENDING,
-                  fileName,
-                  format,
-                  height,
-                  size,
-                  width,
-                });
-                resolve(pendingImage);
-              } catch (err) {
-                reject(err);
+              if (rejection) {
+                try {
+                  gc
+                    .bucket(GALERIES_BUCKET_PP_PENDING)
+                    .file(fileName)
+                    .delete();
+                } catch (err) {
+                  reject(err);
+                }
+                reject(new Error(DEFAULT_ERROR_MESSAGE));
+              } else {
+                try {
+                  const pendingImage = await Image.create({
+                    bucketName: GALERIES_BUCKET_PP_PENDING,
+                    fileName,
+                    format,
+                    height,
+                    size,
+                    width,
+                  });
+                  createdImages.push(pendingImage);
+                  resolve(pendingImage);
+                } catch (err) {
+                  reject(err);
+                }
               }
             });
         });
@@ -296,10 +338,29 @@ export default async (req: Request, res: Response) => {
   try {
     // Resolve promise for each images and
     // each of its croped/original/pending image.
-    const images = await Promise.all(
+    images = await Promise.all(
       promiseImages.map((promiseImage) => Promise.all(promiseImage)),
     );
+  } catch (err) {
+    rejection = true;
+    try {
+      await Promise.all(
+        createdImages.map(async (image) => {
+          await gc
+            .bucket(image.bucketName)
+            .file(image.fileName)
+            .delete();
+          await image.destroy();
+        }),
+      );
+      await frame.destroy();
+    } catch (errTwo) {
+      return res.status(500).send(errTwo);
+    }
+    return res.status(500).send(err);
+  }
 
+  try {
     // For each images ...
     returnedGaleriePictures = await Promise.all(
       images.map(async (image, index) => {
@@ -308,73 +369,29 @@ export default async (req: Request, res: Response) => {
           originalImage,
           pendingImage,
         ] = image;
-        try {
           // ...fetch the signed urls,...
-          const cropedImageSignedUrl = await signedUrl(
-            cropedImage.bucketName,
-            cropedImage.fileName,
-          );
-          const originalImageSignedUrl = await signedUrl(
-            originalImage.bucketName,
-            originalImage.fileName,
-          );
-          const pendingImageSignedUrl = await signedUrl(
-            pendingImage.bucketName,
-            pendingImage.fileName,
-          );
+        const cropedImageSignedUrl = await signedUrl(
+          cropedImage.bucketName,
+          cropedImage.fileName,
+        );
+        const originalImageSignedUrl = await signedUrl(
+          originalImage.bucketName,
+          originalImage.fileName,
+        );
+        const pendingImageSignedUrl = await signedUrl(
+          pendingImage.bucketName,
+          pendingImage.fileName,
+        );
 
-          // Check if all image from Google Bucket exists.
-          // If one of theme doesn\'t exist,
-          // destroy all images from Google Bucket,
-          // all images and all GalerieImages.
-          if (
-            cropedImageSignedUrl.OK
-            && originalImageSignedUrl.OK
-            && pendingImageSignedUrl.OK
-          ) {
-            // ...create galeriePicture,...
-            const galeriePicture = await GaleriePicture.create({
-              cropedImageId: cropedImage.id,
-              frameId: frame.id,
-              originalImageId: originalImage.id,
-              pendingImageId: pendingImage.id,
-              index,
-            });
-
-            galeriePictureExcluder.forEach((e) => {
-              objectGaleriePictureExcluder[e] = undefined;
-            });
-            imageExcluder.forEach((e) => {
-              objectImageExcluder[e] = undefined;
-            });
-
-            // ...compose the final galeriePicture...
-            return {
-              ...galeriePicture.toJSON(),
-              ...objectGaleriePictureExcluder,
-              cropedImage: {
-                ...cropedImage.toJSON(),
-                ...objectImageExcluder,
-                bucketName: undefined,
-                fileName: undefined,
-                signedUrl: cropedImageSignedUrl.signedUrl,
-              },
-              originalImage: {
-                ...originalImage.toJSON(),
-                ...objectImageExcluder,
-                bucketName: undefined,
-                fileName: undefined,
-                signedUrl: originalImageSignedUrl.signedUrl,
-              },
-              pendingImage: {
-                ...pendingImage.toJSON(),
-                ...objectImageExcluder,
-                bucketName: undefined,
-                fileName: undefined,
-                signedUrl: pendingImageSignedUrl.signedUrl,
-              },
-            };
-          }
+        // Check if all image from Google Bucket exists.
+        // If one of theme doesn\'t exist,
+        // destroy all images from Google Bucket,
+        // all images and all GalerieImages.
+        if (
+          !cropedImageSignedUrl.OK
+            || !originalImageSignedUrl.OK
+            || !pendingImageSignedUrl.OK
+        ) {
           if (cropedImageSignedUrl.OK) {
             await gc
               .bucket(cropedImage.bucketName)
@@ -396,10 +413,51 @@ export default async (req: Request, res: Response) => {
           await cropedImage.destroy();
           await originalImage.destroy();
           await pendingImage.destroy();
+          await frame.destroy();
           throw new Error(DEFAULT_ERROR_MESSAGE);
-        } catch (err) {
-          throw new Error(err);
         }
+
+        const galeriePicture = await GaleriePicture.create({
+          cropedImageId: cropedImage.id,
+          frameId: frame.id,
+          originalImageId: originalImage.id,
+          pendingImageId: pendingImage.id,
+          index,
+        });
+
+        galeriePictureExcluder.forEach((e) => {
+          objectGaleriePictureExcluder[e] = undefined;
+        });
+        imageExcluder.forEach((e) => {
+          objectImageExcluder[e] = undefined;
+        });
+
+        // ...compose the final galeriePicture...
+        return {
+          ...galeriePicture.toJSON(),
+          ...objectGaleriePictureExcluder,
+          cropedImage: {
+            ...cropedImage.toJSON(),
+            ...objectImageExcluder,
+            bucketName: undefined,
+            fileName: undefined,
+            signedUrl: cropedImageSignedUrl.signedUrl,
+          },
+          originalImage: {
+            ...originalImage.toJSON(),
+            ...objectImageExcluder,
+            bucketName: undefined,
+            fileName: undefined,
+            signedUrl: originalImageSignedUrl.signedUrl,
+          },
+          pendingImage: {
+            ...pendingImage.toJSON(),
+            ...objectImageExcluder,
+            bucketName: undefined,
+            fileName: undefined,
+            signedUrl: pendingImageSignedUrl.signedUrl,
+          },
+        };
       }),
     );
   } catch (err) {
