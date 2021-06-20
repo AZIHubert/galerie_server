@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
-  Invitation,
   User,
 } from '@src/db/models';
 
@@ -160,8 +159,7 @@ describe('/galeries', () => {
             const numOfInvitations = new Array(NUM).fill(0);
             await Promise.all(
               numOfInvitations.map(async () => {
-                await Invitation.create({
-                  code: 'code',
+                await createInvitation({
                   galerieId,
                   userId: user.id,
                 });
