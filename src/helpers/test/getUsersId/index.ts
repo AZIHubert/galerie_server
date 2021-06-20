@@ -7,7 +7,7 @@ export default async (
   id: string,
 ) => {
   const response = await request(app)
-    .get(`/users/id/${id}`)
+    .get(`/users/${id}`)
     .set('authorization', token);
   return response;
 };

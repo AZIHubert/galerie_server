@@ -21,7 +21,7 @@ import {
   createBlackList,
   createProfilePicture,
   createUser,
-  getUsersIdId,
+  getUsersId,
   testProfilePicture,
   testUser,
 } from '@src/helpers/test';
@@ -89,7 +89,7 @@ describe('/users', () => {
                 },
               },
               status,
-            } = await getUsersIdId(app, token, userTwo.id);
+            } = await getUsersId(app, token, userTwo.id);
             expect(action).toBe('GET');
             expect(status).toBe(200);
             testUser(returnedUser, userTwo);
@@ -110,7 +110,7 @@ describe('/users', () => {
                   },
                 },
               },
-            } = await getUsersIdId(app, token, userTwo.id);
+            } = await getUsersId(app, token, userTwo.id);
             testProfilePicture(currentProfilePicture, profilePicture);
           });
           it('do not include profile picture if signedUrl.OK === false', async () => {
@@ -132,7 +132,7 @@ describe('/users', () => {
                   },
                 },
               },
-            } = await getUsersIdId(app, token, userTwo.id);
+            } = await getUsersId(app, token, userTwo.id);
             const images = await Image.findAll();
             const profilePicture = await ProfilePicture.findByPk(profilePictureId);
             expect(images.length).toBe(0);
@@ -145,7 +145,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await getUsersIdId(app, token, '100');
+            } = await getUsersId(app, token, '100');
             expect(body.errors).toEqual(INVALID_UUID('user'));
             expect(status).toBe(400);
           });
@@ -153,7 +153,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await getUsersIdId(app, token, user.id);
+            } = await getUsersId(app, token, user.id);
             expect(body.errors).toEqual('params.id cannot be the same as your current one');
             expect(status).toBe(400);
           });
@@ -163,7 +163,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await getUsersIdId(app, token, uuidv4());
+            } = await getUsersId(app, token, uuidv4());
             expect(status).toBe(404);
             expect(body).toEqual({
               errors: MODEL_NOT_FOUND('user'),
@@ -182,7 +182,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await getUsersIdId(app, token, id);
+            } = await getUsersId(app, token, id);
             expect(status).toBe(404);
             expect(body).toEqual({
               errors: MODEL_NOT_FOUND('user'),
@@ -200,7 +200,7 @@ describe('/users', () => {
             const {
               body,
               status,
-            } = await getUsersIdId(app, token, userTwo.id);
+            } = await getUsersId(app, token, userTwo.id);
             expect(status).toBe(404);
             expect(body).toEqual({
               errors: MODEL_NOT_FOUND('user'),

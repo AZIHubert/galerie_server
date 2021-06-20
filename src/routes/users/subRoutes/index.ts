@@ -1,7 +1,7 @@
 export { default as deleteUsersMe } from './deleteUsersMe';
 
 export { default as getUsers } from './getUsers';
-export { default as getUsersIdId } from './getUsersIdId';
+export { default as getUsersId } from './getUsersId';
 export { default as getUsersLogout } from './getUsersLogout';
 export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
