@@ -31,9 +31,6 @@ import {
 } from '@src/helpers/schemas';
 import validatePassword from '@src/helpers/validatePassword';
 
-// TODO:
-// order deletions.
-
 export default async (req: Request, res: Response) => {
   const user = req.user as User;
 
