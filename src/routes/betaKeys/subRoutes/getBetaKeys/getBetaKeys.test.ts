@@ -288,6 +288,10 @@ describe('/betaKeys', () => {
             email: 'user3@email.com',
             userName: 'user3',
           });
+          const { user: userFour } = await createUser({
+            email: 'user4@email.com',
+            userName: 'user4',
+          });
           // me = true && used = true
           const betaKeyOne = await createBetaKey({
             createdById: user.id,
@@ -304,7 +308,7 @@ describe('/betaKeys', () => {
           });
           // me = false && used = true
           await createBetaKey({
-            userId: userTwo.id,
+            userId: userFour.id,
           });
           // me = false && used = false
           await createBetaKey({});
@@ -324,6 +328,10 @@ describe('/betaKeys', () => {
             email: 'user2@email.com',
             userName: 'user2',
           });
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
           // me = true && used = false
           const betaKeyOne = await createBetaKey({
             createdById: user.id,
@@ -339,7 +347,7 @@ describe('/betaKeys', () => {
           });
           // me = false && used = true
           await createBetaKey({
-            userId: userTwo.id,
+            userId: userThree.id,
           });
           await createBetaKey({});
           const {
