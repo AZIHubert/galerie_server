@@ -24,9 +24,6 @@ import {
   galerieBlackListExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import {
-  fetchCurrentProfilePicture,
-} from '@src/helpers/fetch';
 import gc from '@src/helpers/gc';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
@@ -38,8 +35,6 @@ export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   const objectUserExcluder: { [key:string]: undefined} = {};
   const objectGalerieBlackListExcluder: { [key:string]: undefined} = {};
-  let createdByCurrentProfilePicture;
-  let currentProfilePicture;
   let galerie: Galerie | null;
   let galerieBlackList: GalerieBlackList;
   let user: User | null;
@@ -320,20 +315,6 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Fetch admin current profile picture.
-  try {
-    createdByCurrentProfilePicture = await fetchCurrentProfilePicture(currentUser);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // Fetch current profile picture
-  try {
-    currentProfilePicture = await fetchCurrentProfilePicture(user);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   userExcluder.forEach((e) => {
     objectUserExcluder[e] = undefined;
   });
@@ -348,12 +329,12 @@ export default async (req: Request, res: Response) => {
     createdBy: {
       ...currentUser.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture: createdByCurrentProfilePicture,
+      currentProfilePicture: null,
     },
     user: {
       ...user.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture,
+      currentProfilePicture: null,
     },
   };
 
