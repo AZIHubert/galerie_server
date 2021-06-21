@@ -11,7 +11,6 @@ import { User } from '@src/db/models';
 import {
   userExcluder,
 } from '@src/helpers/excluders';
-import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const {
@@ -24,7 +23,6 @@ export default async (req: Request, res: Response) => {
   let direction = 'ASC';
   let offset: number;
   let order = 'pseudonym';
-  let returnedUser;
   let users: Array<User>;
 
   if (
@@ -70,19 +68,12 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  try {
-    returnedUser = await Promise.all(
-      users.map(async (user) => {
-        const currentProfilePicture = await fetchCurrentProfilePicture(user);
-        return {
-          ...user.toJSON(),
-          currentProfilePicture,
-        };
-      }),
-    );
-  } catch (err) {
-    return res.status(500).send(err);
-  }
+  const returnedUser = users.map((user) => ({
+    ...user.toJSON(),
+    currentProfilePicture: null,
+  }));
+
+  console.log(returnedUser);
 
   return res.status(200).send({
     action: 'GET',
