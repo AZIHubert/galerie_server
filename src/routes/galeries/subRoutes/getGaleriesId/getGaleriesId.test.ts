@@ -5,9 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
-  GaleriePicture,
   GalerieUser,
-  Image,
   User,
 } from '@src/db/models';
 
@@ -17,15 +15,12 @@ import {
 } from '@src/helpers/errorMessages';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import initSequelize from '@src/helpers/initSequelize.js';
-import signedUrl from '@src/helpers/signedUrl';
 import {
-  createFrame,
   createGalerie,
   createGalerieUser,
   createUser,
   getGaleriesId,
   testGalerie,
-  testGaleriePicture,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -34,8 +29,6 @@ let app: Server;
 let sequelize: Sequelize;
 let token: string;
 let user: User;
-
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 describe('/galeries', () => {
   describe('/:galerieId', () => {
@@ -46,11 +39,6 @@ describe('/galeries', () => {
       });
 
       beforeEach(async (done) => {
-        jest.clearAllMocks();
-        (signedUrl as jest.Mock).mockImplementation(() => ({
-          OK: true,
-          signedUrl: 'signedUrl',
-        }));
         try {
           await sequelize.sync({ force: true });
           const {
@@ -66,7 +54,6 @@ describe('/galeries', () => {
       });
 
       afterAll(async (done) => {
-        jest.clearAllMocks();
         try {
           await sequelize.sync({ force: true });
           await sequelize.close();
@@ -124,23 +111,6 @@ describe('/galeries', () => {
           } = await getGaleriesId(app, tokenTwo, galerie.id);
           expect(status).toBe(200);
         });
-        it('include current profile picture', async () => {
-          await createFrame({
-            current: true,
-            galerieId: galerie.id,
-            userId: user.id,
-          });
-          const {
-            body: {
-              data: {
-                galerie: {
-                  currentCoverPicture,
-                },
-              },
-            },
-          } = await getGaleriesId(app, token, galerie.id);
-          testGaleriePicture(currentCoverPicture);
-        });
         it('set GalerieUser.hasNewFrames to false', async () => {
           const {
             user: userTwo,
@@ -164,40 +134,6 @@ describe('/galeries', () => {
             },
           }) as GalerieUser;
           expect(galerieUser.hasNewFrames).toBeFalsy();
-        });
-        it('return galerie.currentCoverPicture === null and destroy the galeriePicture if signedUrl.Ok === false', async () => {
-          (signedUrl as jest.Mock).mockImplementation(() => ({
-            OK: false,
-          }));
-          const frame = await createFrame({
-            current: true,
-            galerieId: galerie.id,
-            userId: user.id,
-          });
-          const {
-            body: {
-              data: {
-                galerie: {
-                  currentCoverPicture,
-                },
-              },
-            },
-          } = await getGaleriesId(app, token, galerie.id);
-          const galeriePictures = await GaleriePicture.findAll({
-            where: {
-              id: frame.galeriePictures
-                .map((galeriePicture) => galeriePicture.id),
-            },
-          });
-          const image = await Image.findAll({
-            where: {
-              id: frame.galeriePictures
-                .map((galeriePicture) => galeriePicture.originalImageId),
-            },
-          });
-          expect(currentCoverPicture).toBeNull();
-          expect(galeriePictures.length).toBe(0);
-          expect(image.length).toBe(0);
         });
       });
       describe('it should return status 400 if', () => {
