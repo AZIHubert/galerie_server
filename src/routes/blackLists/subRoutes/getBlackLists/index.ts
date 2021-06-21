@@ -93,44 +93,38 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  try {
-    // Get black listed createdBy/updatedBy/user's
-    // current profile picture  with their signed url.
-    returnedBlackLists = await Promise.all(
-      users.map(async (user) => {
-        const {
-          blackListsUser: [{
-            createdBy,
-            updatedBy,
-          }],
-        } = user;
+  // Get black listed createdBy/updatedBy/user's
+  // current profile picture  with their signed url.
+  returnedBlackLists = users.map((user) => {
+    const {
+      blackListsUser: [{
+        createdBy,
+        updatedBy,
+      }],
+    } = user;
 
-        userExcluder.forEach((e) => {
-          objectUserExcluder[e] = undefined;
-        });
+    userExcluder.forEach((e) => {
+      objectUserExcluder[e] = undefined;
+    });
 
-        return {
-          ...user.blackListsUser[0].toJSON(),
-          createdBy: createdBy ? {
-            ...createdBy.toJSON(),
-            currentProfilePicture: null,
-          } : null,
-          active: true,
-          updatedBy: updatedBy ? {
-            ...updatedBy.toJSON(),
-            currentProfilePicture: null,
-          } : null,
-          user: {
-            ...user.toJSON(),
-            ...objectUserExcluder,
-            currentProfilePicture: null,
-          },
-        };
-      }),
-    );
-  } catch (err) {
-    return res.status(500).send(err);
-  }
+    return {
+      ...user.blackListsUser[0].toJSON(),
+      createdBy: createdBy ? {
+        ...createdBy.toJSON(),
+        currentProfilePicture: null,
+      } : null,
+      active: true,
+      updatedBy: updatedBy ? {
+        ...updatedBy.toJSON(),
+        currentProfilePicture: null,
+      } : null,
+      user: {
+        ...user.toJSON(),
+        ...objectUserExcluder,
+        currentProfilePicture: null,
+      },
+    };
+  });
 
   return res.status(200).send({
     action: 'GET',

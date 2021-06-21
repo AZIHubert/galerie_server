@@ -23,7 +23,6 @@ export default async (req: Request, res: Response) => {
   } = req.query;
   const limit = 20;
   let betaKeys: Array<BetaKey>;
-  let normalizeBetaKeys: Array<any>;
   let offset: number;
 
   if (typeof page === 'string') {
@@ -67,23 +66,17 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  try {
-    normalizeBetaKeys = await Promise.all(
-      betaKeys.map(async (betaKey) => ({
-        ...betaKey.toJSON(),
-        createdBy: !betaKey.createdBy ? null : {
-          ...betaKey.createdBy.toJSON(),
-          currentProfilePicture: null,
-        },
-        user: !betaKey.user ? null : {
-          ...betaKey.user.toJSON(),
-          currentProfilePicture: null,
-        },
-      })),
-    );
-  } catch (err) {
-    return res.status(500).send(err);
-  }
+  const normalizeBetaKeys = betaKeys.map((betaKey) => ({
+    ...betaKey.toJSON(),
+    createdBy: !betaKey.createdBy ? null : {
+      ...betaKey.createdBy.toJSON(),
+      currentProfilePicture: null,
+    },
+    user: !betaKey.user ? null : {
+      ...betaKey.user.toJSON(),
+      currentProfilePicture: null,
+    },
+  }));
 
   return res.status(200).send({
     action: 'GET',

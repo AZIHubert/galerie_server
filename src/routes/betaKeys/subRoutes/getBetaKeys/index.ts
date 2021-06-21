@@ -31,7 +31,6 @@ export default async (req: Request, res: Response) => {
     createdById?: string;
     userId?: any;
   } = {};
-  let normalizeBetaKeys: Array<any>;
   let offset: number;
 
   // If ?me='false'
@@ -104,23 +103,17 @@ export default async (req: Request, res: Response) => {
   }
 
   // Normalize betaKeys.
-  try {
-    normalizeBetaKeys = await Promise.all(
-      betaKeys.map(async (betaKey) => ({
-        ...betaKey.toJSON(),
-        createdBy: !betaKey.createdBy ? null : {
-          ...betaKey.createdBy.toJSON(),
-          currentProfilePicture: null,
-        },
-        user: !betaKey.user ? null : {
-          ...betaKey.user.toJSON(),
-          currentProfilePicture: null,
-        },
-      })),
-    );
-  } catch (err) {
-    return res.status(500).send(err);
-  }
+  const normalizeBetaKeys = betaKeys.map((betaKey) => ({
+    ...betaKey.toJSON(),
+    createdBy: !betaKey.createdBy ? null : {
+      ...betaKey.createdBy.toJSON(),
+      currentProfilePicture: null,
+    },
+    user: !betaKey.user ? null : {
+      ...betaKey.user.toJSON(),
+      currentProfilePicture: null,
+    },
+  }));
 
   return res.status(200).send({
     action: 'GET',
