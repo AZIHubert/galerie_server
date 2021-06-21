@@ -7,7 +7,6 @@ import { Op } from 'sequelize';
 import { User } from '@src/db/models';
 
 import { userExcluder } from '@src/helpers/excluders';
-import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const { id } = req.user as User;
@@ -68,15 +67,10 @@ export default async (req: Request, res: Response) => {
 
     // Fetch current profile pictures
     // and their signed url.
-    returnedUsers = await Promise.all(
-      users.map(async (user) => {
-        const currentProfilePicture = await fetchCurrentProfilePicture(user);
-        return {
-          ...user.toJSON(),
-          currentProfilePicture,
-        };
-      }),
-    );
+    returnedUsers = users.map((user) => ({
+      ...user.toJSON(),
+      currentProfilePicture: null,
+    }));
   } catch (err) {
     return res.status(500).send(err);
   }
