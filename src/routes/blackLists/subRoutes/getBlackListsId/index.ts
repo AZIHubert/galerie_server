@@ -18,16 +18,12 @@ import {
   blackListExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { blackListId } = req.params;
   const objectUserExcluder: { [key: string]: undefined } = {};
-  let createdByCurrentProfilePicture;
   let blackList: BlackList | null;
-  let currentProfilePicture;
-  let updatedByCurrentProfilePicture;
 
   // Check if request.params.blackListId
   // is a UUID v4.
@@ -87,31 +83,6 @@ export default async (req: Request, res: Response) => {
     }
   }
 
-  // Fetch user current profile picture
-  try {
-    currentProfilePicture = await fetchCurrentProfilePicture(blackList.user);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // Fetch createdBy current profile picture
-  if (blackList.createdBy) {
-    try {
-      createdByCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.createdBy);
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-  }
-
-  // Fetch updatedBy current profile picture
-  if (blackList.updatedBy) {
-    try {
-      updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.updatedBy);
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-  }
-
   userExcluder.forEach((e) => {
     objectUserExcluder[e] = undefined;
   });
@@ -121,16 +92,16 @@ export default async (req: Request, res: Response) => {
     active: blackList.user.isBlackListed,
     createdBy: blackList.createdBy ? {
       ...blackList.createdBy.toJSON(),
-      currentProfilePicture: createdByCurrentProfilePicture,
+      currentProfilePicture: null,
     } : null,
     updatedBy: blackList.updatedBy ? {
       ...blackList.updatedBy.toJSON(),
-      currentProfilePicture: updatedByCurrentProfilePicture,
+      currentProfilePicture: null,
     } : null,
     user: {
       ...blackList.user.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture,
+      currentProfilePicture: null,
     },
   };
 

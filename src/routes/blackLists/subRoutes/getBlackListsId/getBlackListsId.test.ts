@@ -19,10 +19,8 @@ import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
   createBlackList,
-  createProfilePicture,
   createUser,
   getBlackListsId,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -164,71 +162,6 @@ describe('/blackLists', () => {
           expect(updatedBy.updatedAt).toBeUndefined();
           expect(updatedBy.updatedEmailTokenVersion).toBeUndefined();
           expect(updatedBy.userName).not.toBeUndefined();
-        });
-        it('include black listed user current profile picture', async () => {
-          await createProfilePicture({
-            userId: userTwo.id,
-          });
-          const { id: blackListId } = await createBlackList({
-            createdById: user.id,
-            userId: userTwo.id,
-          });
-          const {
-            body: {
-              data: {
-                blackList: {
-                  user: {
-                    currentProfilePicture,
-                  },
-                },
-              },
-            },
-          } = await getBlackListsId(app, token, blackListId);
-          testProfilePicture(currentProfilePicture);
-        });
-        it('include createdBy current profile picture', async () => {
-          await createProfilePicture({
-            userId: user.id,
-          });
-          const { id: blackListId } = await createBlackList({
-            createdById: user.id,
-            userId: userTwo.id,
-          });
-          const {
-            body: {
-              data: {
-                blackList: {
-                  createdBy: {
-                    currentProfilePicture,
-                  },
-                },
-              },
-            },
-          } = await getBlackListsId(app, token, blackListId);
-          testProfilePicture(currentProfilePicture);
-        });
-        it('include updatedBy current profile picture', async () => {
-          await createProfilePicture({
-            userId: user.id,
-          });
-          const { id: blackListId } = await createBlackList({
-            active: false,
-            createdById: user.id,
-            updatedById: user.id,
-            userId: userTwo.id,
-          });
-          const {
-            body: {
-              data: {
-                blackList: {
-                  updatedBy: {
-                    currentProfilePicture,
-                  },
-                },
-              },
-            },
-          } = await getBlackListsId(app, token, blackListId);
-          testProfilePicture(currentProfilePicture);
         });
         it('do not include createdBy if he have delete his account', async () => {
           const { id: blackListId } = await createBlackList({
