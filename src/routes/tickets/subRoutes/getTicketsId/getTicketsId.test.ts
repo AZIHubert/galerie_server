@@ -5,8 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
-  Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
@@ -16,20 +14,15 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
-  createProfilePicture,
   createTicket,
   createUser,
   getTicketsId,
-  testProfilePicture,
   testTicket,
   testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
-
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let sequelize: Sequelize;
@@ -45,11 +38,6 @@ describe('/tickets', () => {
       });
 
       beforeEach(async (done) => {
-        jest.clearAllMocks();
-        (signedUrl as jest.Mock).mockImplementation(() => ({
-          OK: true,
-          signedUrl: 'signedUrl',
-        }));
         try {
           await sequelize.sync({ force: true });
           const {
@@ -72,7 +60,6 @@ describe('/tickets', () => {
       });
 
       afterAll(async (done) => {
-        jest.clearAllMocks();
         try {
           await sequelize.sync({ force: true });
           await sequelize.close();
@@ -102,26 +89,6 @@ describe('/tickets', () => {
           testTicket(ticket, createdTicket);
           testUser(ticket.user, user);
         });
-        it('and return ticket with user\'s profile picture', async () => {
-          const { id: ticketId } = await createTicket({
-            userId: user.id,
-          });
-          const profilePicture = await createProfilePicture({
-            userId: user.id,
-          });
-          const {
-            body: {
-              data: {
-                ticket: {
-                  user: {
-                    currentProfilePicture,
-                  },
-                },
-              },
-            },
-          } = await getTicketsId(app, token, ticketId);
-          testProfilePicture(currentProfilePicture, profilePicture);
-        });
         it('return ticket.user === null if ticket.userId === null', async () => {
           const { id: ticketId } = await createTicket({});
           const {
@@ -132,33 +99,6 @@ describe('/tickets', () => {
             },
           } = await getTicketsId(app, token, ticketId);
           expect(returnedTicket.user).toBeNull();
-        });
-        it('do not include profile picture if signedUrl.OK === false', async () => {
-          (signedUrl as jest.Mock).mockImplementation(() => ({
-            OK: false,
-          }));
-          const { id: ticketId } = await createTicket({
-            userId: user.id,
-          });
-          const { id: profilePictureId } = await createProfilePicture({
-            userId: user.id,
-          });
-          const {
-            body: {
-              data: {
-                ticket: {
-                  user: {
-                    currentProfilePicture,
-                  },
-                },
-              },
-            },
-          } = await getTicketsId(app, token, ticketId);
-          const image = await Image.findAll();
-          const profilePicture = await ProfilePicture.findByPk(profilePictureId);
-          expect(currentProfilePicture).toBeNull();
-          expect(image.length).toBe(0);
-          expect(profilePicture).toBeNull();
         });
       });
       describe('should return status 400 if', () => {
