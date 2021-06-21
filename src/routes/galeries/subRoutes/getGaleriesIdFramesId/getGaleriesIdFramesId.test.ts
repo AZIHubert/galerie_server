@@ -25,11 +25,9 @@ import {
   createGalerie,
   createGalerieUser,
   createLike,
-  createProfilePicture,
   createUser,
   getGaleriesIdFramesId,
   testFrame,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -115,23 +113,6 @@ describe('/galeries', () => {
               expect(returnedGalerieId).toBe(galerieId);
               expect(status).toBe(200);
               testUser(returnedFrame.user);
-            });
-            it('include current profile picture', async () => {
-              const frame = await createFrame({
-                galerieId,
-                userId: user.id,
-              });
-              const profilePicture = await createProfilePicture({
-                userId: user.id,
-              });
-              const {
-                body: {
-                  data: {
-                    frame: returnedFrame,
-                  },
-                },
-              } = await getGaleriesIdFramesId(app, token, galerieId, frame.id);
-              testProfilePicture(returnedFrame.user.currentProfilePicture, profilePicture);
             });
             it('return liked === false if user don\'t have liked this frame', async () => {
               const frame = await createFrame({
