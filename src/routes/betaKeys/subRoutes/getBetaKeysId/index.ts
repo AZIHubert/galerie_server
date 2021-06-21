@@ -1,3 +1,5 @@
+// GET /betaKeys/:betaKeyId/
+
 import {
   Request,
   Response,
@@ -16,9 +18,6 @@ import {
   userExcluder,
   betaKeyExcluder,
 } from '@src/helpers/excluders';
-import {
-  fetchCurrentProfilePicture,
-} from '@src/helpers/fetch';
 import uuidValidateV4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -26,8 +25,6 @@ export default async (req: Request, res: Response) => {
     betaKeyId,
   } = req.params;
   let betaKey: BetaKey | null;
-  let createdByCurrentProfilePicture;
-  let userCurrentProfilePicture;
 
   if (!uuidValidateV4(betaKeyId)) {
     return res.status(400).send({
@@ -67,31 +64,15 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  if (betaKey.createdBy) {
-    try {
-      createdByCurrentProfilePicture = await fetchCurrentProfilePicture(betaKey.createdBy);
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-  }
-
-  if (betaKey.user) {
-    try {
-      userCurrentProfilePicture = await fetchCurrentProfilePicture(betaKey.user);
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-  }
-
   const normalizeBetaKey = {
     ...betaKey.toJSON(),
     createdBy: !betaKey.createdBy ? null : {
       ...betaKey.createdBy.toJSON(),
-      currentProfilePicture: createdByCurrentProfilePicture,
+      currentProfilePicture: null,
     },
     user: !betaKey.user ? null : {
       ...betaKey.user.toJSON(),
-      currentProfilePicture: userCurrentProfilePicture,
+      currentProfilePicture: null,
     },
   };
 
