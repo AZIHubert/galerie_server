@@ -2,6 +2,7 @@ export { default as deleteUsersMe } from './deleteUsersMe';
 
 export { default as getUsers } from './getUsers';
 export { default as getUsersId } from './getUsersId';
+export { default as getUsersIdBlackLists } from './getUsersIdBlackLists';
 export { default as getUsersIdCurrentProfilePicture } from './getUsersIdCurrentProfilePicture';
 export { default as getUsersLogout } from './getUsersLogout';
 export { default as getUsersMe } from './getUsersMe';

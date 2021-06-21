@@ -17,7 +17,7 @@ import { signAuthToken } from '@src/helpers/issueJWT';
 import {
   createBlackList,
   createUser,
-  getAdminUsersIdBlackLists,
+  getUsersIdBlackLists,
   testBlackList,
   testUser,
 } from '@src/helpers/test';
@@ -95,7 +95,7 @@ describe('/admin', () => {
                   },
                 },
                 status,
-              } = await getAdminUsersIdBlackLists(app, token, userTwo.id);
+              } = await getUsersIdBlackLists(app, token, userTwo.id);
               expect(action).toBe('GET');
               expect(userId).toBe(userTwo.id);
               expect(blackLists.length).toBe(0);
@@ -111,7 +111,7 @@ describe('/admin', () => {
                     blackLists,
                   },
                 },
-              } = await getAdminUsersIdBlackLists(app, token, userTwo.id);
+              } = await getUsersIdBlackLists(app, token, userTwo.id);
               expect(blackLists.length).toBe(1);
               expect(blackLists[0].createdBy).toBeNull();
               expect(blackLists[0].updatedBy).toBeNull();
@@ -133,14 +133,14 @@ describe('/admin', () => {
                     blackLists: firstPack,
                   },
                 },
-              } = await getAdminUsersIdBlackLists(app, token, userTwo.id);
+              } = await getUsersIdBlackLists(app, token, userTwo.id);
               const {
                 body: {
                   data: {
                     blackLists: secondPack,
                   },
                 },
-              } = await getAdminUsersIdBlackLists(app, token, userTwo.id, { page: 2 });
+              } = await getUsersIdBlackLists(app, token, userTwo.id, { page: 2 });
               expect(firstPack.length).toBe(20);
               expect(secondPack.length).toBe(1);
             });
@@ -166,7 +166,7 @@ describe('/admin', () => {
                     blackLists,
                   },
                 },
-              } = await getAdminUsersIdBlackLists(app, token, userTwo.id);
+              } = await getUsersIdBlackLists(app, token, userTwo.id);
               expect(blackLists.length).toBe(5);
               expect(blackLists[0].id).toBe(blackListFive.id);
               expect(blackLists[1].id).toBe(blackListFour.id);
@@ -187,7 +187,7 @@ describe('/admin', () => {
                     }],
                   },
                 },
-              } = await getAdminUsersIdBlackLists(app, token, userTwo.id);
+              } = await getUsersIdBlackLists(app, token, userTwo.id);
               testUser(createdBy, user);
             });
             it('include updatedBy', async () => {
@@ -203,7 +203,7 @@ describe('/admin', () => {
                     }],
                   },
                 },
-              } = await getAdminUsersIdBlackLists(app, token, userTwo.id);
+              } = await getUsersIdBlackLists(app, token, userTwo.id);
               testUser(updatedBy, user);
             });
           });
@@ -212,7 +212,7 @@ describe('/admin', () => {
               const {
                 body,
                 status,
-              } = await getAdminUsersIdBlackLists(app, token, '100');
+              } = await getUsersIdBlackLists(app, token, '100');
               expect(body.errors).toBe(INVALID_UUID('user'));
               expect(status).toBe(400);
             });
@@ -222,7 +222,7 @@ describe('/admin', () => {
               const {
                 body,
                 status,
-              } = await getAdminUsersIdBlackLists(app, token, uuidv4());
+              } = await getUsersIdBlackLists(app, token, uuidv4());
               expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
               expect(status).toBe(404);
             });

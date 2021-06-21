@@ -24,7 +24,6 @@ export { default as deleteProfilePicturesId } from './deleteProfilePicturesId';
 export { default as deleteTicketsId } from './deleteTicketsId';
 export { default as deleteUsersMe } from './deleteUsersMe';
 
-export { default as getAdminUsersIdBlackLists } from './getAdminUsersIdBlackLists';
 export { default as getBetaKeys } from './getBetaKeys';
 export { default as getBetaKeysEmailEmail } from './getBetaKeysEmailEmail';
 export { default as getBetaKeysId } from './getBetaKeysId';
@@ -48,6 +47,7 @@ export { default as getTickets } from './getTickets';
 export { default as getTicketsId } from './getTicketsId';
 export { default as getUsers } from './getUsers';
 export { default as getUsersId } from './getUsersId';
+export { default as getUsersIdBlackLists } from './getUsersIdBlackLists';
 export { default as getUsersIdCurrentProfilePicture } from './getUsersIdCurrentProfilePicture';
 export { default as getUsersIdIdBlackLists } from './getUsersIdIdBlackLists';
 export { default as getUsersMe } from './getUsersMe';

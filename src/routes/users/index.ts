@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import {
+  shouldBeAdmin,
   shouldBeAuth,
   shouldNotBeAuth,
   shouldNotBeGoogleOrFacebookUser,
@@ -11,6 +12,7 @@ import {
 
   getUsers,
   getUsersId,
+  getUsersIdBlackLists,
   getUsersIdCurrentProfilePicture,
   getUsersLogout,
   getUsersMe,
@@ -46,6 +48,7 @@ const usersRoutes: () => Router = () => {
   router.get('/refreshToken/', getUsersRefreshToken);
   router.get('/userName/:userName/', shouldBeAuth, getUsersUserNameUserName);
   router.get('/:userId/', shouldBeAuth, getUsersId);
+  router.get('/:userId/blackLists', shouldBeAuth, shouldBeAdmin, getUsersIdBlackLists);
   router.get('/:userId/currentProfilePicture', shouldBeAuth, getUsersIdCurrentProfilePicture);
 
   router.post('/confirmation/', shouldNotBeAuth, postUsersConfirmation);

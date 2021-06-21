@@ -12,7 +12,7 @@ export default async (
   },
 ) => {
   const response = await request(app)
-    .get(`/admin/users/${userId}/blackLists?page=${option.page}`)
+    .get(`/users/${userId}/blackLists?page=${option.page}`)
     .set('authorization', token);
   return response;
 };
