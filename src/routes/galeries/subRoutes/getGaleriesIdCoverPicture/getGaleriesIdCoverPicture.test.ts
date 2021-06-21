@@ -5,41 +5,43 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
+  GaleriePicture,
   Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
 import {
-  MODEL_NOT_FOUND,
   INVALID_UUID,
+  MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
+import initSequelize from '@src/helpers/initSequelize.js';
 import signedUrl from '@src/helpers/signedUrl';
 import {
-  createProfilePicture,
+  createFrame,
+  createGalerie,
+  // createGalerieUser,
   createUser,
-  getUsersIdCurrentProfilePicture,
-  testProfilePicture,
+  getGaleriesIdCoverPicture,
+  testGaleriePicture,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
-
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let sequelize: Sequelize;
 let token: string;
 let user: User;
 
-describe('/users', () => {
-  describe('/:userId', () => {
-    describe('/currentProfilePicture', () => {
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
+
+describe('/galeries', () => {
+  describe('/:galerieId', () => {
+    describe('/coverPicture', () => {
       describe('GET', () => {
         beforeAll(() => {
-          app = initApp();
           sequelize = initSequelize();
+          app = initApp();
         });
 
         beforeEach(async (done) => {
@@ -75,87 +77,106 @@ describe('/users', () => {
         });
 
         describe('should return status 200 and', () => {
-          let userTwo: User;
+          let galerieId: string;
 
           beforeEach(async (done) => {
             try {
-              const { user: createdUser } = await createUser({
-                email: 'user2@email.com',
-                userName: 'user2',
+              const galerie = await createGalerie({
+                userId: user.id,
               });
-              userTwo = createdUser;
+              galerieId = galerie.id;
             } catch (err) {
               done(err);
             }
             done();
           });
-          it('return current profile picture === null', async () => {
+
+          it('return coverPicture === null', async () => {
             const {
               body: {
                 action,
                 data: {
-                  currentProfilePicture,
-                  userId,
+                  coverPicture,
+                  galerieId: returnedGalerieId,
                 },
               },
               status,
-            } = await getUsersIdCurrentProfilePicture(app, token, userTwo.id);
+            } = await getGaleriesIdCoverPicture(app, token, galerieId);
             expect(action).toBe('GET');
-            expect(currentProfilePicture).toBeNull();
+            expect(coverPicture).toBeNull();
+            expect(returnedGalerieId).toBe(galerieId);
             expect(status).toBe(200);
-            expect(userId).toBe(userTwo.id);
           });
-          it('return current profile picture', async () => {
-            const profilePicture = await createProfilePicture({
-              userId: userTwo.id,
+          it('return coverPicture', async () => {
+            await createFrame({
+              current: true,
+              galerieId,
+              userId: user.id,
             });
             const {
               body: {
                 data: {
-                  currentProfilePicture,
+                  coverPicture,
                 },
               },
-            } = await getUsersIdCurrentProfilePicture(app, token, userTwo.id);
-            testProfilePicture(currentProfilePicture, profilePicture);
+            } = await getGaleriesIdCoverPicture(app, token, galerieId);
+            testGaleriePicture(coverPicture);
           });
-          it('return current profile picture === null if signedUrl.OK === false', async () => {
+          it('return coverPicture === null if signedUrl.OK === false', async () => {
             (signedUrl as jest.Mock).mockImplementation(() => ({
               OK: false,
             }));
-            await createProfilePicture({
-              userId: userTwo.id,
+            await createFrame({
+              current: true,
+              galerieId,
+              userId: user.id,
             });
             const {
               body: {
                 data: {
-                  currentProfilePicture,
+                  coverPicture,
                 },
               },
-            } = await getUsersIdCurrentProfilePicture(app, token, userTwo.id);
+            } = await getGaleriesIdCoverPicture(app, token, galerieId);
+            const galeriePictures = await GaleriePicture.findAll();
             const images = await Image.findAll();
-            const profilePictures = await ProfilePicture.findAll();
-            expect(currentProfilePicture).toBeNull();
+            expect(coverPicture).toBeNull();
+            expect(galeriePictures.length).toBe(0);
             expect(images.length).toBe(0);
-            expect(profilePictures.length).toBe(0);
           });
         });
         describe('should return status 400 if', () => {
-          it('request.params.userId is not a UUIDv4', async () => {
+          it('request.params.galerieId is not a UUIDv4', async () => {
             const {
               body,
               status,
-            } = await getUsersIdCurrentProfilePicture(app, token, '100');
-            expect(body.errors).toBe(INVALID_UUID('user'));
+            } = await getGaleriesIdCoverPicture(app, token, '100');
+            expect(body.errors).toBe(INVALID_UUID('galerie'));
             expect(status).toBe(400);
           });
         });
-        describe('should return status 404 if', () => {
-          it('user not found', async () => {
+        describe('should return 404 if', () => {
+          it('galerie not found', async () => {
             const {
               body,
               status,
-            } = await getUsersIdCurrentProfilePicture(app, token, uuidv4());
-            expect(body.errors).toBe(MODEL_NOT_FOUND('user'));
+            } = await getGaleriesIdCoverPicture(app, token, uuidv4());
+            expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
+            expect(status).toBe(404);
+          });
+          it('galerie exist but currentUser is not subscribe to it', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            const { id: galerieId } = await createGalerie({
+              userId: userTwo.id,
+            });
+            const {
+              body,
+              status,
+            } = await getGaleriesIdCoverPicture(app, token, galerieId);
+            expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
         });

@@ -1,52 +1,61 @@
+// GET /galeries/:galerieId/coverPicture/
+
 import {
   Request,
   Response,
 } from 'express';
 
 import {
+  Galerie,
   User,
 } from '@src/db/models';
 
 import {
-  INVALID_UUID,
   MODEL_NOT_FOUND,
+  INVALID_UUID,
 } from '@src/helpers/errorMessages';
 import {
-  fetchCurrentProfilePicture,
+  fetchCoverPicture,
 } from '@src/helpers/fetch';
 import uuidValidateV4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {
-    userId,
+    galerieId,
   } = req.params;
-  let currentProfilePicture;
-  let user: User | null;
+  const currentUser = req.user as User;
+  let coverPicture;
+  let galerie: Galerie | null;
 
-  // Check if request.params.userId is a UUIDv4.
-  if (!uuidValidateV4(userId)) {
+  if (!uuidValidateV4(galerieId)) {
     return res.status(400).send({
-      errors: INVALID_UUID('user'),
+      errors: INVALID_UUID('galerie'),
     });
   }
 
-  // Fetch user.
   try {
-    user = await User.findByPk(userId);
+    galerie = await Galerie.findByPk(galerieId, {
+      include: [
+        {
+          model: User,
+          where: {
+            id: currentUser.id,
+          },
+        },
+      ],
+    });
   } catch (err) {
     return res.status(500).send(err);
   }
 
-  // Check if user exist.
-  if (!user) {
+  if (!galerie) {
     return res.status(404).send({
-      errors: MODEL_NOT_FOUND('user'),
+      errors: MODEL_NOT_FOUND('galerie'),
     });
   }
 
-  // Fetch current profile picture.
   try {
-    currentProfilePicture = await fetchCurrentProfilePicture(user);
+    coverPicture = await fetchCoverPicture(galerie);
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -54,8 +63,8 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'GET',
     data: {
-      currentProfilePicture,
-      userId,
+      coverPicture,
+      galerieId,
     },
   });
 };
