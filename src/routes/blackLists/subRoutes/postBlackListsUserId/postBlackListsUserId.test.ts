@@ -25,10 +25,8 @@ import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
-  createProfilePicture,
   createUser,
   postBlackListUserId,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -205,48 +203,6 @@ describe('/blackLists', () => {
             },
           });
           expect(status).toBe(200);
-        });
-        it('return black listed user current profile picture', async () => {
-          await createProfilePicture({
-            userId: userTwo.id,
-          });
-          const {
-            body: {
-              data: {
-                blackList: {
-                  user: {
-                    currentProfilePicture,
-                  },
-                },
-              },
-            },
-          } = await postBlackListUserId(app, token, userTwo.id, {
-            body: {
-              reason: 'black list reason',
-            },
-          });
-          testProfilePicture(currentProfilePicture);
-        });
-        it('return createdBy current profile picture', async () => {
-          await createProfilePicture({
-            userId: user.id,
-          });
-          const {
-            body: {
-              data: {
-                blackList: {
-                  createdBy: {
-                    currentProfilePicture,
-                  },
-                },
-              },
-            },
-          } = await postBlackListUserId(app, token, userTwo.id, {
-            body: {
-              reason: 'black list reason',
-            },
-          });
-          testProfilePicture(currentProfilePicture);
         });
       });
       describe('should return status 400 if', () => {

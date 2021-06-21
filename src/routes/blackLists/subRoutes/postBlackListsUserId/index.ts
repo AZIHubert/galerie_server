@@ -1,3 +1,5 @@
+// POST /blackLists/users/:userId/
+
 import {
   Request,
   Response,
@@ -16,7 +18,6 @@ import {
   blackListExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import {
   normalizeJoiErrors,
   validatePostBlackListsUserIdBody,
@@ -28,9 +29,7 @@ export default async (req: Request, res: Response) => {
   const objectBlackListExcluder: { [key: string]: undefined } = {};
   const objectUserExcluder: { [key: string]: undefined } = {};
   const { userId } = req.params;
-  let createdByCurrentProfilePicture;
   let blackList: BlackList;
-  let currentProfilePicture;
   let user: User | null;
 
   // Check if request.params.userId
@@ -114,20 +113,6 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Fetch black listed user current profile picture.
-  try {
-    currentProfilePicture = await fetchCurrentProfilePicture(user);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // Fetch admin current profile picture.
-  try {
-    createdByCurrentProfilePicture = await fetchCurrentProfilePicture(currentUser);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   blackListExcluder.forEach((e) => {
     objectBlackListExcluder[e] = undefined;
   });
@@ -142,13 +127,13 @@ export default async (req: Request, res: Response) => {
     createdBy: {
       ...currentUser.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture: createdByCurrentProfilePicture,
+      currentProfilePicture: null,
     },
     updatedBy: null,
     user: {
       ...user.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture,
+      currentProfilePicture: null,
     },
   };
 
