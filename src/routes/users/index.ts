@@ -10,9 +10,11 @@ import {
   deleteUsersMe,
 
   getUsers,
-  getUsersIdId,
+  getUsersId,
+  getUsersIdCurrentProfilePicture,
   getUsersLogout,
   getUsersMe,
+  getUsersMeCurrentProfilePicture,
   getUsersRefreshToken,
   getUsersUserNameUserName,
 
@@ -38,11 +40,13 @@ const usersRoutes: () => Router = () => {
   router.delete('/me/', shouldBeAuth, deleteUsersMe);
 
   router.get('/', shouldBeAuth, getUsers);
-  router.get('/id/:userId/', shouldBeAuth, getUsersIdId);
   router.get('/logout/', shouldBeAuth, getUsersLogout);
   router.get('/me/', shouldBeAuth, getUsersMe);
+  router.get('/me/currentProfilePicture/', shouldBeAuth, getUsersMeCurrentProfilePicture);
   router.get('/refreshToken/', getUsersRefreshToken);
   router.get('/userName/:userName/', shouldBeAuth, getUsersUserNameUserName);
+  router.get('/:userId/', shouldBeAuth, getUsersId);
+  router.get('/:userId/currentProfilePicture', shouldBeAuth, getUsersIdCurrentProfilePicture);
 
   router.post('/confirmation/', shouldNotBeAuth, postUsersConfirmation);
   router.post('/login/', shouldNotBeAuth, postUsersLogin);

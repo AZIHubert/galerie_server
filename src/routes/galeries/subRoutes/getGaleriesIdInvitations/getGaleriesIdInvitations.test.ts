@@ -15,17 +15,14 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   createBlackList,
   createGalerie,
   createGalerieUser,
   createInvitation,
-  createProfilePicture,
   createUser,
   getGaleriesIdInvitations,
   testInvitation,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -50,11 +47,6 @@ describe('/galeries', () => {
 
         beforeEach(async (done) => {
           mockDate.reset();
-          jest.clearAllMocks();
-          (signedUrl as jest.Mock).mockImplementation(() => ({
-            OK: true,
-            signedUrl: 'signedUrl',
-          }));
           try {
             await sequelize.sync({ force: true });
             const {
@@ -77,7 +69,6 @@ describe('/galeries', () => {
 
         afterAll(async (done) => {
           mockDate.reset();
-          jest.clearAllMocks();
           try {
             await sequelize.sync({ force: true });
             await sequelize.close();
@@ -216,23 +207,6 @@ describe('/galeries', () => {
             expect(invitations[2].id).toBe(invitationThree.id);
             expect(invitations[3].id).toBe(invitationTwo.id);
             expect(invitations[4].id).toBe(invitationOne.id);
-          });
-          it('return user\'s profile picture', async () => {
-            await createInvitation({
-              galerieId,
-              userId: user.id,
-            });
-            await createProfilePicture({
-              userId: user.id,
-            });
-            const {
-              body: {
-                data: {
-                  invitations,
-                },
-              },
-            } = await getGaleriesIdInvitations(app, token, galerieId);
-            testProfilePicture(invitations[0].user.currentProfilePicture);
           });
           it('not return invitation if it\'s expired', async () => {
             const timeStamp = 1434319925275;

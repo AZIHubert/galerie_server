@@ -4,10 +4,9 @@ import request from 'supertest';
 export default async (
   app: Server,
   token: string,
-  id: string,
 ) => {
   const response = await request(app)
-    .get(`/users/id/${id}`)
+    .get('/users/me/currentProfilePicture/')
     .set('authorization', token);
   return response;
 };

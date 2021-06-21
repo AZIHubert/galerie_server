@@ -5,9 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
-  Image,
   GalerieBlackList,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
@@ -17,16 +15,13 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   createBlackList,
   createGalerie,
   createGalerieBlackList,
   createGalerieUser,
-  createProfilePicture,
   createUser,
   getGaleriesIdBlackListsId,
-  testProfilePicture,
   testGalerieBlackList,
   testUser,
 } from '@src/helpers/test';
@@ -39,8 +34,6 @@ let sequelize: Sequelize;
 let token: string;
 let user: User;
 
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
-
 describe('/galeries', () => {
   describe('/:galerieId', () => {
     describe('/blackLists', () => {
@@ -52,11 +45,6 @@ describe('/galeries', () => {
           });
 
           beforeEach(async (done) => {
-            jest.clearAllMocks();
-            (signedUrl as jest.Mock).mockImplementation(() => ({
-              OK: true,
-              signedUrl: 'signedUrl',
-            }));
             try {
               await sequelize.sync({ force: true });
               const {
@@ -78,7 +66,6 @@ describe('/galeries', () => {
           });
 
           afterAll(async (done) => {
-            jest.clearAllMocks();
             try {
               await sequelize.sync({ force: true });
               await sequelize.close();
@@ -159,40 +146,6 @@ describe('/galeries', () => {
               } = await getGaleriesIdBlackListsId(app, token, galerieId, galerieBlackList.id);
               expect(blackList.user).toBeNull();
             });
-            it('include user current profile picture', async () => {
-              const profilePicture = await createProfilePicture({
-                userId: userTwo.id,
-              });
-              const {
-                body: {
-                  data: {
-                    blackList,
-                  },
-                },
-              } = await getGaleriesIdBlackListsId(app, token, galerieId, galerieBlackList.id);
-
-              testProfilePicture(blackList.user.currentProfilePicture, profilePicture);
-            });
-            it('do not include user current profile picture if signedUrl.OK === false', async () => {
-              (signedUrl as jest.Mock).mockImplementation(() => ({
-                OK: false,
-              }));
-              const { id: profilePictureId } = await createProfilePicture({
-                userId: userTwo.id,
-              });
-              const {
-                body: {
-                  data: {
-                    blackList,
-                  },
-                },
-              } = await getGaleriesIdBlackListsId(app, token, galerieId, galerieBlackList.id);
-              const images = await Image.findAll();
-              const profilePicture = await ProfilePicture.findByPk(profilePictureId);
-              expect(blackList.user.currentProfilePicture).toBeNull();
-              expect(images.length).toBe(0);
-              expect(profilePicture).toBeNull();
-            });
             it('do not include admin if he is \'globally\' black listed', async () => {
               const { user: userThree } = await createUser({
                 email: 'user3@email.com',
@@ -242,39 +195,6 @@ describe('/galeries', () => {
                 },
               } = await getGaleriesIdBlackListsId(app, token, galerieId, galerieBlackListId);
               expect(blackList.createdBy).toBeNull();
-            });
-            it('include createdBy current profile picture', async () => {
-              const profilePicture = await createProfilePicture({
-                userId: user.id,
-              });
-              const {
-                body: {
-                  data: {
-                    blackList,
-                  },
-                },
-              } = await getGaleriesIdBlackListsId(app, token, galerieId, galerieBlackList.id);
-              testProfilePicture(blackList.createdBy.currentProfilePicture, profilePicture);
-            });
-            it('do not include user createdBy profile picture if signedUrl.OK === false', async () => {
-              (signedUrl as jest.Mock).mockImplementation(() => ({
-                OK: false,
-              }));
-              const { id: profilePictureId } = await createProfilePicture({
-                userId: user.id,
-              });
-              const {
-                body: {
-                  data: {
-                    blackList,
-                  },
-                },
-              } = await getGaleriesIdBlackListsId(app, token, galerieId, galerieBlackList.id);
-              const images = await Image.findAll();
-              const profilePicture = await ProfilePicture.findByPk(profilePictureId);
-              expect(blackList.createdBy.currentProfilePicture).toBeNull();
-              expect(images.length).toBe(0);
-              expect(profilePicture).toBeNull();
             });
           });
           describe('should return status 400 if', () => {

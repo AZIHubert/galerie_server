@@ -28,11 +28,9 @@ import {
   cleanGoogleBuckets,
   createGalerie,
   createGalerieUser,
-  createProfilePicture,
   createUser,
   postGaleriesIdFrames,
   testFrame,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -507,19 +505,6 @@ describe('/galeries', () => {
             expect(createdPendingImageSecond).not.toBeNull();
             expect(createdPendingImageSixth).not.toBeNull();
             expect(createdPendingImageThird).not.toBeNull();
-          });
-          it('fetch the current profile picture', async () => {
-            await createProfilePicture({
-              userId: user.id,
-            });
-            const {
-              body: {
-                data: {
-                  frame,
-                },
-              },
-            } = await postGaleriesIdFrames(app, token, galerieId);
-            testProfilePicture(frame.user.currentProfilePicture);
           });
           it('post a frame with a description', async () => {
             const description = 'frame\'s description';

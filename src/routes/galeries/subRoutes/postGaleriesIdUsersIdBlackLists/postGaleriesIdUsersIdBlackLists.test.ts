@@ -12,7 +12,6 @@ import {
   Image,
   Invitation,
   Like,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
@@ -22,7 +21,6 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   createFrame,
   createGalerie,
@@ -30,17 +28,14 @@ import {
   createGalerieUser,
   createInvitation,
   createLike,
-  createProfilePicture,
   createUser,
   postGaleriesIdUserUserIdBlackLists,
   testGalerieBlackList,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
 
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
 jest.mock('@src/helpers/gc', () => ({
   __esModule: true,
   default: ({
@@ -71,10 +66,6 @@ describe('/galeries', () => {
 
             beforeEach(async (done) => {
               jest.clearAllMocks();
-              (signedUrl as jest.Mock).mockImplementation(() => ({
-                OK: true,
-                signedUrl: 'signedUrl',
-              }));
               try {
                 await sequelize.sync({ force: true });
                 const {
@@ -146,88 +137,6 @@ describe('/galeries', () => {
                 testGalerieBlackList(galerieBlackList);
                 testUser(galerieBlackList.createdBy);
                 testUser(galerieBlackList.user);
-              });
-              it('include user current profile picture', async () => {
-                await createProfilePicture({
-                  userId: userTwo.id,
-                });
-                const {
-                  body: {
-                    data: {
-                      galerieBlackList: {
-                        user: {
-                          currentProfilePicture,
-                        },
-                      },
-                    },
-                  },
-                } = await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
-                testProfilePicture(currentProfilePicture);
-              });
-              it('include createdBy current profile picture', async () => {
-                await createProfilePicture({
-                  userId: user.id,
-                });
-                const {
-                  body: {
-                    data: {
-                      galerieBlackList: {
-                        createdBy: {
-                          currentProfilePicture,
-                        },
-                      },
-                    },
-                  },
-                } = await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
-                testProfilePicture(currentProfilePicture);
-              });
-              it('do not include user current profile picture if signedUrl.OK === false', async () => {
-                (signedUrl as jest.Mock).mockImplementation(() => ({
-                  OK: false,
-                }));
-                const { id: profilePictureId } = await createProfilePicture({
-                  userId: userTwo.id,
-                });
-                const {
-                  body: {
-                    data: {
-                      galerieBlackList: {
-                        user: {
-                          currentProfilePicture,
-                        },
-                      },
-                    },
-                  },
-                } = await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
-                const profilePicture = await ProfilePicture.findByPk(profilePictureId);
-                const images = await Image.findAll();
-                expect(currentProfilePicture).toBeNull();
-                expect(profilePicture).toBeNull();
-                expect(images.length).toBe(0);
-              });
-              it('do not include user current profile picture if signedUrl.OK === false', async () => {
-                (signedUrl as jest.Mock).mockImplementation(() => ({
-                  OK: false,
-                }));
-                const { id: profilePictureId } = await createProfilePicture({
-                  userId: user.id,
-                });
-                const {
-                  body: {
-                    data: {
-                      galerieBlackList: {
-                        createdBy: {
-                          currentProfilePicture,
-                        },
-                      },
-                    },
-                  },
-                } = await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
-                const profilePicture = await ProfilePicture.findByPk(profilePictureId);
-                const images = await Image.findAll();
-                expect(currentProfilePicture).toBeNull();
-                expect(profilePicture).toBeNull();
-                expect(images.length).toBe(0);
               });
               it('delete GalerieUser', async () => {
                 await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);

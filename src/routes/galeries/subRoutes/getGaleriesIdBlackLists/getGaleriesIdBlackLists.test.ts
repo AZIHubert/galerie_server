@@ -5,8 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
-  Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
@@ -16,16 +14,13 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   createBlackList,
   createGalerie,
   createGalerieBlackList,
   createGalerieUser,
-  createProfilePicture,
   createUser,
   getGaleriesIdBlackLists,
-  testProfilePicture,
   testGalerieBlackList,
   testUser,
 } from '@src/helpers/test';
@@ -38,8 +33,6 @@ let sequelize: Sequelize;
 let token: string;
 let user: User;
 
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
-
 describe('/galeries', () => {
   describe('/:galerieId', () => {
     describe('/blackLists', () => {
@@ -50,11 +43,6 @@ describe('/galeries', () => {
         });
 
         beforeEach(async (done) => {
-          jest.clearAllMocks();
-          (signedUrl as jest.Mock).mockImplementation(() => ({
-            OK: true,
-            signedUrl: 'signedUrl',
-          }));
           try {
             await sequelize.sync({ force: true });
             const {
@@ -76,7 +64,6 @@ describe('/galeries', () => {
         });
 
         afterAll(async (done) => {
-          jest.clearAllMocks();
           try {
             await sequelize.sync({ force: true });
             await sequelize.close();
@@ -242,57 +229,6 @@ describe('/galeries', () => {
             } = await getGaleriesIdBlackLists(app, token, galerieId);
             expect(blackLists[0].user).toBeNull();
           });
-          it('include user current profile picture', async () => {
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              userName: 'user2',
-            });
-            await createGalerieBlackList({
-              createdById: user.id,
-              galerieId,
-              userId: userTwo.id,
-            });
-            await createProfilePicture({
-              userId: userTwo.id,
-            });
-            const {
-              body: {
-                data: {
-                  blackLists,
-                },
-              },
-            } = await getGaleriesIdBlackLists(app, token, galerieId);
-            testProfilePicture(blackLists[0].user.currentProfilePicture);
-          });
-          it('do not include user profile current profile picture if signedUrl.OK === false', async () => {
-            (signedUrl as jest.Mock).mockImplementation(() => ({
-              OK: false,
-            }));
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              userName: 'user2',
-            });
-            await createGalerieBlackList({
-              createdById: user.id,
-              galerieId,
-              userId: userTwo.id,
-            });
-            const { id: profilePictureId } = await createProfilePicture({
-              userId: userTwo.id,
-            });
-            const {
-              body: {
-                data: {
-                  blackLists,
-                },
-              },
-            } = await getGaleriesIdBlackLists(app, token, galerieId);
-            const profilePicture = await ProfilePicture.findByPk(profilePictureId);
-            const images = await Image.findAll();
-            expect(blackLists[0].user.currentProfilePicture).toBeNull();
-            expect(profilePicture).toBeNull();
-            expect(images.length).toBe(0);
-          });
           it('do not include createdBy if galerieBlackList.createdById === null', async () => {
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
@@ -341,57 +277,6 @@ describe('/galeries', () => {
               },
             } = await getGaleriesIdBlackLists(app, token, galerieId);
             expect(blackLists[0].createdBy).toBeNull();
-          });
-          it('include createdBy current profile picture', async () => {
-            await createProfilePicture({
-              userId: user.id,
-            });
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              userName: 'user2',
-            });
-            await createGalerieBlackList({
-              createdById: user.id,
-              galerieId,
-              userId: userTwo.id,
-            });
-            const {
-              body: {
-                data: {
-                  blackLists,
-                },
-              },
-            } = await getGaleriesIdBlackLists(app, token, galerieId);
-            testProfilePicture(blackLists[0].createdBy.currentProfilePicture);
-          });
-          it('do not include createdBy current profile picture if signedUrl.OK === false', async () => {
-            (signedUrl as jest.Mock).mockImplementation(() => ({
-              OK: false,
-            }));
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              userName: 'user2',
-            });
-            await createGalerieBlackList({
-              createdById: user.id,
-              galerieId,
-              userId: userTwo.id,
-            });
-            const { id: profilePictureId } = await createProfilePicture({
-              userId: user.id,
-            });
-            const {
-              body: {
-                data: {
-                  blackLists,
-                },
-              },
-            } = await getGaleriesIdBlackLists(app, token, galerieId);
-            const profilePicture = await ProfilePicture.findByPk(profilePictureId);
-            const images = await Image.findAll();
-            expect(blackLists[0].createdBy.currentProfilePicture).toBeNull();
-            expect(profilePicture).toBeNull();
-            expect(images.length).toBe(0);
           });
           it('return blackLists if current user role for this galerie is \'admin\'', async () => {
             const { user: userTwo } = await createUser({

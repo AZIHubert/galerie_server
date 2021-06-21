@@ -16,15 +16,12 @@ import {
 } from '@src/db/models';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   createGalerie,
   createGalerieUser,
-  createProfilePicture,
   createUser,
   postGaleriesIdInvitations,
   testInvitation,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -49,11 +46,6 @@ describe('/galeries', () => {
 
         beforeEach(async (done) => {
           mockDate.reset();
-          jest.clearAllMocks();
-          (signedUrl as jest.Mock).mockImplementation(() => ({
-            OK: true,
-            signedUrl: 'signedUrl',
-          }));
           try {
             await sequelize.sync({ force: true });
             const {
@@ -74,7 +66,6 @@ describe('/galeries', () => {
 
         afterAll(async (done) => {
           mockDate.reset();
-          jest.clearAllMocks();
           try {
             await sequelize.sync({ force: true });
             await sequelize.close();
@@ -158,23 +149,6 @@ describe('/galeries', () => {
             });
             expect(invitation.numOfInvits).toBe(numOfInvits);
             expect(new Date(invitation.time)).toEqual(new Date(timeStamp + time));
-          });
-          it('should incude profile picture', async () => {
-            await createProfilePicture({
-              userId: user.id,
-            });
-            const {
-              body: {
-                data: {
-                  invitation: {
-                    user: {
-                      currentProfilePicture,
-                    },
-                  },
-                },
-              },
-            } = await postGaleriesIdInvitations(app, token, galerieId);
-            testProfilePicture(currentProfilePicture);
           });
         });
         describe('Should return status 400 if', () => {

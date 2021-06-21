@@ -19,6 +19,7 @@ import {
   getGaleriesId,
   getGaleriesIdBlackLists,
   getGaleriesIdBlackListsId,
+  getGaleriesIdCoverPicture,
   getGaleriesIdFrames,
   getGaleriesIdFramesId,
   getGaleriesIdFramesIdLikes,
@@ -55,6 +56,7 @@ const galeriesRoutes: () => Router = () => {
   router.get('/:galerieId/', shouldBeAuth, getGaleriesId);
   router.get('/:galerieId/blackLists', shouldBeAuth, getGaleriesIdBlackLists);
   router.get('/:galerieId/blackLists/:blackListId', shouldBeAuth, getGaleriesIdBlackListsId);
+  router.get('/:galerieId/coverPicture', shouldBeAuth, getGaleriesIdCoverPicture);
   router.get('/:galerieId/frames/', shouldBeAuth, getGaleriesIdFrames);
   router.get('/:galerieId/frames/:frameId/', shouldBeAuth, getGaleriesIdFramesId);
   router.get('/:galerieId/frames/:frameId/likes', shouldBeAuth, getGaleriesIdFramesIdLikes);

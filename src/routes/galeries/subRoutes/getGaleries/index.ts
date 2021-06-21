@@ -13,7 +13,6 @@ import {
 import {
   galerieExcluder,
 } from '@src/helpers/excluders';
-import { fetchCoverPicture } from '@src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
@@ -49,27 +48,23 @@ export default async (req: Request, res: Response) => {
   }
 
   try {
-    returnedGaleries = await Promise.all(
-      galeries.map(async (galerie) => {
-        const coverPicture = await fetchCoverPicture(galerie);
+    returnedGaleries = galeries.map((galerie) => {
+      const userFromGalerie = galerie.users
+        .find((user) => user.id === currentUser.id);
 
-        const userFromGalerie = galerie.users
-          .find((user) => user.id === currentUser.id);
-
-        return {
-          ...galerie.toJSON(),
-          currentCoverPicture: coverPicture,
-          frames: [],
-          hasNewFrames: userFromGalerie
-            ? userFromGalerie.GalerieUser.hasNewFrames
-            : false,
-          role: userFromGalerie
-            ? userFromGalerie.GalerieUser.role
-            : 'user',
-          users: [],
-        };
-      }),
-    );
+      return {
+        ...galerie.toJSON(),
+        currentCoverPicture: null,
+        frames: [],
+        hasNewFrames: userFromGalerie
+          ? userFromGalerie.GalerieUser.hasNewFrames
+          : false,
+        role: userFromGalerie
+          ? userFromGalerie.GalerieUser.role
+          : 'user',
+        users: [],
+      };
+    });
   } catch (err) {
     return res.status(500).send(err);
   }

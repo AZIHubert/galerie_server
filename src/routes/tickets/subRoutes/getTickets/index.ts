@@ -14,13 +14,11 @@ import {
   ticketExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const { page } = req.query;
   const limit = 20;
   let offset: number;
-  let returnTickets: Array<any>;
   let tickets: Ticket[];
 
   if (typeof page === 'string') {
@@ -51,25 +49,13 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  try {
-    returnTickets = await Promise.all(
-      tickets.map(async (ticket) => {
-        let currentProfilePicture;
-        if (ticket.user) {
-          currentProfilePicture = await fetchCurrentProfilePicture(ticket.user);
-        }
-        return {
-          ...ticket.toJSON(),
-          user: ticket.user ? {
-            ...ticket.user.toJSON(),
-            currentProfilePicture,
-          } : null,
-        };
-      }),
-    );
-  } catch (err) {
-    return res.status(500).send(err);
-  }
+  const returnTickets = tickets.map((ticket) => ({
+    ...ticket.toJSON(),
+    user: ticket.user ? {
+      ...ticket.user.toJSON(),
+      currentProfilePicture: null,
+    } : null,
+  }));
 
   return res.status(200).send({
     action: 'GET',

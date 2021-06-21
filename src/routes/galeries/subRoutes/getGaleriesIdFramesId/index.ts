@@ -25,7 +25,6 @@ import {
   userExcluder,
 } from '@src/helpers/excluders';
 import {
-  fetchCurrentProfilePicture,
   fetchFrame,
 } from '@root/src/helpers/fetch';
 
@@ -135,12 +134,10 @@ export default async (req: Request, res: Response) => {
 
   try {
     const normalizedFrame = await fetchFrame(frame);
-    let currentProfilePicture: any = null;
 
     if (normalizedFrame) {
       const userIsBlackListed = await checkBlackList(frame.user);
       if (!userIsBlackListed) {
-        currentProfilePicture = await fetchCurrentProfilePicture(frame.user);
         userExcluder.forEach((e) => {
           objectUserExcluder[e] = undefined;
         });
@@ -152,7 +149,7 @@ export default async (req: Request, res: Response) => {
         user: userIsBlackListed ? null : {
           ...frame.user.toJSON(),
           ...objectUserExcluder,
-          currentProfilePicture,
+          currentProfilePicture: null,
         },
       };
     } else {

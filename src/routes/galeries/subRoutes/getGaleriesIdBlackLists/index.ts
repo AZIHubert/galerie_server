@@ -20,9 +20,6 @@ import {
   galerieBlackListExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import {
-  fetchCurrentProfilePicture,
-} from '@root/src/helpers/fetch';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -134,17 +131,9 @@ export default async (req: Request, res: Response) => {
       blackLists.map(async (blackList) => {
         const userIsBlackList = await checkBlackList(blackList.user);
         let createdByIsBlackList;
-        let createdByCurrentProfilePicture;
-        let currentProfilePicture;
 
-        if (!userIsBlackList) {
-          currentProfilePicture = await fetchCurrentProfilePicture(blackList.user);
-        }
         if (blackList.createdBy) {
           createdByIsBlackList = await checkBlackList(blackList.createdBy);
-          if (!createdByIsBlackList) {
-            createdByCurrentProfilePicture = await fetchCurrentProfilePicture(blackList.createdBy);
-          }
         }
 
         userExcluder.forEach((e) => {
@@ -156,12 +145,12 @@ export default async (req: Request, res: Response) => {
           createdBy: blackList.createdBy && !createdByIsBlackList ? {
             ...blackList.createdBy.toJSON(),
             ...objectUserExcluder,
-            currentProfilePicture: createdByCurrentProfilePicture,
+            currentProfilePicture: null,
           } : null,
           user: blackList.user && !userIsBlackList ? {
             ...blackList.user.toJSON(),
             ...objectUserExcluder,
-            currentProfilePicture,
+            currentProfilePicture: null,
           } : null,
         };
       }),

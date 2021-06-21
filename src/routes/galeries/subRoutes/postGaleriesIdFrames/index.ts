@@ -34,7 +34,6 @@ import {
 } from '@src/helpers/excluders';
 import gc from '@src/helpers/gc';
 import signedUrl from '@src/helpers/signedUrl';
-import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import {
   normalizeJoiErrors,
   validatePostGaleriesIdFramesBody,
@@ -54,7 +53,6 @@ export default async (req: Request, res: Response) => {
   const objectGaleriePictureExcluder: { [key: string]: undefined } = {};
   const objectImageExcluder: { [key: string]: undefined } = {};
   const objectUserExcluder: { [key: string]: undefined } = {};
-  let currentProfilePicture;
   let errors;
   let frame: Frame;
   let galerie: Galerie | null;
@@ -465,12 +463,6 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  try {
-    currentProfilePicture = await fetchCurrentProfilePicture(currentUser);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   // Compose the final frame.
   frameExcluder.forEach((e) => {
     objectFrameExcluder[e] = undefined;
@@ -486,7 +478,7 @@ export default async (req: Request, res: Response) => {
     user: {
       ...currentUser.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture,
+      currentProfilePicture: null,
     },
   };
 

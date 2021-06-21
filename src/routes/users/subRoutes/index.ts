@@ -1,9 +1,11 @@
 export { default as deleteUsersMe } from './deleteUsersMe';
 
 export { default as getUsers } from './getUsers';
-export { default as getUsersIdId } from './getUsersIdId';
+export { default as getUsersId } from './getUsersId';
+export { default as getUsersIdCurrentProfilePicture } from './getUsersIdCurrentProfilePicture';
 export { default as getUsersLogout } from './getUsersLogout';
 export { default as getUsersMe } from './getUsersMe';
+export { default as getUsersMeCurrentProfilePicture } from './getUsersMeCurrentProfilePicture';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 

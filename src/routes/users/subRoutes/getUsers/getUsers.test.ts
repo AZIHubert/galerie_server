@@ -4,19 +4,14 @@ import { Sequelize } from 'sequelize';
 import '@src/helpers/initEnv';
 
 import {
-  Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   createUser,
-  createProfilePicture,
   getUsers,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -32,11 +27,6 @@ let user: User;
 describe('/users', () => {
   describe('GET', () => {
     beforeAll(() => {
-      jest.clearAllMocks();
-      (signedUrl as jest.Mock).mockImplementation(() => ({
-        OK: true,
-        signedUrl: 'signedUrl',
-      }));
       sequelize = initSequelize();
       app = initApp();
     });
@@ -57,7 +47,6 @@ describe('/users', () => {
     });
 
     afterAll(async (done) => {
-      jest.clearAllMocks();
       try {
         await sequelize.sync({ force: true });
         await sequelize.close();
@@ -191,51 +180,6 @@ describe('/users', () => {
           expect(users[2].id).toBe(userFour.id);
           expect(users[3].id).toBe(userFive.id);
           expect(users[4].id).toBe(userSix.id);
-        });
-        it('include current profile picture', async () => {
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          const profilePicture = await createProfilePicture({
-            userId: userTwo.id,
-          });
-          const {
-            body: {
-              data: {
-                users: [{
-                  currentProfilePicture,
-                }],
-              },
-            },
-          } = await getUsers(app, token);
-          testProfilePicture(currentProfilePicture, profilePicture);
-        });
-        it('do not include profile picture if signedUrl.OK === false', async () => {
-          (signedUrl as jest.Mock).mockImplementation(() => ({
-            OK: false,
-          }));
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          const { id: profilePictureId } = await createProfilePicture({
-            userId: userTwo.id,
-          });
-          const {
-            body: {
-              data: {
-                users: [{
-                  currentProfilePicture,
-                }],
-              },
-            },
-          } = await getUsers(app, token);
-          const images = await Image.findAll();
-          const profilePicture = await ProfilePicture.findByPk(profilePictureId);
-          expect(images.length).toBe(0);
-          expect(profilePicture).toBeNull();
-          expect(currentProfilePicture).toBeNull();
         });
       });
     });

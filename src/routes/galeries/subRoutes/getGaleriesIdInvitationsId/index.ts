@@ -20,7 +20,6 @@ import {
   invitationExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -30,7 +29,6 @@ export default async (req: Request, res: Response) => {
   } = req.params;
   const currentUser = req.user as User;
   const objectUserExcluder: { [key: string]: undefined } = {};
-  let currentProfilePicture;
   let galerie: Galerie | null;
   let invitation: Invitation | null;
   let userIsBlackListed: boolean;
@@ -139,20 +137,12 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // If user is black listed
-  // there no need to fetch
-  // current profile picture,
-  // invitation.user = null.
-  if (!userIsBlackListed) {
-    currentProfilePicture = await fetchCurrentProfilePicture(invitation.user);
-  }
-
   const returnedInvitation = {
     ...invitation.toJSON(),
     user: userIsBlackListed ? null : {
       ...invitation.user.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture,
+      currentProfilePicture: null,
     },
   };
 

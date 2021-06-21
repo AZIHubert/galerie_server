@@ -15,15 +15,12 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   createBlackList,
   createGalerie,
   createGalerieUser,
-  createProfilePicture,
   createUser,
   getGaleriesIdUsers,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -48,11 +45,6 @@ describe('/galeries', () => {
 
         beforeEach(async (done) => {
           mockDate.reset();
-          jest.clearAllMocks();
-          (signedUrl as jest.Mock).mockImplementation(() => ({
-            OK: true,
-            signedUrl: 'signedUrl',
-          }));
           try {
             await sequelize.sync({ force: true });
             const {
@@ -73,7 +65,6 @@ describe('/galeries', () => {
 
         afterAll(async (done) => {
           mockDate.reset();
-          jest.clearAllMocks();
           try {
             await sequelize.sync({ force: true });
             await sequelize.close();
@@ -122,29 +113,6 @@ describe('/galeries', () => {
             expect(users.length).toBe(1);
             expect(users[0].galerieRole).not.toBeUndefined();
             testUser(users[0]);
-          });
-          it('return users with their current profile picture', async () => {
-            const {
-              user: userTwo,
-            } = await createUser({
-              email: 'user2@email.com',
-              userName: 'user2',
-            });
-            await createGalerieUser({
-              galerieId,
-              userId: userTwo.id,
-            });
-            await createProfilePicture({
-              userId: userTwo.id,
-            });
-            const {
-              body: {
-                data: {
-                  users,
-                },
-              },
-            } = await getGaleriesIdUsers(app, token, galerieId);
-            testProfilePicture(users[0].currentProfilePicture);
           });
           it('do not return users if their not subscribe to this galerie', async () => {
             await createUser({

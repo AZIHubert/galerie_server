@@ -22,19 +22,14 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
-  createProfilePicture,
   createUser,
   postBlackListUserId,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
-
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let sequelize: Sequelize;
@@ -51,11 +46,6 @@ describe('/blackLists', () => {
 
       beforeEach(async (done) => {
         mockDate.reset();
-        jest.clearAllMocks();
-        (signedUrl as jest.Mock).mockImplementation(() => ({
-          OK: true,
-          signedUrl: 'signedUrl',
-        }));
         try {
           await cleanGoogleBuckets();
           await sequelize.sync({ force: true });
@@ -75,7 +65,6 @@ describe('/blackLists', () => {
 
       afterAll(async (done) => {
         mockDate.reset();
-        jest.clearAllMocks();
         try {
           await cleanGoogleBuckets();
           await sequelize.sync({ force: true });
@@ -205,48 +194,6 @@ describe('/blackLists', () => {
             },
           });
           expect(status).toBe(200);
-        });
-        it('return black listed user current profile picture', async () => {
-          await createProfilePicture({
-            userId: userTwo.id,
-          });
-          const {
-            body: {
-              data: {
-                blackList: {
-                  user: {
-                    currentProfilePicture,
-                  },
-                },
-              },
-            },
-          } = await postBlackListUserId(app, token, userTwo.id, {
-            body: {
-              reason: 'black list reason',
-            },
-          });
-          testProfilePicture(currentProfilePicture);
-        });
-        it('return createdBy current profile picture', async () => {
-          await createProfilePicture({
-            userId: user.id,
-          });
-          const {
-            body: {
-              data: {
-                blackList: {
-                  createdBy: {
-                    currentProfilePicture,
-                  },
-                },
-              },
-            },
-          } = await postBlackListUserId(app, token, userTwo.id, {
-            body: {
-              reason: 'black list reason',
-            },
-          });
-          testProfilePicture(currentProfilePicture);
         });
       });
       describe('should return status 400 if', () => {

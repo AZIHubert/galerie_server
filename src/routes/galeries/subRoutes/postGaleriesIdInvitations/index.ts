@@ -22,9 +22,6 @@ import {
   userExcluder,
 } from '@src/helpers/excluders';
 import {
-  fetchCurrentProfilePicture,
-} from '@src/helpers/fetch';
-import {
   normalizeJoiErrors,
   validatePostGaleriesIdInvationsBody,
 } from '@src/helpers/schemas';
@@ -53,7 +50,6 @@ export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   const objectInvitationExcluder: { [key:string]: undefined} = {};
   const objectUserExcluder: { [key:string]: undefined} = {};
-  let currentProfilePicture;
   let galerie: Galerie | null;
   let invitation: Invitation | null;
 
@@ -134,13 +130,6 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Fetch current profile picture.
-  try {
-    currentProfilePicture = await fetchCurrentProfilePicture(currentUser);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   invitationExcluder.forEach((e) => {
     objectInvitationExcluder[e] = undefined;
   });
@@ -154,7 +143,7 @@ export default async (req: Request, res: Response) => {
     user: {
       ...currentUser.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture,
+      currentProfilePicture: null,
     },
   };
 

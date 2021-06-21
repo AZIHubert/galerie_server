@@ -1,3 +1,5 @@
+// GET /users/me/
+
 import {
   Request,
   Response,
@@ -10,19 +12,10 @@ import {
 import {
   userExcluder,
 } from '@src/helpers/excluders';
-import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   const objectUserExcluder: { [key: string]: undefined } = {};
-  let currentProfilePicture;
-
-  // fetch current profile picture
-  try {
-    currentProfilePicture = await fetchCurrentProfilePicture(currentUser);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
 
   userExcluder.forEach((e) => {
     objectUserExcluder[e] = undefined;
@@ -32,7 +25,7 @@ export default async (req: Request, res: Response) => {
   const returnedUser = {
     ...currentUser.toJSON(),
     ...objectUserExcluder,
-    currentProfilePicture,
+    currentProfilePicture: null,
   };
 
   return res.status(200).send({

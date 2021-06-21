@@ -4,28 +4,21 @@ import { Sequelize } from 'sequelize';
 import '@src/helpers/initEnv';
 
 import {
-  Image,
-  ProfilePicture,
   Ticket,
   User,
 } from '@src/db/models';
 
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
-  createProfilePicture,
   createTicket,
   createUser,
   getTickets,
-  testProfilePicture,
   testTicket,
   testUser,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
-
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let sequelize: Sequelize;
@@ -35,11 +28,6 @@ let user: User;
 describe('/tickets', () => {
   describe('GET', () => {
     beforeAll(() => {
-      jest.clearAllMocks();
-      (signedUrl as jest.Mock).mockImplementation(() => ({
-        OK: true,
-        signedUrl: 'signedUrl',
-      }));
       sequelize = initSequelize();
       app = initApp();
     });
@@ -67,7 +55,6 @@ describe('/tickets', () => {
     });
 
     afterAll(async (done) => {
-      jest.clearAllMocks();
       try {
         await sequelize.sync({ force: true });
         await sequelize.close();
@@ -97,45 +84,6 @@ describe('/tickets', () => {
         expect(tickets.length).toBe(1);
         testTicket(tickets[0]);
         testUser(tickets[0].user);
-      });
-      it('include current profile picture', async () => {
-        await createProfilePicture({
-          userId: user.id,
-        });
-        await createTicket({
-          userId: user.id,
-        });
-        const {
-          body: {
-            data: {
-              tickets,
-            },
-          },
-        } = await getTickets(app, token);
-        testProfilePicture(tickets[0].user.currentProfilePicture);
-      });
-      it('do not include profile picture if signedUrl.OK === false', async () => {
-        (signedUrl as jest.Mock).mockImplementation(() => ({
-          OK: false,
-        }));
-        const { id: profilePictureId } = await createProfilePicture({
-          userId: user.id,
-        });
-        await createTicket({
-          userId: user.id,
-        });
-        const {
-          body: {
-            data: {
-              tickets,
-            },
-          },
-        } = await getTickets(app, token);
-        const images = await Image.findAll();
-        const profilePicture = await ProfilePicture.findByPk(profilePictureId);
-        expect(images.length).toBe(0);
-        expect(profilePicture).toBeNull();
-        expect(tickets[0].user.currentProfilePicture).toBeNull();
       });
       it('return a pack of 20 tickets', async () => {
         const NUM = 21;

@@ -15,13 +15,11 @@ import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
-import { fetchCoverPicture } from '@src/helpers/fetch';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
   const currentUser = req.user as User;
-  let currentCoverPicture;
   let galerie: Galerie | null;
 
   // Check if request.params.galerieId
@@ -58,12 +56,6 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  try {
-    currentCoverPicture = await fetchCoverPicture(galerie);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   const userFromGalerie = galerie.users
     .find((u) => u.id === currentUser.id);
 
@@ -83,21 +75,23 @@ export default async (req: Request, res: Response) => {
     }
   }
 
+  const normalizeGalerie = {
+    ...galerie.toJSON(),
+    currentCoverPicture: null,
+    frames: [],
+    hasNewFrames: userFromGalerie
+      ? userFromGalerie.GalerieUser.hasNewFrames
+      : false,
+    role: userFromGalerie
+      ? userFromGalerie.GalerieUser.role
+      : 'user',
+    users: [],
+  };
+
   return res.status(200).send({
     action: 'GET',
     data: {
-      galerie: {
-        ...galerie.toJSON(),
-        currentCoverPicture,
-        frames: [],
-        hasNewFrames: userFromGalerie
-          ? userFromGalerie.GalerieUser.hasNewFrames
-          : false,
-        role: userFromGalerie
-          ? userFromGalerie.GalerieUser.role
-          : 'user',
-        users: [],
-      },
+      galerie: normalizeGalerie,
     },
   });
 };
