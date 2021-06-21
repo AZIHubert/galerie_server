@@ -5,8 +5,6 @@ import '@src/helpers/initEnv';
 
 import {
   BetaKey,
-  Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
@@ -18,11 +16,9 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
-  createProfilePicture,
   createBetaKey,
   createUser,
   postBetaKey,
-  testProfilePicture,
   testBetaKey,
   testUser,
 } from '@src/helpers/test';
@@ -163,47 +159,6 @@ describe('/betaKeys', () => {
         const createdBetaKey = await BetaKey.findByPk(betaKey.id) as BetaKey;
         expect(betaKey.email).toBe(email);
         expect(createdBetaKey.email).toBe(email);
-      });
-      it('include createdBy current profile picture', async () => {
-        const profilePicture = await createProfilePicture({
-          userId: user.id,
-        });
-        const {
-          body: {
-            data: {
-              betaKey: {
-                createdBy: {
-                  currentProfilePicture,
-                },
-              },
-            },
-          },
-        } = await postBetaKey(app, token);
-        testProfilePicture(currentProfilePicture, profilePicture);
-      });
-      it('do not include createdBy current profile picture if signedUrl.OK === false', async () => {
-        (signedUrl as jest.Mock).mockImplementation(() => ({
-          OK: false,
-        }));
-        await createProfilePicture({
-          userId: user.id,
-        });
-        const {
-          body: {
-            data: {
-              betaKey: {
-                createdBy: {
-                  currentProfilePicture,
-                },
-              },
-            },
-          },
-        } = await postBetaKey(app, token);
-        const images = await Image.findAll();
-        const profilePictures = await ProfilePicture.findAll();
-        expect(currentProfilePicture).toBeNull();
-        expect(images.length).toBe(0);
-        expect(profilePictures.length).toBe(0);
       });
     });
     describe('should return status 400 if', () => {
