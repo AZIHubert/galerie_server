@@ -20,11 +20,9 @@ import {
   createGalerie,
   createGalerieUser,
   createLike,
-  createProfilePicture,
   createUser,
   getGaleriesFrames,
   testFrame,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -130,26 +128,6 @@ describe('/galeries', () => {
           } = await getGaleriesFrames(app, token);
           testFrame(frames[0]);
           testUser(frames[0].user);
-        });
-        it('return frames with user with his current profile picture', async () => {
-          const { id: galerieId } = await createGalerie({
-            userId: user.id,
-          });
-          await createFrame({
-            galerieId,
-            userId: user.id,
-          });
-          await createProfilePicture({
-            userId: user.id,
-          });
-          const {
-            body: {
-              data: {
-                frames,
-              },
-            },
-          } = await getGaleriesFrames(app, token);
-          testProfilePicture(frames[0].user.currentProfilePicture);
         });
         it('return two frames from two different galeries', async () => {
           const {
