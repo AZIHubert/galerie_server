@@ -20,9 +20,6 @@ import {
   galerieBlackListExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import {
-  fetchCurrentProfilePicture,
-} from '@root/src/helpers/fetch';
 import uuidValidateV4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -33,8 +30,6 @@ export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   const objectUserExcluder: { [key: string]: undefined } = {};
   let createdByIsBlackList: boolean = false;
-  let createdByCurrentProfilePicture;
-  let currentProfilePicture;
   let galerie: Galerie | null;
   let galerieBlackList: GalerieBlackList | null;
   let userIsBlackList: boolean;
@@ -128,30 +123,12 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Fetch user current profile picture.
-  if (!userIsBlackList) {
-    try {
-      currentProfilePicture = await fetchCurrentProfilePicture(galerieBlackList.user);
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-  }
-
   if (galerieBlackList.createdBy) {
     // Check if createdBy is black listed.
     try {
       createdByIsBlackList = await checkBlackList(galerieBlackList.createdBy);
     } catch (err) {
       return res.status(500).send(err);
-    }
-    if (!createdByIsBlackList) {
-      try {
-        createdByCurrentProfilePicture = await fetchCurrentProfilePicture(
-          galerieBlackList.createdBy,
-        );
-      } catch (err) {
-        return res.status(500).send(err);
-      }
     }
   }
 
@@ -164,13 +141,13 @@ export default async (req: Request, res: Response) => {
     createdBy: galerieBlackList.createdBy && !createdByIsBlackList ? {
       ...galerieBlackList.createdBy.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture: createdByCurrentProfilePicture,
+      currentProfilePicture: null,
     } : null,
     galerie: undefined,
     user: galerieBlackList.user && !userIsBlackList ? {
       ...galerieBlackList.user.toJSON(),
       ...objectUserExcluder,
-      currentProfilePicture,
+      currentProfilePicture: null,
     } : null,
   };
 

@@ -14,7 +14,6 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   createBlackList,
   createGalerie,
@@ -34,8 +33,6 @@ let sequelize: Sequelize;
 let token: string;
 let user: User;
 
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
-
 describe('/galeries', () => {
   describe('/:galerieId', () => {
     describe('/blackLists', () => {
@@ -46,11 +43,6 @@ describe('/galeries', () => {
         });
 
         beforeEach(async (done) => {
-          jest.clearAllMocks();
-          (signedUrl as jest.Mock).mockImplementation(() => ({
-            OK: true,
-            signedUrl: 'signedUrl',
-          }));
           try {
             await sequelize.sync({ force: true });
             const {
@@ -72,7 +64,6 @@ describe('/galeries', () => {
         });
 
         afterAll(async (done) => {
-          jest.clearAllMocks();
           try {
             await sequelize.sync({ force: true });
             await sequelize.close();

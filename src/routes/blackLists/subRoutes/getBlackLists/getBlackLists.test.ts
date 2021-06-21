@@ -10,7 +10,6 @@ import {
 
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
   createBlackList,
@@ -20,8 +19,6 @@ import {
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
-
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let sequelize: Sequelize;
@@ -37,11 +34,6 @@ describe('/blackLists', () => {
 
     beforeEach(async (done) => {
       mockDate.reset();
-      jest.clearAllMocks();
-      (signedUrl as jest.Mock).mockImplementation(() => ({
-        OK: true,
-        signedUrl: 'signedUrl',
-      }));
       try {
         await cleanGoogleBuckets();
         await sequelize.sync({ force: true });
@@ -61,7 +53,6 @@ describe('/blackLists', () => {
 
     afterAll(async (done) => {
       mockDate.reset();
-      jest.clearAllMocks();
       try {
         await cleanGoogleBuckets();
         await sequelize.sync({ force: true });

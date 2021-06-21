@@ -20,7 +20,6 @@ import signedUrl from '@src/helpers/signedUrl';
 import {
   createFrame,
   createGalerie,
-  // createGalerieUser,
   createUser,
   getGaleriesIdCoverPicture,
   testGaleriePicture,

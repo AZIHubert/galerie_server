@@ -14,7 +14,6 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   createBetaKey,
   createUser,
@@ -24,8 +23,6 @@ import {
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
-
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let sequelize: Sequelize;
@@ -40,11 +37,6 @@ describe('/betaKeys', () => {
     });
 
     beforeEach(async (done) => {
-      jest.clearAllMocks();
-      (signedUrl as jest.Mock).mockImplementation(() => ({
-        OK: true,
-        signedUrl: 'signedUrl',
-      }));
       try {
         await sequelize.sync({ force: true });
         const {
@@ -62,7 +54,6 @@ describe('/betaKeys', () => {
     });
 
     afterAll(async (done) => {
-      jest.clearAllMocks();
       try {
         await sequelize.sync({ force: true });
         await sequelize.close();
