@@ -4,8 +4,6 @@ import { Sequelize } from 'sequelize';
 import '@src/helpers/initEnv';
 
 import {
-  Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
@@ -13,11 +11,9 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
-  createProfilePicture,
   createBetaKey,
   createUser,
   getBetaKeysEmailEmail,
-  testProfilePicture,
   testBetaKey,
   testUser,
 } from '@src/helpers/test';
@@ -226,49 +222,6 @@ describe('/betaKeys', () => {
           } = await getBetaKeysEmailEmail(app, token, email);
           testUser(betaKeys[0].createdBy);
         });
-        it('include createdBy current profile picture', async () => {
-          const email = 'user';
-          await createBetaKey({
-            createdById: user.id,
-            email: `${email}@email.com`,
-          });
-          await createProfilePicture({
-            userId: user.id,
-          });
-          const {
-            body: {
-              data: {
-                betaKeys,
-              },
-            },
-          } = await getBetaKeysEmailEmail(app, token, email);
-          testProfilePicture(betaKeys[0].createdBy.currentProfilePicture);
-        });
-        it('do not include createdBy current profile picture if signedUrl.OK === false', async () => {
-          (signedUrl as jest.Mock).mockImplementation(() => ({
-            OK: false,
-          }));
-          const email = 'user';
-          await createBetaKey({
-            createdById: user.id,
-            email: `${email}@email.com`,
-          });
-          await createProfilePicture({
-            userId: user.id,
-          });
-          const {
-            body: {
-              data: {
-                betaKeys,
-              },
-            },
-          } = await getBetaKeysEmailEmail(app, token, email);
-          const images = await Image.findAll();
-          const profilePictures = await ProfilePicture.findAll();
-          expect(betaKeys[0].createdBy.currentProfilePicture).toBeNull();
-          expect(images.length).toBe(0);
-          expect(profilePictures.length).toBe(0);
-        });
         it('include user', async () => {
           const email = 'user';
           const { user: userTwo } = await createUser({
@@ -287,57 +240,6 @@ describe('/betaKeys', () => {
             },
           } = await getBetaKeysEmailEmail(app, token, email);
           testUser(betaKeys[0].user);
-        });
-        it('include user current profile picture', async () => {
-          const email = 'user';
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          await createBetaKey({
-            email: `${email}@email.com`,
-            userId: userTwo.id,
-          });
-          await createProfilePicture({
-            userId: userTwo.id,
-          });
-          const {
-            body: {
-              data: {
-                betaKeys,
-              },
-            },
-          } = await getBetaKeysEmailEmail(app, token, email);
-          testProfilePicture(betaKeys[0].user.currentProfilePicture);
-        });
-        it('do not include user current profile picture if signedUrl.OK === false', async () => {
-          (signedUrl as jest.Mock).mockImplementation(() => ({
-            OK: false,
-          }));
-          const email = 'user';
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          await createBetaKey({
-            email: `${email}@email.com`,
-            userId: userTwo.id,
-          });
-          await createProfilePicture({
-            userId: userTwo.id,
-          });
-          const {
-            body: {
-              data: {
-                betaKeys,
-              },
-            },
-          } = await getBetaKeysEmailEmail(app, token, email);
-          const images = await Image.findAll();
-          const profilePictures = await ProfilePicture.findAll();
-          expect(betaKeys[0].user.currentProfilePicture).toBeNull();
-          expect(images.length).toBe(0);
-          expect(profilePictures.length).toBe(0);
         });
       });
     });
