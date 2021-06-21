@@ -16,17 +16,14 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   createBlackList,
   createGalerie,
   createGalerieUser,
   createInvitation,
-  createProfilePicture,
   createUser,
   getGaleriesIdInvitationsId,
   testInvitation,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -52,11 +49,6 @@ describe('/galeries', () => {
 
           beforeEach(async (done) => {
             mockDate.reset();
-            jest.clearAllMocks();
-            (signedUrl as jest.Mock).mockImplementation(() => ({
-              OK: true,
-              signedUrl: 'signedUrl',
-            }));
             try {
               await sequelize.sync({ force: true });
               const {
@@ -79,7 +71,6 @@ describe('/galeries', () => {
 
           afterAll(async (done) => {
             mockDate.reset();
-            jest.clearAllMocks();
             try {
               await sequelize.sync({ force: true });
               await sequelize.close();
@@ -111,23 +102,6 @@ describe('/galeries', () => {
               testInvitation(returnedInvitation, invitation);
               testUser(returnedInvitation.user, user);
               expect(status).toBe(200);
-            });
-            it('return user\'s profile picture', async () => {
-              const profilePicture = await createProfilePicture({
-                userId: user.id,
-              });
-              const { id: invitationId } = await createInvitation({
-                galerieId,
-                userId: user.id,
-              });
-              const {
-                body: {
-                  data: {
-                    invitation: returnedInvitation,
-                  },
-                },
-              } = await getGaleriesIdInvitationsId(app, token, galerieId, invitationId);
-              testProfilePicture(returnedInvitation.user.currentProfilePicture, profilePicture);
             });
             it('return invitation if it\'s not expired', async () => {
               const timeStamp = 1434319925275;
