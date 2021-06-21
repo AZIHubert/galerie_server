@@ -4,8 +4,6 @@ import { Sequelize } from 'sequelize';
 import '@src/helpers/initEnv';
 
 import {
-  Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
@@ -13,11 +11,9 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
-  createProfilePicture,
   createBetaKey,
   createUser,
   getBetaKeys,
-  testProfilePicture,
   testBetaKey,
   testUser,
 } from '@src/helpers/test';
@@ -114,42 +110,6 @@ describe('/betaKeys', () => {
         } = await getBetaKeys(app, token);
         testUser(betaKeys[0].createdBy);
       });
-      it('include createdBy current profile picture', async () => {
-        await createBetaKey({
-          createdById: user.id,
-        });
-        await createProfilePicture({
-          userId: user.id,
-        });
-        const {
-          body: {
-            data: {
-              betaKeys,
-            },
-          },
-        } = await getBetaKeys(app, token);
-        testProfilePicture(betaKeys[0].createdBy.currentProfilePicture);
-      });
-      it('do not include createdBy current profile picture if signedUrl.OK === false', async () => {
-        (signedUrl as jest.Mock).mockImplementation(() => ({
-          OK: false,
-        }));
-        await createBetaKey({
-          createdById: user.id,
-        });
-        const {
-          body: {
-            data: {
-              betaKeys,
-            },
-          },
-        } = await getBetaKeys(app, token);
-        const images = await Image.findAll();
-        const profilePictures = await ProfilePicture.findAll();
-        expect(betaKeys[0].createdBy.currentProfilePicture).toBeNull();
-        expect(images.length).toBe(0);
-        expect(profilePictures.length).toBe(0);
-      });
       it('include user', async () => {
         const { user: userTwo } = await createUser({
           email: 'user2@email.com',
@@ -167,55 +127,6 @@ describe('/betaKeys', () => {
           },
         } = await getBetaKeys(app, token);
         testUser(betaKeys[0].user);
-      });
-      it('include user current profile picture', async () => {
-        const { user: userTwo } = await createUser({
-          email: 'user2@email.com',
-          userName: 'user2',
-        });
-        await createProfilePicture({
-          userId: userTwo.id,
-        });
-        await createBetaKey({
-          createdById: user.id,
-          userId: userTwo.id,
-        });
-        const {
-          body: {
-            data: {
-              betaKeys,
-            },
-          },
-        } = await getBetaKeys(app, token);
-        testProfilePicture(betaKeys[0].user.currentProfilePicture);
-      });
-      it('do not include user current profile picture if signedUrl.OK === false', async () => {
-        (signedUrl as jest.Mock).mockImplementation(() => ({
-          OK: false,
-        }));
-        const { user: userTwo } = await createUser({
-          email: 'user2@email.com',
-          userName: 'user2',
-        });
-        await createProfilePicture({
-          userId: userTwo.id,
-        });
-        await createBetaKey({
-          createdById: user.id,
-          userId: userTwo.id,
-        });
-        const {
-          body: {
-            data: {
-              betaKeys,
-            },
-          },
-        } = await getBetaKeys(app, token);
-        const images = await Image.findAll();
-        const profilePictures = await ProfilePicture.findAll();
-        expect(betaKeys[0].user.currentProfilePicture).toBeNull();
-        expect(images.length).toBe(0);
-        expect(profilePictures.length).toBe(0);
       });
       it('return a pack of 20 betaKey', async () => {
         const NUM = 21;

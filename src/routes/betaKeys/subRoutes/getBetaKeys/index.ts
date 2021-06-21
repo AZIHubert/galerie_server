@@ -17,9 +17,6 @@ import {
   betaKeyExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import {
-  fetchCurrentProfilePicture,
-} from '@src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
@@ -109,27 +106,17 @@ export default async (req: Request, res: Response) => {
   // Normalize betaKeys.
   try {
     normalizeBetaKeys = await Promise.all(
-      betaKeys.map(async (betaKey) => {
-        let createdByCurrentProfilePicture;
-        let userCurrentProfilePicture;
-        if (betaKey.createdBy) {
-          createdByCurrentProfilePicture = await fetchCurrentProfilePicture(betaKey.createdBy);
-        }
-        if (betaKey.user) {
-          userCurrentProfilePicture = await fetchCurrentProfilePicture(betaKey.user);
-        }
-        return {
-          ...betaKey.toJSON(),
-          createdBy: !betaKey.createdBy ? null : {
-            ...betaKey.createdBy.toJSON(),
-            currentProfilePicture: createdByCurrentProfilePicture,
-          },
-          user: !betaKey.user ? null : {
-            ...betaKey.user.toJSON(),
-            currentProfilePicture: userCurrentProfilePicture,
-          },
-        };
-      }),
+      betaKeys.map(async (betaKey) => ({
+        ...betaKey.toJSON(),
+        createdBy: !betaKey.createdBy ? null : {
+          ...betaKey.createdBy.toJSON(),
+          currentProfilePicture: null,
+        },
+        user: !betaKey.user ? null : {
+          ...betaKey.user.toJSON(),
+          currentProfilePicture: null,
+        },
+      })),
     );
   } catch (err) {
     return res.status(500).send(err);
