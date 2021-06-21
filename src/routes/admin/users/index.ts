@@ -12,7 +12,6 @@ import {
 } from '@src/helpers/middlewares';
 
 import {
-  getAdminUsers,
   getAdminUsersIdBlackLists,
 } from './subRoutes';
 
@@ -21,7 +20,6 @@ const router = Router();
 const usersRoutes: () => Router = () => {
   router.delete('/:userId/profilePictures/:profilePictureId', shouldBeAuth, shouldBeSuperAdmin, () => {});
 
-  router.get('/', shouldBeAuth, shouldBeSuperAdmin, getAdminUsers);
   router.get('/:userId/blackLists', shouldBeAuth, shouldBeSuperAdmin, getAdminUsersIdBlackLists);
   router.get('/:userId/blackLists/:blackListId', shouldBeAuth, shouldBeSuperAdmin, () => {});
   router.get('/:userId/profilePictures', shouldBeAuth, shouldBeSuperAdmin, () => {});

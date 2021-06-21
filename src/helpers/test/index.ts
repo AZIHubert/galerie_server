@@ -24,7 +24,6 @@ export { default as deleteProfilePicturesId } from './deleteProfilePicturesId';
 export { default as deleteTicketsId } from './deleteTicketsId';
 export { default as deleteUsersMe } from './deleteUsersMe';
 
-export { default as getAdminUsers } from './getAdminUsers';
 export { default as getAdminUsersIdBlackLists } from './getAdminUsersIdBlackLists';
 export { default as getBetaKeys } from './getBetaKeys';
 export { default as getBetaKeysEmailEmail } from './getBetaKeysEmailEmail';
