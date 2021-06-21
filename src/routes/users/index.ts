@@ -11,6 +11,7 @@ import {
 
   getUsers,
   getUsersId,
+  getUsersIdCurrentProfilePicture,
   getUsersLogout,
   getUsersMe,
   getUsersMeCurrentProfilePicture,
@@ -45,8 +46,7 @@ const usersRoutes: () => Router = () => {
   router.get('/refreshToken/', getUsersRefreshToken);
   router.get('/userName/:userName/', shouldBeAuth, getUsersUserNameUserName);
   router.get('/:userId/', shouldBeAuth, getUsersId);
-  // TODO:
-  router.get('/:userId/currentProfilePicture', () => {});
+  router.get('/:userId/currentProfilePicture', shouldBeAuth, getUsersIdCurrentProfilePicture);
 
   router.post('/confirmation/', shouldNotBeAuth, postUsersConfirmation);
   router.post('/login/', shouldNotBeAuth, postUsersLogin);
