@@ -15,7 +15,6 @@ import {
   blackListExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
-import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const {
@@ -105,16 +104,6 @@ export default async (req: Request, res: Response) => {
             updatedBy,
           }],
         } = user;
-        const currentProfilePicture = await fetchCurrentProfilePicture(user);
-        let createdByCurrentProfilePicture;
-        let updatedByCurrentProfilePicture;
-
-        if (createdBy) {
-          createdByCurrentProfilePicture = await fetchCurrentProfilePicture(createdBy);
-        }
-        if (user.blackListsUser[0].updatedBy) {
-          updatedByCurrentProfilePicture = await fetchCurrentProfilePicture(updatedBy);
-        }
 
         userExcluder.forEach((e) => {
           objectUserExcluder[e] = undefined;
@@ -124,17 +113,17 @@ export default async (req: Request, res: Response) => {
           ...user.blackListsUser[0].toJSON(),
           createdBy: createdBy ? {
             ...createdBy.toJSON(),
-            currentProfilePicture: createdByCurrentProfilePicture,
+            currentProfilePicture: null,
           } : null,
           active: true,
           updatedBy: updatedBy ? {
             ...updatedBy.toJSON(),
-            currentProfilePicture: updatedByCurrentProfilePicture,
+            currentProfilePicture: null,
           } : null,
           user: {
             ...user.toJSON(),
             ...objectUserExcluder,
-            currentProfilePicture,
+            currentProfilePicture: null,
           },
         };
       }),

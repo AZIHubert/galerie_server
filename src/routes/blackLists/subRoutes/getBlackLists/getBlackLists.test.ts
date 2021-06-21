@@ -14,10 +14,8 @@ import signedUrl from '@src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
   createBlackList,
-  createProfilePicture,
   createUser,
   getBlackLists,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -175,58 +173,6 @@ describe('/blackLists', () => {
         } = await getBlackLists(app, token, { page: 2 });
         expect(firstPack.length).toBe(20);
         expect(secondPack.length).toBe(1);
-      });
-      it('include black listed user current profile picture', async () => {
-        const {
-          user: userTwo,
-        } = await createUser({
-          email: 'user2@email.com',
-          userName: 'user2',
-        });
-        await createProfilePicture({
-          userId: userTwo.id,
-        });
-        await createBlackList({
-          createdById: user.id,
-          userId: userTwo.id,
-        });
-        const {
-          body: {
-            data: {
-              blackLists: [{
-                user: {
-                  currentProfilePicture,
-                },
-              }],
-            },
-          },
-        } = await getBlackLists(app, token);
-        testProfilePicture(currentProfilePicture);
-      });
-      it('include createdBy current profile picture', async () => {
-        const { user: userTwo } = await createUser({
-          email: 'user2@email.com',
-          userName: 'user2',
-        });
-        await createBlackList({
-          createdById: user.id,
-          userId: userTwo.id,
-        });
-        await createProfilePicture({
-          userId: user.id,
-        });
-        const {
-          body: {
-            data: {
-              blackLists: [{
-                createdBy: {
-                  currentProfilePicture,
-                },
-              }],
-            },
-          },
-        } = await getBlackLists(app, token);
-        testProfilePicture(currentProfilePicture);
       });
       it('should not include createdBy if he have deleted his account', async () => {
         const { user: userTwo } = await createUser({
