@@ -5,8 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import '@src/helpers/initEnv';
 
 import {
-  Image,
-  ProfilePicture,
   User,
 } from '@src/db/models';
 
@@ -16,13 +14,10 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   createBlackList,
-  createProfilePicture,
   createUser,
   getUsersId,
-  testProfilePicture,
   testUser,
 } from '@src/helpers/test';
 
@@ -44,11 +39,6 @@ describe('/users', () => {
       });
 
       beforeEach(async (done) => {
-        jest.clearAllMocks();
-        (signedUrl as jest.Mock).mockImplementation(() => ({
-          OK: true,
-          signedUrl: 'signedUrl',
-        }));
         try {
           await sequelize.sync({ force: true });
           const {
@@ -64,7 +54,6 @@ describe('/users', () => {
       });
 
       afterAll(async (done) => {
-        jest.clearAllMocks();
         try {
           await sequelize.sync({ force: true });
           await sequelize.close();
@@ -93,51 +82,6 @@ describe('/users', () => {
             expect(action).toBe('GET');
             expect(status).toBe(200);
             testUser(returnedUser, userTwo);
-          });
-          it('include current profile picture', async () => {
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              userName: 'user2',
-            });
-            const profilePicture = await createProfilePicture({
-              userId: userTwo.id,
-            });
-            const {
-              body: {
-                data: {
-                  user: {
-                    currentProfilePicture,
-                  },
-                },
-              },
-            } = await getUsersId(app, token, userTwo.id);
-            testProfilePicture(currentProfilePicture, profilePicture);
-          });
-          it('do not include profile picture if signedUrl.OK === false', async () => {
-            (signedUrl as jest.Mock).mockImplementation(() => ({
-              OK: false,
-            }));
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              userName: 'user2',
-            });
-            const { id: profilePictureId } = await createProfilePicture({
-              userId: userTwo.id,
-            });
-            const {
-              body: {
-                data: {
-                  user: {
-                    currentProfilePicture,
-                  },
-                },
-              },
-            } = await getUsersId(app, token, userTwo.id);
-            const images = await Image.findAll();
-            const profilePicture = await ProfilePicture.findByPk(profilePictureId);
-            expect(images.length).toBe(0);
-            expect(profilePicture).toBeNull();
-            expect(currentProfilePicture).toBeNull();
           });
         });
         describe('should return status 400 if', () => {
