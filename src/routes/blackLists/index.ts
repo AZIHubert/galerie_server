@@ -24,6 +24,7 @@ const profilePicturesRoutes: () => Router = () => {
 
   router.post('/:userId/', shouldBeAuth, shouldBeAdmin, postBlackListsUserIs);
 
+  // Keep this route.
   router.put('/', shouldBeAuth, shouldBeAdmin, putBlackLists);
   router.put('/:blackListId/', shouldBeAuth, shouldBeAdmin, putBlackListsId);
 

@@ -48,6 +48,7 @@ export { default as getUsers } from './getUsers';
 export { default as getUsersId } from './getUsersId';
 export { default as getUsersIdIdBlackLists } from './getUsersIdIdBlackLists';
 export { default as getUsersMe } from './getUsersMe';
+export { default as getUsersMeCurrentProfilePicture } from './getUsersMeCurrentProfilePicture';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 

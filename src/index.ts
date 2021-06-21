@@ -18,9 +18,6 @@ initSequelize(() => {
 });
 
 // TODO:
-// Refactor POST /galeries/:galerieId/frames/
-// to be the same as POST /profilePictures/
-// TODO:
 // when fetch user at any place on galerie
 // return user with isBlackListed
 // instead of null.

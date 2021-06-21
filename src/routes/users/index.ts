@@ -13,6 +13,7 @@ import {
   getUsersId,
   getUsersLogout,
   getUsersMe,
+  getUsersMeCurrentProfilePicture,
   getUsersRefreshToken,
   getUsersUserNameUserName,
 
@@ -40,8 +41,7 @@ const usersRoutes: () => Router = () => {
   router.get('/', shouldBeAuth, getUsers);
   router.get('/logout/', shouldBeAuth, getUsersLogout);
   router.get('/me/', shouldBeAuth, getUsersMe);
-  // TODO:
-  router.get('/me/currentProfilePicture/', shouldBeAuth, () => {});
+  router.get('/me/currentProfilePicture/', shouldBeAuth, getUsersMeCurrentProfilePicture);
   router.get('/refreshToken/', getUsersRefreshToken);
   router.get('/userName/:userName/', shouldBeAuth, getUsersUserNameUserName);
   router.get('/:userId/', shouldBeAuth, getUsersId);
