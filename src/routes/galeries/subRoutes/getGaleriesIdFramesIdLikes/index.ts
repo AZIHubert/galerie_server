@@ -19,7 +19,6 @@ import {
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import { userExcluder } from '@src/helpers/excluders';
-import { fetchCurrentProfilePicture } from '@root/src/helpers/fetch';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -130,7 +129,6 @@ export default async (req: Request, res: Response) => {
         if (userIsBlackListed) {
           return null;
         }
-        const currentProfilePicture = await fetchCurrentProfilePicture(user);
         userExcluder.forEach((e) => {
           objectUserExcluder[e] = undefined;
         });
@@ -138,7 +136,7 @@ export default async (req: Request, res: Response) => {
         return {
           ...user.toJSON(),
           ...objectUserExcluder,
-          currentProfilePicture,
+          currentProfilePicture: null,
         };
       }),
     );

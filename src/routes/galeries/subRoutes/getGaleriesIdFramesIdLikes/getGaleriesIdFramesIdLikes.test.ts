@@ -15,18 +15,15 @@ import {
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
   createBlackList,
   createFrame,
   createGalerie,
   createGalerieUser,
   createLike,
-  createProfilePicture,
   createUser,
   getGaleriesIdFramesIdLikes,
   testUser,
-  testProfilePicture,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
@@ -36,8 +33,6 @@ let galerieId: string;
 let sequelize: Sequelize;
 let token: string;
 let user: User;
-
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 describe('/galeries', () => {
   describe('/:galerieId', () => {
@@ -52,11 +47,6 @@ describe('/galeries', () => {
 
             beforeEach(async (done) => {
               mockDate.reset();
-              jest.clearAllMocks();
-              (signedUrl as jest.Mock).mockImplementation(() => ({
-                OK: true,
-                signedUrl: 'signedUrl',
-              }));
               try {
                 await sequelize.sync({ force: true });
                 const {
@@ -79,7 +69,6 @@ describe('/galeries', () => {
 
             afterAll(async (done) => {
               mockDate.reset();
-              jest.clearAllMocks();
               try {
                 await sequelize.sync({ force: true });
                 await sequelize.close();
@@ -162,33 +151,6 @@ describe('/galeries', () => {
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 expect(users.length).toBe(1);
                 testUser(users[0]);
-              });
-              it('return users with current profile picture', async () => {
-                const {
-                  user: userTwo,
-                } = await createUser({
-                  email: 'user2@email.com',
-                  userName: 'user2',
-                });
-                await createGalerieUser({
-                  galerieId,
-                  userId: userTwo.id,
-                });
-                await createLike({
-                  frameId,
-                  userId: userTwo.id,
-                });
-                await createProfilePicture({
-                  userId: userTwo.id,
-                });
-                const {
-                  body: {
-                    data: {
-                      users,
-                    },
-                  },
-                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                testProfilePicture(users[0].currentProfilePicture);
               });
               it('return a pack of 20 users', async () => {
                 const NUM = 21;
