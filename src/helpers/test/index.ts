@@ -25,6 +25,7 @@ export { default as deleteTicketsId } from './deleteTicketsId';
 export { default as deleteUsersMe } from './deleteUsersMe';
 
 export { default as getAdminUsers } from './getAdminUsers';
+export { default as getAdminUsersIdBlackLists } from './getAdminUsersIdBlackLists';
 export { default as getBetaKeys } from './getBetaKeys';
 export { default as getBetaKeysEmailEmail } from './getBetaKeysEmailEmail';
 export { default as getBetaKeysId } from './getBetaKeysId';
@@ -91,6 +92,7 @@ export { default as putUsersMePseudonym } from './putUsersMePseudonym';
 export { default as putUsersPassword } from './putUsersPassword';
 
 export { default as testBetaKey } from './testBetaKey';
+export { default as testBlackList } from './testBlackList';
 export { default as testFrame } from './testFrame';
 export { default as testGalerie } from './testGalerie';
 export { default as testGalerieBlackList } from './testGalerieBlackList';
