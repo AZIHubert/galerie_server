@@ -11,13 +11,16 @@ import {
   shouldBeSuperAdmin,
 } from '@src/helpers/middlewares';
 
+import {
+  getAdminUsers,
+} from './subRoutes';
+
 const router = Router();
 
 const usersRoutes: () => Router = () => {
   router.delete('/:userId/profilePictures/:profilePictureId', shouldBeAuth, shouldBeSuperAdmin, () => {});
 
-  // ?isBlackListed: boolean.
-  router.get('/', shouldBeAuth, shouldBeSuperAdmin, () => {});
+  router.get('/', shouldBeAuth, shouldBeSuperAdmin, getAdminUsers);
   router.get('/:userId/blackLists', shouldBeAuth, shouldBeSuperAdmin, () => {});
   router.get('/:userId/blackLists/:blackListId', shouldBeAuth, shouldBeSuperAdmin, () => {});
   router.get('/:userId/profilePictures', shouldBeAuth, shouldBeSuperAdmin, () => {});

@@ -1,0 +1,458 @@
+import { Server } from 'http';
+import { Sequelize } from 'sequelize';
+
+import '@src/helpers/initEnv';
+
+import {
+  User,
+} from '@src/db/models';
+
+import initSequelize from '@src/helpers/initSequelize.js';
+import { signAuthToken } from '@src/helpers/issueJWT';
+import {
+  createBlackList,
+  createUser,
+  getAdminUsers,
+  testUser,
+} from '@src/helpers/test';
+
+import initApp from '@src/server';
+
+jest.mock('@src/helpers/signedUrl', () => jest.fn());
+
+let app: Server;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
+
+describe('/admin', () => {
+  describe('/users', () => {
+    describe('GET', () => {
+      beforeAll(() => {
+        sequelize = initSequelize();
+        app = initApp();
+      });
+
+      beforeEach(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          const {
+            user: createdUser,
+          } = await createUser({
+            role: 'superAdmin',
+          });
+          user = createdUser;
+          const jwt = signAuthToken(user);
+          token = jwt.token;
+        } catch (err) {
+          done(err);
+        }
+        done();
+      });
+
+      afterAll(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
+      describe('should return status 200 and', () => {
+        it('do not return currentUser', async () => {
+          const {
+            body: {
+              action,
+              data: {
+                users,
+              },
+            },
+            status,
+          } = await getAdminUsers(app, token);
+          expect(action).toBe('GET');
+          expect(users.length).toBe(0);
+          expect(status).toBe(200);
+        });
+        it('do not return non confirmed users', async () => {
+          await createUser({
+            confirmed: false,
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getAdminUsers(app, token);
+          expect(users.length).toBe(0);
+        });
+        it('return one user', async () => {
+          await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getAdminUsers(app, token);
+          expect(users.length).toBe(1);
+          testUser(users[0]);
+        });
+        it('return a pack of 20 users', async () => {
+          const NUM = 21;
+          const numOfUsers = new Array(NUM).fill(0);
+          await Promise.all(
+            numOfUsers.map(async (_, index) => {
+              await createUser({
+                email: `user${index + 2}@email.com`,
+                userName: `user${index + 2}`,
+              });
+            }),
+          );
+          const {
+            body: {
+              data: {
+                users: firstPack,
+              },
+            },
+          } = await getAdminUsers(app, token);
+          const {
+            body: {
+              data: {
+                users: secondePack,
+              },
+            },
+          } = await getAdminUsers(app, token, { page: 2 });
+          expect(firstPack.length).toBe(20);
+          expect(secondePack.length).toBe(1);
+        });
+        it('return non blacklisted and blackListed users', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          await createBlackList({
+            userId: userTwo.id,
+            createdById: user.id,
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getAdminUsers(app, token);
+          expect(users.length).toBe(2);
+        });
+        it('return only non blackListed users', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          await createBlackList({
+            userId: userTwo.id,
+            createdById: user.id,
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getAdminUsers(app, token, { blackListed: 'false' });
+          expect(users.length).toBe(1);
+          expect(users[0].id).toBe(userThree.id);
+        });
+        it('return only blackListed users', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          await createBlackList({
+            userId: userTwo.id,
+            createdById: user.id,
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getAdminUsers(app, token, { blackListed: 'true' });
+          expect(users.length).toBe(1);
+          expect(users[0].id).toBe(userTwo.id);
+        });
+        describe('order users ASC', () => {
+          it('by createdAt', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              pseudonym: 'a',
+              userName: 'e',
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              pseudonym: 'b',
+              userName: 'd',
+            });
+            const { user: userFour } = await createUser({
+              email: 'user4@email.com',
+              pseudonym: 'c',
+              userName: 'c',
+            });
+            const { user: userFive } = await createUser({
+              email: 'user5@email.com',
+              pseudonym: 'd',
+              userName: 'b',
+            });
+            const { user: userSix } = await createUser({
+              email: 'user6@email.com',
+              pseudonym: 'e',
+              userName: 'a',
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getAdminUsers(app, token, { order: 'createdAt' });
+            expect(users.length).toBe(5);
+            expect(users[0].id).toBe(userTwo.id);
+            expect(users[1].id).toBe(userThree.id);
+            expect(users[2].id).toBe(userFour.id);
+            expect(users[3].id).toBe(userFive.id);
+            expect(users[4].id).toBe(userSix.id);
+          });
+          it('by pseudonym', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              pseudonym: 'a',
+              userName: 'e',
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              pseudonym: 'b',
+              userName: 'd',
+            });
+            const { user: userFour } = await createUser({
+              email: 'user4@email.com',
+              pseudonym: 'c',
+              userName: 'c',
+            });
+            const { user: userFive } = await createUser({
+              email: 'user5@email.com',
+              pseudonym: 'd',
+              userName: 'b',
+            });
+            const { user: userSix } = await createUser({
+              email: 'user6@email.com',
+              pseudonym: 'e',
+              userName: 'a',
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getAdminUsers(app, token);
+            expect(users.length).toBe(5);
+            expect(users[0].id).toBe(userTwo.id);
+            expect(users[1].id).toBe(userThree.id);
+            expect(users[2].id).toBe(userFour.id);
+            expect(users[3].id).toBe(userFive.id);
+            expect(users[4].id).toBe(userSix.id);
+          });
+          it('by userName', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              pseudonym: 'a',
+              userName: 'e',
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              pseudonym: 'b',
+              userName: 'd',
+            });
+            const { user: userFour } = await createUser({
+              email: 'user4@email.com',
+              pseudonym: 'c',
+              userName: 'c',
+            });
+            const { user: userFive } = await createUser({
+              email: 'user5@email.com',
+              pseudonym: 'd',
+              userName: 'b',
+            });
+            const { user: userSix } = await createUser({
+              email: 'user6@email.com',
+              pseudonym: 'e',
+              userName: 'a',
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getAdminUsers(app, token, { order: 'userName' });
+            expect(users.length).toBe(5);
+            expect(users[0].id).toBe(userSix.id);
+            expect(users[1].id).toBe(userFive.id);
+            expect(users[2].id).toBe(userFour.id);
+            expect(users[3].id).toBe(userThree.id);
+            expect(users[4].id).toBe(userTwo.id);
+          });
+        });
+        describe('order users DESC', () => {
+          it('by createdAt', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              pseudonym: 'a',
+              userName: 'e',
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              pseudonym: 'b',
+              userName: 'd',
+            });
+            const { user: userFour } = await createUser({
+              email: 'user4@email.com',
+              pseudonym: 'c',
+              userName: 'c',
+            });
+            const { user: userFive } = await createUser({
+              email: 'user5@email.com',
+              pseudonym: 'd',
+              userName: 'b',
+            });
+            const { user: userSix } = await createUser({
+              email: 'user6@email.com',
+              pseudonym: 'e',
+              userName: 'a',
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getAdminUsers(app, token, {
+              direction: 'DESC',
+              order: 'createdAt',
+            });
+            expect(users.length).toBe(5);
+            expect(users[0].id).toBe(userSix.id);
+            expect(users[1].id).toBe(userFive.id);
+            expect(users[2].id).toBe(userFour.id);
+            expect(users[3].id).toBe(userThree.id);
+            expect(users[4].id).toBe(userTwo.id);
+          });
+          it('by pseudonym', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              pseudonym: 'a',
+              userName: 'e',
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              pseudonym: 'b',
+              userName: 'd',
+            });
+            const { user: userFour } = await createUser({
+              email: 'user4@email.com',
+              pseudonym: 'c',
+              userName: 'c',
+            });
+            const { user: userFive } = await createUser({
+              email: 'user5@email.com',
+              pseudonym: 'd',
+              userName: 'b',
+            });
+            const { user: userSix } = await createUser({
+              email: 'user6@email.com',
+              pseudonym: 'e',
+              userName: 'a',
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getAdminUsers(app, token, { direction: 'DESC' });
+            expect(users.length).toBe(5);
+            expect(users[0].id).toBe(userSix.id);
+            expect(users[1].id).toBe(userFive.id);
+            expect(users[2].id).toBe(userFour.id);
+            expect(users[3].id).toBe(userThree.id);
+            expect(users[4].id).toBe(userTwo.id);
+          });
+          it('by userName', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              pseudonym: 'a',
+              userName: 'e',
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              pseudonym: 'b',
+              userName: 'd',
+            });
+            const { user: userFour } = await createUser({
+              email: 'user4@email.com',
+              pseudonym: 'c',
+              userName: 'c',
+            });
+            const { user: userFive } = await createUser({
+              email: 'user5@email.com',
+              pseudonym: 'd',
+              userName: 'b',
+            });
+            const { user: userSix } = await createUser({
+              email: 'user6@email.com',
+              pseudonym: 'e',
+              userName: 'a',
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getAdminUsers(app, token, {
+              direction: 'DESC',
+              order: 'userName',
+            });
+            expect(users.length).toBe(5);
+            expect(users[0].id).toBe(userTwo.id);
+            expect(users[1].id).toBe(userThree.id);
+            expect(users[2].id).toBe(userFour.id);
+            expect(users[3].id).toBe(userFive.id);
+            expect(users[4].id).toBe(userSix.id);
+          });
+        });
+      });
+    });
+  });
+});
