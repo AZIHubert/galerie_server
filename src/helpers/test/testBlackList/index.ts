@@ -6,14 +6,14 @@ export default (
   expect(blackList.updatedById).toBeUndefined();
   expect(blackList.userId).toBeUndefined();
   if (refBlackList) {
-    expect(new Date(blackList.createdBy)).toEqual(new Date(refBlackList.createdBy));
+    expect(new Date(blackList.createdAt)).toEqual(new Date(refBlackList.createdAt));
     expect(blackList.id).toBe(refBlackList.id);
     expect(blackList.reason).toBe(refBlackList.reason);
-    expect(new Date(blackList.updatedBy)).toBe(new Date(refBlackList.updatedBy));
+    expect(new Date(blackList.updatedAt)).toEqual(new Date(refBlackList.updatedAt));
   } else {
-    expect(blackList.createdBy).not.toBeUndefined();
+    expect(blackList.createdAt).not.toBeUndefined();
     expect(blackList.id).not.toBeUndefined();
     expect(blackList.reason).not.toBeUndefined();
-    expect(blackList.updatedBy).not.toBeUndefined();
+    expect(blackList.updatedAt).not.toBeUndefined();
   }
 };

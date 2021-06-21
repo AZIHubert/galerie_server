@@ -7,6 +7,7 @@ import {
   BlackList,
   User,
 } from '@src/db/models';
+
 import {
   MODEL_NOT_FOUND,
   INVALID_UUID,

@@ -24,8 +24,6 @@ import {
 
 import initApp from '@src/server';
 
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
-
 let app: Server;
 let sequelize: Sequelize;
 let token: string;

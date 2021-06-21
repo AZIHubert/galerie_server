@@ -13,6 +13,7 @@ import {
   getUsers,
   getUsersId,
   getUsersIdBlackLists,
+  getUsersIdBlackListsId,
   getUsersIdCurrentProfilePicture,
   getUsersLogout,
   getUsersMe,
@@ -49,6 +50,7 @@ const usersRoutes: () => Router = () => {
   router.get('/userName/:userName/', shouldBeAuth, getUsersUserNameUserName);
   router.get('/:userId/', shouldBeAuth, getUsersId);
   router.get('/:userId/blackLists', shouldBeAuth, shouldBeAdmin, getUsersIdBlackLists);
+  router.get('/:userId/blackLists/:blackListId', shouldBeAuth, shouldBeAdmin, getUsersIdBlackListsId);
   router.get('/:userId/currentProfilePicture', shouldBeAuth, getUsersIdCurrentProfilePicture);
 
   router.post('/confirmation/', shouldNotBeAuth, postUsersConfirmation);

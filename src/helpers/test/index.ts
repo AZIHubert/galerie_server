@@ -50,6 +50,7 @@ export { default as getUsersId } from './getUsersId';
 export { default as getUsersIdBlackLists } from './getUsersIdBlackLists';
 export { default as getUsersIdCurrentProfilePicture } from './getUsersIdCurrentProfilePicture';
 export { default as getUsersIdIdBlackLists } from './getUsersIdIdBlackLists';
+export { default as getUsersIdBlackListsId } from './getUsersIdBlackListsId';
 export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersMeCurrentProfilePicture } from './getUsersMeCurrentProfilePicture';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
