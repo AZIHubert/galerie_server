@@ -5,27 +5,20 @@ import '@src/helpers/initEnv';
 
 import {
   Galerie,
-  GaleriePicture,
-  Image,
   User,
 } from '@src/db/models';
 
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
 import {
-  createFrame,
   createGalerie,
   createGalerieUser,
   createUser,
   getGaleries,
   testGalerie,
-  testGaleriePicture,
 } from '@src/helpers/test';
 
 import initApp from '@src/server';
-
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let sequelize: Sequelize;
@@ -40,11 +33,6 @@ describe('/galeries', () => {
     });
 
     beforeEach(async (done) => {
-      jest.clearAllMocks();
-      (signedUrl as jest.Mock).mockImplementation(() => ({
-        OK: true,
-        signedUrl: 'signedUrl',
-      }));
       try {
         await sequelize.sync({ force: true });
         const {
@@ -60,7 +48,6 @@ describe('/galeries', () => {
     });
 
     afterAll(async (done) => {
-      jest.clearAllMocks();
       try {
         await sequelize.sync({ force: true });
         await sequelize.close();
@@ -193,63 +180,6 @@ describe('/galeries', () => {
           },
         } = await getGaleries(app, token);
         expect(galeries.length).toBe(1);
-      });
-      it('include current cover picture', async () => {
-        const { id: galerieId } = await createGalerie({
-          userId: user.id,
-        });
-        await createFrame({
-          current: true,
-          galerieId,
-          userId: user.id,
-        });
-        const {
-          body: {
-            data: {
-              galeries: [{
-                currentCoverPicture,
-              }],
-            },
-          },
-        } = await getGaleries(app, token);
-        testGaleriePicture(currentCoverPicture);
-      });
-      it('return galerie.currentCoverPicture === null and destroy the galeriePicture if signedUrl.Ok === false', async () => {
-        (signedUrl as jest.Mock).mockImplementation(() => ({
-          OK: false,
-        }));
-        const { id: galerieId } = await createGalerie({
-          userId: user.id,
-        });
-        const createdFrame = await createFrame({
-          current: true,
-          galerieId,
-          userId: user.id,
-        });
-        const {
-          body: {
-            data: {
-              galeries: [{
-                currentCoverPicture,
-              }],
-            },
-          },
-        } = await getGaleries(app, token);
-        const galeriePictures = await GaleriePicture.findAll({
-          where: {
-            id: createdFrame.galeriePictures
-              .map((galeriePicure) => galeriePicure.id),
-          },
-        });
-        const images = await Image.findAll({
-          where: {
-            id: createdFrame.galeriePictures
-              .map((galeriePicure) => galeriePicure.originalImageId),
-          },
-        });
-        expect(currentCoverPicture).toBeNull();
-        expect(galeriePictures.length).toBe(0);
-        expect(images.length).toBe(0);
       });
     });
   });
