@@ -73,8 +73,6 @@ export default async (req: Request, res: Response) => {
     currentProfilePicture: null,
   }));
 
-  console.log(returnedUser);
-
   return res.status(200).send({
     action: 'GET',
     data: {
