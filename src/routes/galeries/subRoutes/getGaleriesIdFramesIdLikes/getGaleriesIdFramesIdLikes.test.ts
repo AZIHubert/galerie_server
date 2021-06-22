@@ -239,7 +239,7 @@ describe('/galeries', () => {
                 expect(users[3].id).toBe(userThree.id);
                 expect(users[4].id).toBe(userTwo.id);
               });
-              it('return null if user is black listed', async () => {
+              it('return user.isBlackListed === true if is black listed', async () => {
                 const { user: userTwo } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
@@ -264,9 +264,9 @@ describe('/galeries', () => {
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 expect(users.length).toBe(1);
-                expect(users[0]).toBeNull();
+                expect(users[0].isBlackListed).toBe(true);
               });
-              it('return user if black list has expired', async () => {
+              it('return user.isBlackListed === false if black list has expired', async () => {
                 const timeStamp = 1434319925275;
                 const time = 1000 * 60 * 10;
                 mockDate.set(timeStamp);
@@ -298,8 +298,7 @@ describe('/galeries', () => {
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 await userTwo.reload();
-                expect(users[0]).not.toBeNull();
-                expect(userTwo.blackListedAt).toBeNull();
+                expect(users[0].isBlackListed).toBe(false);
                 expect(userTwo.isBlackListed).toBe(false);
               });
             });

@@ -132,7 +132,7 @@ describe('/galeries', () => {
               } = await getGaleriesIdBlackListsId(app, tokenThree, galerieId, galerieBlackList.id);
               expect(status).toBe(200);
             });
-            it('do not return user if he\'s black listed', async () => {
+            it('blackList.user.isBlackListed === true if he\'s black listed', async () => {
               await createBlackList({
                 createdById: user.id,
                 userId: userTwo.id,
@@ -144,9 +144,9 @@ describe('/galeries', () => {
                   },
                 },
               } = await getGaleriesIdBlackListsId(app, token, galerieId, galerieBlackList.id);
-              expect(blackList.user).toBeNull();
+              expect(blackList.user.isBlackListed).toBe(true);
             });
-            it('do not include admin if he is \'globally\' black listed', async () => {
+            it('blackList.admin.isBlackListed === true if he is \'globally\' black listed', async () => {
               const { user: userThree } = await createUser({
                 email: 'user3@email.com',
                 userName: 'user3',
@@ -176,7 +176,7 @@ describe('/galeries', () => {
                   },
                 },
               } = await getGaleriesIdBlackListsId(app, token, galerieId, galerieBlackListId);
-              expect(blackList.createdBy).toBeNull();
+              expect(blackList.createdBy.isBlackListed).toBe(true);
             });
             it('do not include createdBy if galerieBlackList.createdById === null', async () => {
               const { user: userThree } = await createUser({

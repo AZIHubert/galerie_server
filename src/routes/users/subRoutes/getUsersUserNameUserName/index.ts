@@ -9,14 +9,18 @@ import { User } from '@src/db/models';
 import { userExcluder } from '@src/helpers/excluders';
 
 export default async (req: Request, res: Response) => {
-  const { id } = req.user as User;
-  const limit = 20;
+  const currentUser = req.user as User;
   const { userName } = req.params;
   const {
+    blackListed,
     direction: queryDirection,
     order: queryOrder,
     page,
   } = req.query;
+  const limit = 20;
+  const where: {
+    isBlackListed?: boolean;
+  } = {};
   let direction = 'ASC';
   let offset: number;
   let order = 'pseudonym';
@@ -29,7 +33,6 @@ export default async (req: Request, res: Response) => {
   ) {
     direction = queryDirection;
   }
-
   if (
     queryOrder === 'createdAt'
     || queryOrder === 'pseudonym'
@@ -37,11 +40,24 @@ export default async (req: Request, res: Response) => {
   ) {
     order = queryOrder;
   }
-
   if (typeof page === 'string') {
     offset = ((+page || 1) - 1) * limit;
   } else {
     offset = 0;
+  }
+  if (currentUser.role !== 'user') {
+    switch (blackListed) {
+      case 'true':
+        where.isBlackListed = true;
+        break;
+      case 'false':
+        where.isBlackListed = false;
+        break;
+      default:
+        break;
+    }
+  } else {
+    where.isBlackListed = false;
   }
 
   try {
@@ -54,11 +70,11 @@ export default async (req: Request, res: Response) => {
       offset,
       order: [[order, direction]],
       where: {
+        ...where,
         confirmed: true,
         id: {
-          [Op.not]: id,
+          [Op.not]: currentUser.id,
         },
-        isBlackListed: false,
         userName: {
           [Op.iLike]: `%${userName.toLowerCase()}%`,
         },

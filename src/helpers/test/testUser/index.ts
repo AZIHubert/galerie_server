@@ -7,7 +7,6 @@ export default (
   refUser?: User,
 ) => {
   expect(user.authTokenVersion).toBeUndefined();
-  expect(user.blackListedAt).toBeUndefined();
   expect(user.confirmed).toBeUndefined();
   expect(user.confirmTokenVersion).toBeUndefined();
   expect(user.emailTokenVersion).toBeUndefined();
@@ -15,7 +14,6 @@ export default (
   expect(user.facebookId).toBeUndefined();
   expect(user.googleId).toBeUndefined();
   expect(user.hash).toBeUndefined();
-  expect(user.isBlackListed).toBeUndefined();
   expect(user.resetPasswordTokenVersion).toBeUndefined();
   expect(user.salt).toBeUndefined();
   expect(user.updatedEmailTokenVersion).toBeUndefined();
@@ -27,7 +25,8 @@ export default (
     expect(user.pseudonym).toEqual(refUser.pseudonym);
     expect(user.role).toEqual(refUser.role);
     expect(user.userName).toEqual(refUser.userName);
-    expect(user.socialMediaUserName).not.toBeUndefined();
+    expect(user.socialMediaUserName).toBe(refUser.socialMediaUserName);
+    expect(user.isBlackListed).toBe(refUser.isBlackListed);
   } else {
     expect(user.createdAt).not.toBeUndefined();
     expect(user.defaultProfilePicture).not.toBeUndefined();
@@ -36,5 +35,6 @@ export default (
     expect(user.role).not.toBeUndefined();
     expect(user.userName).not.toBeUndefined();
     expect(user.socialMediaUserName).not.toBeUndefined();
+    expect(user.isBlackListed).not.toBeUndefined();
   }
 };

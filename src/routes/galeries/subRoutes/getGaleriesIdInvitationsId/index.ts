@@ -28,10 +28,9 @@ export default async (req: Request, res: Response) => {
     invitationId,
   } = req.params;
   const currentUser = req.user as User;
-  const objectUserExcluder: { [key: string]: undefined } = {};
   let galerie: Galerie | null;
   let invitation: Invitation | null;
-  let userIsBlackListed: boolean;
+  let isBlackListed: boolean;
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -86,6 +85,9 @@ export default async (req: Request, res: Response) => {
         exclude: invitationExcluder,
       },
       include: [{
+        attributes: {
+          exclude: userExcluder,
+        },
         model: User,
       }],
       where: {
@@ -129,20 +131,17 @@ export default async (req: Request, res: Response) => {
 
   // Check if user is black listed.
   try {
-    userIsBlackListed = await checkBlackList(invitation.user);
-    userExcluder.forEach((e) => {
-      objectUserExcluder[e] = undefined;
-    });
+    isBlackListed = await checkBlackList(invitation.user);
   } catch (err) {
     return res.status(500).send(err);
   }
 
   const returnedInvitation = {
     ...invitation.toJSON(),
-    user: userIsBlackListed ? null : {
+    user: {
       ...invitation.user.toJSON(),
-      ...objectUserExcluder,
       currentProfilePicture: null,
+      isBlackListed,
     },
   };
 

@@ -32,7 +32,6 @@ export default async (req: Request, res: Response) => {
   } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
-  const objectUserExcluder: { [key: string]: undefined } = {};
   let direction = 'DESC';
   let offset: number;
   let galerie: Galerie | null;
@@ -107,10 +106,16 @@ export default async (req: Request, res: Response) => {
           },
         },
         {
+          attributes: {
+            exclude: userExcluder,
+          },
           as: 'createdBy',
           model: User,
         },
         {
+          attributes: {
+            exclude: userExcluder,
+          },
           as: 'user',
           model: User,
         },
@@ -129,29 +134,24 @@ export default async (req: Request, res: Response) => {
   try {
     normalizeBlackLists = await Promise.all(
       blackLists.map(async (blackList) => {
-        const userIsBlackList = await checkBlackList(blackList.user);
-        let createdByIsBlackList;
-
+        let createdByIsBlackListed;
+        const userIsBlackListed = await checkBlackList(blackList.user);
         if (blackList.createdBy) {
-          createdByIsBlackList = await checkBlackList(blackList.createdBy);
+          createdByIsBlackListed = await checkBlackList(blackList.createdBy);
         }
-
-        userExcluder.forEach((e) => {
-          objectUserExcluder[e] = undefined;
-        });
 
         return {
           ...blackList.toJSON(),
-          createdBy: blackList.createdBy && !createdByIsBlackList ? {
+          createdBy: blackList.createdBy ? {
             ...blackList.createdBy.toJSON(),
-            ...objectUserExcluder,
             currentProfilePicture: null,
+            isBlackListed: createdByIsBlackListed,
           } : null,
-          user: blackList.user && !userIsBlackList ? {
+          user: {
             ...blackList.user.toJSON(),
-            ...objectUserExcluder,
             currentProfilePicture: null,
-          } : null,
+            isBlackListed: userIsBlackListed,
+          },
         };
       }),
     );

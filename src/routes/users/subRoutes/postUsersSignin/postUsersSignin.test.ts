@@ -87,7 +87,6 @@ describe('/users', () => {
           expect(passwordIsValid).toBeTruthy();
           expect(status).toBe(200);
           expect(storeUser.authTokenVersion).toBe(0);
-          expect(storeUser.blackListedAt).toBeNull();
           expect(storeUser.confirmed).toBeFalsy();
           expect(storeUser.confirmTokenVersion).toBe(0);
           expect(storeUser.defaultProfilePicture).toBeNull();

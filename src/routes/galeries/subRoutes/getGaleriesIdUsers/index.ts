@@ -16,7 +16,9 @@ import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
-import { userExcluder } from '@src/helpers/excluders';
+import {
+  userExcluder,
+} from '@src/helpers/excluders';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -27,7 +29,6 @@ export default async (req: Request, res: Response) => {
   } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
-  const objectUserExcluder: { [key: string]: undefined } = {};
   let direction = 'ASC';
   let galerie: Galerie | null;
   let offset: number;
@@ -77,6 +78,9 @@ export default async (req: Request, res: Response) => {
 
   try {
     users = await User.findAll({
+      attributes: {
+        exclude: userExcluder,
+      },
       include: [
         {
           model: Galerie,
@@ -101,24 +105,16 @@ export default async (req: Request, res: Response) => {
   try {
     usersWithProfilePicture = await Promise.all(
       users.map(async (user) => {
-        const userIsBlackListed = await checkBlackList(user);
-
-        if (userIsBlackListed) {
-          return null;
-        }
-
-        userExcluder.forEach((e) => {
-          objectUserExcluder[e] = undefined;
-        });
+        const isBlackListed = await checkBlackList(user);
 
         return {
           ...user.toJSON(),
-          ...objectUserExcluder,
           currentProfilePicture: null,
           galerieRole: user.galeries[0]
             ? user.galeries[0].GalerieUser.role
             : 'user',
           galeries: undefined,
+          isBlackListed,
         };
       }),
     );

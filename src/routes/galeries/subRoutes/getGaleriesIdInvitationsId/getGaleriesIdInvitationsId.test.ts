@@ -136,7 +136,7 @@ describe('/galeries', () => {
               } = await getGaleriesIdInvitationsId(app, token, galerieId, invitationId);
               expect(invitation).not.toBeNull();
             });
-            it('does invitation.user === null if he\'s black listed', async () => {
+            it('does invitation.user.isBlackListed === true if he\'s black listed', async () => {
               const {
                 user: userTwo,
               } = await createUser({
@@ -160,14 +160,16 @@ describe('/galeries', () => {
                 body: {
                   data: {
                     invitation: {
-                      user: invitationUser,
+                      user: {
+                        isBlackListed,
+                      },
                     },
                   },
                 },
               } = await getGaleriesIdInvitationsId(app, token, galerieId, invitationId);
-              expect(invitationUser).toBeNull();
+              expect(isBlackListed).toBe(true);
             });
-            it('return user if his blackList is expired', async () => {
+            it('return invitation.user.isBlackListed === false if his blackList is expired', async () => {
               const timeStamp = 1434319925275;
               const time = 1000 * 60 * 10;
               mockDate.set(timeStamp);
@@ -196,14 +198,15 @@ describe('/galeries', () => {
                 body: {
                   data: {
                     invitation: {
-                      user: invitationUser,
+                      user: {
+                        isBlackListed,
+                      },
                     },
                   },
                 },
               } = await getGaleriesIdInvitationsId(app, token, galerieId, invitationId);
               await userTwo.reload();
-              expect(invitationUser).not.toBeNull();
-              expect(userTwo.blackListedAt).toBeNull();
+              expect(isBlackListed).toBe(false);
               expect(userTwo.isBlackListed).toBe(false);
             });
           });

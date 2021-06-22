@@ -36,7 +36,6 @@ export default async (req: Request, res: Response) => {
     galerieId,
   } = req.params;
   const currentUser = req.user as User;
-  const objectUserExcluder: { [key: string]: undefined } = {};
   const where: {
     id?: string
   } = {};
@@ -118,8 +117,11 @@ export default async (req: Request, res: Response) => {
           },
         },
         {
-          model: User,
           as: 'user',
+          attributes: {
+            exclude: userExcluder,
+          },
+          model: User,
         },
       ],
       where: {
@@ -142,19 +144,14 @@ export default async (req: Request, res: Response) => {
     const normalizedFrame = await fetchFrame(frame);
 
     if (normalizedFrame) {
-      const userIsBlackListed = await checkBlackList(frame.user);
-      if (!userIsBlackListed) {
-        userExcluder.forEach((e) => {
-          objectUserExcluder[e] = undefined;
-        });
-      }
+      const isBlackListed = await checkBlackList(frame.user);
       returnedFrame = {
         ...normalizedFrame,
         liked: !!frame.likes.length,
         likes: undefined,
-        user: userIsBlackListed ? null : {
+        user: {
           ...frame.user.toJSON(),
-          ...objectUserExcluder,
+          isBlackListed,
           currentProfilePicture: null,
         },
       };

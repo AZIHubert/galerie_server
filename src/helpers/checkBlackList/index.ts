@@ -22,7 +22,6 @@ export default async (user: User) => {
       return true;
     }
     await user.update({
-      blackListedAt: null,
       isBlackListed: false,
     });
     return false;

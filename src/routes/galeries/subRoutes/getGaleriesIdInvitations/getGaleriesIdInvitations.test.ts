@@ -242,7 +242,7 @@ describe('/galeries', () => {
             } = await getGaleriesIdInvitations(app, token, galerieId);
             expect(invitations.length).toBe(0);
           });
-          it('return invitation.user === null if user is black listed', async () => {
+          it('return invitation.user.isBlackListed === true if user is black listed', async () => {
             const {
               user: userTwo,
             } = await createUser({
@@ -266,14 +266,16 @@ describe('/galeries', () => {
               body: {
                 data: {
                   invitations: [{
-                    user: invitationUser,
+                    user: {
+                      isBlackListed,
+                    },
                   }],
                 },
               },
             } = await getGaleriesIdInvitations(app, token, galerieId);
-            expect(invitationUser).toBeNull();
+            expect(isBlackListed).toBe(true);
           });
-          it('return user if his blackList is expired', async () => {
+          it('return invitation.user.isBlackListed === false if his blackList is expired', async () => {
             const timeStamp = 1434319925275;
             const time = 1000 * 60 * 10;
             mockDate.set(timeStamp);
@@ -301,13 +303,16 @@ describe('/galeries', () => {
             const {
               body: {
                 data: {
-                  invitations,
+                  invitations: [{
+                    user: {
+                      isBlackListed,
+                    },
+                  }],
                 },
               },
             } = await getGaleriesIdInvitations(app, token, galerieId);
             await userTwo.reload();
-            expect(invitations[0].user).not.toBeNull();
-            expect(userTwo.blackListedAt).toBeNull();
+            expect(isBlackListed).toBe(false);
             expect(userTwo.isBlackListed).toBe(false);
           });
         });

@@ -28,7 +28,6 @@ export default async (req: Request, res: Response) => {
   const { page } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
-  const objectUserExcluder: { [key: string]: undefined } = {};
   let galerie: Galerie | null;
   let invitations: Array<Invitation>;
   let offset: number;
@@ -86,6 +85,9 @@ export default async (req: Request, res: Response) => {
         exclude: invitationExcluder,
       },
       include: [{
+        attributes: {
+          exclude: userExcluder,
+        },
         model: User,
       }],
       limit,
@@ -131,20 +133,14 @@ export default async (req: Request, res: Response) => {
   try {
     returnedInvitations = await Promise.all(
       invitations.map(async (invitation) => {
-        const userIsBlackListed = await checkBlackList(invitation.user);
-
-        if (!userIsBlackListed) {
-          userExcluder.forEach((e) => {
-            objectUserExcluder[e] = undefined;
-          });
-        }
+        const isBlackListed = await checkBlackList(invitation.user);
 
         return {
           ...invitation.toJSON(),
-          user: userIsBlackListed ? null : {
+          user: {
             ...invitation.user.toJSON(),
-            ...objectUserExcluder,
             currentProfilePicture: null,
+            isBlackListed,
           },
         };
       }),
