@@ -15,6 +15,7 @@ export { default as getUsersRefreshToken } from './getUsersRefreshToken';
 export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 
 export { default as postUsersConfirmation } from './postUsersConfirmation';
+export { default as postUsersIdBlackLists } from './postUsersIdBlackLists';
 export { default as postUsersLogin } from './postUsersLogin';
 export { default as postUsersLoginSocialMedia } from './postUsersLoginSocialMedia';
 export { default as postUsersMeEmail } from './postUsersMeEmail';

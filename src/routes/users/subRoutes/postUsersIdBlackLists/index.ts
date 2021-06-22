@@ -1,4 +1,4 @@
-// POST /blackLists/users/:userId/
+// POST /users/:userId/blackList/
 
 import {
   Request,
@@ -20,15 +20,15 @@ import {
 } from '@src/helpers/excluders';
 import {
   normalizeJoiErrors,
-  validatePostBlackListsUserIdBody,
+  validatePostUsersIdBlackListsBody,
 } from '@src/helpers/schemas';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
+  const { userId } = req.params;
   const currentUser = req.user as User;
   const objectBlackListExcluder: { [key: string]: undefined } = {};
   const objectUserExcluder: { [key: string]: undefined } = {};
-  const { userId } = req.params;
   let blackList: BlackList;
   let user: User | null;
 
@@ -83,7 +83,7 @@ export default async (req: Request, res: Response) => {
   const {
     error,
     value,
-  } = validatePostBlackListsUserIdBody(req.body);
+  } = validatePostUsersIdBlackListsBody(req.body);
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
@@ -104,23 +104,23 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  // Set user.isBlackListed === true.
   try {
     await user.update({
-      blackListedAt: new Date(Date.now()),
       isBlackListed: true,
     });
   } catch (err) {
     return res.status(500).send(err);
   }
 
+  // normalize blackList.
   blackListExcluder.forEach((e) => {
     objectBlackListExcluder[e] = undefined;
   });
   userExcluder.forEach((e) => {
     objectUserExcluder[e] = undefined;
   });
-
-  const returnedBlackList = {
+  const normalizeBlackList = {
     ...blackList.toJSON(),
     ...objectBlackListExcluder,
     active: true,
@@ -130,17 +130,13 @@ export default async (req: Request, res: Response) => {
       currentProfilePicture: null,
     },
     updatedBy: null,
-    user: {
-      ...user.toJSON(),
-      ...objectUserExcluder,
-      currentProfilePicture: null,
-    },
   };
 
   return res.status(200).send({
     action: 'POST',
     data: {
-      blackList: returnedBlackList,
+      blackList: normalizeBlackList,
+      userId,
     },
   });
 };

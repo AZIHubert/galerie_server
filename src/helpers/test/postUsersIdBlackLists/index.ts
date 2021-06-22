@@ -15,7 +15,7 @@ export default async (
   },
 ) => {
   const response = await request(app)
-    .post(`/blackLists/${userId}/`)
+    .post(`/users/${userId}/blackLists/`)
     .set('authorization', token)
     .send(option.body);
   return response;

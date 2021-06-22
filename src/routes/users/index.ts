@@ -25,6 +25,7 @@ import {
   getUsersUserNameUserName,
 
   postUsersConfirmation,
+  postUsersIdBlackLists,
   postUsersLogin,
   postUsersLoginSocialMedia,
   postUsersMeEmail,
@@ -67,6 +68,7 @@ const usersRoutes: () => Router = () => {
   router.post('/password/', shouldNotBeAuth, postUsersPassword);
   router.post('/signin/', shouldNotBeAuth, postUsersSignin);
   router.post('/signin/beta', shouldNotBeAuth, postUsersSigninBeta);
+  router.post('/:userId/blackLists', shouldBeAuth, shouldBeAdmin, postUsersIdBlackLists);
 
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.put('/me/email/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, putUsersMeEmail);

@@ -61,7 +61,6 @@ export { default as getUsersUserNameUserName } from './getUsersUserNameUserName'
 
 export { default as postBetaKey } from './postBetaKey';
 export { default as postBetaKeysIdSend } from './postBetaKeysIdSend';
-export { default as postBlackListUserId } from './postBlackListUserId';
 export { default as postGaleries } from './postGaleries';
 export { default as postGaleriesIdFrames } from './postGaleriesIdFrames';
 export { default as postGaleriesIdFramesIdLikes } from './postGaleriesIdFramesIdLikes';
@@ -71,6 +70,7 @@ export { default as postGaleriesSubscribe } from './postGaleriesSubscribe';
 export { default as postProfilePictures } from './postProfilePictures';
 export { default as postTickets } from './postTickets';
 export { default as postUsersConfirmation } from './postUsersConfirmation';
+export { default as postUsersIdBlackLists } from './postUsersIdBlackLists';
 export { default as postUsersLogin } from './postUsersLogin';
 export { default as postUsersLoginSocialMedia } from './postUsersLoginSocialMedia';
 export { default as postUsersMeEmail } from './postUsersMeEmail';

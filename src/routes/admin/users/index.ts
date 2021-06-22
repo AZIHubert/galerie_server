@@ -14,7 +14,6 @@ import {
 const router = Router();
 
 const usersRoutes: () => Router = () => {
-  router.post('/:userId/blackLists', shouldBeAuth, shouldBeSuperAdmin, () => {});
   router.post('/:userId/profilePictures', shouldBeAuth, shouldBeSuperAdmin, () => {});
 
   router.put('/:userId/blackLists', shouldBeAuth, shouldBeSuperAdmin, () => {});
