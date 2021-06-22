@@ -11,18 +11,18 @@ import {
   getBlackListsId,
 
   putBlackLists,
-  putBlackListsId,
 } from './subRoutes';
 
 const router = Router();
 
 const profilePicturesRoutes: () => Router = () => {
+  // DONE
   router.get('/', shouldBeAuth, shouldBeAdmin, getBlackLists);
+  // DONE
   router.get('/:blackListId/', shouldBeAuth, shouldBeAdmin, getBlackListsId);
 
   // Keep this route.
   router.put('/', shouldBeAuth, shouldBeAdmin, putBlackLists);
-  router.put('/:blackListId/', shouldBeAuth, shouldBeAdmin, putBlackListsId);
 
   return router;
 };

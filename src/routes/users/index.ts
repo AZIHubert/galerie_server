@@ -35,6 +35,7 @@ import {
   postUsersSigninBeta,
 
   putUsersConfirmation,
+  putUsersIdBlackListsId,
   putUsersMeEmail,
   putUsersMePseudonym,
   putUsersMePassword,
@@ -75,6 +76,7 @@ const usersRoutes: () => Router = () => {
   router.put('/me/password/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, putUsersMePassword);
   router.put('/me/pseudonym/', shouldBeAuth, putUsersMePseudonym);
   router.put('/password/', shouldNotBeAuth, putUsersPassword);
+  router.put('/:userId/blackLists/', shouldBeAuth, shouldBeAdmin, putUsersIdBlackListsId);
 
   return router;
 };
