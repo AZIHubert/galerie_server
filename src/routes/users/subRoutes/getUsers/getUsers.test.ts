@@ -10,6 +10,7 @@ import {
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import {
+  createBlackList,
   createUser,
   getUsers,
   testUser,
@@ -73,21 +74,6 @@ describe('/users', () => {
           expect(users.length).toBe(0);
           expect(status).toBe(200);
         });
-        it('return one user', async () => {
-          await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          const {
-            body: {
-              data: {
-                users,
-              },
-            },
-          } = await getUsers(app, token);
-          expect(users.length).toBe(1);
-          testUser(users[0]);
-        });
         it('exept not confirmed', async () => {
           await createUser({
             confirmed: false,
@@ -103,11 +89,13 @@ describe('/users', () => {
           } = await getUsers(app, token);
           expect(users.length).toBe(0);
         });
-        it('exept black listed users', async () => {
-          await createUser({
+        it('exept black listed users...', async () => {
+          const { user: userTwo } = await createUser({
             email: 'user2@email.com',
-            isBlackListed: true,
             userName: 'user2',
+          });
+          await createBlackList({
+            userId: userTwo.id,
           });
           const {
             body: {
@@ -117,6 +105,38 @@ describe('/users', () => {
             },
           } = await getUsers(app, token);
           expect(users.length).toBe(0);
+        });
+        it('...even if request.params.blackListed === \'true\'', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await createBlackList({
+            userId: userTwo.id,
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getUsers(app, token, { blackListed: 'true' });
+          expect(users.length).toBe(0);
+        });
+        it('return one user', async () => {
+          await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getUsers(app, token);
+          expect(users.length).toBe(1);
+          testUser(users[0]);
         });
         it('should return a pack of 20 users', async () => {
           const NUM = 21;
@@ -146,40 +166,328 @@ describe('/users', () => {
           expect(firstPack.length).toBe(20);
           expect(secondPack.length).toBe(1);
         });
-        it('order by pseudonym', async () => {
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'a',
-          });
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'b',
-          });
-          const { user: userFour } = await createUser({
-            email: 'user4@email.com',
-            userName: 'c',
-          });
-          const { user: userFive } = await createUser({
-            email: 'user5@email.com',
-            userName: 'd',
-          });
-          const { user: userSix } = await createUser({
-            email: 'user6@email.com',
-            userName: 'e',
-          });
-          const {
-            body: {
-              data: {
-                users,
+        describe('order users ASC', () => {
+          it('by createdAt', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              pseudonym: 'a',
+              userName: 'e',
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              pseudonym: 'b',
+              userName: 'd',
+            });
+            const { user: userFour } = await createUser({
+              email: 'user4@email.com',
+              pseudonym: 'c',
+              userName: 'c',
+            });
+            const { user: userFive } = await createUser({
+              email: 'user5@email.com',
+              pseudonym: 'd',
+              userName: 'b',
+            });
+            const { user: userSix } = await createUser({
+              email: 'user6@email.com',
+              pseudonym: 'e',
+              userName: 'a',
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
               },
-            },
-          } = await getUsers(app, token);
-          expect(users.length).toBe(5);
-          expect(users[0].id).toBe(userTwo.id);
-          expect(users[1].id).toBe(userThree.id);
-          expect(users[2].id).toBe(userFour.id);
-          expect(users[3].id).toBe(userFive.id);
-          expect(users[4].id).toBe(userSix.id);
+            } = await getUsers(app, token, { order: 'createdAt' });
+            expect(users.length).toBe(5);
+            expect(users[0].id).toBe(userTwo.id);
+            expect(users[1].id).toBe(userThree.id);
+            expect(users[2].id).toBe(userFour.id);
+            expect(users[3].id).toBe(userFive.id);
+            expect(users[4].id).toBe(userSix.id);
+          });
+          it('by pseudonym', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              pseudonym: 'a',
+              userName: 'e',
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              pseudonym: 'b',
+              userName: 'd',
+            });
+            const { user: userFour } = await createUser({
+              email: 'user4@email.com',
+              pseudonym: 'c',
+              userName: 'c',
+            });
+            const { user: userFive } = await createUser({
+              email: 'user5@email.com',
+              pseudonym: 'd',
+              userName: 'b',
+            });
+            const { user: userSix } = await createUser({
+              email: 'user6@email.com',
+              pseudonym: 'e',
+              userName: 'a',
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getUsers(app, token);
+            expect(users.length).toBe(5);
+            expect(users[0].id).toBe(userTwo.id);
+            expect(users[1].id).toBe(userThree.id);
+            expect(users[2].id).toBe(userFour.id);
+            expect(users[3].id).toBe(userFive.id);
+            expect(users[4].id).toBe(userSix.id);
+          });
+          it('by userName', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              pseudonym: 'a',
+              userName: 'e',
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              pseudonym: 'b',
+              userName: 'd',
+            });
+            const { user: userFour } = await createUser({
+              email: 'user4@email.com',
+              pseudonym: 'c',
+              userName: 'c',
+            });
+            const { user: userFive } = await createUser({
+              email: 'user5@email.com',
+              pseudonym: 'd',
+              userName: 'b',
+            });
+            const { user: userSix } = await createUser({
+              email: 'user6@email.com',
+              pseudonym: 'e',
+              userName: 'a',
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getUsers(app, token, { order: 'userName' });
+            expect(users.length).toBe(5);
+            expect(users[0].id).toBe(userSix.id);
+            expect(users[1].id).toBe(userFive.id);
+            expect(users[2].id).toBe(userFour.id);
+            expect(users[3].id).toBe(userThree.id);
+            expect(users[4].id).toBe(userTwo.id);
+          });
+        });
+        describe('order users DESC', () => {
+          it('by createdAt', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              pseudonym: 'a',
+              userName: 'e',
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              pseudonym: 'b',
+              userName: 'd',
+            });
+            const { user: userFour } = await createUser({
+              email: 'user4@email.com',
+              pseudonym: 'c',
+              userName: 'c',
+            });
+            const { user: userFive } = await createUser({
+              email: 'user5@email.com',
+              pseudonym: 'd',
+              userName: 'b',
+            });
+            const { user: userSix } = await createUser({
+              email: 'user6@email.com',
+              pseudonym: 'e',
+              userName: 'a',
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getUsers(app, token, {
+              direction: 'DESC',
+              order: 'createdAt',
+            });
+            expect(users.length).toBe(5);
+            expect(users[0].id).toBe(userSix.id);
+            expect(users[1].id).toBe(userFive.id);
+            expect(users[2].id).toBe(userFour.id);
+            expect(users[3].id).toBe(userThree.id);
+            expect(users[4].id).toBe(userTwo.id);
+          });
+          it('by pseudonym', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              pseudonym: 'a',
+              userName: 'e',
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              pseudonym: 'b',
+              userName: 'd',
+            });
+            const { user: userFour } = await createUser({
+              email: 'user4@email.com',
+              pseudonym: 'c',
+              userName: 'c',
+            });
+            const { user: userFive } = await createUser({
+              email: 'user5@email.com',
+              pseudonym: 'd',
+              userName: 'b',
+            });
+            const { user: userSix } = await createUser({
+              email: 'user6@email.com',
+              pseudonym: 'e',
+              userName: 'a',
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getUsers(app, token, { direction: 'DESC' });
+            expect(users.length).toBe(5);
+            expect(users[0].id).toBe(userSix.id);
+            expect(users[1].id).toBe(userFive.id);
+            expect(users[2].id).toBe(userFour.id);
+            expect(users[3].id).toBe(userThree.id);
+            expect(users[4].id).toBe(userTwo.id);
+          });
+          it('by userName', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              pseudonym: 'a',
+              userName: 'e',
+            });
+            const { user: userThree } = await createUser({
+              email: 'user3@email.com',
+              pseudonym: 'b',
+              userName: 'd',
+            });
+            const { user: userFour } = await createUser({
+              email: 'user4@email.com',
+              pseudonym: 'c',
+              userName: 'c',
+            });
+            const { user: userFive } = await createUser({
+              email: 'user5@email.com',
+              pseudonym: 'd',
+              userName: 'b',
+            });
+            const { user: userSix } = await createUser({
+              email: 'user6@email.com',
+              pseudonym: 'e',
+              userName: 'a',
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getUsers(app, token, {
+              direction: 'DESC',
+              order: 'userName',
+            });
+            expect(users.length).toBe(5);
+            expect(users[0].id).toBe(userTwo.id);
+            expect(users[1].id).toBe(userThree.id);
+            expect(users[2].id).toBe(userFour.id);
+            expect(users[3].id).toBe(userFive.id);
+            expect(users[4].id).toBe(userSix.id);
+          });
+        });
+        describe('if currentUser.role === \'admin\' | \'superAdmin\'', () => {
+          let tokenTwo: string;
+
+          beforeEach(async (done) => {
+            try {
+              const { user: createdUser } = await createUser({
+                email: 'admin@email.com',
+                role: 'admin',
+                userName: 'admin',
+              });
+              const jwt = signAuthToken(createdUser);
+              tokenTwo = jwt.token;
+            } catch (err) {
+              done(err);
+            }
+            done();
+          });
+
+          it('return non blacklisted and blackListed users', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            await createBlackList({
+              userId: userTwo.id,
+              createdById: user.id,
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getUsers(app, tokenTwo);
+            expect(users.length).toBe(2);
+          });
+          it('return only non blackListed users', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            await createBlackList({
+              userId: userTwo.id,
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getUsers(app, tokenTwo, { blackListed: 'false' });
+            expect(users.length).toBe(1);
+            expect(users[0].id).toBe(user.id);
+          });
+          it('return only blackListed users', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            await createBlackList({
+              userId: userTwo.id,
+            });
+            const {
+              body: {
+                data: {
+                  users,
+                },
+              },
+            } = await getUsers(app, tokenTwo, { blackListed: 'true' });
+            expect(users.length).toBe(1);
+            expect(users[0].id).toBe(userTwo.id);
+          });
         });
       });
     });

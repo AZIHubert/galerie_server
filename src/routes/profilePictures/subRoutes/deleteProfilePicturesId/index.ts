@@ -4,10 +4,8 @@ import {
   Response,
   Request,
 } from 'express';
-import { Op } from 'sequelize';
 
 import {
-  Image,
   ProfilePicture,
   User,
 } from '@src/db/models';
@@ -65,21 +63,6 @@ export default async (req: Request, res: Response) => {
   } = profilePicture;
   try {
     await profilePicture.destroy();
-    await Image.destroy({
-      where: {
-        [Op.or]: [
-          {
-            id: cropedImage.id,
-          },
-          {
-            id: originalImage.id,
-          },
-          {
-            id: pendingImage.id,
-          },
-        ],
-      },
-    });
     await gc
       .bucket(originalImage.bucketName)
       .file(originalImage.fileName)

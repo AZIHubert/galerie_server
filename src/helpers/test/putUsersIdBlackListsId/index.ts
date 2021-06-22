@@ -5,18 +5,9 @@ export default async (
   app: Server,
   token: string,
   userId: string,
-  option: {
-    body: {
-      password?: any;
-      role?: any;
-    }
-  } = {
-    body: {},
-  },
 ) => {
   const response = await request(app)
-    .put(`/users/${userId}/role/`)
-    .set('authorization', token)
-    .send(option.body);
+    .put(`/users/${userId}/blackLists/`)
+    .set('authorization', token);
   return response;
 };

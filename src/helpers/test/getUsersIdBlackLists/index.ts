@@ -6,17 +6,13 @@ export default async (
   token: string,
   userId: string,
   option: {
-    body: {
-      password?: any;
-      role?: any;
-    }
+    page: number;
   } = {
-    body: {},
+    page: 1,
   },
 ) => {
   const response = await request(app)
-    .put(`/users/${userId}/role/`)
-    .set('authorization', token)
-    .send(option.body);
+    .get(`/users/${userId}/blackLists?page=${option.page}`)
+    .set('authorization', token);
   return response;
 };

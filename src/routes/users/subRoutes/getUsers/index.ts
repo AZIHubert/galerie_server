@@ -14,12 +14,16 @@ import {
 
 export default async (req: Request, res: Response) => {
   const {
+    blackListed,
     direction: queryDirection,
     order: queryOrder,
     page,
   } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
+  const where: {
+    isBlackListed?: boolean;
+  } = {};
   let direction = 'ASC';
   let offset: number;
   let order = 'pseudonym';
@@ -45,6 +49,20 @@ export default async (req: Request, res: Response) => {
   } else {
     offset = 0;
   }
+  if (currentUser.role !== 'user') {
+    switch (blackListed) {
+      case 'true':
+        where.isBlackListed = true;
+        break;
+      case 'false':
+        where.isBlackListed = false;
+        break;
+      default:
+        break;
+    }
+  } else {
+    where.isBlackListed = false;
+  }
 
   // fetch users exept current one,
   // black listed and not confirmed.
@@ -57,18 +75,18 @@ export default async (req: Request, res: Response) => {
       offset,
       order: [[order, direction]],
       where: {
+        ...where,
         confirmed: true,
         id: {
           [Op.not]: currentUser.id,
         },
-        isBlackListed: false,
       },
     });
   } catch (err) {
     return res.status(500).send(err);
   }
 
-  const returnedUser = users.map((user) => ({
+  const normalizedUsers = users.map((user) => ({
     ...user.toJSON(),
     currentProfilePicture: null,
   }));
@@ -76,7 +94,7 @@ export default async (req: Request, res: Response) => {
   return res.status(200).send({
     action: 'GET',
     data: {
-      users: returnedUser,
+      users: normalizedUsers,
     },
   });
 };

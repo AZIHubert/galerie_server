@@ -5,18 +5,10 @@ export default async (
   app: Server,
   token: string,
   userId: string,
-  option: {
-    body: {
-      password?: any;
-      role?: any;
-    }
-  } = {
-    body: {},
-  },
+  profilePictureId: string,
 ) => {
   const response = await request(app)
-    .put(`/users/${userId}/role/`)
-    .set('authorization', token)
-    .send(option.body);
+    .delete(`/users/${userId}/profilePictures/${profilePictureId}`)
+    .set('authorization', token);
   return response;
 };

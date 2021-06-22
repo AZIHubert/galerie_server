@@ -68,18 +68,12 @@ export default class Image extends Model implements ImageI {
   })
   width!: number;
 
-  @HasOne(() => ProfilePicture, {
-    onDelete: 'CASCADE',
-  })
+  @HasOne(() => ProfilePicture)
   cropedProfilePicture!: ProfilePicture;
 
-  @HasOne(() => ProfilePicture, {
-    onDelete: 'CASCADE',
-  })
+  @HasOne(() => ProfilePicture)
   originalProfilePicture!: ProfilePicture;
 
-  @HasOne(() => ProfilePicture, {
-    onDelete: 'CASCADE',
-  })
+  @HasOne(() => ProfilePicture)
   pendingProfilePicture!: ProfilePicture;
 }

@@ -1,17 +1,24 @@
 import { Router } from 'express';
 
 import {
+  shouldBeAdmin,
   shouldBeAuth,
+  shouldBeSuperAdmin,
   shouldNotBeAuth,
   shouldNotBeGoogleOrFacebookUser,
 } from '@src/helpers/middlewares';
 
 import {
+  deleteUsersIdProfilePicturesId,
   deleteUsersMe,
 
   getUsers,
   getUsersId,
+  getUsersIdBlackLists,
+  getUsersIdBlackListsId,
   getUsersIdCurrentProfilePicture,
+  getUsersIdProfilePictures,
+  getUsersIdProfilePicturesId,
   getUsersLogout,
   getUsersMe,
   getUsersMeCurrentProfilePicture,
@@ -19,6 +26,7 @@ import {
   getUsersUserNameUserName,
 
   postUsersConfirmation,
+  postUsersIdBlackLists,
   postUsersLogin,
   postUsersLoginSocialMedia,
   postUsersMeEmail,
@@ -28,6 +36,8 @@ import {
   postUsersSigninBeta,
 
   putUsersConfirmation,
+  putUsersIdBlackLists,
+  putUsersIdRole,
   putUsersMeEmail,
   putUsersMePseudonym,
   putUsersMePassword,
@@ -38,6 +48,7 @@ const router = Router();
 
 const usersRoutes: () => Router = () => {
   router.delete('/me/', shouldBeAuth, deleteUsersMe);
+  router.delete('/:userId/profilePictures/:profilePictureId', shouldBeAuth, shouldBeAdmin, deleteUsersIdProfilePicturesId);
 
   router.get('/', shouldBeAuth, getUsers);
   router.get('/logout/', shouldBeAuth, getUsersLogout);
@@ -46,7 +57,11 @@ const usersRoutes: () => Router = () => {
   router.get('/refreshToken/', getUsersRefreshToken);
   router.get('/userName/:userName/', shouldBeAuth, getUsersUserNameUserName);
   router.get('/:userId/', shouldBeAuth, getUsersId);
+  router.get('/:userId/blackLists', shouldBeAuth, shouldBeAdmin, getUsersIdBlackLists);
+  router.get('/:userId/blackLists/:blackListId', shouldBeAuth, shouldBeAdmin, getUsersIdBlackListsId);
   router.get('/:userId/currentProfilePicture', shouldBeAuth, getUsersIdCurrentProfilePicture);
+  router.get('/:userId/profilePictures', shouldBeAuth, shouldBeAdmin, getUsersIdProfilePictures);
+  router.get('/:userId/profilePictures/:profilePictureId', shouldBeAuth, shouldBeAdmin, getUsersIdProfilePicturesId);
 
   router.post('/confirmation/', shouldNotBeAuth, postUsersConfirmation);
   router.post('/login/', shouldNotBeAuth, postUsersLogin);
@@ -56,12 +71,15 @@ const usersRoutes: () => Router = () => {
   router.post('/password/', shouldNotBeAuth, postUsersPassword);
   router.post('/signin/', shouldNotBeAuth, postUsersSignin);
   router.post('/signin/beta', shouldNotBeAuth, postUsersSigninBeta);
+  router.post('/:userId/blackLists', shouldBeAuth, shouldBeAdmin, postUsersIdBlackLists);
 
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.put('/me/email/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, putUsersMeEmail);
   router.put('/me/password/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, putUsersMePassword);
   router.put('/me/pseudonym/', shouldBeAuth, putUsersMePseudonym);
   router.put('/password/', shouldNotBeAuth, putUsersPassword);
+  router.put('/:userId/blackLists/', shouldBeAuth, shouldBeAdmin, putUsersIdBlackLists);
+  router.put('/:userId/role', shouldBeAuth, shouldBeSuperAdmin, putUsersIdRole);
 
   return router;
 };

@@ -1,7 +1,3 @@
-export { default as getBlackLists } from './getBlackLists';
-export { default as getBlackListsId } from './getBlackListsId';
+import putBlackLists from './putBlackLists';
 
-export { default as postBlackListsUserIs } from './postBlackListsUserId';
-
-export { default as putBlackLists } from './putBlackLists';
-export { default as putBlackListsId } from './putBlackListsId';
+export default putBlackLists;
