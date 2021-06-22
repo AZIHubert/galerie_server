@@ -3,6 +3,7 @@ import { Router } from 'express';
 import {
   shouldBeAdmin,
   shouldBeAuth,
+  shouldBeSuperAdmin,
   shouldNotBeAuth,
   shouldNotBeGoogleOrFacebookUser,
 } from '@src/helpers/middlewares';
@@ -35,7 +36,8 @@ import {
   postUsersSigninBeta,
 
   putUsersConfirmation,
-  putUsersIdBlackListsId,
+  putUsersIdBlackLists,
+  putUsersIdRole,
   putUsersMeEmail,
   putUsersMePseudonym,
   putUsersMePassword,
@@ -76,7 +78,8 @@ const usersRoutes: () => Router = () => {
   router.put('/me/password/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, putUsersMePassword);
   router.put('/me/pseudonym/', shouldBeAuth, putUsersMePseudonym);
   router.put('/password/', shouldNotBeAuth, putUsersPassword);
-  router.put('/:userId/blackLists/', shouldBeAuth, shouldBeAdmin, putUsersIdBlackListsId);
+  router.put('/:userId/blackLists/', shouldBeAuth, shouldBeAdmin, putUsersIdBlackLists);
+  router.put('/:userId/role', shouldBeAuth, shouldBeSuperAdmin, putUsersIdRole);
 
   return router;
 };

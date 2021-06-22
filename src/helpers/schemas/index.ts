@@ -20,9 +20,9 @@ export { default as validatePutBetaKeysIdBody } from './validatePutBetaKeysIdBod
 export { default as validatePutBlackListsIdBody } from './validatePutBlackListsIdBody';
 export { default as validatePutGaleriesIdBody } from './validatePutGaleriesIdBody';
 export { default as validatePutGaleriesIdFramesIdBody } from './validatePutGaleriesIdFramesIdBody';
+export { default as validatePutUsersIdRoleBody } from './validatePutUsersIdRoleBody';
 export { default as validatePutUsersMeEmailBody } from './validatePutUsersMeEmailBody';
 export { default as validatePutUsersMeEmailConfirmToken } from './validatePutUsersMeEmailConfirmToken';
 export { default as validatePutUsersMePasswordBody } from './validatePutUsersMePasswordBody';
 export { default as validatePutUsersMePseudonymBody } from './validatePutUsersMePseudonymBody';
 export { default as validatePutUsersPasswordBody } from './validatePutUsersPasswordBody';
-export { default as validatePutUsersRoleIdBody } from './validatePutUsersRoleIdBody';

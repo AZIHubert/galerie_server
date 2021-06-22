@@ -25,7 +25,8 @@ export { default as postUsersSignin } from './postUsersSignin';
 export { default as postUsersSigninBeta } from './postUsersSigninBeta';
 
 export { default as putUsersConfirmation } from './putUsersConfirmation';
-export { default as putUsersIdBlackListsId } from './putUsersIdBlackListsId';
+export { default as putUsersIdBlackLists } from './putUsersIdBlackLists';
+export { default as putUsersIdRole } from './putUsersIdRole';
 export { default as putUsersMeEmail } from './putUsersMeEmail';
 export { default as putUsersMePassword } from './putUsersMePassword';
 export { default as putUsersMePseudonym } from './putUsersMePseudonym';

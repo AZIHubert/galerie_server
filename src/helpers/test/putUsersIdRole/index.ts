@@ -7,8 +7,9 @@ export default async (
   userId: string,
   option: {
     body: {
-      role?: any
-    },
+      password?: any;
+      role?: any;
+    }
   } = {
     body: {},
   },
