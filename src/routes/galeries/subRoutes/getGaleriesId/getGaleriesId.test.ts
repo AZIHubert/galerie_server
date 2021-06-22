@@ -119,8 +119,16 @@ describe('/galeries', () => {
           });
           const { token: tokenTwo } = signAuthToken(admin);
           const {
+            body: {
+              data: {
+                galerie: {
+                  role,
+                },
+              },
+            },
             status,
           } = await getGaleriesId(app, tokenTwo, galerie.id);
+          expect(role).toBeNull();
           expect(status).toBe(200);
         });
         it('set GalerieUser.hasNewFrames to false', async () => {

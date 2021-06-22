@@ -68,7 +68,7 @@ export default async (req: Request, res: Response) => {
           : false,
         role: userFromGalerie
           ? userFromGalerie.GalerieUser.role
-          : 'user',
+          : null,
         users: [],
       };
     });

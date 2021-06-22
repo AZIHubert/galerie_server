@@ -137,11 +137,11 @@ describe('/galeries', () => {
           role: 'admin',
           userName: 'admin',
         });
+        const { token: tokenTwo } = signAuthToken(admin);
         const { id: galerieId } = await createGalerie({
           userId: user.id,
         });
-        const { token: tokenTwo } = signAuthToken(admin);
-        await createGalerie({
+        const galerieTwo = await createGalerie({
           userId: user.id,
         });
         await createGalerieUser({
@@ -155,7 +155,9 @@ describe('/galeries', () => {
             },
           },
         } = await getGaleries(app, tokenTwo, { all: 'true' });
+        const nonSubscribeGalerie = galeries.find((galerie: any) => galerie.id === galerieTwo.id);
         expect(galeries.length).toBe(2);
+        expect(nonSubscribeGalerie.role).toBeNull();
       });
       it('return a pack of 20 galeries', async () => {
         const NUM = 21;
