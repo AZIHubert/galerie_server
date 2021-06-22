@@ -10,7 +10,6 @@ import accEnv from '@src/helpers/accEnv';
 import passport from '@src/helpers/passport';
 import initSequelize from '@src/helpers/initSequelize.js';
 
-import adminRouter from '@src/routes/admin';
 import betaKeysRouter from '@src/routes/betaKeys';
 import blackListsRouter from '@src/routes/blackLists';
 import usersRouter from '@src/routes/users';
@@ -71,7 +70,6 @@ const initApp: () => http.Server = () => {
     }),
   );
 
-  app.use('/admin', adminRouter());
   app.use('/betaKeys', betaKeysRouter());
   app.use('/blackLists', blackListsRouter());
   app.use('/galeries', galeriesRouter());
