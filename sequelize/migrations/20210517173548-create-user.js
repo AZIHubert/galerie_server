@@ -4,10 +4,6 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
     default: 0,
     type: DataTypes.INTEGER,
   },
-  blackListedAt: {
-    default: null,
-    type: DataTypes.DATE,
-  },
   confirmed: {
     allowNull: false,
     default: false,

@@ -29,7 +29,6 @@ export default async (req: Request, res: Response) => {
   const limit = 20;
   const { page } = req.query;
   const currentUser = req.user as User;
-  const objectUserExcluder: { [key: string]: undefined } = {};
   let frame: Frame | null;
   let galerie: Galerie | null;
   let likes: Array<Like>;
@@ -102,6 +101,9 @@ export default async (req: Request, res: Response) => {
     likes = await Like.findAll({
       include: [
         {
+          attributes: {
+            exclude: userExcluder,
+          },
           model: User,
           where: {
             id: {
@@ -125,18 +127,12 @@ export default async (req: Request, res: Response) => {
   try {
     returnedUsers = await Promise.all(
       likes.map(async ({ user }) => {
-        const userIsBlackListed = await checkBlackList(user);
-        if (userIsBlackListed) {
-          return null;
-        }
-        userExcluder.forEach((e) => {
-          objectUserExcluder[e] = undefined;
-        });
+        const isBlackListed = await checkBlackList(user);
 
         return {
           ...user.toJSON(),
-          ...objectUserExcluder,
           currentProfilePicture: null,
+          isBlackListed,
         };
       }),
     );

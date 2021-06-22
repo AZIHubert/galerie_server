@@ -27,7 +27,6 @@ export default async ({
   });
   if (active) {
     await User.update({
-      blackListedAt: new Date(Date.now()),
       isBlackListed: true,
     }, {
       where: {

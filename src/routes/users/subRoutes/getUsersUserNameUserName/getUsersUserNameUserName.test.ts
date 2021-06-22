@@ -209,6 +209,81 @@ describe('/users', () => {
             expect(users[3].id).toBe(userFive.id);
             expect(users[4].id).toBe(userSix.id);
           });
+          describe('if currentUser.role === \'admin\' | \'superAdmin\'', () => {
+            let tokenTwo: string;
+
+            beforeEach(async (done) => {
+              try {
+                const { user: createdUser } = await createUser({
+                  email: 'admin@email.com',
+                  role: 'admin',
+                  userName: 'admin',
+                });
+                const jwt = signAuthToken(createdUser);
+                tokenTwo = jwt.token;
+              } catch (err) {
+                done(err);
+              }
+              done();
+            });
+
+            it('return non blackListed and blackListed users', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: `a${user.pseudonym}`,
+              });
+              await createBlackList({
+                userId: userTwo.id,
+                createdById: user.id,
+              });
+              const {
+                body: {
+                  data: {
+                    users,
+                  },
+                },
+              } = await getUsersUserNameUserName(app, tokenTwo, user.pseudonym);
+              expect(users.length).toBe(2);
+            });
+            it('return only non blackListed users', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: `a${user.pseudonym}`,
+              });
+              await createBlackList({
+                userId: userTwo.id,
+                createdById: user.id,
+              });
+              const {
+                body: {
+                  data: {
+                    users,
+                  },
+                },
+              } = await getUsersUserNameUserName(app, tokenTwo, user.pseudonym, { blackListed: 'false' });
+              expect(users.length).toBe(1);
+              expect(users[0].id).toBe(user.id);
+            });
+            it('return only blacKlisted users', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: `a${user.pseudonym}`,
+              });
+              await createBlackList({
+                userId: userTwo.id,
+                createdById: user.id,
+              });
+              const {
+                body: {
+                  data: {
+                    users,
+                  },
+                },
+              } = await getUsersUserNameUserName(app, tokenTwo, user.pseudonym, { blackListed: 'true' });
+              expect(users.length).toBe(1);
+              expect(users[0].id).toBe(userTwo.id);
+            });
+          });
         });
       });
     });

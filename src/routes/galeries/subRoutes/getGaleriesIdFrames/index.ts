@@ -35,7 +35,6 @@ export default async (req: Request, res: Response) => {
   const limit = 20;
   const { page } = req.query;
   const currentUser = req.user as User;
-  const objectUserExcluder: { [key: string]: undefined } = {};
   const where: {
     id?: string;
   } = {};
@@ -116,6 +115,9 @@ export default async (req: Request, res: Response) => {
         },
         {
           as: 'user',
+          attributes: {
+            exclude: userExcluder,
+          },
           model: User,
         },
       ],
@@ -136,20 +138,15 @@ export default async (req: Request, res: Response) => {
         const normalizedFrame = await fetchFrame(frame);
 
         if (normalizedFrame) {
-          const userIsBlackListed = await checkBlackList(frame.user);
-          if (!userIsBlackListed) {
-            userExcluder.forEach((e) => {
-              objectUserExcluder[e] = undefined;
-            });
-          }
+          const isBlackListed = await checkBlackList(frame.user);
           return {
             ...normalizedFrame,
             liked: !!frame.likes.length,
             likes: undefined,
-            user: userIsBlackListed ? null : {
+            user: {
               ...frame.user.toJSON(),
-              ...objectUserExcluder,
               currentProfilePicture: null,
+              isBlackListed,
             },
           };
         }

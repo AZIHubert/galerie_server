@@ -206,7 +206,7 @@ describe('/galeries', () => {
             expect(blackLists[3].user.id).toBe(userThree.id);
             expect(blackLists[4].user.id).toBe(userTwo.id);
           });
-          it('do not include user if he is \'globally\' black listed', async () => {
+          it('user.isBlackListed === true if he is \'globally\' black listed', async () => {
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
@@ -227,7 +227,7 @@ describe('/galeries', () => {
                 },
               },
             } = await getGaleriesIdBlackLists(app, token, galerieId);
-            expect(blackLists[0].user).toBeNull();
+            expect(blackLists[0].user.isBlackListed).toBe(true);
           });
           it('do not include createdBy if galerieBlackList.createdById === null', async () => {
             const { user: userTwo } = await createUser({
@@ -247,7 +247,7 @@ describe('/galeries', () => {
             } = await getGaleriesIdBlackLists(app, token, galerieId);
             expect(blackLists[0].createdBy).toBeNull();
           });
-          it('do not include createdBy if he is \'globally\' black listed', async () => {
+          it('createdBy.isBlackListed === true if he is \'globally\' black listed', async () => {
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
@@ -276,7 +276,7 @@ describe('/galeries', () => {
                 },
               },
             } = await getGaleriesIdBlackLists(app, token, galerieId);
-            expect(blackLists[0].createdBy).toBeNull();
+            expect(blackLists[0].createdBy.isBlackListed).toBe(true);
           });
           it('return blackLists if current user role for this galerie is \'admin\'', async () => {
             const { user: userTwo } = await createUser({

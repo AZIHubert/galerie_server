@@ -78,7 +78,6 @@ describe('/blackLists', () => {
           mockDate.set(timeStamp + time + 1);
           const { status } = await putBlackLists(app, token);
           await userTwo.reload();
-          expect(userTwo.blackListedAt).toBeNull();
           expect(userTwo.isBlackListed).toBe(false);
           expect(status).toBe(204);
         });
@@ -108,9 +107,7 @@ describe('/blackLists', () => {
           await putBlackLists(app, token);
           await userTwo.reload();
           await userThree.reload();
-          expect(userTwo.blackListedAt).toBeNull();
           expect(userTwo.isBlackListed).toBe(false);
-          expect(userThree.blackListedAt).toBeNull();
           expect(userThree.isBlackListed).toBe(false);
         });
         it('set active to false Four expired blackLists', async () => {
@@ -159,13 +156,9 @@ describe('/blackLists', () => {
           await userThree.reload();
           await userFour.reload();
           await userFive.reload();
-          expect(userTwo.blackListedAt).toBeNull();
           expect(userTwo.isBlackListed).toBe(false);
-          expect(userThree.blackListedAt).toBeNull();
           expect(userThree.isBlackListed).toBe(false);
-          expect(userFour.blackListedAt).toBeNull();
           expect(userFour.isBlackListed).toBe(false);
-          expect(userFive.blackListedAt).toBeNull();
           expect(userFive.isBlackListed).toBe(false);
         });
         it('do not set active to false if a blackList.time === null', async () => {
@@ -179,7 +172,6 @@ describe('/blackLists', () => {
           });
           await putBlackLists(app, token);
           await userTwo.reload();
-          expect(userTwo.blackListedAt).not.toBeNull();
           expect(userTwo.isBlackListed).toBe(true);
         });
         it('do not set active to false if a blackList is not expired', async () => {
@@ -198,7 +190,6 @@ describe('/blackLists', () => {
           mockDate.set(timeStamp + time - 1);
           await putBlackLists(app, token);
           await userTwo.reload();
-          expect(userTwo.blackListedAt).toEqual(new Date(timeStamp));
           expect(userTwo.isBlackListed).toBe(true);
         });
       });

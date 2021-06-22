@@ -23,7 +23,6 @@ import Ticket from '../ticket';
 
 interface UserI {
   authTokenVersion: number;
-  blackListedAt: Date;
   confirmed: boolean;
   confirmTokenVersion: number;
   defaultProfilePicture?: string;
@@ -57,11 +56,6 @@ export default class User extends Model implements UserI {
     type: DataType.INTEGER,
   })
   authTokenVersion!: number;
-
-  @Column({
-    type: DataType.DATE,
-  })
-  blackListedAt!: Date;
 
   // Use to check if a user
   // has confirmed his account.

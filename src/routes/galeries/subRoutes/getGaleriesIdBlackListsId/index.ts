@@ -28,11 +28,10 @@ export default async (req: Request, res: Response) => {
     blackListId,
   } = req.params;
   const currentUser = req.user as User;
-  const objectUserExcluder: { [key: string]: undefined } = {};
-  let createdByIsBlackList: boolean = false;
+  let createdByIsBlackListed: boolean = false;
   let galerie: Galerie | null;
   let galerieBlackList: GalerieBlackList | null;
-  let userIsBlackList: boolean;
+  let userIsBlackListed: boolean;
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -98,10 +97,16 @@ export default async (req: Request, res: Response) => {
         },
         {
           as: 'createdBy',
+          attributes: {
+            exclude: userExcluder,
+          },
           model: User,
         },
         {
           as: 'user',
+          attributes: {
+            exclude: userExcluder,
+          },
           model: User,
         },
       ],
@@ -118,7 +123,7 @@ export default async (req: Request, res: Response) => {
 
   // Check if user is black listed.
   try {
-    userIsBlackList = await checkBlackList(galerieBlackList.user);
+    userIsBlackListed = await checkBlackList(galerieBlackList.user);
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -126,29 +131,25 @@ export default async (req: Request, res: Response) => {
   if (galerieBlackList.createdBy) {
     // Check if createdBy is black listed.
     try {
-      createdByIsBlackList = await checkBlackList(galerieBlackList.createdBy);
+      createdByIsBlackListed = await checkBlackList(galerieBlackList.createdBy);
     } catch (err) {
       return res.status(500).send(err);
     }
   }
 
-  userExcluder.forEach((e) => {
-    objectUserExcluder[e] = undefined;
-  });
-
   const normalizeGalerieBlackList = {
     ...galerieBlackList.toJSON(),
-    createdBy: galerieBlackList.createdBy && !createdByIsBlackList ? {
+    createdBy: galerieBlackList.createdBy ? {
       ...galerieBlackList.createdBy.toJSON(),
-      ...objectUserExcluder,
       currentProfilePicture: null,
+      isBlackListed: createdByIsBlackListed,
     } : null,
     galerie: undefined,
-    user: galerieBlackList.user && !userIsBlackList ? {
+    user: {
       ...galerieBlackList.user.toJSON(),
-      ...objectUserExcluder,
       currentProfilePicture: null,
-    } : null,
+      idBlackListed: userIsBlackListed,
+    },
   };
 
   return res.status(200).send({

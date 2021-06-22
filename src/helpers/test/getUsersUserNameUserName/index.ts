@@ -6,13 +6,23 @@ export default async (
   token: string,
   userName: string,
   option: {
-    page: number;
-  } = {
-    page: 1,
-  },
+    blackListed?: 'true' | 'false';
+    page?: number;
+  } = {},
 ) => {
-  const response = await request(app)
-    .get(`/users/userName/${userName}?page=${option.page}`)
-    .set('authorization', token);
+  const {
+    blackListed,
+    page,
+  } = option;
+  let response: request.Response;
+  if (blackListed) {
+    response = await request(app)
+      .get(`/users/userName/${userName}?page=${page || 1}&blackListed=${blackListed}`)
+      .set('authorization', token);
+  } else {
+    response = await request(app)
+      .get(`/users/userName/${userName}?page=${page || 1}`)
+      .set('authorization', token);
+  }
   return response;
 };

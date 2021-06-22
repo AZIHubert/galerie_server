@@ -278,7 +278,7 @@ describe('/galeries', () => {
             } = await getGaleriesIdFrames(app, token, galerieId);
             expect(frames[0].liked).toBe(false);
           });
-          it('should return frame.user === null if user is blackListed', async () => {
+          it('should return frame.user.isBlackListed === false if user is blackListed', async () => {
             const {
               user: userTwo,
             } = await createUser({
@@ -304,7 +304,7 @@ describe('/galeries', () => {
                 },
               },
             } = await getGaleriesIdFrames(app, token, galerieId);
-            expect(frame.user).toBeNull();
+            expect(frame.user.isBlackListed).toBe(true);
           });
           it('return frame.user if blackList is expired', async () => {
             const timeStamp = 1434319925275;
@@ -333,13 +333,16 @@ describe('/galeries', () => {
             const {
               body: {
                 data: {
-                  frames: [frame],
+                  frames: [{
+                    user: {
+                      isBlackListed,
+                    },
+                  }],
                 },
               },
             } = await getGaleriesIdFrames(app, token, galerieId);
-            expect(frame.user).not.toBeNull();
+            expect(isBlackListed).not.toBeNull();
             await userTwo.reload();
-            expect(userTwo.blackListedAt).toBeNull();
             expect(userTwo.isBlackListed).toBe(false);
           });
           it('return null and destroy frame if frame don\'t have galeriePictures', async () => {

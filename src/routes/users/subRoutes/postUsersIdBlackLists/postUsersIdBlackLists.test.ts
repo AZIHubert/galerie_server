@@ -168,7 +168,7 @@ describe('/users', () => {
             });
             expect(returnedReason).toBe(reason);
           });
-          it('set user.isBlackListed and user.blackListedAt', async () => {
+          it('set user.isBlackListed', async () => {
             const timeStamp = 1434319925275;
             mockDate.set(timeStamp);
             await postUsersIdBlackLists(app, token, userTwo.id, {

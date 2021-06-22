@@ -29,7 +29,6 @@ export default async (_: any, res: Response) => {
     await Promise.all(
       expiredBlackListedUser.map(async (user) => {
         await user.update({
-          blackListedAt: null,
           isBlackListed: false,
         });
       }),

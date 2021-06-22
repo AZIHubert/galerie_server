@@ -1,6 +1,5 @@
 export default [
   'authTokenVersion',
-  'blackListedAt',
   'confirmed',
   'confirmTokenVersion',
   'email',
@@ -8,7 +7,6 @@ export default [
   'facebookId',
   'googleId',
   'hash',
-  'isBlackListed',
   'resetPasswordTokenVersion',
   'salt',
   'updatedAt',
