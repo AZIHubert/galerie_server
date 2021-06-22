@@ -61,9 +61,7 @@ describe('/galeries', () => {
             await sequelize.sync({ force: true });
             const {
               user: createdUser,
-            } = await createUser({
-              role: 'superAdmin',
-            });
+            } = await createUser({});
             user = createdUser;
             const jwt = signAuthToken(user);
             token = jwt.token;
@@ -121,6 +119,47 @@ describe('/galeries', () => {
             expect(frames.length).toBe(1);
             testFrame(frames[0]);
             testUser(frames[0].user);
+          });
+          it('do not return frames if user is not subscribe to this galerie', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            const galerieTwo = await createGalerie({
+              userId: userTwo.id,
+            });
+            await createFrame({
+              galerieId: galerieTwo.id,
+              userId: userTwo.id,
+            });
+            const {
+              body: {
+                data: {
+                  frames,
+                },
+              },
+            } = await getGaleriesIdFrames(app, token, galerieId);
+            expect(frames.length).toBe(0);
+          });
+          it('return frame if currentUser is not subscribe to this galerie currentUser.role === \'admin\' or \'superAdmin\'', async () => {
+            const { user: admin } = await createUser({
+              email: 'admin@email.com',
+              role: 'admin',
+              userName: 'admin',
+            });
+            const { token: tokenTwo } = signAuthToken(admin);
+            await createFrame({
+              galerieId,
+              userId: user.id,
+            });
+            const {
+              body: {
+                data: {
+                  frames,
+                },
+              },
+            } = await getGaleriesIdFrames(app, tokenTwo, galerieId);
+            expect(frames.length).toBe(1);
           });
           it('should return a pack of 20 frames', async () => {
             const NUMBER = 21;
@@ -374,7 +413,7 @@ describe('/galeries', () => {
             expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
             expect(status).toBe(404);
           });
-          it('galerie exist but user is not subscribe to it', async () => {
+          it('galerie exist but user is not subscribe to it and currentUser.role === \'user\'', async () => {
             const {
               user: userTwo,
             } = await createUser({

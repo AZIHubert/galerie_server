@@ -114,6 +114,22 @@ describe('/galeries', () => {
               expect(status).toBe(200);
               testUser(returnedFrame.user);
             });
+            it('return frame if currentUser is not subscribe to the galerie and currentUser.role === \'admin\' | \'superAdmin\'', async () => {
+              const { user: admin } = await createUser({
+                email: 'admin@email.com',
+                role: 'admin',
+                userName: 'admin',
+              });
+              const { token: tokenTwo } = signAuthToken(admin);
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              const {
+                status,
+              } = await getGaleriesIdFramesId(app, tokenTwo, galerieId, frameId);
+              expect(status).toBe(200);
+            });
             it('return liked === false if user don\'t have liked this frame', async () => {
               const frame = await createFrame({
                 galerieId,
@@ -276,7 +292,7 @@ describe('/galeries', () => {
               expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
               expect(status).toBe(404);
             });
-            it('galerie exist but user is not subscribe to it', async () => {
+            it('galerie exist but user is not subscribe to it and currentUser.role === \'user\'', async () => {
               const {
                 user: userTwo,
               } = await createUser({

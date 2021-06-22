@@ -37,6 +37,9 @@ export default async (req: Request, res: Response) => {
   } = req.params;
   const currentUser = req.user as User;
   const objectUserExcluder: { [key: string]: undefined } = {};
+  const where: {
+    id?: string
+  } = {};
   let frame: Frame | null;
   let galerie: Galerie | null;
   let returnedFrame;
@@ -56,14 +59,16 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  if (currentUser.role === 'user') {
+    where.id = currentUser.id;
+  }
+
   // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
       include: [{
         model: User,
-        where: {
-          id: currentUser.id,
-        },
+        where,
       }],
     });
   } catch (err) {
@@ -105,6 +110,7 @@ export default async (req: Request, res: Response) => {
           model: GaleriePicture,
         },
         {
+          limit: 1,
           model: Like,
           required: false,
           where: {

@@ -111,6 +111,26 @@ describe('/galeries', () => {
           } = await getGaleriesId(app, tokenTwo, galerie.id);
           expect(status).toBe(200);
         });
+        it('return galerie if currentUser is not subscribe to it but currentUser.role === \'admin\' | \'superAdmin\'', async () => {
+          const { user: admin } = await createUser({
+            email: 'admin@email.com',
+            role: 'admin',
+            userName: 'admin',
+          });
+          const { token: tokenTwo } = signAuthToken(admin);
+          const {
+            body: {
+              data: {
+                galerie: {
+                  role,
+                },
+              },
+            },
+            status,
+          } = await getGaleriesId(app, tokenTwo, galerie.id);
+          expect(role).toBeNull();
+          expect(status).toBe(200);
+        });
         it('set GalerieUser.hasNewFrames to false', async () => {
           const {
             user: userTwo,
@@ -155,7 +175,7 @@ describe('/galeries', () => {
           expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
           expect(status).toBe(404);
         });
-        it('galerie exist but user is not subscribe to it', async () => {
+        it('galerie exist but currentUser is not subscribe to it and currentUser.role === \'user\'', async () => {
           const {
             user: userTwo,
           } = await createUser({
