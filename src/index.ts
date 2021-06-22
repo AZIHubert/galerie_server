@@ -21,3 +21,5 @@ initSequelize(() => {
 // when fetch user at any place on galerie
 // return user with isBlackListed
 // instead of null.
+// TODO:
+// create Report model
