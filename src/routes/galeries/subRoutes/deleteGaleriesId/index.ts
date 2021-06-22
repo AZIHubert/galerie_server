@@ -33,6 +33,9 @@ import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
   const currentUser = req.user as User;
+  const where: {
+    id?: string
+  } = {};
   let galerie: Galerie | null;
 
   // Check if request.params.userId
@@ -43,14 +46,16 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  if (currentUser.role === 'user') {
+    where.id = currentUser.id;
+  }
+
   // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
       include: [
         {
-          where: {
-            id: currentUser.id,
-          },
+          where,
           model: User,
         },
         {
@@ -76,10 +81,17 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if user\'s role relative to
-  // this galerie is 'creator'.
+  // this galerie is 'creator
+  // or currentUser.role === 'user'
   const userFromGalerie = galerie.users
     .find((user) => user.id === currentUser.id);
-  if (!userFromGalerie || userFromGalerie.GalerieUser.role !== 'creator') {
+  if (
+    currentUser.role === 'user'
+    && (
+      !userFromGalerie
+      || userFromGalerie.GalerieUser.role !== 'creator'
+    )
+  ) {
     return res.status(400).send({
       errors: 'not allow to delete this galerie',
     });

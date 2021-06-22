@@ -111,7 +111,7 @@ describe('/galeries', () => {
           done();
         });
 
-        it('destroy galerie', async () => {
+        it('destroy galerie if user is the creator of this galerie', async () => {
           const {
             body: {
               action,
@@ -129,6 +129,48 @@ describe('/galeries', () => {
           expect(data).toEqual({
             galerieId,
           });
+          expect(galerie).toBeNull();
+          expect(status).toBe(200);
+        });
+        it('destroy galerie if currentUser is not the creator of this galerie but currentUser.role === \'admin\' | \'superAdmin\'', async () => {
+          const { user: admin } = await createUser({
+            email: 'admin@email.com',
+            role: 'admin',
+            userName: 'admin',
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: admin.id,
+          });
+          const { token: tokenTwo } = signAuthToken(admin);
+          const {
+            status,
+          } = await deleteGaleriesId(app, tokenTwo, galerieId, {
+            body: {
+              name,
+              password,
+            },
+          });
+          const galerie = await Galerie.findByPk(galerieId);
+          expect(galerie).toBeNull();
+          expect(status).toBe(200);
+        });
+        it('destroy galerie if currentUser is not subscribe to this galerie but currentUser.role === \'admin\' | \'superAdmin\'', async () => {
+          const { user: admin } = await createUser({
+            email: 'admin@email.com',
+            role: 'admin',
+            userName: 'admin',
+          });
+          const { token: tokenTwo } = signAuthToken(admin);
+          const {
+            status,
+          } = await deleteGaleriesId(app, tokenTwo, galerieId, {
+            body: {
+              name,
+              password,
+            },
+          });
+          const galerie = await Galerie.findByPk(galerieId);
           expect(galerie).toBeNull();
           expect(status).toBe(200);
         });
@@ -220,7 +262,7 @@ describe('/galeries', () => {
           expect(body.errors).toBe(INVALID_UUID('galerie'));
           expect(status).toBe(400);
         });
-        it('user\'s role is user', async () => {
+        it('currentUser\'s role for this galerie is \'user\' and currentUser.role === \'user\'', async () => {
           const name = 'galerie\'s name';
           const galerie = await createGalerie({
             userId: user.id,
@@ -239,7 +281,7 @@ describe('/galeries', () => {
           expect(body.errors).toBe('not allow to delete this galerie');
           expect(status).toBe(400);
         });
-        it('user\'s role is admin', async () => {
+        it('currentUser\'s role for this galerie is \'admin\' and currentUser.role === \'user\'', async () => {
           const name = 'galerie\'s name';
           const galerie = await createGalerie({
             userId: user.id,
@@ -413,12 +455,22 @@ describe('/galeries', () => {
           const {
             body,
             status,
-          } = await deleteGaleriesId(app, token, uuidv4(), {
-            body: {
-              name: 'galerie\'s name',
-              password,
-            },
+          } = await deleteGaleriesId(app, token, uuidv4());
+          expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
+          expect(status).toBe(404);
+        });
+        it('currentUser is not subscribe to it', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
           });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          const {
+            body,
+            status,
+          } = await deleteGaleriesId(app, token, galerieId);
           expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
           expect(status).toBe(404);
         });
