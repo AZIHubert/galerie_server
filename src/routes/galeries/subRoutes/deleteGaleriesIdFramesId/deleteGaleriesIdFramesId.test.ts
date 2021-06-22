@@ -155,7 +155,7 @@ describe('/galeries', () => {
                 userId: userTwo.id,
               });
               await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
-              const frame = await Frame.findByPk(galerieId);
+              const frame = await Frame.findByPk(frameId);
               expect(frame).toBeNull();
             });
             it('destroy frame if it\'s not posted by current user but his role for this galerie is \'admin\'', async () => {
@@ -186,7 +186,22 @@ describe('/galeries', () => {
                 userId: userTwo.id,
               });
               await deleteGaleriesIdFramesId(app, tokenThree, galerieId, frameId);
-              const frame = await Frame.findByPk(galerieId);
+              const frame = await Frame.findByPk(frameId);
+              expect(frame).toBeNull();
+            });
+            it('destroy frame if it\'s not posted by current user but currentUser.role is \'admin\'', async () => {
+              const { user: admin } = await createUser({
+                email: 'admin@email.com',
+                role: 'admin',
+                userName: 'admin',
+              });
+              const { token: tokenTwo } = signAuthToken(admin);
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              await deleteGaleriesIdFramesId(app, tokenTwo, galerieId, frameId);
+              const frame = await Frame.findByPk(frameId);
               expect(frame).toBeNull();
             });
           });

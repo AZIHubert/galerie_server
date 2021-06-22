@@ -29,9 +29,16 @@ export default async (req: Request, res: Response) => {
     frameId,
   } = req.params;
   const currentUser = req.user as User;
+  const where: {
+    id?: string;
+  } = {};
   let frame: Frame | null;
   let galerie: Galerie | null;
   let galerieUser: GalerieUser | null;
+
+  if (currentUser.role === 'user') {
+    where.id = currentUser.id;
+  }
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -53,9 +60,7 @@ export default async (req: Request, res: Response) => {
     galerie = await Galerie.findByPk(galerieId, {
       include: [{
         model: User,
-        where: {
-          id: currentUser.id,
-        },
+        where,
       }],
     });
   } catch (err) {
@@ -108,21 +113,25 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Only creator/admin
-  // or if user.role === 'admin' | 'superAdmin'
-  // or the user who post the frame
-  // can deleted it.
   const userFromGalerie = galerie.users
     .find((user) => user.id === currentUser.id);
   if (
-    currentUser.id !== frame.userId
+    // If currentUser.role === user.
+    currentUser.role === 'user'
     && (
-      (
-        !userFromGalerie
-        || userFromGalerie.GalerieUser.role === 'user'
-      ) || (
-        galerieUser
-        && galerieUser.role === 'creator'
+    // If currentUser do not have posted this frame.
+      currentUser.id !== frame.userId
+      && (
+        (
+          // If currentUser role for this galerie is user.
+          !userFromGalerie
+          || userFromGalerie.GalerieUser.role === 'user'
+        ) || (
+          // If the user who have posted this frame
+          // is the creator of the galerie.
+          galerieUser
+          && galerieUser.role === 'creator'
+        )
       )
     )
   ) {
