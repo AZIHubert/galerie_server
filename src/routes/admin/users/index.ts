@@ -16,8 +16,6 @@ const router = Router();
 const usersRoutes: () => Router = () => {
   router.delete('/:userId/profilePictures/:profilePictureId', shouldBeAuth, shouldBeSuperAdmin, () => {});
 
-  router.get('/:userId/profilePictures/:profilePictureId', shouldBeAuth, shouldBeSuperAdmin, () => {});
-
   router.post('/:userId/blackLists', shouldBeAuth, shouldBeSuperAdmin, () => {});
   router.post('/:userId/profilePictures', shouldBeAuth, shouldBeSuperAdmin, () => {});
 

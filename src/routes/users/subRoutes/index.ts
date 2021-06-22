@@ -6,6 +6,7 @@ export { default as getUsersIdBlackLists } from './getUsersIdBlackLists';
 export { default as getUsersIdBlackListsId } from './getUsersIdBlackListsId';
 export { default as getUsersIdCurrentProfilePicture } from './getUsersIdCurrentProfilePicture';
 export { default as getUsersIdProfilePictures } from './getUsersIdProfilePictures';
+export { default as getUsersIdProfilePicturesId } from './getUsersIdProfilePicturesId';
 export { default as getUsersLogout } from './getUsersLogout';
 export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersMeCurrentProfilePicture } from './getUsersMeCurrentProfilePicture';
