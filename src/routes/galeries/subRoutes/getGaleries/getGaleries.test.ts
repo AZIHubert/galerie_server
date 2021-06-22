@@ -59,10 +59,7 @@ describe('/galeries', () => {
     });
 
     describe('it should return status 200 and', () => {
-      it('retun galeries', async () => {
-        await createGalerie({
-          userId: user.id,
-        });
+      it('return no galerie', async () => {
         const {
           body: {
             action,
@@ -73,9 +70,92 @@ describe('/galeries', () => {
           status,
         } = await getGaleries(app, token);
         expect(action).toBe('GET');
-        expect(galeries.length).toBe(1);
+        expect(galeries.length).toBe(0);
         expect(status).toBe(200);
+      });
+      it('retun galeries if currentUser.role === \'admin\'', async () => {
+        await createGalerie({
+          userId: user.id,
+        });
+        const {
+          body: {
+            data: {
+              galeries,
+            },
+          },
+        } = await getGaleries(app, token);
+        expect(galeries.length).toBe(1);
         testGalerie(galeries[0]);
+      });
+      it('do not return not subscribe galerie', async () => {
+        const { user: userTwo } = await createUser({
+          email: 'user2@email.com',
+          userName: 'user2',
+        });
+        await createGalerie({
+          userId: userTwo.id,
+        });
+        const {
+          body: {
+            data: {
+              galeries,
+            },
+          },
+        } = await getGaleries(app, token);
+        expect(galeries.length).toBe(0);
+      });
+      it('return subscribed galerie if currentUser.role === \'admin\' | \'superAdmin\' && request.query.all !== \'true\'', async () => {
+        const { user: admin } = await createUser({
+          email: 'admin@email.com',
+          role: 'admin',
+          userName: 'admin',
+        });
+        const { id: galerieId } = await createGalerie({
+          userId: user.id,
+        });
+        const { token: tokenTwo } = signAuthToken(admin);
+        await createGalerie({
+          userId: user.id,
+        });
+        await createGalerieUser({
+          galerieId,
+          userId: admin.id,
+        });
+        const {
+          body: {
+            data: {
+              galeries,
+            },
+          },
+        } = await getGaleries(app, tokenTwo);
+        expect(galeries.length).toBe(1);
+        expect(galeries[0].id).toBe(galerieId);
+      });
+      it('return subscribed and not subscribe galerie if currentUser.role === \'admin\' | \'superAdmin\' && request.query.all !== \'true\'', async () => {
+        const { user: admin } = await createUser({
+          email: 'admin@email.com',
+          role: 'admin',
+          userName: 'admin',
+        });
+        const { id: galerieId } = await createGalerie({
+          userId: user.id,
+        });
+        const { token: tokenTwo } = signAuthToken(admin);
+        await createGalerie({
+          userId: user.id,
+        });
+        await createGalerieUser({
+          galerieId,
+          userId: admin.id,
+        });
+        const {
+          body: {
+            data: {
+              galeries,
+            },
+          },
+        } = await getGaleries(app, tokenTwo, { all: 'true' });
+        expect(galeries.length).toBe(2);
       });
       it('return a pack of 20 galeries', async () => {
         const NUM = 21;

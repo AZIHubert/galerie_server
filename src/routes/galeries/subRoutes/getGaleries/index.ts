@@ -15,9 +15,15 @@ import {
 } from '@src/helpers/excluders';
 
 export default async (req: Request, res: Response) => {
+  const {
+    all,
+  } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
   const { page } = req.query;
+  const where: {
+    id?: string
+  } = {};
   let galeries: Galerie[];
   let offset: number;
   let returnedGaleries: Array<any>;
@@ -27,6 +33,9 @@ export default async (req: Request, res: Response) => {
   } else {
     offset = 0;
   }
+  if (currentUser.role === 'user' || all !== 'true') {
+    where.id = currentUser.id;
+  }
 
   try {
     galeries = await Galerie.findAll({
@@ -35,9 +44,7 @@ export default async (req: Request, res: Response) => {
       },
       include: [{
         model: User,
-        where: {
-          id: currentUser.id,
-        },
+        where,
       }],
       limit,
       offset,
