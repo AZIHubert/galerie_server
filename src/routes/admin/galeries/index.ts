@@ -11,8 +11,6 @@ const galerieRoutes: () => Router = () => {
   router.delete('/:galerieId', shouldBeAuth, shouldBeSuperAdmin, () => {});
   router.delete('/:galerieId/frames/:frameId', shouldBeAuth, shouldBeSuperAdmin, () => {});
 
-  router.get('/:galerieId', shouldBeAuth, shouldBeSuperAdmin, () => {});
-
   router.get('/:galerieId/frames', shouldBeAuth, shouldBeSuperAdmin, () => {});
   router.get('/:galerieId/users', shouldBeAuth, shouldBeSuperAdmin, () => {});
 

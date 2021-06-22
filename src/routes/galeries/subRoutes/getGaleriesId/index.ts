@@ -20,6 +20,9 @@ import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
   const currentUser = req.user as User;
+  const where: {
+    id?: string
+  } = {};
   let galerie: Galerie | null;
 
   // Check if request.params.galerieId
@@ -28,6 +31,10 @@ export default async (req: Request, res: Response) => {
     return res.status(400).send({
       errors: INVALID_UUID('galerie'),
     });
+  }
+
+  if (currentUser.role === 'user') {
+    where.id = currentUser.id;
   }
 
   // Fetch galerie.
@@ -40,9 +47,7 @@ export default async (req: Request, res: Response) => {
       },
       include: [{
         model: User,
-        where: {
-          id: currentUser.id,
-        },
+        where,
       }],
     });
   } catch (err) {
