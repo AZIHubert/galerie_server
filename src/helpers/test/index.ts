@@ -22,6 +22,7 @@ export { default as deleteGaleriesIdUsersId } from './deleteGaleriesIdUsersId';
 export { default as deleteGaleriesUnsubscribe } from './deleteGaleriesUnsubscribe';
 export { default as deleteProfilePicturesId } from './deleteProfilePicturesId';
 export { default as deleteTicketsId } from './deleteTicketsId';
+export { default as deleteUsersIdProfilePicturesId } from './deleteUsersIdProfilePicturesId';
 export { default as deleteUsersMe } from './deleteUsersMe';
 
 export { default as getBetaKeys } from './getBetaKeys';

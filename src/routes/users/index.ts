@@ -8,6 +8,7 @@ import {
 } from '@src/helpers/middlewares';
 
 import {
+  deleteUsersIdProfilePicturesId,
   deleteUsersMe,
 
   getUsers,
@@ -43,6 +44,7 @@ const router = Router();
 
 const usersRoutes: () => Router = () => {
   router.delete('/me/', shouldBeAuth, deleteUsersMe);
+  router.delete('/:userId/profilePictures/:profilePictureId', shouldBeAuth, shouldBeAdmin, deleteUsersIdProfilePicturesId);
 
   router.get('/', shouldBeAuth, getUsers);
   router.get('/logout/', shouldBeAuth, getUsersLogout);
