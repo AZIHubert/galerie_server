@@ -30,7 +30,6 @@ export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   let createdByIsBlackListed: boolean = false;
   let galerie: Galerie | null;
-  let galerieBlackList: GalerieBlackList | null;
   let userIsBlackListed: boolean;
 
   // Check if request.params.galerieId
@@ -59,6 +58,33 @@ export default async (req: Request, res: Response) => {
             id: currentUser.id,
           },
         },
+        {
+          attributes: {
+            exclude: galerieBlackListExcluder,
+          },
+          include: [
+            {
+              as: 'createdBy',
+              attributes: {
+                exclude: userExcluder,
+              },
+              model: User,
+            },
+            {
+              as: 'user',
+              attributes: {
+                exclude: userExcluder,
+              },
+              model: User,
+            },
+          ],
+          limit: 1,
+          model: GalerieBlackList,
+          required: false,
+          where: {
+            id: blackListId,
+          },
+        },
       ],
     });
   } catch (err) {
@@ -83,39 +109,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  try {
-    galerieBlackList = await GalerieBlackList.findByPk(blackListId, {
-      attributes: {
-        exclude: galerieBlackListExcluder,
-      },
-      include: [
-        {
-          model: Galerie,
-          where: {
-            id: galerieId,
-          },
-        },
-        {
-          as: 'createdBy',
-          attributes: {
-            exclude: userExcluder,
-          },
-          model: User,
-        },
-        {
-          as: 'user',
-          attributes: {
-            exclude: userExcluder,
-          },
-          model: User,
-        },
-      ],
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  if (!galerieBlackList) {
+  if (!galerie.galerieBlackLists[0]) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('black list'),
     });
@@ -123,30 +117,30 @@ export default async (req: Request, res: Response) => {
 
   // Check if user is black listed.
   try {
-    userIsBlackListed = await checkBlackList(galerieBlackList.user);
+    userIsBlackListed = await checkBlackList(galerie.galerieBlackLists[0].user);
   } catch (err) {
     return res.status(500).send(err);
   }
 
-  if (galerieBlackList.createdBy) {
+  if (galerie.galerieBlackLists[0].createdBy) {
     // Check if createdBy is black listed.
     try {
-      createdByIsBlackListed = await checkBlackList(galerieBlackList.createdBy);
+      createdByIsBlackListed = await checkBlackList(galerie.galerieBlackLists[0].createdBy);
     } catch (err) {
       return res.status(500).send(err);
     }
   }
 
   const normalizeGalerieBlackList = {
-    ...galerieBlackList.toJSON(),
-    createdBy: galerieBlackList.createdBy ? {
-      ...galerieBlackList.createdBy.toJSON(),
+    ...galerie.galerieBlackLists[0].toJSON(),
+    createdBy: galerie.galerieBlackLists[0].createdBy ? {
+      ...galerie.galerieBlackLists[0].createdBy.toJSON(),
       currentProfilePicture: null,
       isBlackListed: createdByIsBlackListed,
     } : null,
     galerie: undefined,
     user: {
-      ...galerieBlackList.user.toJSON(),
+      ...galerie.galerieBlackLists[0].user.toJSON(),
       currentProfilePicture: null,
       idBlackListed: userIsBlackListed,
     },

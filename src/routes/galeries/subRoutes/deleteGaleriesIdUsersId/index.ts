@@ -4,14 +4,12 @@ import {
   Request,
   Response,
 } from 'express';
-import { Op } from 'sequelize';
 
 import {
   Frame,
   Galerie,
   GalerieBlackList,
   GalerieUser,
-  Image,
   Invitation,
   Like,
   User,
@@ -93,12 +91,43 @@ export default async (req: Request, res: Response) => {
       where: {
         id: userId,
       },
-      include: [{
-        model: Galerie,
-        where: {
-          id: galerieId,
+      include: [
+        {
+          include: [
+            {
+              all: true,
+              include: [
+                {
+                  all: true,
+                },
+              ],
+            },
+          ],
+          model: Frame,
+          required: false,
+          where: {
+            galerieId,
+          },
         },
-      }],
+        {
+          model: Galerie,
+          where: {
+            id: galerieId,
+          },
+        },
+        {
+          include: [
+            {
+              model: Frame,
+              where: {
+                galerieId,
+              },
+            },
+          ],
+          model: Like,
+          required: false,
+        },
+      ],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -147,104 +176,58 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  try {
-    const frames = await Frame.findAll({
-      include: [{
-        all: true,
-        include: [{
-          all: true,
-        }],
-      }],
-      where: {
-        galerieId,
-        userId: user.id,
-      },
-    });
+  // Destroy all frames/galeriePictures/images
+  // images from Google Buckets/likes.
+  if (user.frames) {
+    try {
+      await Promise.all(
+        user.frames.map(async (frame) => {
+          await frame.destroy();
+          await Promise.all(
+            frame.galeriePictures.map(
+              async (galeriePicture) => {
+                const {
+                  originalImage,
+                  cropedImage,
+                  pendingImage,
+                } = galeriePicture;
 
-    // Destroy all frames/galeriePictures/images
-    // images from Google Buckets/likes.
-    await Promise.all(
-      frames.map(async (frame) => {
-        await frame.destroy();
-        await Promise.all(
-          frame.galeriePictures.map(
-            async (galeriePicture) => {
-              const {
-                originalImage,
-                cropedImage,
-                pendingImage,
-              } = galeriePicture;
-              await Image.destroy({
-                where: {
-                  [Op.or]: [
-                    {
-                      id: cropedImage.id,
-                    },
-                    {
-                      id: originalImage.id,
-                    },
-                    {
-                      id: pendingImage.id,
-                    },
-                  ],
-                },
-              });
-              await gc
-                .bucket(pendingImage.bucketName)
-                .file(pendingImage.fileName)
-                .delete();
-              await gc
-                .bucket(originalImage.bucketName)
-                .file(originalImage.fileName)
-                .delete();
-              await gc
-                .bucket(cropedImage.bucketName)
-                .file(cropedImage.fileName)
-                .delete();
-            },
-          ),
-        );
-      }),
-    );
-  } catch (err) {
-    return res.status(500).send(err);
+                await gc
+                  .bucket(pendingImage.bucketName)
+                  .file(pendingImage.fileName)
+                  .delete();
+                await gc
+                  .bucket(originalImage.bucketName)
+                  .file(originalImage.fileName)
+                  .delete();
+                await gc
+                  .bucket(cropedImage.bucketName)
+                  .file(cropedImage.fileName)
+                  .delete();
+              },
+            ),
+          );
+        }),
+      );
+    } catch (err) {
+      return res.status(500).send(err);
+    }
   }
 
   // Destroy all likes post by
   // deleted user on this galerie.
   // and decrement frames.numOfLikes.
-  try {
-    const framesLikeByCurrentUser = await Frame.findAll({
-      include: [
-        {
-          model: Like,
-          where: {
-            userId: user.id,
-          },
-        },
-      ],
-      where: {
-        galerieId,
-      },
-    });
-    if (framesLikeByCurrentUser) {
-      try {
-        await Promise.all(
-          framesLikeByCurrentUser.map(async (frame) => {
-            await frame.decrement({ numOfLikes: 1 });
-            await Promise.all(
-              frame.likes.map(async (like) => {
-                await like.destroy();
-              }),
-            );
-          }),
-        );
-      } catch (err) {
-        return res.status(500).send(err);
-      }
+  if (user.likes) {
+    try {
+      await Promise.all(
+        user.likes.map(async (like) => {
+          await like.destroy();
+          await like.frame.decrement({ numOfLikes: 1 });
+        }),
+      );
+    } catch (err) {
+      return res.status(500).send(err);
     }
-  } catch (err) {
-    return res.status(500).send(err);
   }
 
   // Destroy invitation posted by deleted user.

@@ -9,7 +9,6 @@ import {
   Frame,
   Galerie,
   GaleriePicture,
-  Image,
   Like,
   User,
 } from '@src/db/models';
@@ -39,7 +38,6 @@ export default async (req: Request, res: Response) => {
   const where: {
     id?: string
   } = {};
-  let frame: Frame | null;
   let galerie: Galerie | null;
   let returnedFrame;
 
@@ -65,10 +63,51 @@ export default async (req: Request, res: Response) => {
   // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
-      include: [{
-        model: User,
-        where,
-      }],
+      include: [
+        {
+          attributes: {
+            exclude: frameExcluder,
+          },
+          include: [
+            {
+              attributes: {
+                exclude: galeriePictureExcluder,
+              },
+              include: [
+                {
+                  all: true,
+                },
+              ],
+              model: GaleriePicture,
+            },
+            {
+              limit: 1,
+              model: Like,
+              required: false,
+              where: {
+                userId: currentUser.id,
+              },
+            },
+            {
+              as: 'user',
+              attributes: {
+                exclude: userExcluder,
+              },
+              model: User,
+            },
+          ],
+          limit: 1,
+          model: Frame,
+          required: false,
+          where: {
+            id: frameId,
+          },
+        },
+        {
+          model: User,
+          where,
+        },
+      ],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -81,82 +120,30 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Fectch frame.
-  try {
-    frame = await Frame.findOne({
-      attributes: {
-        exclude: frameExcluder,
-      },
-      include: [
-        {
-          attributes: {
-            exclude: galeriePictureExcluder,
-          },
-          include: [
-            {
-              as: 'cropedImage',
-              model: Image,
-            },
-            {
-              as: 'originalImage',
-              model: Image,
-            },
-            {
-              as: 'pendingImage',
-              model: Image,
-            },
-          ],
-          model: GaleriePicture,
-        },
-        {
-          limit: 1,
-          model: Like,
-          required: false,
-          where: {
-            userId: currentUser.id,
-          },
-        },
-        {
-          as: 'user',
-          attributes: {
-            exclude: userExcluder,
-          },
-          model: User,
-        },
-      ],
-      where: {
-        galerieId,
-        id: frameId,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   // Check if frame exist.
-  if (!frame) {
+  if (!galerie.frames[0]) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('frame'),
     });
   }
 
   try {
-    const normalizedFrame = await fetchFrame(frame);
+    const normalizedFrame = await fetchFrame(galerie.frames[0]);
 
     if (normalizedFrame) {
-      const isBlackListed = await checkBlackList(frame.user);
+      const isBlackListed = await checkBlackList(galerie.frames[0].user);
       returnedFrame = {
         ...normalizedFrame,
-        liked: !!frame.likes.length,
+        liked: !!galerie.frames[0].likes.length,
         likes: undefined,
         user: {
-          ...frame.user.toJSON(),
+          ...galerie.frames[0].user.toJSON(),
           isBlackListed,
           currentProfilePicture: null,
         },
       };
     } else {
-      await frame.destroy();
+      await galerie.frames[0].destroy();
       return res.status(404).send({
         errors: MODEL_NOT_FOUND('frame'),
       });

@@ -4,13 +4,12 @@ import {
   Request,
   Response,
 } from 'express';
-import { Op } from 'sequelize';
 
 import {
   Frame,
   Galerie,
   GalerieBlackList,
-  Image,
+  GaleriePicture,
   Invitation,
   Like,
   User,
@@ -38,7 +37,6 @@ export default async (req: Request, res: Response) => {
   let galerie: Galerie | null;
   let galerieBlackList: GalerieBlackList;
   let user: User | null;
-  let userIdBlackListed: GalerieBlackList | null;
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -103,12 +101,52 @@ export default async (req: Request, res: Response) => {
   // Fetch user.
   try {
     user = await User.findByPk(userId, {
-      include: [{
-        model: Galerie,
-        where: {
-          id: galerieId,
+      include: [
+        {
+          include: [
+            {
+              include: [
+                {
+                  all: true,
+                },
+              ],
+              model: GaleriePicture,
+            },
+          ],
+          model: Frame,
+          required: false,
+          where: {
+            galerieId,
+          },
         },
-      }],
+        {
+          model: Galerie,
+          where: {
+            id: galerieId,
+          },
+        },
+        {
+          as: 'galerieBlackListsUser',
+          limit: 1,
+          model: GalerieBlackList,
+          required: false,
+          where: {
+            galerieId,
+          },
+        },
+        {
+          include: [
+            {
+              model: Frame,
+              where: {
+                galerieId,
+              },
+            },
+          ],
+          required: false,
+          model: Like,
+        },
+      ],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -122,9 +160,9 @@ export default async (req: Request, res: Response) => {
   }
 
   // The creator of this galerie can\'t be blackListed.
-  const galerieFromeUser = user.galeries
+  const galerieFromUser = user.galeries
     .find((u) => u.id === galerieId);
-  if (!galerieFromeUser || galerieFromeUser.GalerieUser.role === 'creator') {
+  if (!galerieFromUser || galerieFromUser.GalerieUser.role === 'creator') {
     return res.status(400).send({
       errors: 'the creator of this galerie can\'t be black listed',
     });
@@ -134,7 +172,7 @@ export default async (req: Request, res: Response) => {
   // is allow to blackList an admin
   // of the galerie.
   if (
-    galerieFromeUser.GalerieUser.role === 'admin'
+    galerieFromUser.GalerieUser.role === 'admin'
     && userFromGalerie.GalerieUser.role === 'admin'
   ) {
     return res.status(400).send({
@@ -142,21 +180,9 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Fetch galerieBlackList
-  try {
-    userIdBlackListed = await GalerieBlackList.findOne({
-      where: {
-        galerieId,
-        userId: user.id,
-      },
-    });
-  } catch (err) {
-    return res.status(400).send(err);
-  }
-
   // Check that user is not
   // already blackList from this galerie.
-  if (userIdBlackListed) {
+  if (user.galerieBlackListsUser[0]) {
     // If this error is reached
     // it mean that black listed user
     // has a galerieUser for the galerie
@@ -164,7 +190,7 @@ export default async (req: Request, res: Response) => {
     // This is a bug, so we destroy his
     // galerieUser for this galerie.
     try {
-      await galerieFromeUser.GalerieUser.destroy();
+      await galerieFromUser.GalerieUser.destroy();
     } catch (err) {
       return res.status(500).send(err);
     }
@@ -173,109 +199,70 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Destroy galerieUser.
   try {
-    await galerieFromeUser.GalerieUser.destroy();
+    await galerieFromUser.GalerieUser.destroy();
   } catch (err) {
     return res.status(500).send(err);
   }
 
-  // Destroy all frames/galeriePictures/images
-  // images from Goofle Buckets/likes.
-  try {
-    const frames = await Frame.findAll({
-      include: [{
-        all: true,
-        include: [{
-          all: true,
-        }],
-      }],
-      where: {
-        galerieId,
-        userId: user.id,
-      },
-    });
-    await Promise.all(
-      frames.map(async (frame) => {
-        await frame.destroy();
-        await Promise.all(
-          frame.galeriePictures.map(
-            async (galeriePicture) => {
-              const {
-                originalImage,
-                cropedImage,
-                pendingImage,
-              } = galeriePicture;
-              await Image.destroy({
-                where: {
-                  [Op.or]: [
-                    {
-                      id: cropedImage.id,
-                    },
-                    {
-                      id: originalImage.id,
-                    },
-                    {
-                      id: pendingImage.id,
-                    },
-                  ],
+  // Destroy all frames and Google Buckets images.
+  if (user.frames) {
+    try {
+      await Promise.all(
+        user.frames.map(
+          async (frame) => {
+            await frame.destroy();
+            await Promise.all(
+              frame.galeriePictures.map(
+                async (galeriePicture) => {
+                  const {
+                    originalImage,
+                    cropedImage,
+                    pendingImage,
+                  } = galeriePicture;
+
+                  await gc
+                    .bucket(pendingImage.bucketName)
+                    .file(pendingImage.fileName)
+                    .delete();
+                  await gc
+                    .bucket(originalImage.bucketName)
+                    .file(originalImage.fileName)
+                    .delete();
+                  await gc
+                    .bucket(cropedImage.bucketName)
+                    .file(cropedImage.fileName)
+                    .delete();
                 },
-              });
-              await gc
-                .bucket(pendingImage.bucketName)
-                .file(pendingImage.fileName)
-                .delete();
-              await gc
-                .bucket(originalImage.bucketName)
-                .file(originalImage.fileName)
-                .delete();
-              await gc
-                .bucket(cropedImage.bucketName)
-                .file(cropedImage.fileName)
-                .delete();
-            },
-          ),
-        );
-      }),
-    );
-  } catch (err) {
-    return res.status(500).send(err);
+              ),
+            );
+          },
+        ),
+      );
+    } catch (err) {
+      return res.status(500).send(err);
+    }
   }
 
   // Destroy all likes post by
   // deleted user on this galerie.
   // and decrement frames.numOfLikes.
-  try {
-    const framesLikeByCurrentUser = await Frame.findAll({
-      include: [
-        {
-          model: Like,
-          where: {
-            userId: user.id,
-          },
-        },
-      ],
-      where: {
-        galerieId,
-      },
-    });
-    if (framesLikeByCurrentUser) {
+  if (user.likes) {
+    try {
       try {
         await Promise.all(
-          framesLikeByCurrentUser.map(async (frame) => {
-            await frame.decrement({ numOfLikes: 1 });
-            await Promise.all(
-              frame.likes.map(async (like) => {
-                await like.destroy();
-              }),
-            );
+          user.likes.map(async (like) => {
+            like.destroy();
+            await like.frame.decrement({ numOfLikes: 1 });
           }),
         );
       } catch (err) {
         return res.status(500).send(err);
       }
+    } catch (err) {
+      return res.status(500).send(err);
     }
-  } catch (err) {
-    return res.status(500).send(err);
   }
 
   // Destroy invitation posted by deleted user.

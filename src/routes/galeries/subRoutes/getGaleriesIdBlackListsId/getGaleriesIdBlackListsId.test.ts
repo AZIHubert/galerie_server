@@ -146,7 +146,7 @@ describe('/galeries', () => {
               } = await getGaleriesIdBlackListsId(app, token, galerieId, galerieBlackList.id);
               expect(blackList.user.isBlackListed).toBe(true);
             });
-            it('blackList.admin.isBlackListed === true if he is \'globally\' black listed', async () => {
+            it('blackList.createdBy.isBlackListed === true if he is \'globally\' black listed', async () => {
               const { user: userThree } = await createUser({
                 email: 'user3@email.com',
                 userName: 'user3',

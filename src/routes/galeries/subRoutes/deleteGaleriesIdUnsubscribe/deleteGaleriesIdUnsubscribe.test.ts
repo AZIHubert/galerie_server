@@ -7,6 +7,7 @@ import '@src/helpers/initEnv';
 import {
   Frame,
   Galerie,
+  GalerieBlackList,
   GaleriePicture,
   GalerieUser,
   Image,
@@ -24,6 +25,7 @@ import { signAuthToken } from '@src/helpers/issueJWT';
 import {
   createFrame,
   createGalerie,
+  createGalerieBlackList,
   createGalerieUser,
   createInvitation,
   createLike,
@@ -138,6 +140,15 @@ describe('/galeries', () => {
             expect(status).toBe(200);
           });
           describe('do not destroy {{}} posted by other user', () => {
+            it('galerieBlackList', async () => {
+              const { id: galerieBlackListId } = await createGalerieBlackList({
+                galerieId,
+                userId: userTwo.id,
+              });
+              await deleteGaleriesUnsubscribe(app, token, galerieId);
+              const galerieBlackList = await GalerieBlackList.findByPk(galerieBlackListId);
+              expect(galerieBlackList).not.toBeNull();
+            });
             it('frame/galerie pictures/images', async () => {
               const { id: frameId } = await createFrame({
                 galerieId,
@@ -184,6 +195,16 @@ describe('/galeries', () => {
               done();
             });
 
+            it('galerieBlackLists', async () => {
+              const { id: galerieBlackListId } = await createGalerieBlackList({
+                createdById: user.id,
+                galerieId: galerieTwo.id,
+                userId: userTwo.id,
+              });
+              await deleteGaleriesUnsubscribe(app, token, galerieId);
+              const galerieBlackList = await GalerieBlackList.findByPk(galerieBlackListId);
+              expect(galerieBlackList).not.toBeNull();
+            });
             it('frames', async () => {
               const { id: frameId } = await createFrame({
                 galerieId: galerieTwo.id,
@@ -221,6 +242,16 @@ describe('/galeries', () => {
               await deleteGaleriesUnsubscribe(app, token, galerieId);
               const galeries = await Galerie.findByPk(galerieId);
               expect(galeries).not.toBeNull();
+            });
+            it('set galerieBlackList.createdById === null for galerieBlackList posted by this user', async () => {
+              const galerieBlackList = await createGalerieBlackList({
+                createdById: user.id,
+                galerieId,
+                userId: userTwo.id,
+              });
+              await deleteGaleriesUnsubscribe(app, token, galerieId);
+              await galerieBlackList.reload();
+              expect(galerieBlackList.createdById).toBeNull();
             });
             it('destroy all frames/galerie pictures/images posted by this user', async () => {
               const frameOne = await createFrame({
@@ -324,6 +355,19 @@ describe('/galeries', () => {
               await deleteGaleriesUnsubscribe(app, token, galerieId);
               const galerie = await Galerie.findByPk(galerieId);
               expect(galerie).toBeNull();
+            });
+            it('destroy all galerieBlackList', async () => {
+              const { user: userThree } = await createUser({
+                email: 'user3@email.com',
+                userName: 'user3',
+              });
+              const { id: galerieBlackListId } = await createGalerieBlackList({
+                galerieId,
+                userId: userThree.id,
+              });
+              await deleteGaleriesUnsubscribe(app, token, galerieId);
+              const galerieBlackList = await GalerieBlackList.findByPk(galerieBlackListId);
+              expect(galerieBlackList).toBeNull();
             });
             it('destroy all frames/galerie pictures/images', async () => {
               const createdFrame = await createFrame({

@@ -230,19 +230,31 @@ export default class User extends Model implements UserI {
   @HasMany(() => GalerieBlackList, 'userId')
   galerieBlackListsUser!: GalerieBlackList[];
 
-  @HasMany(() => Frame)
+  @HasMany(() => Frame, {
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
   frames!: Frame[];
 
-  @HasMany(() => Invitation)
+  @HasMany(() => Invitation, {
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
   invitations!: Invitation[];
 
-  @HasMany(() => Like)
+  @HasMany(() => Like, {
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
   likes!: Like[];
 
   // @HasMany(() => Notification)
   // notifications!: Notification[];
 
-  @HasMany(() => ProfilePicture)
+  @HasMany(() => ProfilePicture, {
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
   profilePictures!: ProfilePicture[];
 
   @HasMany(() => Ticket)

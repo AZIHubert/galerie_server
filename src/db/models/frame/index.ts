@@ -71,7 +71,10 @@ export default class Frame extends Model implements FrameI {
   @BelongsTo(() => User)
   user!: User;
 
-  @HasMany(() => GaleriePicture)
+  @HasMany(() => GaleriePicture, {
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
   galeriePictures!: GaleriePicture[];
 
   @HasMany(() => Like)

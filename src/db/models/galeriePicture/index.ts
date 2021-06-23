@@ -82,13 +82,25 @@ export default class GaleriePicture extends Model implements GaleriePictureI {
   })
   pendingImageId!: string;
 
-  @BelongsTo(() => Image, 'cropedImageId')
+  @BelongsTo(() => Image, {
+    foreignKey: 'cropedImageId',
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
   cropedImage!: Image;
 
-  @BelongsTo(() => Image, 'originalImageId')
+  @BelongsTo(() => Image, {
+    foreignKey: 'originalImageId',
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
   originalImage!: Image;
 
-  @BelongsTo(() => Image, 'pendingImageId')
+  @BelongsTo(() => Image, {
+    foreignKey: 'pendingImageId',
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
   pendingImage!: Image;
 
   @BelongsTo(() => Frame)

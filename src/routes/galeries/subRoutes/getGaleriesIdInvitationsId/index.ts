@@ -29,7 +29,6 @@ export default async (req: Request, res: Response) => {
   } = req.params;
   const currentUser = req.user as User;
   let galerie: Galerie | null;
-  let invitation: Invitation | null;
   let isBlackListed: boolean;
 
   // Check if request.params.galerieId
@@ -50,12 +49,31 @@ export default async (req: Request, res: Response) => {
   // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
-      include: [{
-        model: User,
-        where: {
-          id: currentUser.id,
+      include: [
+        {
+          attributes: {
+            exclude: invitationExcluder,
+          },
+          include: [{
+            attributes: {
+              exclude: userExcluder,
+            },
+            model: User,
+          }],
+          limit: 1,
+          model: Invitation,
+          required: false,
+          where: {
+            id: invitationId,
+          },
         },
-      }],
+        {
+          model: User,
+          where: {
+            id: currentUser.id,
+          },
+        },
+      ],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -78,49 +96,26 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Fetch invitation.
-  try {
-    invitation = await Invitation.findOne({
-      attributes: {
-        exclude: invitationExcluder,
-      },
-      include: [{
-        attributes: {
-          exclude: userExcluder,
-        },
-        model: User,
-      }],
-      where: {
-        id: invitationId,
-        galerieId,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   // Check if invitation exist.
-  if (!invitation) {
+  if (!galerie.invitations[0]) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('invitation'),
     });
   }
 
   // Check if invitation is expired.
-  if (invitation.time && invitation.time < new Date(Date.now())) {
+  if (
+    (
+      galerie.invitations[0].time
+      && galerie.invitations[0].time < new Date(Date.now())
+    )
+    || (
+      galerie.invitations[0].numOfInvits !== null
+      && galerie.invitations[0].numOfInvits < 1
+    )
+  ) {
     try {
-      await invitation.destroy();
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('invitation'),
-    });
-  }
-
-  if (invitation.numOfInvits !== null && invitation.numOfInvits < 1) {
-    try {
-      await invitation.destroy();
+      await galerie.invitations[0].destroy();
     } catch (err) {
       return res.status(500).send(err);
     }
@@ -131,15 +126,15 @@ export default async (req: Request, res: Response) => {
 
   // Check if user is black listed.
   try {
-    isBlackListed = await checkBlackList(invitation.user);
+    isBlackListed = await checkBlackList(galerie.invitations[0].user);
   } catch (err) {
     return res.status(500).send(err);
   }
 
   const returnedInvitation = {
-    ...invitation.toJSON(),
+    ...galerie.invitations[0].toJSON(),
     user: {
-      ...invitation.user.toJSON(),
+      ...galerie.invitations[0].user.toJSON(),
       currentProfilePicture: null,
       isBlackListed,
     },

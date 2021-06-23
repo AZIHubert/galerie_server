@@ -72,7 +72,10 @@ export default class Galerie extends Model implements GalerieI {
   @BelongsToMany(() => User, () => GalerieUser)
   users!: Array<User & {GalerieUser: GalerieUser}>;
 
-  @HasMany(() => Frame)
+  @HasMany(() => Frame, {
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
   frames!: Frame[];
 
   @HasMany(() => GalerieBlackList)

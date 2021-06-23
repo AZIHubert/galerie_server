@@ -25,7 +25,6 @@ export default async (req: Request, res: Response) => {
   } = req.params;
   const currentUser = req.user as User;
   let galerie: Galerie | null;
-  let galerieBlackList: GalerieBlackList | null;
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -46,14 +45,31 @@ export default async (req: Request, res: Response) => {
   // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
-      include: [{
-        model: User,
-        where: {
-          id: currentUser.id,
+      include: [
+        {
+          include: [
+            {
+              as: 'createdBy',
+              model: User,
+            },
+          ],
+          limit: 1,
+          model: GalerieBlackList,
+          required: false,
+          where: {
+            id: blackListId,
+          },
         },
-      }],
+        {
+          model: User,
+          where: {
+            id: currentUser.id,
+          },
+        },
+      ],
     });
   } catch (err) {
+    console.log(err);
     return res.status(500).send(err);
   }
 
@@ -61,6 +77,12 @@ export default async (req: Request, res: Response) => {
   if (!galerie) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('galerie'),
+    });
+  }
+
+  if (!galerie.galerieBlackLists[0]) {
+    return res.status(404).send({
+      errors: MODEL_NOT_FOUND('black list'),
     });
   }
 
@@ -75,33 +97,6 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Fetch galerieBlackList.
-  try {
-    galerieBlackList = await GalerieBlackList.findByPk(blackListId, {
-      include: [
-        {
-          model: Galerie,
-          where: {
-            id: galerieId,
-          },
-        },
-        {
-          as: 'createdBy',
-          model: User,
-        },
-      ],
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // Check if galerieBlackList exist.
-  if (!galerieBlackList) {
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('black list'),
-    });
-  }
-
   // If current user role for this
   // galerie is not 'creator' and
   // or if current user try to delete
@@ -110,8 +105,14 @@ export default async (req: Request, res: Response) => {
   // black list is not the creator
   // of this galerie.
   if (
-    (!userFromGalerie || userFromGalerie.GalerieUser.role !== 'creator')
-    || (galerieBlackList.createdById && currentUser.id !== galerieBlackList.createdById)
+    (
+      !userFromGalerie
+      || userFromGalerie.GalerieUser.role !== 'creator'
+    )
+    || (
+      galerie.galerieBlackLists[0].createdById
+      && currentUser.id !== galerie.galerieBlackLists[0].createdById
+    )
   ) {
     let galerieUser: GalerieUser | null;
 
@@ -119,7 +120,7 @@ export default async (req: Request, res: Response) => {
       galerieUser = await GalerieUser.findOne({
         where: {
           galerieId,
-          userId: galerieBlackList.createdById,
+          userId: galerie.galerieBlackLists[0].createdById,
         },
       });
     } catch (err) {
@@ -133,7 +134,7 @@ export default async (req: Request, res: Response) => {
   }
 
   try {
-    await galerieBlackList.destroy();
+    await galerie.galerieBlackLists[0].destroy();
   } catch (err) {
     return res.status(500).send(err);
   }
