@@ -55,9 +55,17 @@ export default class BetaKey extends Model implements BetaKeyI {
   })
   userId!: string;
 
-  @BelongsTo(() => User, 'createdById')
+  @BelongsTo(() => User, {
+    foreignKey: 'createdById',
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
   createdBy!: User;
 
-  @BelongsTo(() => User, 'userId')
+  @BelongsTo(() => User, {
+    foreignKey: 'userId',
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
   user!: User;
 }

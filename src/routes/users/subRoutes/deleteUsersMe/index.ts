@@ -88,19 +88,6 @@ export default async (req: Request, res: Response) => {
   // .....................
   // BetaKeys
   // .....................
-  // Destoy all non used betaKey created by current user.
-  try {
-    await BetaKey.destroy({
-      where: {
-        createdById: user.id,
-        userId: {
-          [Op.eq]: null,
-        },
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
   // set betaKey.createdById === null
   // to all used betaKey created by current user.
   try {
@@ -117,31 +104,10 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  // Destroy the beta Key used by current user.
-  try {
-    await BetaKey.destroy({
-      where: {
-        userId: user.id,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
 
   // .....................
   // BlackLists
   // .....................
-  // Destroy all black list where
-  // blackList.userId === currentUser.id.
-  try {
-    await BlackList.destroy({
-      where: {
-        userId: user.id,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
   // Put blackList.createdById to null where
   // blackList.createdById === currentUser.id.
   try {
@@ -190,7 +156,6 @@ export default async (req: Request, res: Response) => {
     });
     await Promise.all(
       frames.map(async (frame) => {
-        await frame.destroy();
         await Promise.all(
           frame.galeriePictures.map(
             async (galeriePicture) => {
@@ -199,7 +164,6 @@ export default async (req: Request, res: Response) => {
                 originalImage,
                 pendingImage,
               } = galeriePicture;
-
               await gc
                 .bucket(originalImage.bucketName)
                 .file(originalImage.fileName)
@@ -215,9 +179,6 @@ export default async (req: Request, res: Response) => {
             },
           ),
         );
-        await Like.destroy({
-          where: { frameId: frame.id },
-        });
       }),
     );
   } catch (err) {
@@ -240,7 +201,6 @@ export default async (req: Request, res: Response) => {
     });
     await Promise.all(
       galerieUsers.map(async (galerieUser) => {
-        await galerieUser.destroy();
         const allUsers = await GalerieUser.findAll({
           where: {
             galerieId: galerieUser.galerieId,
@@ -249,7 +209,7 @@ export default async (req: Request, res: Response) => {
         // If a user is the last
         // user subscribe to a galerie
         // destroy the galerie.
-        if (allUsers.length === 0) {
+        if (allUsers.length <= 1) {
           await Galerie.destroy({
             where: {
               id: galerieUser.galerieId,
@@ -297,31 +257,6 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-  // Destroy all galerieBlackList
-  // where galerieBlackList.userId === user.id
-  try {
-    await GalerieBlackList.destroy({
-      where: {
-        userId: user.id,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // .....................
-  // Invitations
-  // .....................
-  // Destroy all invitations.
-  try {
-    await Invitation.destroy({
-      where: {
-        userId: user.id,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
 
   // .....................
   // Likes
@@ -336,7 +271,6 @@ export default async (req: Request, res: Response) => {
     });
     await Promise.all(
       likes.map(async (like) => {
-        await like.destroy();
         await Frame.increment({
           numOfLikes: -1,
         }, {
@@ -367,27 +301,27 @@ export default async (req: Request, res: Response) => {
       },
     });
     await Promise.all(
-      profilePictures.map(async (profilePicture) => {
-        const {
-          cropedImage,
-          originalImage,
-          pendingImage,
-        } = profilePicture;
-        await profilePicture.destroy();
-
-        await gc
-          .bucket(cropedImage.bucketName)
-          .file(cropedImage.fileName)
-          .delete();
-        await gc
-          .bucket(originalImage.bucketName)
-          .file(originalImage.fileName)
-          .delete();
-        await gc
-          .bucket(pendingImage.bucketName)
-          .file(pendingImage.fileName)
-          .delete();
-      }),
+      profilePictures.map(
+        async (profilePicture) => {
+          const {
+            cropedImage,
+            originalImage,
+            pendingImage,
+          } = profilePicture;
+          await gc
+            .bucket(cropedImage.bucketName)
+            .file(cropedImage.fileName)
+            .delete();
+          await gc
+            .bucket(originalImage.bucketName)
+            .file(originalImage.fileName)
+            .delete();
+          await gc
+            .bucket(pendingImage.bucketName)
+            .file(pendingImage.fileName)
+            .delete();
+        },
+      ),
     );
   } catch (err) {
     return res.status(500).send(err);

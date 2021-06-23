@@ -74,6 +74,6 @@ export default class BlackList extends Model implements BlackListI {
   @BelongsTo(() => User, 'updatedById')
   updatedBy!: User;
 
-  @BelongsTo(() => User, 'userId')
+  @BelongsTo(() => User)
   user!: User;
 }
