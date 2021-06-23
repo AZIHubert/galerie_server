@@ -10,7 +10,6 @@ import {
   Galerie,
   GaleriePicture,
   GalerieUser,
-  Like,
   User,
 } from '@src/db/models';
 
@@ -30,7 +29,6 @@ export default async (req: Request, res: Response) => {
   const where: {
     id?: string;
   } = {};
-  let frame: Frame | null;
   let galerie: Galerie | null;
   let galerieUser: GalerieUser | null;
 
@@ -45,6 +43,7 @@ export default async (req: Request, res: Response) => {
       errors: INVALID_UUID('galerie'),
     });
   }
+
   // Check if request.params.galerieId
   // is a UUID v4.
   if (!uuidValidatev4(frameId)) {
@@ -56,10 +55,29 @@ export default async (req: Request, res: Response) => {
   // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
-      include: [{
-        model: User,
-        where,
-      }],
+      include: [
+        {
+          include: [
+            {
+              model: GaleriePicture,
+              include: [
+                {
+                  all: true,
+                },
+              ],
+            },
+          ],
+          model: Frame,
+          required: false,
+          where: {
+            id: frameId,
+          },
+        },
+        {
+          model: User,
+          where,
+        },
+      ],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -72,26 +90,8 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Fetch frame.
-  try {
-    frame = await Frame.findOne({
-      include: [{
-        model: GaleriePicture,
-        include: [{
-          all: true,
-        }],
-      }],
-      where: {
-        id: frameId,
-        galerieId,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   // Check if frame exist.
-  if (!frame) {
+  if (!galerie.frames[0]) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('frame'),
     });
@@ -104,7 +104,7 @@ export default async (req: Request, res: Response) => {
     galerieUser = await GalerieUser.findOne({
       where: {
         galerieId,
-        userId: frame.userId,
+        userId: galerie.frames[0].userId,
       },
     });
   } catch (err) {
@@ -118,7 +118,7 @@ export default async (req: Request, res: Response) => {
     currentUser.role === 'user'
     && (
     // If currentUser do not have posted this frame.
-      currentUser.id !== frame.userId
+      currentUser.id !== galerie.frames[0].userId
       && (
         (
           // If currentUser role for this galerie is user.
@@ -141,14 +141,10 @@ export default async (req: Request, res: Response) => {
   // Destroy all frames/galerieImages/images
   // /images from Google Buckets/likes.
   try {
-    await frame.destroy();
-
-    await Like.destroy({
-      where: { frameId },
-    });
+    await galerie.frames[0].destroy();
 
     await Promise.all(
-      frame.galeriePictures.map(
+      galerie.frames[0].galeriePictures.map(
         async (galeriePicture) => {
           const {
             originalImage,

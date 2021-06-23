@@ -29,7 +29,6 @@ export default async (req: Request, res: Response) => {
   const limit = 20;
   const { page } = req.query;
   const currentUser = req.user as User;
-  let frame: Frame | null;
   let galerie: Galerie | null;
   let likes: Array<Like>;
   let offset: number;
@@ -48,6 +47,7 @@ export default async (req: Request, res: Response) => {
       errors: INVALID_UUID('galerie'),
     });
   }
+
   // Check if request.params.frameId
   // is a UUID v4.
   if (!uuidValidatev4(frameId)) {
@@ -59,12 +59,22 @@ export default async (req: Request, res: Response) => {
   // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
-      include: [{
-        model: User,
-        where: {
-          id: currentUser.id,
+      include: [
+        {
+          limit: 1,
+          model: Frame,
+          required: false,
+          where: {
+            id: frameId,
+          },
         },
-      }],
+        {
+          model: User,
+          where: {
+            id: currentUser.id,
+          },
+        },
+      ],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -77,20 +87,8 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Fetch Frame.
-  try {
-    frame = await Frame.findOne({
-      where: {
-        galerieId,
-        id: frameId,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   // Check if frame exist
-  if (!frame) {
+  if (!galerie.frames[0]) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('frame'),
     });

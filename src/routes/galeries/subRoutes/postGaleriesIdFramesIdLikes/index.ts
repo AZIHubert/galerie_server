@@ -24,7 +24,6 @@ export default async (req: Request, res: Response) => {
     galerieId,
   } = req.params;
   const currentUser = req.user as User;
-  let frame: Frame | null;
   let galerie: Galerie | null;
   let like: Like | null;
   let liked: boolean;
@@ -47,12 +46,22 @@ export default async (req: Request, res: Response) => {
   // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
-      include: [{
-        model: User,
-        where: {
-          id: currentUser.id,
+      include: [
+        {
+          limit: 1,
+          model: Frame,
+          required: false,
+          where: {
+            id: frameId,
+          },
         },
-      }],
+        {
+          model: User,
+          where: {
+            id: currentUser.id,
+          },
+        },
+      ],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -65,20 +74,8 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Fetch Frame.
-  try {
-    frame = await Frame.findOne({
-      where: {
-        galerieId,
-        id: frameId,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   // Check if frame exist
-  if (!frame) {
+  if (!galerie.frames[0]) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('frame'),
     });
@@ -100,7 +97,7 @@ export default async (req: Request, res: Response) => {
   // decrement frame.numOfLike
   if (like) {
     await like.destroy();
-    await frame.decrement({ numOfLikes: 1 });
+    await galerie.frames[0].decrement({ numOfLikes: 1 });
     liked = false;
 
   // Else, create one
@@ -110,7 +107,7 @@ export default async (req: Request, res: Response) => {
       frameId,
       userId: currentUser.id,
     });
-    await frame.increment({ numOfLikes: 1 });
+    await galerie.frames[0].increment({ numOfLikes: 1 });
     liked = true;
   }
 
@@ -120,7 +117,7 @@ export default async (req: Request, res: Response) => {
       frameId,
       galerieId,
       liked,
-      numOfLikes: frame.numOfLikes,
+      numOfLikes: galerie.frames[0].numOfLikes,
     },
   });
 };

@@ -7,6 +7,7 @@ import '@src/helpers/initEnv';
 import {
   Frame,
   Galerie,
+  GalerieBlackList,
   GaleriePicture,
   GalerieUser,
   Image,
@@ -27,8 +28,9 @@ import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import {
   createFrame,
-  createGalerieUser,
   createGalerie,
+  createGalerieBlackList,
+  createGalerieUser,
   createInvitation,
   createLike,
   createUser,
@@ -173,6 +175,24 @@ describe('/galeries', () => {
           const galerie = await Galerie.findByPk(galerieId);
           expect(galerie).toBeNull();
           expect(status).toBe(200);
+        });
+        it('destroy createGalerieBlackList', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieBlackListId } = await createGalerieBlackList({
+            galerieId,
+            userId: userTwo.id,
+          });
+          await deleteGaleriesId(app, token, galerieId, {
+            body: {
+              name,
+              password,
+            },
+          });
+          const galerieBlackList = await GalerieBlackList.findByPk(galerieBlackListId);
+          expect(galerieBlackList).toBeNull();
         });
         it('destroy frames/galeriePictures/images', async () => {
           const createdFrame = await createFrame({

@@ -26,7 +26,6 @@ export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   let galerie: Galerie | null;
   let galerieUser: GalerieUser | null;
-  let invitation: Invitation | null;
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -47,12 +46,21 @@ export default async (req: Request, res: Response) => {
   // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
-      include: [{
-        model: User,
-        where: {
-          id: currentUser.id,
+      include: [
+        {
+          model: Invitation,
+          required: false,
+          where: {
+            id: invitationId,
+          },
         },
-      }],
+        {
+          model: User,
+          where: {
+            id: currentUser.id,
+          },
+        },
+      ],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -62,6 +70,13 @@ export default async (req: Request, res: Response) => {
   if (!galerie) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('galerie'),
+    });
+  }
+
+  // Check if invitation exist.
+  if (!galerie.invitations[0]) {
+    return res.status(404).send({
+      errors: MODEL_NOT_FOUND('invitation'),
     });
   }
 
@@ -75,32 +90,13 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Fetch invitation.
-  try {
-    invitation = await Invitation.findOne({
-      where: {
-        id: invitationId,
-        galerieId,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // Check if invitation exist.
-  if (!invitation) {
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('invitation'),
-    });
-  }
-
   // Fetch galerieUser for
   // the user who post this invitation.
   try {
     galerieUser = await GalerieUser.findOne({
       where: {
         galerieId,
-        userId: invitation.userId,
+        userId: galerie.invitations[0].userId,
       },
     });
   } catch (err) {
@@ -112,7 +108,7 @@ export default async (req: Request, res: Response) => {
   // the creator of this galerie,
   // return an error.
   if (
-    invitation.userId !== currentUser.id
+    galerie.invitations[0].userId !== currentUser.id
     && (
       galerieUser
       && galerieUser.role === 'creator'
@@ -125,7 +121,7 @@ export default async (req: Request, res: Response) => {
 
   // Destroy invitation.
   try {
-    await invitation.destroy();
+    await galerie.invitations[0].destroy();
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -134,7 +130,7 @@ export default async (req: Request, res: Response) => {
     action: 'DELETE',
     data: {
       galerieId: galerie.id,
-      invitationId: invitation.id,
+      invitationId: galerie.invitations[0].id,
     },
   });
 };

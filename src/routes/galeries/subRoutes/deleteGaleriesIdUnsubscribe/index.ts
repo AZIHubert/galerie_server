@@ -8,6 +8,7 @@ import {
 import {
   Frame,
   Galerie,
+  GalerieBlackList,
   GalerieUser,
   Invitation,
   Like,
@@ -118,10 +119,6 @@ export default async (req: Request, res: Response) => {
     try {
       await Promise.all(
         frames.map(async (frame) => {
-          // ...destroy all frames
-          // and their galerie pictures...
-          await frame.destroy();
-
           await Promise.all(
             frame.galeriePictures.map(
               async (galeriePicture) => {
@@ -164,6 +161,21 @@ export default async (req: Request, res: Response) => {
   // If there is still users
   // remain on this galerie....
   } else {
+    // set blackList.createdBy === null
+    // to all blackList posted by this user.
+    try {
+      await GalerieBlackList.update({
+        createdById: null,
+      }, {
+        where: {
+          createdById: currentUser.id,
+          galerieId,
+        },
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+
     try {
       // ...fetch all frames posted by
       // this user on this galerie...
@@ -181,7 +193,7 @@ export default async (req: Request, res: Response) => {
       });
 
       // ...and destoy them with their
-      // GaleriePictures/Images/Google Bucket images/Likes...
+      // Google Bucket images...
       await Promise.all(
         frames.map(async (frame) => {
           await frame.destroy();
@@ -238,14 +250,16 @@ export default async (req: Request, res: Response) => {
     if (framesLikeByCurrentUser) {
       try {
         await Promise.all(
-          framesLikeByCurrentUser.map(async (frame) => {
-            await frame.decrement({ numOfLikes: 1 });
-            await Promise.all(
-              frame.likes.map(async (like) => {
-                await like.destroy();
-              }),
-            );
-          }),
+          framesLikeByCurrentUser.map(
+            async (frame) => {
+              await frame.decrement({ numOfLikes: 1 });
+              await Promise.all(
+                frame.likes.map(async (like) => {
+                  await like.destroy();
+                }),
+              );
+            },
+          ),
         );
       } catch (err) {
         return res.status(500).send(err);

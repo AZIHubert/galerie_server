@@ -114,8 +114,6 @@ describe('/galeries', () => {
                     .map((galeriePicture) => galeriePicture.originalImageId),
                 },
               });
-              console.log(galeriePictures);
-              console.log(images);
               expect(action).toBe('DELETE');
               expect(data.frameId).toBe(createdFrame.id);
               expect(data.galerieId).toBe(galerieId);

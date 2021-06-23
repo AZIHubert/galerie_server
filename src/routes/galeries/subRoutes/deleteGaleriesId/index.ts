@@ -9,9 +9,6 @@ import {
   Frame,
   Galerie,
   GaleriePicture,
-  GalerieUser,
-  Invitation,
-  Like,
   User,
 } from '@src/db/models';
 
@@ -95,7 +92,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if body have errors.
+  // Check if request.body hasve errors.
   const errors: {[key: string]: string} = {};
   const {
     error,
@@ -108,9 +105,12 @@ export default async (req: Request, res: Response) => {
         errors[key] = normalizeJoiErrors(error)[key];
       });
   }
+
+  // Check if request.body.name have error.
   if (!errors.name && value.name !== galerie.name) {
     errors.name = 'wrong galerie\'s name';
   }
+  // Check if request.body.password have error.
   if (!errors.password) {
     const passwordIsValid = validatePassword(value.password, currentUser.hash, currentUser.salt);
     if (!passwordIsValid) {
@@ -121,65 +121,38 @@ export default async (req: Request, res: Response) => {
     return res.status(400).send({ errors });
   }
 
-  // Destroy all frames/galerieImages/images
-  // /images from Google Buckets/likes.
+  // Destroy all images from Google Buckets/likes.
   try {
     await Promise.all(
-      galerie.frames.map(async (frame) => {
-        await frame.destroy();
+      galerie.frames.map(
+        async (frame) => {
+          await Promise.all(
+            frame.galeriePictures.map(
+              async (galeriePicture) => {
+                const {
+                  originalImage,
+                  cropedImage,
+                  pendingImage,
+                } = galeriePicture;
 
-        await Like.destroy({
-          where: { frameId: frame.id },
-        });
-
-        await Promise.all(
-          frame.galeriePictures.map(
-            async (galeriePicture) => {
-              const {
-                originalImage,
-                cropedImage,
-                pendingImage,
-              } = galeriePicture;
-
-              await gc
-                .bucket(originalImage.bucketName)
-                .file(originalImage.fileName)
-                .delete();
-              await gc
-                .bucket(cropedImage.bucketName)
-                .file(cropedImage.fileName)
-                .delete();
-              await gc
-                .bucket(pendingImage.bucketName)
-                .file(pendingImage.fileName)
-                .delete();
-            },
-          ),
-        );
-      }),
+                await gc
+                  .bucket(originalImage.bucketName)
+                  .file(originalImage.fileName)
+                  .delete();
+                await gc
+                  .bucket(cropedImage.bucketName)
+                  .file(cropedImage.fileName)
+                  .delete();
+                await gc
+                  .bucket(pendingImage.bucketName)
+                  .file(pendingImage.fileName)
+                  .delete();
+              },
+            ),
+          );
+        },
+      ),
     );
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // Destroy all invitations.
-  try {
-    await Invitation.destroy({
-      where: {
-        galerieId: galerie.id,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // Destroy all galerieUsers.
-  try {
-    await GalerieUser.destroy({
-      where: {
-        galerieId: galerie.id,
-      },
-    });
   } catch (err) {
     return res.status(500).send(err);
   }

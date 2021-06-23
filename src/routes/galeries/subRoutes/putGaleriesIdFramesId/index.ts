@@ -27,7 +27,6 @@ export default async (req: Request, res: Response) => {
     galerieId,
   } = req.params;
   const currentUser = req.user as User;
-  let frame: Frame | null;
   let galerie: Galerie | null;
 
   // Check if request.params.galerieId
@@ -48,12 +47,22 @@ export default async (req: Request, res: Response) => {
   // Fetch galerie.
   try {
     galerie = await Galerie.findByPk(galerieId, {
-      include: [{
-        model: User,
-        where: {
-          id: currentUser.id,
+      include: [
+        {
+          limit: 1,
+          model: Frame,
+          required: false,
+          where: {
+            id: frameId,
+          },
         },
-      }],
+        {
+          model: User,
+          where: {
+            id: currentUser.id,
+          },
+        },
+      ],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -66,20 +75,8 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Fetch Frame.
-  try {
-    frame = await Frame.findOne({
-      where: {
-        galerieId,
-        id: frameId,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
   // Check if frame exist
-  if (!frame) {
+  if (!galerie.frames[0]) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('frame'),
     });
@@ -87,7 +84,7 @@ export default async (req: Request, res: Response) => {
 
   // Check if current user have posted
   // this frame.
-  if (frame.userId !== currentUser.id) {
+  if (galerie.frames[0].userId !== currentUser.id) {
     return res.status(400).send({
       errors: 'you can\'t modify this frame',
     });
@@ -106,7 +103,7 @@ export default async (req: Request, res: Response) => {
 
   // Check if requested changes are not the same
   // has actual galerie's fields.
-  if (value.description === frame.description) {
+  if (value.description === galerie.frames[0].description) {
     return res.status(400).send({
       errors: 'no change submited',
     });
@@ -114,7 +111,7 @@ export default async (req: Request, res: Response) => {
 
   // update frame.description.
   try {
-    await frame.update(value);
+    await galerie.frames[0].update(value);
   } catch (err) {
     return res.status(500).send(err);
   }

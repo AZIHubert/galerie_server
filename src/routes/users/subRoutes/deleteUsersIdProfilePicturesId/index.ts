@@ -2,10 +2,8 @@ import {
   Request,
   Response,
 } from 'express';
-// import { Op } from 'sequelize';
 
 import {
-  Image,
   ProfilePicture,
   User,
 } from '@src/db/models';
@@ -45,16 +43,7 @@ export default async (req: Request, res: Response) => {
         {
           include: [
             {
-              as: 'cropedImage',
-              model: Image,
-            },
-            {
-              as: 'originalImage',
-              model: Image,
-            },
-            {
-              as: 'pendingImage',
-              model: Image,
+              all: true,
             },
           ],
           model: ProfilePicture,
@@ -104,7 +93,6 @@ export default async (req: Request, res: Response) => {
       .file(pendingImage.fileName)
       .delete();
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
 
