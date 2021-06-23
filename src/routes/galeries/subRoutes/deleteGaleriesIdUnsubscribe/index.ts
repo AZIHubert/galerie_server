@@ -4,13 +4,11 @@ import {
   Request,
   Response,
 } from 'express';
-import { Op } from 'sequelize';
 
 import {
   Frame,
   Galerie,
   GalerieUser,
-  Image,
   Invitation,
   Like,
   User,
@@ -133,23 +131,6 @@ export default async (req: Request, res: Response) => {
                   pendingImage,
                 } = galeriePicture;
 
-                // ...destroy all images...
-                await Image.destroy({
-                  where: {
-                    [Op.or]: [
-                      {
-                        id: cropedImage.id,
-                      },
-                      {
-                        id: originalImage.id,
-                      },
-                      {
-                        id: pendingImage.id,
-                      },
-                    ],
-                  },
-                });
-
                 // ...destroy all images
                 // from Google Buckets...
                 await gc
@@ -212,21 +193,7 @@ export default async (req: Request, res: Response) => {
                   cropedImage,
                   pendingImage,
                 } = galeriePicture;
-                await Image.destroy({
-                  where: {
-                    [Op.or]: [
-                      {
-                        id: cropedImage.id,
-                      },
-                      {
-                        id: originalImage.id,
-                      },
-                      {
-                        id: pendingImage.id,
-                      },
-                    ],
-                  },
-                });
+
                 await gc
                   .bucket(pendingImage.bucketName)
                   .file(pendingImage.fileName)

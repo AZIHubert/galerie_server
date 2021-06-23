@@ -6,6 +6,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 
+import GaleriePicture from '../galeriePicture';
 import ProfilePicture from '../profilePicture';
 
 interface ImageI {
@@ -67,6 +68,15 @@ export default class Image extends Model implements ImageI {
     type: DataType.INTEGER,
   })
   width!: number;
+
+  @HasOne(() => GaleriePicture)
+  cropedGaleriePicture!: GaleriePicture;
+
+  @HasOne(() => GaleriePicture)
+  originalGaleriePicture!: GaleriePicture;
+
+  @HasOne(() => GaleriePicture)
+  pendingGaleriePicture!: GaleriePicture;
 
   @HasOne(() => ProfilePicture)
   cropedProfilePicture!: ProfilePicture;

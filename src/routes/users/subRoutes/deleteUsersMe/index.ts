@@ -13,7 +13,6 @@ import {
   Galerie,
   GalerieBlackList,
   GalerieUser,
-  Image,
   Invitation,
   Like,
   ProfilePicture,
@@ -200,21 +199,6 @@ export default async (req: Request, res: Response) => {
                 originalImage,
                 pendingImage,
               } = galeriePicture;
-              await Image.destroy({
-                where: {
-                  [Op.or]: [
-                    {
-                      id: cropedImage.id,
-                    },
-                    {
-                      id: originalImage.id,
-                    },
-                    {
-                      id: pendingImage.id,
-                    },
-                  ],
-                },
-              });
 
               await gc
                 .bucket(originalImage.bucketName)
@@ -390,6 +374,7 @@ export default async (req: Request, res: Response) => {
           pendingImage,
         } = profilePicture;
         await profilePicture.destroy();
+
         await gc
           .bucket(cropedImage.bucketName)
           .file(cropedImage.fileName)

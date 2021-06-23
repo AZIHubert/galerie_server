@@ -4,14 +4,12 @@ import {
   Request,
   Response,
 } from 'express';
-import { Op } from 'sequelize';
 
 import {
   Frame,
   Galerie,
   GaleriePicture,
   GalerieUser,
-  Image,
   Like,
   User,
 } from '@src/db/models';
@@ -157,22 +155,6 @@ export default async (req: Request, res: Response) => {
             cropedImage,
             pendingImage,
           } = galeriePicture;
-
-          await Image.destroy({
-            where: {
-              [Op.or]: [
-                {
-                  id: cropedImage.id,
-                },
-                {
-                  id: originalImage.id,
-                },
-                {
-                  id: pendingImage.id,
-                },
-              ],
-            },
-          });
 
           // Delete files from Google Buckets.
           await gc
