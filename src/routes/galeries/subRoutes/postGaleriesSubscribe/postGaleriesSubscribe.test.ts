@@ -135,7 +135,6 @@ describe('/galeries', () => {
         });
         it('set req.body.code to lower case', async () => {
           const { code } = await createInvitation({
-            code: 'abcd',
             galerieId,
             userId: userTwo.id,
           });

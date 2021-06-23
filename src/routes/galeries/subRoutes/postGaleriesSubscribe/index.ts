@@ -161,6 +161,9 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  // TODO:
+  // Create and return signNotificationToken
+
   return res.status(200).send({
     action: 'POST',
     data: {

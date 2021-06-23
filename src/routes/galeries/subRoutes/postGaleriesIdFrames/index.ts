@@ -33,6 +33,7 @@ import {
   userExcluder,
 } from '@src/helpers/excluders';
 import gc from '@src/helpers/gc';
+import { signNotificationToken } from '@src/helpers/issueJWT';
 import signedUrl from '@src/helpers/signedUrl';
 import {
   normalizeJoiErrors,
@@ -500,11 +501,16 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  const { token: notificationToken } = signNotificationToken('FRAME_POSTED', {
+    frameId: frame.id,
+  });
+
   return res.status(200).send({
     action: 'POST',
     data: {
-      galerieId,
       frame: returnedFrame,
+      galerieId,
+      notificationToken,
     },
   });
 };

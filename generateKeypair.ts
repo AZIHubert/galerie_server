@@ -28,6 +28,8 @@ const genKeyPair = () => {
   fs.writeFileSync(`${__dirname}/id_rsa_priv.authToken.pem`, keyPairAuthToken.privateKey);
   fs.writeFileSync(`${__dirname}/id_rsa_pub.refreshToken.pem`, keyPairRefreshToken.publicKey);
   fs.writeFileSync(`${__dirname}/id_rsa_priv.refreshToken.pem`, keyPairRefreshToken.privateKey);
+  fs.writeFileSync(`${__dirname}/id_rsa_pub.notificationToken.pem`, keyPairRefreshToken.publicKey);
+  fs.writeFileSync(`${__dirname}/id_rsa_priv.notificationToken.pem`, keyPairRefreshToken.privateKey);
 };
 
 genKeyPair();

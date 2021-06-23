@@ -143,6 +143,10 @@ export default async (req: Request, res: Response) => {
     currentProfilePicture: null,
   };
 
+  // TODO:
+  // create notification
+  // for superAdmin who create the betaKey.
+
   return res.status(200).send({
     action: 'POST',
     data: {

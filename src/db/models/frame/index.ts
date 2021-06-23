@@ -18,6 +18,7 @@ interface FrameI {
   description?: string;
   galerieId: string;
   id: string;
+  notificationHasBeenSend: boolean;
   numOfLikes: number;
   userId: string;
 }
@@ -44,6 +45,13 @@ export default class Frame extends Model implements FrameI {
     type: DataType.UUID,
   })
   id!: string;
+
+  @Column({
+    allowNull: false,
+    defaultValue: false,
+    type: DataType.BOOLEAN,
+  })
+  notificationHasBeenSend!: boolean;
 
   // Each time someone like this frame,
   // increment by one.

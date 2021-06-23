@@ -118,6 +118,10 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  // TODO:
+  // create the notification for user
+  // to indicate his new role.
+
   return res.status(200).send({
     action: 'PUT',
     data: {
