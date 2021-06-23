@@ -64,7 +64,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
   role: {
     allowNull: false,
     default: 'user',
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('admin', 'superAdmin', 'user'),
   },
   salt: {
     type: DataTypes.STRING,

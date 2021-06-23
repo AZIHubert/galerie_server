@@ -39,7 +39,7 @@ export default class GalerieUser extends Model implements GalerieUserI {
   // the role of the user on this galerie.
   @Column({
     allowNull: false,
-    type: DataType.STRING,
+    type: DataType.ENUM('creator', 'admin', 'user'),
   })
   role!: 'creator' | 'admin' | 'user';
 
