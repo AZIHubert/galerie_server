@@ -163,9 +163,9 @@ export default class User extends Model implements UserI {
 
   @Default('user')
   @Column({
-    type: DataType.STRING,
+    type: DataType.ENUM('admin', 'superAdmin', 'user'),
   })
-  role!: 'superAdmin' | 'admin' | 'user';
+  role!: 'admin' | 'superAdmin' | 'user';
 
   // Use for password.
   @Column({
