@@ -10,7 +10,10 @@ import {
   TOKEN_NOT_FOUND,
   WRONG_TOKEN,
 } from '@src/helpers/errorMessages';
-import { framePosted } from '@src/helpers/postNotification';
+import {
+  frameLiked,
+  framePosted,
+} from '@src/helpers/postNotification';
 
 export default async (req: Request, res: Response) => {
   const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.notificationToken.pem'));
@@ -70,6 +73,9 @@ export default async (req: Request, res: Response) => {
     switch (verifyToken.type) {
       case 'FRAME_POSTED':
         response = await framePosted(data);
+        break;
+      case 'FRAME_LIKED':
+        response = await frameLiked(data);
         break;
       default:
         response = {

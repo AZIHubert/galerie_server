@@ -12,7 +12,6 @@ import {
   WRONG_TOKEN,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
-// import { signNotificationToken } from '@src/helpers/issueJWT';
 import {
   postNotifications,
 } from '@src/helpers/test';

@@ -16,6 +16,7 @@ import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
+import { signNotificationToken } from '@src/helpers/issueJWT';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -27,6 +28,7 @@ export default async (req: Request, res: Response) => {
   let galerie: Galerie | null;
   let like: Like | null;
   let liked: boolean;
+  let notificationToken;
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -94,21 +96,27 @@ export default async (req: Request, res: Response) => {
   }
 
   // If like exist, destroy it,
-  // decrement frame.numOfLike
+  // decrement frame.numOfLike...
   if (like) {
     await like.destroy();
     await galerie.frames[0].decrement({ numOfLikes: 1 });
     liked = false;
-
-  // Else, create one
+  // ...else, create a Like,
   // increment frame.numOfLike
+  // and create notificationToken.
   } else {
-    await Like.create({
+    const { id: likeId } = await Like.create({
       frameId,
       userId: currentUser.id,
     });
     await galerie.frames[0].increment({ numOfLikes: 1 });
     liked = true;
+    if (galerie.frames[0].userId !== currentUser.id) {
+      const signToken = signNotificationToken('FRAME_LIKED', {
+        likeId,
+      });
+      notificationToken = signToken.token;
+    }
   }
 
   // TODO:
@@ -127,6 +135,7 @@ export default async (req: Request, res: Response) => {
       frameId,
       galerieId,
       liked,
+      notificationToken,
       numOfLikes: galerie.frames[0].numOfLikes,
     },
   });

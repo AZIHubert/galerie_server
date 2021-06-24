@@ -1,4 +1,11 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('notification', {
+  frameId: {
+    references: {
+      key: 'id',
+      model: 'frame',
+    },
+    type: DataTypes.UUID,
+  },
   galerieId: {
     references: {
       key: 'id',

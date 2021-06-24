@@ -1,2 +1,2 @@
-// eslint-disable-next-line import/prefer-default-export
 export { default as framePosted } from './framePosted';
+export { default as frameLiked } from './frameLiked';

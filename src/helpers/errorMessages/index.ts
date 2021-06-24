@@ -25,6 +25,7 @@ export const INVALID_UUID = (
   'galerie' |
   'galerie picture' |
   'invitation' |
+  'like' |
   'profile picture' |
   'ticket' |
   'user',
@@ -37,6 +38,7 @@ export const MODEL_NOT_FOUND = (
   'galerie' |
   'galerie picture' |
   'invitation' |
+  'like' |
   'profile picture' |
   'ticket' |
   'user',

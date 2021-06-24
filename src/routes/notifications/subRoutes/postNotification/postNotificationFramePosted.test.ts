@@ -24,7 +24,6 @@ import {
   createUser,
   postNotifications,
 } from '@src/helpers/test';
-import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 import initApp from '@src/server';
 
@@ -112,7 +111,6 @@ describe('/Notifications', () => {
           const notifications = await Notification.findAll();
           expect(notifications.length).toBe(1);
           expect(notifications[0].galerieId).toBe(galerieId);
-          expect(uuidValidatev4(notifications[0].id)).toBe(true);
           expect(notifications[0].num).toBe(1);
           expect(notifications[0].type).toBe('FRAME_POSTED');
           expect(notifications[0].userId).toBe(userTwo.id);

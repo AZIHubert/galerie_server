@@ -12,6 +12,7 @@ import Galerie from '../galerie';
 import User from '../user';
 
 interface NotificationI {
+  frameId?: string;
   galerieId?: string;
   id: string;
   num?: number;
@@ -23,6 +24,12 @@ interface NotificationI {
   tableName: 'notification',
 })
 export default class Notification extends Model implements NotificationI {
+  @ForeignKey(() => Galerie)
+  @Column({
+    type: DataType.UUID,
+  })
+  frameId!: string;
+
   @ForeignKey(() => Galerie)
   @Column({
     type: DataType.UUID,

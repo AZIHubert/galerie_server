@@ -38,6 +38,7 @@ export default async ({
     } as Error;
   }
 
+  // Fetch frame.
   try {
     frame = await Frame.findByPk(frameId);
   } catch (err) {
@@ -48,6 +49,7 @@ export default async ({
     } as Error;
   }
 
+  // Check if frame exist.
   if (!frame) {
     return {
       OK: false,
@@ -56,6 +58,7 @@ export default async ({
     } as Error;
   }
 
+  // Check if notification has not already been sent.
   if (frame.notificationHasBeenSend) {
     return {
       OK: false,
@@ -64,6 +67,9 @@ export default async ({
     } as Error;
   }
 
+  // Set frame.notificationHasBeenSend === true
+  // to not allow to send notification relative
+  // to this frame.
   try {
     await frame.update({
       notificationHasBeenSend: true,
@@ -76,6 +82,9 @@ export default async ({
     } as Error;
   }
 
+  // Fetch all users (except the one who post
+  // the frame) subscribe to the galerie where
+  // frame has been posted.
   try {
     galerieUsers = await GalerieUser.findAll({
       where: {
@@ -93,10 +102,13 @@ export default async ({
     } as Error;
   }
 
+  // If no user are subscribe to the galerie
+  // return OK: true.
   if (!galerieUsers.length) {
     return { OK: true } as Success;
   }
 
+  // Create or increment notification.
   try {
     await Promise.all(
       galerieUsers.map(

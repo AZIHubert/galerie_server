@@ -19,3 +19,15 @@ initSequelize(() => {
 
 // TODO:
 // create Report model
+
+// TODO:
+// galerie.allowNotification
+
+// TODO:
+// notification Many2Many
+
+// TODO:
+// notification.seen
+
+// TODO:
+// notification already send errorMessage

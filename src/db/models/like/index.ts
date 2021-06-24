@@ -13,6 +13,7 @@ import User from '../user';
 interface LikeI {
   frameId: string;
   id: string;
+  notificationHasBeenSend: boolean;
   userId: string;
 }
 
@@ -34,6 +35,13 @@ export default class Like extends Model implements LikeI {
     type: DataType.UUID,
   })
   id!: string;
+
+  @Column({
+    allowNull: false,
+    defaultValue: false,
+    type: DataType.BOOLEAN,
+  })
+  notificationHasBeenSend!: boolean;
 
   @ForeignKey(() => User)
   @Column({

@@ -528,6 +528,7 @@ describe('/galeries', () => {
             };
             expect(splitToken[0]).toBe('Bearer');
             expect(verifyToken.data.frameId).toBe(frame.id);
+            expect(verifyToken.type).toBe('FRAME_POSTED');
           });
           it('post a frame with a description', async () => {
             const description = 'frame\'s description';
