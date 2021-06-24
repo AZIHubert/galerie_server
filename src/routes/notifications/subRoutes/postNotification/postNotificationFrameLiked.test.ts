@@ -1,5 +1,4 @@
 import { Server } from 'http';
-import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -40,7 +39,6 @@ describe('/Notifications', () => {
       });
 
       beforeEach(async (done) => {
-        mockDate.reset();
         try {
           await sequelize.sync({ force: true });
         } catch (err) {
@@ -50,7 +48,6 @@ describe('/Notifications', () => {
       });
 
       afterAll(async (done) => {
-        mockDate.reset();
         try {
           await sequelize.sync({ force: true });
           await sequelize.close();

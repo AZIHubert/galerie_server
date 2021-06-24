@@ -13,6 +13,7 @@ import User from '../user';
 interface GalerieUserI {
   galerieId?: string;
   hasNewFrames: boolean;
+  notificationHasBeenSend: boolean;
   role?: string;
   userId?: string;
 }
@@ -34,6 +35,13 @@ export default class GalerieUser extends Model implements GalerieUserI {
     type: DataType.BOOLEAN,
   })
   hasNewFrames!: boolean;
+
+  @Column({
+    allowNull: false,
+    defaultValue: false,
+    type: DataType.BOOLEAN,
+  })
+  notificationHasBeenSend!: boolean;
 
   // Allow different action based on
   // the role of the user on this galerie.

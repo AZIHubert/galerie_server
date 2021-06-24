@@ -37,6 +37,7 @@ export const MODEL_NOT_FOUND = (
   'frame' |
   'galerie' |
   'galerie picture' |
+  'galerieUser' |
   'invitation' |
   'like' |
   'profile picture' |

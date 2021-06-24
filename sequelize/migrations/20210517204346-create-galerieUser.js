@@ -16,6 +16,11 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('g
     default: false,
     type: DataTypes.BOOLEAN,
   },
+  notificationHasBeenSend: {
+    allowNull: false,
+    default: false,
+    type: DataTypes.BOOLEAN,
+  },
   role: {
     allowNull: false,
     type: DataTypes.ENUM('creator', 'admin', 'user'),

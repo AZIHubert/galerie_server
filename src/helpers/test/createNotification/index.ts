@@ -12,7 +12,7 @@ export default async ({
   frameId?: string;
   galerieId?: string;
   num?: number;
-  type: 'FRAME_LIKED' | 'FRAME_POSTED';
+  type: 'FRAME_LIKED' | 'FRAME_POSTED' | 'USER_SUBSCRIBE';
   userId: string;
 }) => {
   const notification = await Notification.create({

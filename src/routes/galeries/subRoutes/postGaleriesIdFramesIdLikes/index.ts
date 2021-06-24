@@ -119,16 +119,6 @@ export default async (req: Request, res: Response) => {
     }
   }
 
-  // TODO:
-  // Create and return
-  // signNotificationToken
-  // with
-  // type === 'FRAME_LIKED'
-  // frameId
-  // same type than 'FRAME_POSTED'
-  // increment notification.num if exist
-  // or created Notification
-
   return res.status(200).send({
     action: 'POST',
     data: {

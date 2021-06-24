@@ -13,6 +13,7 @@ import {
 import {
   frameLiked,
   framePosted,
+  userSubscribe,
 } from '@src/helpers/postNotification';
 
 export default async (req: Request, res: Response) => {
@@ -71,11 +72,14 @@ export default async (req: Request, res: Response) => {
 
   try {
     switch (verifyToken.type) {
+      case 'FRAME_LIKED':
+        response = await frameLiked(data);
+        break;
       case 'FRAME_POSTED':
         response = await framePosted(data);
         break;
-      case 'FRAME_LIKED':
-        response = await frameLiked(data);
+      case 'USER_SUBSCRIBE':
+        response = await userSubscribe(data);
         break;
       default:
         response = {

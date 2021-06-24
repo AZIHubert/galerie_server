@@ -149,10 +149,6 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // TODO:
-  // should create token
-  // notification can only be created
-  // with token.
   return res.status(200).send({
     action: 'GET',
     data: {

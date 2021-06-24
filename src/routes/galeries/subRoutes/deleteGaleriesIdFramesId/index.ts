@@ -175,7 +175,6 @@ export default async (req: Request, res: Response) => {
   // TODO:
   // delete all notification
   // where
-  // where
   // frameId === request.params.frameId
   // galerieId === request.params.galerieId
   // num > 1

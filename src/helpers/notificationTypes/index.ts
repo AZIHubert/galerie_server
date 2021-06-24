@@ -1,4 +1,5 @@
 export default [
-  'FRAME_POSTED',
   'FRAME_LIKED',
+  'FRAME_POSTED',
+  'USER_SUBSCRIBE',
 ];
