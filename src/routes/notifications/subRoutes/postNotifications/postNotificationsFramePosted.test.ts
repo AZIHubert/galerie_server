@@ -8,6 +8,7 @@ import '@src/helpers/initEnv';
 import {
   Frame,
   Notification,
+  NotificationFramePosted,
 } from '@src/db/models';
 
 import {
@@ -109,11 +110,15 @@ describe('/Notifications', () => {
             notificationtoken,
           });
           const notifications = await Notification.findAll();
+          const notificationsFramePosted = await NotificationFramePosted.findAll();
           expect(notifications.length).toBe(1);
           expect(notifications[0].galerieId).toBe(galerieId);
           expect(notifications[0].num).toBe(1);
           expect(notifications[0].type).toBe('FRAME_POSTED');
           expect(notifications[0].userId).toBe(userTwo.id);
+          expect(notificationsFramePosted.length).toBe(1);
+          expect(notificationsFramePosted[0].frameId).toBe(frameId);
+          expect(notificationsFramePosted[0].notificationId).toBe(notifications[0].id);
         });
         it('increment notification.num if a notification for frame posted to the galerie already exist', async () => {
           const num = 1;
@@ -135,7 +140,11 @@ describe('/Notifications', () => {
             notificationtoken,
           });
           await notification.reload();
+          const notificationsFramePosted = await NotificationFramePosted.findAll();
           expect(notification.num).toBe(num + 1);
+          expect(notificationsFramePosted.length).toBe(1);
+          expect(notificationsFramePosted[0].frameId).toBe(frameId);
+          expect(notificationsFramePosted[0].notificationId).toBe(notification.id);
         });
         it('set frame.notificationHasBeenSend === true', async () => {
           await postNotifications(app, {

@@ -1,5 +1,6 @@
 import {
   BelongsTo,
+  BelongsToMany,
   Column,
   DataType,
   Default,
@@ -13,6 +14,7 @@ import Galerie from '../galerie';
 import GaleriePicture from '../galeriePicture';
 import Like from '../like';
 import Notification from '../notification';
+import NotificationFramePosted from '../notificationFramePosted';
 import User from '../user';
 
 interface FrameI {
@@ -79,6 +81,12 @@ export default class Frame extends Model implements FrameI {
 
   @BelongsTo(() => User)
   user!: User;
+
+  @BelongsToMany(() => Notification, () => NotificationFramePosted)
+  notificationsFramePosted!: Array<
+  Notification &
+  {NotificationFramePosted: NotificationFramePosted}
+  >;
 
   @HasMany(() => GaleriePicture, {
     hooks: true,

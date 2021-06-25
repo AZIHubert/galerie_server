@@ -14,6 +14,7 @@ import Frame from '../frame';
 import Galerie from '../galerie';
 import NotificationBetaKeyUsed from '../notificationBetaKeyUsed';
 import NotificationFrameLiked from '../notificationFrameLiked';
+import NotificationFramePosted from '../notificationFramePosted';
 import User from '../user';
 
 interface NotificationI {
@@ -91,6 +92,12 @@ export default class Notification extends Model implements NotificationI {
   @BelongsToMany(() => User, () => NotificationFrameLiked)
   notificationsFrameLiked!: Array<
   User &
-  {NotificationBetaKeyUsed: NotificationFrameLiked}
+  {NotificationFrameLiked: NotificationFrameLiked}
+  >;
+
+  @BelongsToMany(() => Frame, () => NotificationFramePosted)
+  notificationsFramePosted!: Array<
+  User &
+  {NotificationFramePosted: NotificationFramePosted}
   >;
 }

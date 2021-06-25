@@ -3,6 +3,7 @@ import { Op } from 'sequelize';
 import {
   Frame,
   Notification,
+  NotificationFramePosted,
   GalerieUser,
 } from '@src/db/models';
 
@@ -124,12 +125,20 @@ export default async ({
           });
           if (notification) {
             await notification.increment({ num: 1 });
+            await NotificationFramePosted.create({
+              notificationId: notification.id,
+              frameId,
+            });
           } else {
-            await Notification.create({
+            const { id: notificationId } = await Notification.create({
               galerieId: frame!.galerieId,
               num: 1,
               type: 'FRAME_POSTED',
               userId: galerieUser.userId,
+            });
+            await NotificationFramePosted.create({
+              notificationId,
+              frameId,
             });
           }
         },

@@ -216,7 +216,7 @@ export default class User extends Model implements UserI {
   @BelongsToMany(() => Notification, () => NotificationFrameLiked)
   notificationsFrameLiked!: Array<
   Notification &
-  {NotificationBetaKeyUsed: NotificationFrameLiked}
+  {NotificationFrameLiked: NotificationFrameLiked}
   >;
 
   @HasMany(() => BetaKey, 'createdById')
