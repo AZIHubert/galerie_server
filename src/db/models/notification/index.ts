@@ -15,6 +15,7 @@ import Galerie from '../galerie';
 import NotificationBetaKeyUsed from '../notificationBetaKeyUsed';
 import NotificationFrameLiked from '../notificationFrameLiked';
 import NotificationFramePosted from '../notificationFramePosted';
+import NotificationUserSubscribe from '../notificationUserSubscribe';
 import User from '../user';
 
 interface NotificationI {
@@ -99,5 +100,11 @@ export default class Notification extends Model implements NotificationI {
   notificationsFramePosted!: Array<
   User &
   {NotificationFramePosted: NotificationFramePosted}
+  >;
+
+  @BelongsToMany(() => User, () => NotificationUserSubscribe)
+  notificationUserSubscribe!: Array<
+  User &
+  {NotificationUserSubscribe: NotificationUserSubscribe}
   >;
 }

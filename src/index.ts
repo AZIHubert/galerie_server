@@ -18,17 +18,13 @@ initSequelize(() => {
 });
 
 // TODO:
+// Check that notification through model are destroyed.
+
+// TODO:
 // create Report model
 
 // TODO:
 // galerie.allowNotification
-
-// TODO:
-// notification Many2Many
-// NotificationFramePosted
-//  Notification => NotificationFramePosted => Galerie
-// NotificationUserSubscribe
-//  Notification => NotificationUserSubscribe => User
 
 // TODO:
 // notification.seen

@@ -6,29 +6,29 @@ import {
   Table,
 } from 'sequelize-typescript';
 
-import Frame from '../frame';
 import Notification from '../notification';
+import User from '../user';
 
-interface NotificationFramePostedI {
+interface NotificationUserSubscribeI {
   frameId?: string;
   notificationId?: string;
 }
 
 @Table({
-  tableName: 'notificationFramePosted',
+  tableName: 'notificationUserSubscribe',
 })
-export default class NotificationFramePosted extends Model implements NotificationFramePostedI {
-  @ForeignKey(() => Frame)
-  @Column({
-    allowNull: false,
-    type: DataType.UUID,
-  })
-  frameId!: string;
-
+export default class NotificationUserSubscribe extends Model implements NotificationUserSubscribeI {
   @ForeignKey(() => Notification)
   @Column({
     allowNull: false,
     type: DataType.UUID,
   })
   notificationId!: string;
+
+  @ForeignKey(() => User)
+  @Column({
+    allowNull: false,
+    type: DataType.UUID,
+  })
+  userId!: string;
 }

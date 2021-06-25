@@ -7,6 +7,7 @@ import uuidValidateV4 from '@src/helpers/uuidValidateV4';
 import {
   GalerieUser,
   Notification,
+  NotificationUserSubscribe,
 } from '@src/db/models';
 
 interface Error {
@@ -151,6 +152,10 @@ export default async ({
     if (notificationCreator) {
       try {
         await notificationCreator.increment({ num: 1 });
+        await NotificationUserSubscribe.create({
+          notificationId: notificationCreator.id,
+          userId: subscribedUserId,
+        });
       } catch (err) {
         return {
           OK: false,
@@ -162,11 +167,15 @@ export default async ({
     // Else, create a notification.
     } else {
       try {
-        await Notification.create({
+        const { id: notificationId } = await Notification.create({
           galerieId,
           num: 1,
           type: 'USER_SUBSCRIBE',
           userId: galerieUserCreator.userId,
+        });
+        await NotificationUserSubscribe.create({
+          notificationId,
+          userId: subscribedUserId,
         });
       } catch (err) {
         return {
@@ -231,6 +240,10 @@ export default async ({
   if (notification) {
     try {
       await notification.increment({ num: 1 });
+      await NotificationUserSubscribe.create({
+        notificationId: notification.id,
+        userId: subscribedUserId,
+      });
     } catch (err) {
       return {
         OK: false,
@@ -242,11 +255,15 @@ export default async ({
   // Else, create a notification.
   } else {
     try {
-      await Notification.create({
+      const { id: notificationId } = await Notification.create({
         galerieId,
         num: 1,
         type: 'USER_SUBSCRIBE',
         userId,
+      });
+      await NotificationUserSubscribe.create({
+        notificationId,
+        userId: subscribedUserId,
       });
     } catch (err) {
       return {

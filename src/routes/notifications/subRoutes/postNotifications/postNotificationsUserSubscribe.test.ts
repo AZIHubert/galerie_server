@@ -7,6 +7,7 @@ import '@src/helpers/initEnv';
 import {
   GalerieUser,
   Notification,
+  NotificationUserSubscribe,
 } from '@src/db/models';
 
 import {
@@ -126,8 +127,12 @@ describe('/Notification', () => {
           });
           await notification.reload();
           const notifications = await Notification.findAll();
+          const notificationsUserSubscribe = await NotificationUserSubscribe.findAll();
           expect(notifications.length).toBe(1);
           expect(notification.num).toBe(num + 1);
+          expect(notificationsUserSubscribe.length).toBe(1);
+          expect(notificationsUserSubscribe[0].notificationId).toBe(notification.id);
+          expect(notificationsUserSubscribe[0].userId).toBe(subscribedUserId);
         });
         it('create a notification for the creator of the galerie if the galerie have a creator and the creator do not have a notification yet', async () => {
           const { user: userThree } = await createUser({
@@ -143,11 +148,15 @@ describe('/Notification', () => {
             notificationtoken,
           });
           const notifications = await Notification.findAll();
+          const notificationsUserSubscribe = await NotificationUserSubscribe.findAll();
           expect(notifications.length).toBe(1);
           expect(notifications[0].galerieId).toBe(galerieId);
           expect(notifications[0].num).toBe(1);
           expect(notifications[0].type).toBe('USER_SUBSCRIBE');
           expect(notifications[0].userId).toBe(userId);
+          expect(notificationsUserSubscribe.length).toBe(1);
+          expect(notificationsUserSubscribe[0].notificationId).toBe(notifications[0].id);
+          expect(notificationsUserSubscribe[0].userId).toBe(subscribedUserId);
         });
         it('create a notification for the creator of the galerie if he have a notification for another galerie', async () => {
           const galerieTwo = await createGalerie({
@@ -186,7 +195,9 @@ describe('/Notification', () => {
             notificationtoken,
           });
           const notifications = await Notification.findAll();
+          const notificationsUserSubscribe = await NotificationUserSubscribe.findAll();
           expect(notifications.length).toBe(1);
+          expect(notificationsUserSubscribe.length).toBe(1);
         });
         it('increment notification.num for the notification of the creator of the invitation if the creator of the notification still have a notification', async () => {
           const num = 1;
@@ -214,7 +225,14 @@ describe('/Notification', () => {
             notificationtoken,
           });
           await notification.reload();
+          const notificationUserSubscribe = await NotificationUserSubscribe.findOne({
+            where: {
+              notificationId: notification.id,
+              userId: subscribedUserId,
+            },
+          });
           expect(notification.num).toBe(num + 1);
+          expect(notificationUserSubscribe).not.toBeNull();
         });
         it('create a notification if the creator of the invitation do not have a notification yet', async () => {
           const { user: userThree } = await createUser({
@@ -241,8 +259,15 @@ describe('/Notification', () => {
               userId: userThree.id,
             },
           }) as Notification;
+          const notificationUserSubscribe = await NotificationUserSubscribe.findOne({
+            where: {
+              notificationId: notification.id,
+              userId: subscribedUserId,
+            },
+          });
           expect(notification).not.toBeNull();
           expect(notification.num).toBe(1);
+          expect(notificationUserSubscribe).not.toBeNull();
         });
         it('create a notification for the creator of the invitation if he have a notification for another galerie', async () => {
           const { user: userThree } = await createUser({

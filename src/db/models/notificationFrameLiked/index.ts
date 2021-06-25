@@ -15,7 +15,7 @@ interface NotificationFrameLikedI {
 }
 
 @Table({
-  tableName: 'notificationBetaKeyUsed',
+  tableName: 'notificationFrameLiked',
 })
 export default class NotificationFrameLiked extends Model implements NotificationFrameLikedI {
   @ForeignKey(() => Notification)

@@ -12,6 +12,7 @@ export { default as Notification } from './notification';
 export { default as NotificationBetaKeyUsed } from './notificationBetaKeyUsed';
 export { default as NotificationFrameLiked } from './notificationFrameLiked';
 export { default as NotificationFramePosted } from './notificationFramePosted';
+export { default as NotificationUserSubscribe } from './notificationUserSubscribe';
 export { default as ProfilePicture } from './profilePicture';
 export { default as User } from './user';
 export { default as Ticket } from './ticket';
