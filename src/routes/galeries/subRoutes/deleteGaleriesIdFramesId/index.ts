@@ -172,22 +172,6 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // TODO:
-  // delete all notification
-  // where
-  // frameId === request.params.frameId
-  // galerieId === request.params.galerieId
-  // num > 1
-  // then
-  // decrement Notification.num
-  // where
-  // type === 'FRAME_POSTED'
-  // decrement Notification.num
-  // where
-  // frameId === request.params.frameId
-  // galerieId === request.params.galerieId
-  // type === 'FRAME_POSTED'
-
   return res.status(200).send({
     action: 'DELETE',
     data: {

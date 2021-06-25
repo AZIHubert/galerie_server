@@ -1,6 +1,5 @@
 import {
-  Frame,
-  Like,
+  BetaKey,
   Notification,
 } from '@src/db/models';
 
@@ -20,31 +19,25 @@ interface Success {
 }
 
 export default async ({
-  likeId,
+  betaKeyId,
 }: {
-  likeId?: any;
+  betaKeyId?: any;
 }) => {
-  let like: Like | null;
+  let betaKey: BetaKey | null;
   let notification: Notification | null;
 
   // Check if request.body.userId is a UUIDv4.
-  if (!uuidValidateV4(likeId)) {
+  if (!uuidValidateV4(betaKeyId)) {
     return {
       OK: false,
-      errors: INVALID_UUID('like'),
+      errors: INVALID_UUID('beta key'),
       status: 400,
     } as Error;
   }
 
-  // Fetch like.
+  // Fetch betaKey.
   try {
-    like = await Like.findByPk(likeId, {
-      include: [
-        {
-          model: Frame,
-        },
-      ],
-    });
+    betaKey = await BetaKey.findByPk(betaKeyId);
   } catch (err) {
     return {
       OK: false,
@@ -53,29 +46,29 @@ export default async ({
     } as Error;
   }
 
-  // Check if like exist.
-  if (!like) {
+  // Check if betaKey Exist.
+  if (!betaKey) {
     return {
       OK: false,
-      errors: MODEL_NOT_FOUND('like'),
+      errors: MODEL_NOT_FOUND('beta key'),
       status: 404,
     } as Error;
   }
 
   // Check if notification has not already been sent.
-  if (like.notificationHasBeenSend) {
+  if (betaKey.notificationHasBeenSend) {
     return {
       OK: false,
-      errors: 'notifications already send for this like',
+      errors: 'notifications already send for this beta key',
       status: 400,
     } as Error;
   }
 
-  // Set like.notificationHasBeenSend === true
+  // Set betaKey.notificationHasBeenSend === true
   // to not allow to send notification relative
   // to this like.
   try {
-    await like.update({
+    await betaKey.update({
       notificationHasBeenSend: true,
     });
   } catch (err) {
@@ -86,13 +79,24 @@ export default async ({
     } as Error;
   }
 
+  // If betaKey is not used
+  // stop request.
+  if (!betaKey.userId) {
+    return { OK: true } as Success;
+  }
+
+  // If superAdmin doesn't exist
+  // stop request.
+  if (!betaKey.createdById) {
+    return { OK: true } as Success;
+  }
+
   // Fetch notification.
   try {
     notification = await Notification.findOne({
       where: {
-        frameId: like.frameId,
-        type: 'FRAME_LIKED',
-        userId: like.frame.userId,
+        type: 'BETA_KEY_USED',
+        userId: betaKey.createdById,
       },
     });
   } catch (err) {
@@ -115,6 +119,7 @@ export default async ({
         status: 500,
       } as Error;
     }
+
     return { OK: true } as Success;
   }
 
@@ -122,10 +127,9 @@ export default async ({
   // create a notification.
   try {
     await Notification.create({
-      frameId: like.frameId,
       num: 1,
-      type: 'FRAME_LIKED',
-      userId: like.frame.userId,
+      type: 'BETA_KEY_USED',
+      userId: betaKey.createdById,
     });
   } catch (err) {
     return {

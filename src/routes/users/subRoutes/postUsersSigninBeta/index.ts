@@ -16,6 +16,7 @@ import {
   userExcluder,
 } from '@src/helpers/excluders';
 import genPassword from '@src/helpers/genPassword';
+import { signNotificationToken } from '@src/helpers/issueJWT';
 import {
   normalizeJoiErrors,
   validatePostUsersSigninBetaBody,
@@ -143,13 +144,14 @@ export default async (req: Request, res: Response) => {
     currentProfilePicture: null,
   };
 
-  // TODO:
-  // create notification
-  // for superAdmin who create the betaKey.
+  const { token: notificationToken } = signNotificationToken('BETA_KEY_USED', {
+    betaKeyId: betaKey.id,
+  });
 
   return res.status(200).send({
     action: 'POST',
     data: {
+      notificationToken,
       user: normalizeUser,
     },
   });

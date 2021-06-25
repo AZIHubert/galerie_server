@@ -7,17 +7,19 @@ import {
 export default async ({
   createdById,
   email,
+  notificationHasBeenSend,
   userId,
 }: {
   createdById?: string;
   email?: string;
+  notificationHasBeenSend?: boolean;
   userId?: string;
 }) => {
   const betaKey = await BetaKey.create({
     code: `${customAlphabet('1234567890', 4)()}-${customAlphabet('abcdefghjkmnpqrstuvwxyz23456789', 10)()}`,
     createdById,
     email,
-    usedAt: userId ? new Date(Date.now()) : null,
+    notificationHasBeenSend,
     userId,
   });
 

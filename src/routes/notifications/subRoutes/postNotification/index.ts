@@ -11,6 +11,7 @@ import {
   WRONG_TOKEN,
 } from '@src/helpers/errorMessages';
 import {
+  betaKeyUsed,
   frameLiked,
   framePosted,
   userSubscribe,
@@ -72,6 +73,9 @@ export default async (req: Request, res: Response) => {
 
   try {
     switch (verifyToken.type) {
+      case 'BETA_KEY_USED':
+        response = await betaKeyUsed(data);
+        break;
       case 'FRAME_LIKED':
         response = await frameLiked(data);
         break;
