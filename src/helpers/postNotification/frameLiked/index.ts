@@ -27,7 +27,7 @@ export default async ({
   let like: Like | null;
   let notification: Notification | null;
 
-  // Check if request.body.userId is a UUIDv4.
+  // Check if notificationtoken.data.likeId is a UUIDv4.
   if (!uuidValidateV4(likeId)) {
     return {
       OK: false,

@@ -14,6 +14,7 @@ import {
   MODEL_NOT_FOUND,
   WRONG_PASSWORD,
 } from '@src/helpers/errorMessages';
+import { signNotificationToken } from '@src/helpers/issueJWT';
 import {
   normalizeJoiErrors,
   validatePutUsersIdRoleBody,
@@ -118,13 +119,15 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // TODO:
-  // create the notification for user
-  // to indicate his new role.
+  const { token: notificationToken } = signNotificationToken('ROLE_CHANGE', {
+    role: user.role,
+    userId,
+  });
 
   return res.status(200).send({
     action: 'PUT',
     data: {
+      notificationToken,
       role: user.role,
       userId,
     },

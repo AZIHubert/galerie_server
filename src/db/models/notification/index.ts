@@ -16,6 +16,7 @@ interface NotificationI {
   galerieId?: string;
   id: string;
   num?: number;
+  role?: string;
   type: typeof notificationType[number];
   userId: string;
 }
@@ -48,6 +49,11 @@ export default class Notification extends Model implements NotificationI {
     type: DataType.INTEGER,
   })
   num!: number;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  role!: string;
 
   @Column({
     allowNull: false,

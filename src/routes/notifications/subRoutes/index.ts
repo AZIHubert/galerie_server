@@ -1,2 +1,2 @@
 // eslint-disable-next-line import/prefer-default-export
-export { default as postNotification } from './postNotification';
+export { default as postNotifications } from './postNotifications';

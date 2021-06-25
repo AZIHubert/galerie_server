@@ -5,7 +5,7 @@ import {
 } from '@src/helpers/middlewares';
 
 import {
-  postNotification,
+  postNotifications,
 } from './subRoutes';
 
 const router = Router();
@@ -16,7 +16,7 @@ const notificationRouter: () => Router = () => {
   router.get('/', shouldBeAuth, () => {}); // get all notification
   router.get('/:id', shouldBeAuth, () => {});
 
-  router.post('/', postNotification);
+  router.post('/', postNotifications);
 
   return router;
 };

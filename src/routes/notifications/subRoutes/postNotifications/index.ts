@@ -14,6 +14,7 @@ import {
   betaKeyUsed,
   frameLiked,
   framePosted,
+  roleChange,
   userSubscribe,
 } from '@src/helpers/postNotification';
 
@@ -81,6 +82,9 @@ export default async (req: Request, res: Response) => {
         break;
       case 'FRAME_POSTED':
         response = await framePosted(data);
+        break;
+      case 'ROLE_CHANGE':
+        response = await roleChange(data);
         break;
       case 'USER_SUBSCRIBE':
         response = await userSubscribe(data);
