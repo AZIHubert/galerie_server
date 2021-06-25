@@ -18,6 +18,7 @@ import Invitation from '../invitation';
 import Like from '../like';
 import Notification from '../notification';
 import NotificationBetaKeyUsed from '../notificationBetaKeyUsed';
+import NotificationFrameLiked from '../notificationFrameLiked';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
 
@@ -210,6 +211,12 @@ export default class User extends Model implements UserI {
   notificationsBetaKeyUsed!: Array<
   Notification &
   {NotificationBetaKeyUsed: NotificationBetaKeyUsed}
+  >;
+
+  @BelongsToMany(() => Notification, () => NotificationFrameLiked)
+  notificationsFrameLiked!: Array<
+  Notification &
+  {NotificationBetaKeyUsed: NotificationFrameLiked}
   >;
 
   @HasMany(() => BetaKey, 'createdById')

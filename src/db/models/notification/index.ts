@@ -13,6 +13,7 @@ import notificationType from '@src/helpers/notificationTypes';
 import Frame from '../frame';
 import Galerie from '../galerie';
 import NotificationBetaKeyUsed from '../notificationBetaKeyUsed';
+import NotificationFrameLiked from '../notificationFrameLiked';
 import User from '../user';
 
 interface NotificationI {
@@ -85,5 +86,11 @@ export default class Notification extends Model implements NotificationI {
   notificationsBetaKeyUsed!: Array<
   User &
   {NotificationBetaKeyUsed: NotificationBetaKeyUsed}
+  >;
+
+  @BelongsToMany(() => User, () => NotificationFrameLiked)
+  notificationsFrameLiked!: Array<
+  User &
+  {NotificationBetaKeyUsed: NotificationFrameLiked}
   >;
 }

@@ -7,6 +7,8 @@ import '@src/helpers/initEnv';
 import {
   Like,
   Notification,
+  NotificationFrameLiked,
+  User,
 } from '@src/db/models';
 
 import {
@@ -63,15 +65,17 @@ describe('/Notifications', () => {
         let likeId: string;
         let notificationtoken: string;
         let userId: string;
+        let userTwo: User;
 
         beforeEach(async (done) => {
           try {
             const { user } = await createUser({});
             userId = user.id;
-            const { user: userTwo } = await createUser({
+            const { user: newUser } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
+            userTwo = newUser;
             const { id: galerieId } = await createGalerie({
               userId: user.id,
             });
@@ -112,12 +116,16 @@ describe('/Notifications', () => {
             notificationtoken,
           });
           const notifications = await Notification.findAll();
+          const notificationsFrameLiked = await NotificationFrameLiked.findAll();
           expect(notifications.length).toBe(1);
           expect(notifications[0].frameId).toBe(frameId);
           expect(notifications[0].galerieId).toBeNull();
           expect(notifications[0].num).toBe(1);
           expect(notifications[0].type).toBe('FRAME_LIKED');
           expect(notifications[0].userId).toBe(userId);
+          expect(notificationsFrameLiked.length).toBe(1);
+          expect(notificationsFrameLiked[0].notificationId).toBe(notifications[0].id);
+          expect(notificationsFrameLiked[0].userId).toBe(userTwo.id);
         });
         it('increment notification.num if a notification for this frame liked already exist', async () => {
           const num = 1;
@@ -131,9 +139,13 @@ describe('/Notifications', () => {
             notificationtoken,
           });
           const notifications = await Notification.findAll();
+          const notificationsFrameLiked = await NotificationFrameLiked.findAll();
           await notification.reload();
-          expect(notifications.length).toBe(1);
           expect(notification.num).toBe(num + 1);
+          expect(notifications.length).toBe(1);
+          expect(notificationsFrameLiked.length).toBe(1);
+          expect(notificationsFrameLiked[0].notificationId).toBe(notification.id);
+          expect(notificationsFrameLiked[0].userId).toBe(userTwo.id);
         });
       });
       describe('should return status 400 if', () => {

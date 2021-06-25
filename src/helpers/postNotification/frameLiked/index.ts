@@ -2,6 +2,7 @@ import {
   Frame,
   Like,
   Notification,
+  NotificationFrameLiked,
 } from '@src/db/models';
 
 import {
@@ -108,6 +109,10 @@ export default async ({
   if (notification) {
     try {
       await notification.increment({ num: 1 });
+      await NotificationFrameLiked.create({
+        notificationId: notification.id,
+        userId: like.userId,
+      });
     } catch (err) {
       return {
         OK: false,
@@ -121,11 +126,15 @@ export default async ({
   // If notification doesn't exist
   // create a notification.
   try {
-    await Notification.create({
+    const { id: notificationId } = await Notification.create({
       frameId: like.frameId,
       num: 1,
       type: 'FRAME_LIKED',
       userId: like.frame.userId,
+    });
+    await NotificationFrameLiked.create({
+      notificationId,
+      userId: like.userId,
     });
   } catch (err) {
     return {
