@@ -18,9 +18,6 @@ initSequelize(() => {
 });
 
 // TODO:
-// Check that notification through model are destroyed.
-
-// TODO:
 // create Report model
 
 // TODO:

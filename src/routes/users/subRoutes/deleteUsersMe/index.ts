@@ -156,6 +156,21 @@ export default async (req: Request, res: Response) => {
     });
     await Promise.all(
       frames.map(async (frame) => {
+        // TODO:
+        // destroy all notification
+        // where
+        //  type === 'FRAME_POSTED'
+        //  num <= 1
+        // include frame as notificationFramePosted
+        // where
+        //  frameId === frame.id
+        // decrement notification.num
+        // where
+        //  type === 'FRAME_POSTED'
+        // include frame as notificationFramePosted
+        // where
+        //  frameId === frame.id
+
         await Promise.all(
           frame.galeriePictures.map(
             async (galeriePicture) => {
@@ -278,11 +293,53 @@ export default async (req: Request, res: Response) => {
             id: like.id,
           },
         });
+
+        // TODO:
+        // Destroy all notifications
+        // where
+        //  type === 'FRAME_LIKED'
+        //  num <= 1
+        //  frameId === likes.frame.id
+        // update all notifications
+        // where
+        //  type === 'FRAME_LIKED'
+        //  frameId === frame.id
       }),
     );
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // TODO:
+  // fetch all notifications
+  // where
+  //  type === 'USER_SUBSCRIBE'
+  // include user as notificationUserSubscribe
+  // where
+  //  userId === currentUser.id
+  // foreach notifications
+  //  if notification.num <= 1
+  //    destroy notification
+  //  else
+  //    decrement notification.num
+  //  foreach notificationUserSubscribes
+  //    destroy notificationUserSubscribe
+
+  // TODO:
+  // destroy all Notification
+  // where
+  //  type === 'BETA_KEY_USED'
+  //  num <= 1
+  // include user as notificationBetaKeyUsed
+  // where
+  //  userId === currentUser.id
+  // decrement notification.num
+  // where
+  //  type === 'BETA_KEY_USED'
+  //  num <= 1
+  // include user as notificationBetaKeyUsed
+  // where
+  //  userId === currentUser.id
 
   // .....................
   // ProfilePictures

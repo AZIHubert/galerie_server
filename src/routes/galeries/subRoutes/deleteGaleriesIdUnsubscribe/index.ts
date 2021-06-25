@@ -12,6 +12,7 @@ import {
   GalerieUser,
   Invitation,
   Like,
+  Notification,
   User,
 } from '@src/db/models';
 
@@ -197,6 +198,21 @@ export default async (req: Request, res: Response) => {
       await Promise.all(
         frames.map(async (frame) => {
           await frame.destroy();
+          // TODO:
+          // destroy all notification
+          // where
+          //  type === 'FRAME_POSTED'
+          //  num <= 1
+          // include frame as notificationFramePosted
+          // where
+          //  frameId === galerie.frames[0].id
+          // decrement notification.num
+          // where
+          //  type === 'FRAME_POSTED'
+          //   frame as notificationFramePosted
+          //   where
+          //    frameId === frame.id
+
           await Promise.all(
             frame.galeriePictures.map(
               async (galeriePicture) => {
@@ -253,14 +269,66 @@ export default async (req: Request, res: Response) => {
           framesLikeByCurrentUser.map(
             async (frame) => {
               await frame.decrement({ numOfLikes: 1 });
+
+              // TODO:
+              // Destroy all notifications
+              // where
+              //  type === 'FRAME_LIKED'
+              //  num <= 1
+              //  frameId === frame.id
+              // update all notifications
+              // where
+              //  type === 'FRAME_LIKED'
+              //  frameId === frame.id
+
+              // Check if notification where type === 'FRAME_LIKED' exist.
+              const notification = await Notification.findOne({
+                include: [
+                  {
+                    as: 'notificationsFrameLiked',
+                    model: User,
+                    where: {
+                      id: currentUser.id,
+                    },
+                  },
+                ],
+                where: {
+                  frameId: frame.id,
+                  type: 'FRAME_LIKED',
+                },
+              });
+
+              // if notification exist
+              // destroy the through Model.
+              if (notification) {
+                await notification.notificationsFrameLiked[0].destroy();
+              }
+
               await Promise.all(
                 frame.likes.map(async (like) => {
+                  // Check if notification where type === 'FRAME_LIKED' exist.
                   await like.destroy();
                 }),
               );
             },
           ),
         );
+
+        // TODO:
+        // fetch all notifications
+        // where
+        //  type === 'USER_SUBSCRIBE'
+        //  galerieId === request.params.galeriId
+        // include user as notificationUserSubscribe
+        // where
+        //  userId === currentUser.id
+        // foreach notifications
+        //  if notification.num <= 1
+        //    destroy notification
+        //  else
+        //    decrement notification.num
+        //  foreach notificationUserSubscribes
+        //    destroy notificationUserSubscribe
       } catch (err) {
         return res.status(500).send(err);
       }

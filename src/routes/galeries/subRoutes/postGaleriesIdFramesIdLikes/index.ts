@@ -9,6 +9,7 @@ import {
   Frame,
   Galerie,
   Like,
+  Notification,
   User,
 } from '@src/db/models';
 
@@ -101,6 +102,35 @@ export default async (req: Request, res: Response) => {
     await like.destroy();
     await galerie.frames[0].decrement({ numOfLikes: 1 });
     liked = false;
+
+    // Check if notification where type === 'FRAME_LIKED' exist.
+    const notification = await Notification.findOne({
+      include: [
+        {
+          as: 'notificationsFrameLiked',
+          model: User,
+          where: {
+            id: currentUser.id,
+          },
+        },
+      ],
+      where: {
+        frameId,
+        type: 'FRAME_LIKED',
+      },
+    });
+
+    // if notification exist
+    // destroy the through Model.
+    if (notification) {
+      // TODO:
+      // if notification.num <= 1
+      //  destroy notification
+      // else
+      //  decremtn notification.num
+      await notification.notificationsFrameLiked[0].destroy();
+    }
+
   // ...else, create a Like,
   // increment frame.numOfLike
   // and create notificationToken.

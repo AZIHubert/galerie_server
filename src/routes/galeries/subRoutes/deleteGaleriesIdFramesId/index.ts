@@ -138,6 +138,23 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // TODO:
+  // destroy all notification
+  // where
+  //  type === 'FRAME_POSTED'
+  //  galerieId === request.params.galerieId
+  //  num <= 1
+  //   frame as notificationFramePosted
+  //   where
+  //    frameId === galerie.frames[0].id
+  // decrement notification.num
+  // where
+  //  type === 'FRAME_POSTED'
+  //  galerieId === request.params.galerieId
+  //   frame as notificationFramePosted
+  //   where
+  //    frameId === galerie.frames[0].id
+
   // Destroy all frames/galerieImages/images
   // /images from Google Buckets/likes.
   try {

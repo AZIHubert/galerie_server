@@ -10,6 +10,7 @@ import '@src/helpers/initEnv';
 import {
   Frame,
   Like,
+  NotificationFrameLiked,
   User,
 } from '@src/db/models';
 
@@ -25,6 +26,7 @@ import {
   createGalerie,
   createGalerieUser,
   createLike,
+  createNotificationFrameLiked,
   createUser,
   postGaleriesIdFramesIdLikes,
 } from '@src/helpers/test';
@@ -90,13 +92,15 @@ describe('/galerie', () => {
 
             describe('it should return status 200 and', () => {
               let frame: any;
+              let userTwo: User;
 
               beforeEach(async (done) => {
                 try {
-                  const { user: userTwo } = await createUser({
+                  const { user: newUser } = await createUser({
                     email: 'user2@email.com',
                     userName: 'user2',
                   });
+                  userTwo = newUser;
                   await createGalerieUser({
                     galerieId,
                     userId: userTwo.id,
@@ -238,6 +242,20 @@ describe('/galerie', () => {
                   },
                 } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 expect(notificationToken).toBeUndefined();
+              });
+              it('destoy notificationFrameLiked if currentUser dislike a frame', async () => {
+                await createLike({
+                  frameId: frame.id,
+                  userId: user.id,
+                });
+                await createNotificationFrameLiked({
+                  frameId: frame.id,
+                  likedById: user.id,
+                  userId: userTwo.id,
+                });
+                await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                const notificationsFrameLiked = await NotificationFrameLiked.findAll();
+                expect(notificationsFrameLiked.length).toBe(0);
               });
             });
             describe('should return status 400 if', () => {

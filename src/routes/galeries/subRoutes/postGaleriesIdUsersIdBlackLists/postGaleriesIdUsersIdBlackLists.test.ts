@@ -12,6 +12,7 @@ import {
   Image,
   Invitation,
   Notification,
+  NotificationFrameLiked,
   NotificationFramePosted,
   Like,
   User,
@@ -31,6 +32,7 @@ import {
   createInvitation,
   createLike,
   createNotification,
+  createNotificationFrameLiked,
   createNotificationFramePosted,
   createUser,
   postGaleriesIdUserUserIdBlackLists,
@@ -431,6 +433,30 @@ describe('/galeries', () => {
                 await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
                 const notificationsFramePosted = await NotificationFramePosted.findAll();
                 expect(notificationsFramePosted.length).toBe(0);
+              });
+              it('destroy all likes posted by this user', async () => {
+                const { id: frameId } = await createFrame({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await createLike({
+                  frameId,
+                  userId: user.id,
+                });
+                await createNotificationFrameLiked({
+                  frameId,
+                  likedById: user.id,
+                  userId: userTwo.id,
+                });
+                await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
+                const like = await Like.findOne({
+                  where: {
+                    frameId,
+                  },
+                });
+                const notificationsFrameLiked = await NotificationFrameLiked.findAll();
+                expect(like).toBeNull();
+                expect(notificationsFrameLiked.length).toBe(0);
               });
               it('set createdBy === null for all galerieBlackLists posted by the black listed user', async () => {
                 const { user: userThree } = await createUser({

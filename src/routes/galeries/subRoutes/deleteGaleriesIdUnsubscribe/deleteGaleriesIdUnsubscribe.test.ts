@@ -13,6 +13,7 @@ import {
   Image,
   Invitation,
   Like,
+  NotificationFrameLiked,
   User,
 } from '@src/db/models';
 
@@ -29,6 +30,7 @@ import {
   createGalerieUser,
   createInvitation,
   createLike,
+  createNotificationFrameLiked,
   createUser,
   deleteGaleriesUnsubscribe,
   deleteUsersMe,
@@ -302,13 +304,20 @@ describe('/galeries', () => {
                 frameId,
                 userId: user.id,
               });
+              await createNotificationFrameLiked({
+                frameId,
+                likedById: user.id,
+                userId: userTwo.id,
+              });
               await deleteGaleriesUnsubscribe(app, token, galerieId);
               const like = await Like.findOne({
                 where: {
                   frameId,
                 },
               });
+              const notificationsFrameLiked = await NotificationFrameLiked.findAll();
               expect(like).toBeNull();
+              expect(notificationsFrameLiked.length).toBe(0);
             });
             it('decrement all frames.numOfLikes liked by the deleted user', async () => {
               const {

@@ -215,6 +215,20 @@ export default async (req: Request, res: Response) => {
         user.frames.map(
           async (frame) => {
             await frame.destroy();
+            // TODO:
+            // destroy all notification
+            // where
+            //  type === 'FRAME_POSTED'
+            //  num <= 1
+            // include frame as notificationFramePosted
+            // where
+            //  frameId === frame.id
+            // decrement notification.num
+            // where
+            //  type === 'FRAME_POSTED'
+            // include frame as notificationFramePosted
+            // where
+            //  frameId === frame.id
             await Promise.all(
               frame.galeriePictures.map(
                 async (galeriePicture) => {
@@ -256,7 +270,41 @@ export default async (req: Request, res: Response) => {
         await Promise.all(
           user.likes.map(async (like) => {
             like.destroy();
+
+            // TODO:
+            // Destroy all notifications
+            // where
+            //  type === 'FRAME_LIKED'
+            //  frameId === like.frameId
+            //  num <= 1
+            // update all notifications
+            // where
+            //  type === 'FRAME_LIKED'
+            //  frameId === frame.id
+
             await like.frame.decrement({ numOfLikes: 1 });
+            // Check if notification where type === 'FRAME_LIKED' exist.
+            const notification = await Notification.findOne({
+              include: [
+                {
+                  as: 'notificationsFrameLiked',
+                  model: User,
+                  where: {
+                    id: currentUser.id,
+                  },
+                },
+              ],
+              where: {
+                frameId: like.frame.id,
+                type: 'FRAME_LIKED',
+              },
+            });
+
+            // if notification exist
+            // destroy the through Model.
+            if (notification) {
+              await notification.notificationsFrameLiked[0].destroy();
+            }
           }),
         );
       } catch (err) {
@@ -314,6 +362,22 @@ export default async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+
+  // TODO:
+  // fetch all notifications
+  // where
+  //  type === 'USER_SUBSCRIBE'
+  //  galerieId === request.params.galeriId
+  // include user as notificationUserSubscribe
+  // where
+  //  userId === currentUser.id
+  // foreach notifications
+  //  if notification.num <= 1
+  //    destroy notification
+  //  else
+  //    decrement notification.num
+  //  foreach notificationUserSubscribes
+  //    destroy notificationUserSubscribe
 
   try {
     galerieBlackList = await GalerieBlackList.create({
