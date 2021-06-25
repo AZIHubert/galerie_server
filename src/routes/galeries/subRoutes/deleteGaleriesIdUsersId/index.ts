@@ -4,6 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Frame,
@@ -11,6 +12,7 @@ import {
   GalerieBlackList,
   GalerieUser,
   Invitation,
+  Notification,
   Like,
   User,
 } from '@src/db/models';
@@ -234,6 +236,27 @@ export default async (req: Request, res: Response) => {
   try {
     await Invitation.destroy({
       where: {
+        galerieId,
+        userId,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Destroy all notification where
+  // types === 'FRAME_POSTED' || 'USER_SUBSCRIBE
+  // userId === request.params.userId
+  // galerieId === request.params.galerieId
+  try {
+    await Notification.destroy({
+      where: {
+        type: {
+          [Op.or]: [
+            'FRAME_POSTED',
+            'USER_SUBSCRIBE',
+          ],
+        },
         galerieId,
         userId,
       },

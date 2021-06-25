@@ -41,6 +41,8 @@ export default async ({
   // Fetch frame.
   try {
     frame = await Frame.findByPk(frameId);
+    // TODO:
+    // include galerie.
   } catch (err) {
     return {
       OK: false,

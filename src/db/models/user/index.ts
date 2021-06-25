@@ -16,8 +16,7 @@ import GalerieBlackList from '../galerieBlackLists';
 import GalerieUser from '../galerieUser';
 import Invitation from '../invitation';
 import Like from '../like';
-// import Notification from '../notification';
-// import NotificationUser from '../notificationUser';
+import Notification from '../notification';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
 
@@ -248,8 +247,11 @@ export default class User extends Model implements UserI {
   })
   likes!: Like[];
 
-  // @HasMany(() => Notification)
-  // notifications!: Notification[];
+  @HasMany(() => Notification, {
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
+  notifications!: Notification[];
 
   @HasMany(() => ProfilePicture, {
     hooks: true,

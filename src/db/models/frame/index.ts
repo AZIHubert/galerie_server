@@ -12,6 +12,7 @@ import {
 import Galerie from '../galerie';
 import GaleriePicture from '../galeriePicture';
 import Like from '../like';
+import Notification from '../notification';
 import User from '../user';
 
 interface FrameI {
@@ -84,6 +85,9 @@ export default class Frame extends Model implements FrameI {
     onDelete: 'CASCADE',
   })
   galeriePictures!: GaleriePicture[];
+
+  @HasMany(() => Notification)
+  notifications!: Notification[];
 
   @HasMany(() => Like)
   likes!: Like[];

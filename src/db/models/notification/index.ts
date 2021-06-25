@@ -1,4 +1,5 @@
 import {
+  BelongsTo,
   Column,
   DataType,
   ForeignKey,
@@ -8,6 +9,7 @@ import {
 
 import notificationType from '@src/helpers/notificationTypes';
 
+import Frame from '../frame';
 import Galerie from '../galerie';
 import User from '../user';
 
@@ -25,7 +27,7 @@ interface NotificationI {
   tableName: 'notification',
 })
 export default class Notification extends Model implements NotificationI {
-  @ForeignKey(() => Galerie)
+  @ForeignKey(() => Frame)
   @Column({
     type: DataType.UUID,
   })
@@ -67,4 +69,13 @@ export default class Notification extends Model implements NotificationI {
     type: DataType.UUID,
   })
   userId!: string;
+
+  @BelongsTo(() => Frame)
+  frame!: Frame;
+
+  @BelongsTo(() => Galerie)
+  galerie!: Galerie;
+
+  @BelongsTo(() => User)
+  user!: User;
 }

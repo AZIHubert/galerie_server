@@ -12,6 +12,7 @@ import {
   Image,
   Invitation,
   Like,
+  Notification,
   User,
 } from '@src/db/models';
 
@@ -28,6 +29,7 @@ import {
   createGalerieUser,
   createInvitation,
   createLike,
+  createNotification,
   createUser,
   deleteGaleriesIdUsersId,
 } from '@src/helpers/test';
@@ -211,6 +213,40 @@ describe('/galeries', () => {
               await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               const invitation = await Invitation.findByPk(invitationId);
               expect(invitation).toBeNull();
+            });
+            it('delete all notification where notification.type === \'FRAME_POSTED\', notification.galerieId === galerie.id and notification.userId === request.params.userId', async () => {
+              const { id: notificationId } = await createNotification({
+                galerieId,
+                type: 'FRAME_POSTED',
+                userId: userTwo.id,
+              });
+              await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
+              const notification = await Notification.findByPk(notificationId);
+              expect(notification).toBeNull();
+            });
+            it('delete all notification where notification.type === \'FRAME_LIKED\' and notification.frameId was posted by request.params.userId', async () => {
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: userTwo.id,
+              });
+              const { id: notificationId } = await createNotification({
+                frameId,
+                type: 'FRAME_LIKED',
+                userId: userTwo.id,
+              });
+              await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
+              const notification = await Notification.findByPk(notificationId);
+              expect(notification).toBeNull();
+            });
+            it('delete all notification where notification.type === \'USER_SUBSCRIBE\' and notification.userId === request.params.userId', async () => {
+              const { id: notificationId } = await createNotification({
+                galerieId,
+                type: 'USER_SUBSCRIBE',
+                userId: userTwo.id,
+              });
+              await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
+              const notification = await Notification.findByPk(notificationId);
+              expect(notification).toBeNull();
             });
             it('set createdById === null for all galerieBlackLists posted by the deleted user', async () => {
               const { user: userThree } = await createUser({

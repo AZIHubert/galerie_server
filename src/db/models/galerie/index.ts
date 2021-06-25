@@ -12,6 +12,7 @@ import Frame from '../frame';
 import GalerieBlackList from '../galerieBlackLists';
 import GalerieUser from '../galerieUser';
 import Invitation from '../invitation';
+import Notification from '../notification';
 import User from '../user';
 
 interface GalerieI {
@@ -83,4 +84,7 @@ export default class Galerie extends Model implements GalerieI {
 
   @HasMany(() => Invitation)
   invitations!: Invitation[];
+
+  @HasMany(() => Notification)
+  notifications!: Notification[];
 }

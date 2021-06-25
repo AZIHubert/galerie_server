@@ -25,6 +25,14 @@ initSequelize(() => {
 
 // TODO:
 // notification Many2Many
+// NotificationBetaKey
+//  Notification => NotificationBetaKeyUsed => User
+// NotificationFrame
+//  Notification => NotificationFrameLiked => Frame
+// NotificationFramePosted
+//  Notification => NotificationFramePosted => Galerie
+// NotificationUserSubscribe
+//  Notification => NotificationUserSubscribe => User
 
 // TODO:
 // notification.seen
@@ -34,6 +42,11 @@ initSequelize(() => {
 
 // TODO:
 // user.numOfNotification
+
+// TODO:
+// when get notification orderBy trhought model createdBy
+// https://github.com/sequelize/sequelize/issues/7634
+// https://github.com/sequelize/sequelize/issues/10074
 
 // Create a new notification
 // Only if not find notification

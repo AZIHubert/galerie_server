@@ -14,6 +14,7 @@ import {
   Image,
   Invitation,
   Like,
+  Notification,
   ProfilePicture,
   User,
 } from '@src/db/models';
@@ -35,6 +36,7 @@ import {
   createGalerieUser,
   createInvitation,
   createLike,
+  createNotification,
   createProfilePicture,
   createTicket,
   createUser,
@@ -635,6 +637,33 @@ describe('/users', () => {
           const betaKeys = await BetaKey.findAll();
           expect(betaKeys.length).toBe(0);
           expect(status).toBe(200);
+        });
+        it('destoy notification where notification.userId === currentUser.id', async () => {
+          await createNotification({
+            type: 'BETA_KEY_USED',
+            userId: user.id,
+          });
+          await createNotification({
+            type: 'FRAME_LIKED',
+            userId: user.id,
+          });
+          await createNotification({
+            type: 'FRAME_POSTED',
+            userId: user.id,
+          });
+          await createNotification({
+            type: 'USER_SUBSCRIBE',
+            userId: user.id,
+          });
+          await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const notifications = await Notification.findAll();
+          expect(notifications.length).toBe(0);
         });
         it('destroy the current user', async () => {
           const {

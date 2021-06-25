@@ -9,6 +9,7 @@ import {
   GaleriePicture,
   Image,
   Like,
+  Notification,
   User,
 } from '@src/db/models';
 
@@ -23,6 +24,7 @@ import {
   createGalerie,
   createGalerieUser,
   createLike,
+  createNotification,
   createUser,
   deleteGaleriesIdFramesId,
 } from '@src/helpers/test';
@@ -203,6 +205,20 @@ describe('/galeries', () => {
               await deleteGaleriesIdFramesId(app, tokenTwo, galerieId, frameId);
               const frame = await Frame.findByPk(frameId);
               expect(frame).toBeNull();
+            });
+            it('destroy all notification where notification.type === \'FRAME_LIKED\'', async () => {
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              const { id: notificationId } = await createNotification({
+                frameId,
+                type: 'FRAME_LIKED',
+                userId: user.id,
+              });
+              await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
+              const notification = await Notification.findByPk(notificationId);
+              expect(notification).toBeNull();
             });
           });
           describe('it should return status 400', () => {
