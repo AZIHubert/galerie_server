@@ -17,6 +17,7 @@ import GalerieUser from '../galerieUser';
 import Invitation from '../invitation';
 import Like from '../like';
 import Notification from '../notification';
+import NotificationBetaKeyUsed from '../notificationBetaKeyUsed';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
 
@@ -205,8 +206,11 @@ export default class User extends Model implements UserI {
   @BelongsToMany(() => Galerie, () => GalerieUser)
   galeries!: Array<Galerie & {GalerieUser: GalerieUser}>;
 
-  // @BelongsToMany(() => Notification, () => NotificationUser)
-  // notificationsUser!: Notification[]
+  @BelongsToMany(() => Notification, () => NotificationBetaKeyUsed)
+  notificationsBetaKeyUsed!: Array<
+  Notification &
+  {NotificationBetaKeyUsed: NotificationBetaKeyUsed}
+  >;
 
   @HasMany(() => BetaKey, 'createdById')
   betaKeyCreatedBy!: BetaKey[];

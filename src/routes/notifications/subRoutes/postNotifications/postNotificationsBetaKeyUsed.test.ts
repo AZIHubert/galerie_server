@@ -6,6 +6,7 @@ import '@src/helpers/initEnv';
 
 import {
   Notification,
+  NotificationBetaKeyUsed,
 } from '@src/db/models';
 
 import {
@@ -56,7 +57,10 @@ describe('/notifications', () => {
 
       describe('should return status 204 and', () => {
         it('set betaKey.notificationHasBeenSend to true', async () => {
-          const betaKey = await createBetaKey({});
+          const { user } = await createUser({});
+          const betaKey = await createBetaKey({
+            userId: user.id,
+          });
           const { token: notificationtoken } = signNotificationToken('BETA_KEY_USED', {
             betaKeyId: betaKey.id,
           });
@@ -66,20 +70,6 @@ describe('/notifications', () => {
           await betaKey.reload();
           expect(betaKey.notificationHasBeenSend).toBe(true);
           expect(status).toBe(204);
-        });
-        it('do not create betaKey if betaKey.userId === null', async () => {
-          const { user } = await createUser({});
-          const betaKey = await createBetaKey({
-            createdById: user.id,
-          });
-          const { token: notificationtoken } = signNotificationToken('BETA_KEY_USED', {
-            betaKeyId: betaKey.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          const notifications = await Notification.findAll();
-          expect(notifications.length).toBe(0);
         });
         it('do not create betaKey if betaKey.createdById === null', async () => {
           const { user } = await createUser({});
@@ -120,9 +110,13 @@ describe('/notifications', () => {
             notificationtoken,
           });
           const notifications = await Notification.findAll();
+          const notificationsBetaKeyUsed = await NotificationBetaKeyUsed.findAll();
           await notification.reload();
           expect(notification.num).toBe(num + 1);
           expect(notifications.length).toBe(1);
+          expect(notificationsBetaKeyUsed.length).toBe(1);
+          expect(notificationsBetaKeyUsed[0].notificationId).toBe(notification.id);
+          expect(notificationsBetaKeyUsed[0].userId).toBe(userTwo.id);
         });
         it('create notification if notification doen\'t exist', async () => {
           const { user } = await createUser({
@@ -143,10 +137,14 @@ describe('/notifications', () => {
             notificationtoken,
           });
           const notifications = await Notification.findAll();
+          const notificationsBetaKeyUsed = await NotificationBetaKeyUsed.findAll();
           expect(notifications.length).toBe(1);
           expect(notifications[0].num).toBe(1);
           expect(notifications[0].type).toBe('BETA_KEY_USED');
           expect(notifications[0].userId).toBe(user.id);
+          expect(notificationsBetaKeyUsed.length).toBe(1);
+          expect(notificationsBetaKeyUsed[0].notificationId).toBe(notifications[0].id);
+          expect(notificationsBetaKeyUsed[0].userId).toBe(userTwo.id);
         });
       });
       describe('should return status 400 if', () => {
@@ -186,6 +184,23 @@ describe('/notifications', () => {
             notificationtoken,
           });
           expect(body.errors).toBe('notifications already send for this beta key');
+          expect(status).toBe(400);
+        });
+        it('betaKey.userId === null', async () => {
+          const { user } = await createUser({});
+          const betaKey = await createBetaKey({
+            createdById: user.id,
+          });
+          const { token: notificationtoken } = signNotificationToken('BETA_KEY_USED', {
+            betaKeyId: betaKey.id,
+          });
+          const {
+            body,
+            status,
+          } = await postNotifications(app, {
+            notificationtoken,
+          });
+          expect(body.errors).toBe('beta key should be used');
           expect(status).toBe(400);
         });
       });

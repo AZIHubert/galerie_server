@@ -1,6 +1,7 @@
 import {
   BetaKey,
   Notification,
+  NotificationBetaKeyUsed,
 } from '@src/db/models';
 
 import {
@@ -55,6 +56,16 @@ export default async ({
     } as Error;
   }
 
+  // If betaKey is not used
+  // send error.
+  if (!betaKey.userId) {
+    return {
+      OK: false,
+      errors: 'beta key should be used',
+      status: 400,
+    } as Error;
+  }
+
   // Check if notification has not already been sent.
   if (betaKey.notificationHasBeenSend) {
     return {
@@ -77,12 +88,6 @@ export default async ({
       errors: err,
       status: 500,
     } as Error;
-  }
-
-  // If betaKey is not used
-  // stop request.
-  if (!betaKey.userId) {
-    return { OK: true } as Success;
   }
 
   // If superAdmin doesn't exist
@@ -112,6 +117,10 @@ export default async ({
   if (notification) {
     try {
       await notification.increment({ num: 1 });
+      await NotificationBetaKeyUsed.create({
+        notificationId: notification.id,
+        userId: betaKey.userId,
+      });
     } catch (err) {
       return {
         OK: false,
@@ -126,10 +135,14 @@ export default async ({
   // If notification doesn't exist
   // create a notification.
   try {
-    await Notification.create({
+    const { id: notificationId } = await Notification.create({
       num: 1,
       type: 'BETA_KEY_USED',
       userId: betaKey.createdById,
+    });
+    await NotificationBetaKeyUsed.create({
+      notificationId,
+      userId: betaKey.userId,
     });
   } catch (err) {
     return {

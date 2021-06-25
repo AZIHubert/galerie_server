@@ -1,5 +1,6 @@
 import {
   BelongsTo,
+  BelongsToMany,
   Column,
   DataType,
   ForeignKey,
@@ -11,6 +12,7 @@ import notificationType from '@src/helpers/notificationTypes';
 
 import Frame from '../frame';
 import Galerie from '../galerie';
+import NotificationBetaKeyUsed from '../notificationBetaKeyUsed';
 import User from '../user';
 
 interface NotificationI {
@@ -78,4 +80,10 @@ export default class Notification extends Model implements NotificationI {
 
   @BelongsTo(() => User)
   user!: User;
+
+  @BelongsToMany(() => User, () => NotificationBetaKeyUsed)
+  notificationsBetaKeyUsed!: Array<
+  User &
+  {NotificationBetaKeyUsed: NotificationBetaKeyUsed}
+  >;
 }
