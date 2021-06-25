@@ -10,6 +10,7 @@ import {
   Image,
   Like,
   Notification,
+  NotificationFramePosted,
   User,
 } from '@src/db/models';
 
@@ -25,6 +26,7 @@ import {
   createGalerieUser,
   createLike,
   createNotification,
+  createNotificationFramePosted,
   createUser,
   deleteGaleriesIdFramesId,
 } from '@src/helpers/test';
@@ -219,6 +221,20 @@ describe('/galeries', () => {
               await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
               const notification = await Notification.findByPk(notificationId);
               expect(notification).toBeNull();
+            });
+            it('destroy NotificationFramePosted where NotificationFramePosted.frameId === request.params.frameId', async () => {
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              await createNotificationFramePosted({
+                frameId,
+                galerieId,
+                userId: user.id,
+              });
+              await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
+              const notificationsFramePosted = await NotificationFramePosted.findAll();
+              expect(notificationsFramePosted.length).toBe(0);
             });
           });
           describe('it should return status 400', () => {

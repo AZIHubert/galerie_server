@@ -13,6 +13,7 @@ import {
   Invitation,
   Like,
   Notification,
+  NotificationFramePosted,
   User,
 } from '@src/db/models';
 
@@ -30,6 +31,7 @@ import {
   createInvitation,
   createLike,
   createNotification,
+  createNotificationFramePosted,
   createUser,
   deleteGaleriesIdUsersId,
 } from '@src/helpers/test';
@@ -247,6 +249,20 @@ describe('/galeries', () => {
               await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               const notification = await Notification.findByPk(notificationId);
               expect(notification).toBeNull();
+            });
+            it('delete all NotificationFramePosted, where frameId was posted by the user', async () => {
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: userTwo.id,
+              });
+              await createNotificationFramePosted({
+                frameId,
+                galerieId,
+                userId: userTwo.id,
+              });
+              await deleteGaleriesIdUsersId(app, token, galerieId, userTwo.id);
+              const notificationsFramePosted = await NotificationFramePosted.findAll();
+              expect(notificationsFramePosted.length).toBe(0);
             });
             it('set createdById === null for all galerieBlackLists posted by the deleted user', async () => {
               const { user: userThree } = await createUser({

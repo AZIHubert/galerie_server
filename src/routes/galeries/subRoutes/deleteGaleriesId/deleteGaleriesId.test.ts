@@ -14,6 +14,7 @@ import {
   Invitation,
   Like,
   Notification,
+  NotificationFramePosted,
   User,
 } from '@src/db/models';
 
@@ -35,6 +36,7 @@ import {
   createInvitation,
   createLike,
   createNotification,
+  createNotificationFramePosted,
   createUser,
   deleteGaleriesId,
 } from '@src/helpers/test';
@@ -292,6 +294,25 @@ describe('/galeries', () => {
           });
           const notification = await Notification.findByPk(notificationId);
           expect(notification).toBeNull();
+        });
+        it('destroy all NotificationFramePosted where frameId belong to this galerie', async () => {
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: user.id,
+          });
+          await createNotificationFramePosted({
+            frameId,
+            galerieId,
+            userId: user.id,
+          });
+          await deleteGaleriesId(app, token, galerieId, {
+            body: {
+              name,
+              password,
+            },
+          });
+          const notificationFramePosted = await NotificationFramePosted.findAll();
+          expect(notificationFramePosted.length).toBe(0);
         });
         it('destroy all notification where notification.type === \'FRAME_POSTED\' where notification.galeriId === galerie.id', async () => {
           const { id: notificationId } = await createNotification({

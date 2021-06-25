@@ -15,6 +15,7 @@ import {
   Invitation,
   Like,
   Notification,
+  NotificationFramePosted,
   ProfilePicture,
   User,
 } from '@src/db/models';
@@ -37,6 +38,7 @@ import {
   createInvitation,
   createLike,
   createNotification,
+  createNotificationFramePosted,
   createProfilePicture,
   createTicket,
   createUser,
@@ -664,6 +666,42 @@ describe('/users', () => {
           });
           const notifications = await Notification.findAll();
           expect(notifications.length).toBe(0);
+        });
+        it('destroy all notificationFramePosted where frameId was posted by the currentUser', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: user.id,
+          });
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: user.id,
+          });
+          await createNotificationFramePosted({
+            frameId,
+            galerieId,
+            userId: userTwo.id,
+          });
+          const { body, status } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          console.log(body, status);
+          const notificationsFramePosted = await NotificationFramePosted.findAll();
+          console.log(frameId);
+          console.log(notificationsFramePosted);
+          const frame = await Frame.findByPk(frameId);
+          console.log('frame: ', frame);
+          expect(notificationsFramePosted.length).toBe(0);
         });
         it('destroy the current user', async () => {
           const {
