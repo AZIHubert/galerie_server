@@ -3,6 +3,7 @@ export { default as cleanGoogleBuckets } from './cleanGoogleBuckets';
 export { default as createBetaKey } from './createBetaKey';
 export { default as createBlackList } from './createBlackList';
 export { default as createFrame } from './createFrame';
+export { default as createNotificationBetaKeyUsed } from './createNotificationBetaKeyUsed';
 export { default as createNotificationFramePosted } from './createNotificationFramePosted';
 export { default as createGalerie } from './createGalerie';
 export { default as createGalerieBlackList } from './createGalerieBlackList';

@@ -15,6 +15,7 @@ import {
   Invitation,
   Like,
   Notification,
+  NotificationBetaKeyUsed,
   NotificationFramePosted,
   ProfilePicture,
   User,
@@ -38,6 +39,7 @@ import {
   createInvitation,
   createLike,
   createNotification,
+  createNotificationBetaKeyUsed,
   createNotificationFramePosted,
   createProfilePicture,
   createTicket,
@@ -688,20 +690,35 @@ describe('/users', () => {
             galerieId,
             userId: userTwo.id,
           });
-          const { body, status } = await deleteUsersMe(app, token, {
+          await deleteUsersMe(app, token, {
             body: {
               deleteAccountSentence: 'delete my account',
               password,
               userNameOrEmail: user.email,
             },
           });
-          console.log(body, status);
           const notificationsFramePosted = await NotificationFramePosted.findAll();
-          console.log(frameId);
-          console.log(notificationsFramePosted);
-          const frame = await Frame.findByPk(frameId);
-          console.log('frame: ', frame);
           expect(notificationsFramePosted.length).toBe(0);
+        });
+        it('destroy all notificationBetaKeyUsed where userId === currentUser.id', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            role: 'admin',
+            userName: 'user2',
+          });
+          await createNotificationBetaKeyUsed({
+            usedById: user.id,
+            userId: userTwo.id,
+          });
+          await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const notificationsBetaKeyUsed = await NotificationBetaKeyUsed.findAll();
+          expect(notificationsBetaKeyUsed.length).toBe(0);
         });
         it('destroy the current user', async () => {
           const {
