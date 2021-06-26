@@ -25,7 +25,7 @@ import {
   createGalerie,
   createGalerieUser,
   createLike,
-  createNotification,
+  createNotificationFrameLiked,
   createNotificationFramePosted,
   createUser,
   deleteGaleriesIdFramesId,
@@ -208,33 +208,91 @@ describe('/galeries', () => {
               const frame = await Frame.findByPk(frameId);
               expect(frame).toBeNull();
             });
-            it('destroy all notification where notification.type === \'FRAME_LIKED\'', async () => {
+            it('decrement all notifications where type === \'FRAME_POSTED\', num > 1 && notification.framePosted.id === request.params.frameId', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              await createGalerieUser({
+                galerieId,
+                userId: userTwo.id,
+              });
+              const frameOne = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              const frameTwo = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              const notification = await createNotificationFramePosted({
+                frameId: frameOne.id,
+                galerieId,
+                userId: userTwo.id,
+              });
+              await NotificationFramePosted.create({
+                frameId: frameTwo.id,
+                notificationId: notification.id,
+              });
+              await notification.increment({ num: 1 });
+              await deleteGaleriesIdFramesId(app, token, galerieId, frameOne.id);
+              await notification.reload();
+              const notificationFramePosted = await NotificationFramePosted.findOne({
+                where: {
+                  notificationId: notification.id,
+                  frameId: frameOne.id,
+                },
+              });
+              expect(notification.num).toBe(1);
+              expect(notificationFramePosted).toBeNull();
+            });
+            it('destroy all notifications where type === \'FRAME_POSTED\', num <= 1 && notification.framePosted.id === request.params.frameId', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              await createGalerieUser({
+                galerieId,
+                userId: userTwo.id,
+              });
               const { id: frameId } = await createFrame({
                 galerieId,
                 userId: user.id,
               });
-              const { id: notificationId } = await createNotification({
+              const { id: notificationId } = await createNotificationFramePosted({
                 frameId,
-                type: 'FRAME_LIKED',
-                userId: user.id,
+                galerieId,
+                userId: userTwo.id,
               });
               await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
               const notification = await Notification.findByPk(notificationId);
               expect(notification).toBeNull();
             });
-            it('destroy NotificationFramePosted where NotificationFramePosted.frameId === request.params.frameId', async () => {
+            it('destroy notification where type === \'FRAME_LIKED\' and frameId === request.params.frameId', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              await createGalerieUser({
+                galerieId,
+                userId: userTwo.id,
+              });
               const { id: frameId } = await createFrame({
                 galerieId,
                 userId: user.id,
               });
-              await createNotificationFramePosted({
+              await createLike({
                 frameId,
-                galerieId,
+                userId: userTwo.id,
+              });
+              const { id: notificationId } = await createNotificationFrameLiked({
+                frameId,
+                likedById: userTwo.id,
                 userId: user.id,
               });
               await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
-              const notificationsFramePosted = await NotificationFramePosted.findAll();
-              expect(notificationsFramePosted.length).toBe(0);
+              const notification = await Notification.findByPk(notificationId);
+              expect(notification).toBeNull();
             });
           });
           describe('it should return status 400', () => {

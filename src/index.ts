@@ -18,9 +18,6 @@ initSequelize(() => {
 });
 
 // TODO:
-// create Report model
-
-// TODO:
 // galerie.allowNotification
 
 // TODO:
@@ -33,10 +30,6 @@ initSequelize(() => {
 // user.numOfNotification
 
 // TODO:
-// when get notification orderBy trhought model createdBy
-// https://github.com/sequelize/sequelize/issues/7634
-// https://github.com/sequelize/sequelize/issues/10074
-
 // Create a new notification
 // Only if not find notification
 // or if other notification (read or not read)
@@ -50,6 +43,11 @@ initSequelize(() => {
 // pas besoin d'en créer une nouvelle, juste increment num.
 
 // TODO:
+// when get notification orderBy trhought model createdBy
+// https://github.com/sequelize/sequelize/issues/7634
+// https://github.com/sequelize/sequelize/issues/10074
+
+// TODO:
 // Every where multiple Model with limit and offset are fetched
 // Need to add a query.timestamp (Date)
 // to indicate when the first request was made
@@ -60,3 +58,6 @@ initSequelize(() => {
 // and returned Model are only the one
 // where
 // createdAt < query.timestamp
+
+// TODO:
+// create Report model

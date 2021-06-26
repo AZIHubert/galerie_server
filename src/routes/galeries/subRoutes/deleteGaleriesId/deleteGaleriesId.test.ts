@@ -35,8 +35,9 @@ import {
   createGalerieUser,
   createInvitation,
   createLike,
-  createNotification,
+  createNotificationFrameLiked,
   createNotificationFramePosted,
+  createNotificationUserSubscribe,
   createUser,
   deleteGaleriesId,
 } from '@src/helpers/test';
@@ -276,14 +277,26 @@ describe('/galeries', () => {
           const like = await Like.findByPk(likeId);
           expect(like).toBeNull();
         });
-        it('destroy all notification where notification.type === \'FRAME_LIKED\' where notification.frameId was posted on this galerie', async () => {
+        it('destroy all notifications where notification.type === \'FRAME_LIKED\' where notification.frameId was posted on this galerie', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: userTwo.id,
+          });
           const { id: frameId } = await createFrame({
             galerieId,
             userId: user.id,
           });
-          const { id: notificationId } = await createNotification({
+          await createLike({
             frameId,
-            type: 'FRAME_LIKED',
+            userId: userTwo.id,
+          });
+          const { id: notificationId } = await createNotificationFrameLiked({
+            likedById: userTwo.id,
+            frameId,
             userId: user.id,
           });
           await deleteGaleriesId(app, token, galerieId, {
@@ -295,10 +308,18 @@ describe('/galeries', () => {
           const notification = await Notification.findByPk(notificationId);
           expect(notification).toBeNull();
         });
-        it('destroy all NotificationFramePosted where frameId belong to this galerie', async () => {
+        it('destroy all Notifications where type === \'FRAME_POSTED\' && galerieId === request.params.id', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: userTwo.id,
+          });
           const { id: frameId } = await createFrame({
             galerieId,
-            userId: user.id,
+            userId: userTwo.id,
           });
           await createNotificationFramePosted({
             frameId,
@@ -314,25 +335,18 @@ describe('/galeries', () => {
           const notificationFramePosted = await NotificationFramePosted.findAll();
           expect(notificationFramePosted.length).toBe(0);
         });
-        it('destroy all notification where notification.type === \'FRAME_POSTED\' where notification.galeriId === galerie.id', async () => {
-          const { id: notificationId } = await createNotification({
-            galerieId,
-            type: 'FRAME_POSTED',
-            userId: user.id,
-          });
-          await deleteGaleriesId(app, token, galerieId, {
-            body: {
-              name,
-              password,
-            },
-          });
-          const notification = await Notification.findByPk(notificationId);
-          expect(notification).toBeNull();
-        });
         it('destoy all notification where notification.type ===\'USER_SUBSCRIBE\' and notification.galerieId === galerie.id', async () => {
-          const { id: notificationId } = await createNotification({
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await createGalerieUser({
             galerieId,
-            type: 'USER_SUBSCRIBE',
+            userId: userTwo.id,
+          });
+          const { id: notificationId } = await createNotificationUserSubscribe({
+            galerieId,
+            subscribeUserId: userTwo.id,
             userId: user.id,
           });
           await deleteGaleriesId(app, token, galerieId, {

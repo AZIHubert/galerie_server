@@ -1,26 +1,26 @@
 import {
   Notification,
-  NotificationFramePosted,
+  NotificationUserSubscribe,
 } from '@src/db/models';
 
 export default async ({
-  frameId,
   galerieId,
   userId,
+  subscribeUserId,
 }: {
-  frameId: string;
   galerieId: string;
   userId: string;
+  subscribeUserId: string;
 }) => {
   const notification = await Notification.create({
     galerieId,
     num: 1,
-    type: 'FRAME_POSTED',
+    type: 'USER_SUBSCRIBE',
     userId,
   });
-  await NotificationFramePosted.create({
+  await NotificationUserSubscribe.create({
     notificationId: notification.id,
-    frameId,
+    userId: subscribeUserId,
   });
   return notification;
 };

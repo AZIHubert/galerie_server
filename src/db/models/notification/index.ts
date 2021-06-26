@@ -103,7 +103,7 @@ export default class Notification extends Model implements NotificationI {
   >;
 
   @BelongsToMany(() => User, () => NotificationUserSubscribe)
-  notificationUserSubscribe!: Array<
+  usersSubscribe!: Array<
   User &
   {NotificationUserSubscribe: NotificationUserSubscribe}
   >;

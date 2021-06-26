@@ -10,6 +10,7 @@ import '@src/helpers/initEnv';
 import {
   Frame,
   Like,
+  Notification,
   NotificationFrameLiked,
   User,
 } from '@src/db/models';
@@ -243,19 +244,57 @@ describe('/galerie', () => {
                 } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 expect(notificationToken).toBeUndefined();
               });
-              it('destoy notificationFrameLiked if currentUser dislike a frame', async () => {
+              it('destoy notification where type === \'FRAME_LIKED\', frameLiked.userId === currentUser.id && num <= 1 if currentUser dislike a frame', async () => {
                 await createLike({
                   frameId: frame.id,
                   userId: user.id,
                 });
-                await createNotificationFrameLiked({
+                const { id: notificationId } = await createNotificationFrameLiked({
                   frameId: frame.id,
                   likedById: user.id,
                   userId: userTwo.id,
                 });
                 await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
-                const notificationsFrameLiked = await NotificationFrameLiked.findAll();
-                expect(notificationsFrameLiked.length).toBe(0);
+                const notification = await Notification.findByPk(notificationId);
+                expect(notification).toBeNull();
+              });
+              it('decrement notification.num where type === \'FRAME_LIKED\', frameLiked.userId === currentUser.id && num > 1 if currentUser dislike a frame', async () => {
+                const { user: userThree } = await createUser({
+                  email: 'user3@email.com',
+                  userName: 'user3',
+                });
+                await createGalerieUser({
+                  galerieId,
+                  userId: userThree.id,
+                });
+                await createLike({
+                  frameId: frame.id,
+                  userId: user.id,
+                });
+                await createLike({
+                  frameId: frame.id,
+                  userId: userThree.id,
+                });
+                const notification = await createNotificationFrameLiked({
+                  frameId: frame.id,
+                  likedById: user.id,
+                  userId: userTwo.id,
+                });
+                await NotificationFrameLiked.create({
+                  notificationId: notification.id,
+                  userId: userThree.id,
+                });
+                await notification.increment({ num: 1 });
+                await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                await notification.reload();
+                const notificationFrameLiked = await NotificationFrameLiked.findOne({
+                  where: {
+                    notificationId: notification.id,
+                    userId: user.id,
+                  },
+                });
+                expect(notification.num).toBe(1);
+                expect(notificationFrameLiked).toBeNull();
               });
             });
             describe('should return status 400 if', () => {

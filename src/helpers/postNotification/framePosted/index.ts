@@ -42,8 +42,9 @@ export default async ({
   // Fetch frame.
   try {
     frame = await Frame.findByPk(frameId);
-    // TODO:
+    // TODO: ???
     // include galerie.
+    // not sure why i write a todo
   } catch (err) {
     return {
       OK: false,
@@ -88,6 +89,8 @@ export default async ({
   // Fetch all users (except the one who post
   // the frame) subscribe to the galerie where
   // frame has been posted.
+  // TODO: ???
+  // Maybe for include in one fetch galerieUser.
   try {
     galerieUsers = await GalerieUser.findAll({
       where: {

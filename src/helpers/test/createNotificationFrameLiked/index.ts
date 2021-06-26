@@ -14,6 +14,7 @@ export default async ({
 }) => {
   const notification = await Notification.create({
     frameId,
+    num: 1,
     type: 'FRAME_LIKED',
     userId,
   });

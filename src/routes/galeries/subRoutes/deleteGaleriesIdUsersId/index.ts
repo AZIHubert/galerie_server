@@ -31,6 +31,7 @@ export default async (req: Request, res: Response) => {
   } = req.params;
   const currentUser = req.user as User;
   let galerie: Galerie | null;
+  let notificationsUserSubscribe: Notification[];
   let user: User | null;
 
   // Check if request.params.galerieId
@@ -184,21 +185,38 @@ export default async (req: Request, res: Response) => {
     try {
       await Promise.all(
         user.frames.map(async (frame) => {
+          // Destroy or decrement num
+          // for all notification
+          // where type === 'FRAME_POSTED'
+          // and notificationsFramePosted.frameId === frame.id
+          const notifications = await Notification.findAll({
+            include: [{
+              as: 'notificationsFramePosted',
+              model: Frame,
+              where: {
+                id: frame.id,
+              },
+            }],
+            where: {
+              type: 'FRAME_POSTED',
+            },
+          });
+          await Promise.all(
+            notifications.map(
+              async (notification) => {
+                if (notification.num <= 1) {
+                  await notification.destroy();
+                } else {
+                  await notification.decrement({ num: 1 });
+                }
+              },
+            ),
+          );
+
+          // Destroy frame.
           await frame.destroy();
-          // TODO:
-          // destroy all notifications
-          // where
-          //  type === 'FRAME_POSTED'
-          //  num <= 1
-          // include frame as notificationFramePosted
-          // where
-          //  frameId === frame.id
-          // decrement notification.num
-          // where
-          //  type === 'FRAME_POSTED'
-          // include frame as notificationFramePosted
-          // where
-          //  frameId === frame.id
+
+          // Destroy images from Google Bucket.
           await Promise.all(
             frame.galeriePictures.map(
               async (galeriePicture) => {
@@ -230,34 +248,76 @@ export default async (req: Request, res: Response) => {
     }
   }
 
+  // Set createdById === nul for all galerieBlackList
+  // posted by deleted user
+  try {
+    await GalerieBlackList.update({
+      createdById: null,
+    }, {
+      where: {
+        galerieId,
+        createdById: user.id,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
   // Destroy all likes post by
   // deleted user on this galerie.
   // and decrement frames.numOfLikes.
   if (user.likes) {
     try {
       await Promise.all(
-        user.likes.map(async (like) => {
-          await like.destroy();
-          await like.frame.decrement({ numOfLikes: 1 });
+        user.likes.map(
+          async (like) => {
+            // Decrement numOfLike
+            // for all frame liked by deleted user.
+            await like.frame.decrement({ numOfLikes: 1 });
 
-          // TODO:
-          // Destroy all notifications
-          // where
-          //  type === 'FRAME_LIKED'
-          //  num <= 1
-          //  frameId === like.frame.id
-          // update all notifications
-          // where
-          //  type === 'FRAME_LIKED'
-          //  frameId === like.frame.id
-        }),
+            // Destoy Like
+            await like.destroy();
+
+            // Fetch notification where
+            // type === 'FRAME_LIKED', frameId === frame.id
+            // and frameLiked.userId === deleted user.id exist.
+            const notification = await Notification.findOne({
+              include: [
+                {
+                  as: 'notificationsFrameLiked',
+                  model: User,
+                  where: {
+                    id: userId,
+                  },
+                },
+              ],
+              where: {
+                frameId: like.frameId,
+                type: 'FRAME_LIKED',
+              },
+            });
+
+            // If notification exist and
+            // num <= 1, destroy it,
+            // else destroy through model and decrement num.
+            if (notification) {
+              if (notification.num <= 1) {
+                await notification.destroy();
+              } else {
+                await notification.decrement({ num: 1 });
+                await notification.notificationsFrameLiked[0].destroy();
+              }
+            }
+          },
+        ),
       );
     } catch (err) {
       return res.status(500).send(err);
     }
   }
 
-  // Destroy invitation posted by deleted user.
+  // Destroy invitation
+  // posted by deleted user.
   try {
     await Invitation.destroy({
       where: {
@@ -276,13 +336,13 @@ export default async (req: Request, res: Response) => {
   try {
     await Notification.destroy({
       where: {
+        galerieId,
         type: {
           [Op.or]: [
             'FRAME_POSTED',
             'USER_SUBSCRIBE',
           ],
         },
-        galerieId,
         userId,
       },
     });
@@ -290,33 +350,44 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // TODO:
-  // fetch all notifications
-  // where
-  //  type === 'USER_SUBSCRIBE'
-  //  galerieId === request.params.galeriId
-  // include user as notificationUserSubscribe
-  // where
-  //  userId === request.params.userId
-  // foreach notifications
-  //  if notification.num <= 1
-  //    destroy notification
-  //  else
-  //    decrement notification.num
-  //  foreach notificationUserSubscribes
-  //    destroy notificationUserSubscribe
-
-  // Set createdById === nul for all galerieBlackList
-  // posted by deleted user
+  // Fetch all notifications
+  // where type === 'USER_SUBSCRIBE',
+  // galerieId === request.params.galerieId
+  // and usersSubscribe.id === currentUser.id.
   try {
-    await GalerieBlackList.update({
-      createdById: null,
-    }, {
+    notificationsUserSubscribe = await Notification.findAll({
+      include: [
+        {
+          as: 'usersSubscribe',
+          model: User,
+          where: {
+            id: userId,
+          },
+        },
+      ],
       where: {
         galerieId,
-        createdById: user.id,
+        type: 'USER_SUBSCRIBE',
       },
     });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  // If notification.num <= 1 destroy it,
+  // else, delete though model and decrement num.
+  try {
+    await Promise.all(
+      notificationsUserSubscribe.map(
+        async (notification) => {
+          if (notification.num <= 1) {
+            await notification.destroy();
+          } else {
+            await notification.usersSubscribe[0].destroy();
+            await notification.decrement({ num: 1 });
+          }
+        },
+      ),
+    );
   } catch (err) {
     return res.status(500).send(err);
   }

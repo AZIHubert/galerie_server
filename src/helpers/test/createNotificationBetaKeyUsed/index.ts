@@ -11,6 +11,7 @@ export default async ({
   usedById: string;
 }) => {
   const notification = await Notification.create({
+    num: 1,
     type: 'BETA_KEY_USED',
     userId,
   });
@@ -18,4 +19,5 @@ export default async ({
     notificationId: notification.id,
     userId: usedById,
   });
+  return notification;
 };

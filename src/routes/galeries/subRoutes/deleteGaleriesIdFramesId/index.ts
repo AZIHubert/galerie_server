@@ -10,6 +10,7 @@ import {
   Galerie,
   GaleriePicture,
   GalerieUser,
+  Notification,
   User,
 } from '@src/db/models';
 
@@ -31,6 +32,7 @@ export default async (req: Request, res: Response) => {
   } = {};
   let galerie: Galerie | null;
   let galerieUser: GalerieUser | null;
+  let notificationsFramePosted: Notification[];
 
   if (currentUser.role === 'user') {
     where.id = currentUser.id;
@@ -117,7 +119,7 @@ export default async (req: Request, res: Response) => {
     // If currentUser.role === user.
     currentUser.role === 'user'
     && (
-    // If currentUser do not have posted this frame.
+      // If currentUser do not have posted this frame.
       currentUser.id !== galerie.frames[0].userId
       && (
         (
@@ -138,28 +140,46 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // TODO:
-  // destroy all notification
-  // where
-  //  type === 'FRAME_POSTED'
-  //  galerieId === request.params.galerieId
-  //  num <= 1
-  //   frame as notificationFramePosted
-  //   where
-  //    frameId === galerie.frames[0].id
-  // decrement notification.num
-  // where
-  //  type === 'FRAME_POSTED'
-  //  galerieId === request.params.galerieId
-  //   frame as notificationFramePosted
-  //   where
-  //    frameId === galerie.frames[0].id
+  // Update or destroy notifications
+  // where notification.framePosted.frameId === frameId.
+  try {
+    notificationsFramePosted = await Notification.findAll({
+      include: [
+        {
+          as: 'notificationsFramePosted',
+          model: Frame,
+          where: {
+            id: frameId,
+          },
+        },
+      ],
+      where: {
+        type: 'FRAME_POSTED',
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  try {
+    await Promise.all(
+      notificationsFramePosted.map(
+        async (notification) => {
+          if (notification.num <= 1) {
+            await notification.destroy();
+          } else {
+            await notification.decrement({ num: 1 });
+            await notification.notificationsFramePosted[0].destroy();
+          }
+        },
+      ),
+    );
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
-  // Destroy all frames/galerieImages/images
-  // /images from Google Buckets/likes.
+  // Destoy frame and Google Bucket Images.
   try {
     await galerie.frames[0].destroy();
-
     await Promise.all(
       galerie.frames[0].galeriePictures.map(
         async (galeriePicture) => {
@@ -169,7 +189,6 @@ export default async (req: Request, res: Response) => {
             pendingImage,
           } = galeriePicture;
 
-          // Delete files from Google Buckets.
           await gc
             .bucket(originalImage.bucketName)
             .file(originalImage.fileName)

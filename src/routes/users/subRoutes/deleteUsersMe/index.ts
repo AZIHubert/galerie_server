@@ -15,6 +15,7 @@ import {
   GalerieUser,
   Invitation,
   Like,
+  Notification,
   ProfilePicture,
   Ticket,
   User,
@@ -32,6 +33,8 @@ import validatePassword from '@src/helpers/validatePassword';
 
 export default async (req: Request, res: Response) => {
   const user = req.user as User;
+  let notificationsUserSubscribe: Notification[];
+  let notificationBetaKeyUsed: Notification | null;
 
   // Check if user is created with Google or Facebook.
   // If true, the user can't delete his account.
@@ -156,20 +159,33 @@ export default async (req: Request, res: Response) => {
     });
     await Promise.all(
       frames.map(async (frame) => {
-        // TODO:
-        // destroy all notification
-        // where
-        //  type === 'FRAME_POSTED'
-        //  num <= 1
-        // include frame as notificationFramePosted
-        // where
-        //  frameId === frame.id
-        // decrement notification.num
-        // where
-        //  type === 'FRAME_POSTED'
-        // include frame as notificationFramePosted
-        // where
-        //  frameId === frame.id
+        // Destroy or decrement num
+        // for all notification
+        // where type === 'FRAME_POSTED'
+        // and notificationsFramePosted.frameId === frame.id
+        const notifications = await Notification.findAll({
+          include: [{
+            as: 'notificationsFramePosted',
+            model: Frame,
+            where: {
+              id: frame.id,
+            },
+          }],
+          where: {
+            type: 'FRAME_POSTED',
+          },
+        });
+        await Promise.all(
+          notifications.map(
+            async (notification) => {
+              if (notification.num <= 1) {
+                await notification.destroy();
+              } else {
+                await notification.decrement({ num: 1 });
+              }
+            },
+          ),
+        );
 
         await Promise.all(
           frame.galeriePictures.map(
@@ -286,6 +302,37 @@ export default async (req: Request, res: Response) => {
     });
     await Promise.all(
       likes.map(async (like) => {
+        // Fetch notification where
+        // type === 'FRAME_LIKED', frameId === frame.id
+        // and frameLiked.userId === currentUser.id exist.
+        const notification = await Notification.findOne({
+          include: [
+            {
+              as: 'notificationsFrameLiked',
+              model: User,
+              where: {
+                id: user.id,
+              },
+            },
+          ],
+          where: {
+            frameId: like.frameId,
+            type: 'FRAME_LIKED',
+          },
+        });
+
+        // If notification exist and
+        // num <= 1, destroy it,
+        // else destroy through model and decrement num.
+        if (notification) {
+          if (notification.num <= 1) {
+            await notification.destroy();
+          } else {
+            await notification.decrement({ num: 1 });
+            await notification.notificationsFrameLiked[0].destroy();
+          }
+        }
+
         await Frame.increment({
           numOfLikes: -1,
         }, {
@@ -293,53 +340,95 @@ export default async (req: Request, res: Response) => {
             id: like.id,
           },
         });
-
-        // TODO:
-        // Destroy all notifications
-        // where
-        //  type === 'FRAME_LIKED'
-        //  num <= 1
-        //  frameId === likes.frame.id
-        // update all notifications
-        // where
-        //  type === 'FRAME_LIKED'
-        //  frameId === frame.id
       }),
     );
   } catch (err) {
     return res.status(500).send(err);
   }
 
-  // TODO:
-  // fetch all notifications
-  // where
-  //  type === 'USER_SUBSCRIBE'
-  // include user as notificationUserSubscribe
-  // where
-  //  userId === currentUser.id
-  // foreach notifications
-  //  if notification.num <= 1
-  //    destroy notification
-  //  else
-  //    decrement notification.num
-  //  foreach notificationUserSubscribes
-  //    destroy notificationUserSubscribe
+  // .....................
+  // Notifications
+  // .....................
+  // Fetch all notifications
+  // where type === 'USER_SUBSCRIBE',
+  // galerieId === request.params.galerieId
+  // and usersSubscribe.id === currentUser.id.
+  try {
+    notificationsUserSubscribe = await Notification.findAll({
+      include: [
+        {
+          as: 'usersSubscribe',
+          model: User,
+          where: {
+            id: user.id,
+          },
+        },
+      ],
+      where: {
+        type: 'USER_SUBSCRIBE',
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  // If notification.num <= 1 destroy it,
+  // else, delete though model and decrement num.
+  try {
+    await Promise.all(
+      notificationsUserSubscribe.map(
+        async (notification) => {
+          if (notification.num <= 1) {
+            await notification.destroy();
+          } else {
+            await notification.usersSubscribe[0].destroy();
+            await notification.decrement({ num: 1 });
+          }
+        },
+      ),
+    );
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 
-  // TODO:
-  // destroy all Notification
-  // where
-  //  type === 'BETA_KEY_USED'
-  //  num <= 1
-  // include user as notificationBetaKeyUsed
-  // where
-  //  userId === currentUser.id
-  // decrement notification.num
-  // where
-  //  type === 'BETA_KEY_USED'
-  //  num <= 1
-  // include user as notificationBetaKeyUsed
-  // where
-  //  userId === currentUser.id
+  // Fetch notification
+  // where type === 'BETA_KEY_USED',
+  // bataLeyUsed.userId === request.params.userId
+  try {
+    notificationBetaKeyUsed = await Notification.findOne({
+      include: [
+        {
+          as: 'notificationsBetaKeyUsed',
+          model: User,
+          where: {
+            id: user.id,
+          },
+        },
+      ],
+      where: {
+        type: 'BETA_KEY_USED',
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // If notification.num <= 1 destroy it,
+  // else, delete though model and decrement num.
+  if (notificationBetaKeyUsed) {
+    if (notificationBetaKeyUsed.num <= 1) {
+      try {
+        await notificationBetaKeyUsed.destroy();
+      } catch (err) {
+        return res.status(500).send(err);
+      }
+    } else {
+      try {
+        await notificationBetaKeyUsed.decrement({ num: 1 });
+      } catch (err) {
+        return res.status(500).send(err);
+      }
+    }
+  }
 
   // .....................
   // ProfilePictures
