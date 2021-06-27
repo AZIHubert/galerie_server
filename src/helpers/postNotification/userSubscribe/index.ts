@@ -95,6 +95,9 @@ export default async ({
     } as Error;
   }
 
+  // TODO:
+  // check if galerieUser.allowNotification === true
+
   // Set galerieUser.notificationHasBeenSend === true
   // to not allow to send notification relative
   // to this frame.
@@ -127,7 +130,7 @@ export default async ({
   }
 
   // If the galerie have a creator.
-  if (galerieUserCreator) {
+  if (galerieUserCreator && galerieUserCreator.allowNotification) {
     let notificationCreator;
 
     // Fetch notification.
@@ -213,7 +216,11 @@ export default async ({
     } as Error;
   }
 
-  if (!galerieUserAdmin || galerieUserAdmin.role === 'user') {
+  if (
+    !galerieUserAdmin
+    || galerieUserAdmin.role === 'user'
+    || !galerieUserAdmin.allowNotification
+  ) {
     return { OK: true } as Success;
   }
 

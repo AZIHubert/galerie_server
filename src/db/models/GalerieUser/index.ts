@@ -11,6 +11,7 @@ import Galerie from '../galerie';
 import User from '../user';
 
 interface GalerieUserI {
+  allowNotification: boolean;
   galerieId?: string;
   hasNewFrames: boolean;
   notificationHasBeenSend: boolean;
@@ -22,6 +23,13 @@ interface GalerieUserI {
   tableName: 'galerieUser',
 })
 export default class GalerieUser extends Model implements GalerieUserI {
+  @Column({
+    allowNull: false,
+    defaultValue: true,
+    type: DataType.BOOLEAN,
+  })
+  allowNotification!: boolean;
+
   @ForeignKey(() => Galerie)
   @Column({
     allowNull: false,

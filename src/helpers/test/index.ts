@@ -86,6 +86,7 @@ export { default as postUsersSigninBeta } from './postUsersSigninBeta';
 export { default as putBetaKeysId } from './putBetaKeysId';
 export { default as putBlackLists } from './putBlackLists';
 export { default as putGaleriesId } from './putGaleriesId';
+export { default as putGaleriesIdAllowNotification } from './putGaleriesIdAllowNotification';
 export { default as putGaleriesIdFramesId } from './putGaleriesIdFramesId';
 export { default as putGaleriesIdFramesIdGaleriePicturesId } from './putGaleriesIdFramesIdGaleriePicturesId';
 export { default as putGaleriesIdUsersId } from './putGaleriesIdUsersId';

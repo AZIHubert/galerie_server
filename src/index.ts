@@ -18,9 +18,6 @@ initSequelize(() => {
 });
 
 // TODO:
-// galerie.allowNotification
-
-// TODO:
 // notification.seen
 
 // TODO:

@@ -42,9 +42,6 @@ export default async ({
   // Fetch frame.
   try {
     frame = await Frame.findByPk(frameId);
-    // TODO: ???
-    // include galerie.
-    // not sure why i write a todo
   } catch (err) {
     return {
       OK: false,
@@ -89,8 +86,6 @@ export default async ({
   // Fetch all users (except the one who post
   // the frame) subscribe to the galerie where
   // frame has been posted.
-  // TODO: ???
-  // Maybe for include in one fetch galerieUser.
   try {
     galerieUsers = await GalerieUser.findAll({
       where: {
@@ -119,30 +114,34 @@ export default async ({
     await Promise.all(
       galerieUsers.map(
         async (galerieUser) => {
-          const notification = await Notification.findOne({
-            where: {
-              galerieId: frame!.galerieId,
-              type: 'FRAME_POSTED',
-              userId: galerieUser.userId,
-            },
-          });
-          if (notification) {
-            await notification.increment({ num: 1 });
-            await NotificationFramePosted.create({
-              notificationId: notification.id,
-              frameId,
+          // Create notification if
+          // galerieUser.allowNotification === true.
+          if (galerieUser.allowNotification) {
+            const notification = await Notification.findOne({
+              where: {
+                galerieId: frame!.galerieId,
+                type: 'FRAME_POSTED',
+                userId: galerieUser.userId,
+              },
             });
-          } else {
-            const { id: notificationId } = await Notification.create({
-              galerieId: frame!.galerieId,
-              num: 1,
-              type: 'FRAME_POSTED',
-              userId: galerieUser.userId,
-            });
-            await NotificationFramePosted.create({
-              notificationId,
-              frameId,
-            });
+            if (notification) {
+              await notification.increment({ num: 1 });
+              await NotificationFramePosted.create({
+                notificationId: notification.id,
+                frameId,
+              });
+            } else {
+              const { id: notificationId } = await Notification.create({
+                galerieId: frame!.galerieId,
+                num: 1,
+                type: 'FRAME_POSTED',
+                userId: galerieUser.userId,
+              });
+              await NotificationFramePosted.create({
+                notificationId,
+                frameId,
+              });
+            }
           }
         },
       ),

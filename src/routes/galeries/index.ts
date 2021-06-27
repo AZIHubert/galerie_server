@@ -35,6 +35,7 @@ import {
   postGaleriesSubscribe,
 
   putGaleriesId,
+  putGaleriesIdAllowNotification,
   putGaleriesIdFramesId,
   putGaleriesIdFramesIdGaleriePicturesId,
   putGaleriesIdUsersId,
@@ -65,13 +66,14 @@ const galeriesRoutes: () => Router = () => {
   router.get('/:galerieId/users', shouldBeAuth, getGaleriesIdUsers);
 
   router.post('/', shouldBeAuth, postGaleries);
+  router.post('/subscribe/', shouldBeAuth, postGaleriesSubscribe);
   router.post('/:galerieId/users/:userId/blackLists/', shouldBeAuth, postGaleriesIdUsersIdBlackLists);
   router.post('/:galerieId/frames/', shouldBeAuth, uploadFiles, postGaleriesIdFrames);
   router.post('/:galerieId/frames/:frameId/likes/', shouldBeAuth, postGaleriesIdFramesIdLikes);
   router.post('/:galerieId/invitations/', shouldBeAuth, postGaleriesIdInvitations);
-  router.post('/subscribe/', shouldBeAuth, postGaleriesSubscribe);
 
   router.put('/:galerieId/', shouldBeAuth, putGaleriesId);
+  router.put('/:galerieId/allowNotification', shouldBeAuth, putGaleriesIdAllowNotification);
   router.put('/:galerieId/frames/:frameId/', shouldBeAuth, putGaleriesIdFramesId);
   router.put('/:galerieId/frames/:frameId/galeriePictures/:galeriePictureId/', shouldBeAuth, putGaleriesIdFramesIdGaleriePicturesId);
   router.put('/:galerieId/users/:userId', shouldBeAuth, putGaleriesIdUsersId);

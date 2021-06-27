@@ -1,4 +1,9 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('galerieUser', {
+  allowNotification: {
+    allowNull: false,
+    default: true,
+    type: DataTypes.BOOLEAN,
+  },
   createdAt: {
     allowNull: false,
     type: DataTypes.DATE,

@@ -3,12 +3,14 @@ import {
 } from '@src/db/models';
 
 export default async ({
+  allowNotification,
   galerieId,
   hasNewFrames = false,
   notificationHasBeenSend = false,
   role = 'user',
   userId,
 }: {
+  allowNotification?: boolean,
   galerieId: string;
   hasNewFrames?: boolean;
   notificationHasBeenSend?: boolean;
@@ -16,6 +18,7 @@ export default async ({
   userId?: string;
 }) => {
   const galerieUser = await GalerieUser.create({
+    allowNotification,
     galerieId,
     hasNewFrames,
     notificationHasBeenSend,

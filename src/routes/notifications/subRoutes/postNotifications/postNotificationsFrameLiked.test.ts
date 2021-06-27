@@ -61,6 +61,7 @@ describe('/Notifications', () => {
       });
 
       describe('should return status 204 and', () => {
+        let galerieId: string;
         let frameId: string;
         let likeId: string;
         let notificationtoken: string;
@@ -76,9 +77,10 @@ describe('/Notifications', () => {
               userName: 'user2',
             });
             userTwo = newUser;
-            const { id: galerieId } = await createGalerie({
+            const galerie = await createGalerie({
               userId: user.id,
             });
+            galerieId = galerie.id;
             await createGalerieUser({
               galerieId,
               userId: userTwo.id,
@@ -146,6 +148,36 @@ describe('/Notifications', () => {
           expect(notificationsFrameLiked.length).toBe(1);
           expect(notificationsFrameLiked[0].notificationId).toBe(notification.id);
           expect(notificationsFrameLiked[0].userId).toBe(userTwo.id);
+        });
+        it('do not create notification if allowNotification === false', async () => {
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          await createGalerieUser({
+            galerieId,
+            allowNotification: false,
+            userId: userThree.id,
+          });
+          const frameTwo = await createFrame({
+            galerieId,
+            userId: userThree.id,
+          });
+          const like = await createLike({
+            frameId: frameTwo.id,
+            userId: userTwo.id,
+          });
+          const signToken = signNotificationToken('FRAME_LIKED', {
+            likeId: like.id,
+          });
+          const { status } = await postNotifications(app, {
+            notificationtoken: signToken.token,
+          });
+          await like.reload();
+          const notifications = await Notification.findAll();
+          expect(like.notificationHasBeenSend).toBe(true);
+          expect(notifications.length).toBe(0);
+          expect(status).toBe(204);
         });
       });
       describe('should return status 400 if', () => {

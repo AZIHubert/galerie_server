@@ -136,6 +136,7 @@ export default async (req: Request, res: Response) => {
   const returnedGalerie = {
     ...galerie.toJSON(),
     ...objectGalerieExcluder,
+    allowNotification: true,
     currentCoverPicture: null,
     frames: [],
     hasNewFrames: false,

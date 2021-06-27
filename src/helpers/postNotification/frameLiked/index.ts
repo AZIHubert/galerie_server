@@ -1,5 +1,6 @@
 import {
   Frame,
+  GalerieUser,
   Like,
   Notification,
   NotificationFrameLiked,
@@ -27,6 +28,7 @@ export default async ({
 }) => {
   let like: Like | null;
   let notification: Notification | null;
+  let galerieUser: GalerieUser | null;
 
   // Check if notificationtoken.data.likeId is a UUIDv4.
   if (!uuidValidateV4(likeId)) {
@@ -72,6 +74,22 @@ export default async ({
     } as Error;
   }
 
+  // Fetch galerieUser.
+  try {
+    galerieUser = await GalerieUser.findOne({
+      where: {
+        galerieId: like.frame.galerieId,
+        userId: like.frame.userId,
+      },
+    });
+  } catch (err) {
+    return {
+      OK: false,
+      errors: err,
+      status: 500,
+    } as Error;
+  }
+
   // Set like.notificationHasBeenSend === true
   // to not allow to send notification relative
   // to this like.
@@ -85,6 +103,11 @@ export default async ({
       errors: err,
       status: 500,
     } as Error;
+  }
+
+  // Do not create notification if allowNotification === false.
+  if (!galerieUser || !galerieUser.allowNotification) {
+    return { OK: true } as Success;
   }
 
   // Fetch notification.

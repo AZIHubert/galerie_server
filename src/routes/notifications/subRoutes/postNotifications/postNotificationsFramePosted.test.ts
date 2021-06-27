@@ -9,6 +9,7 @@ import {
   Frame,
   Notification,
   NotificationFramePosted,
+  User,
 } from '@src/db/models';
 
 import {
@@ -65,10 +66,12 @@ describe('/Notifications', () => {
         let frameId: string;
         let galerieId: string;
         let notificationtoken: string;
+        let user: User;
 
         beforeEach(async (done) => {
           try {
-            const { user } = await createUser({});
+            const { user: createdUser } = await createUser({});
+            user = createdUser;
             const galerie = await createGalerie({
               userId: user.id,
             });
@@ -184,6 +187,35 @@ describe('/Notifications', () => {
           });
           await notification.reload();
           expect(notification.num).toBe(num);
+        });
+        it('do not create notification if allowNotification === false', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const galerie = await createGalerie({
+            userId: user.id,
+            allowNotification: false,
+          });
+          await createGalerieUser({
+            galerieId: galerie.id,
+            userId: userTwo.id,
+          });
+          const frame = await createFrame({
+            galerieId: galerie.id,
+            userId: userTwo.id,
+          });
+          const signToken = signNotificationToken('FRAME_POSTED', {
+            frameId: frame.id,
+          });
+          const { status } = await postNotifications(app, {
+            notificationtoken: signToken.token,
+          });
+          const returnedFrame = await Frame.findByPk(frame.id) as Frame;
+          const notifications = await Notification.findAll();
+          expect(notifications.length).toBe(0);
+          expect(returnedFrame.notificationHasBeenSend).toBe(true);
+          expect(status).toBe(204);
         });
       });
       describe('should return status 400 if', () => {

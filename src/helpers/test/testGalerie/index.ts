@@ -2,6 +2,7 @@ export default (
   galerie: any,
   refGalerie?: any,
 ) => {
+  expect(typeof galerie.allowNotification).toBe('boolean');
   expect(galerie.currentCoverPicture).not.toBeUndefined();
   expect(galerie.hasNewFrames).not.toBeUndefined();
   expect(galerie.role).not.toBeUndefined();
