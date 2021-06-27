@@ -11,8 +11,10 @@ import Galerie from '../galerie';
 import User from '../user';
 
 interface GalerieUserI {
+  allowNotification: boolean;
   galerieId?: string;
   hasNewFrames: boolean;
+  notificationHasBeenSend: boolean;
   role?: string;
   userId?: string;
 }
@@ -21,6 +23,13 @@ interface GalerieUserI {
   tableName: 'galerieUser',
 })
 export default class GalerieUser extends Model implements GalerieUserI {
+  @Column({
+    allowNull: false,
+    defaultValue: true,
+    type: DataType.BOOLEAN,
+  })
+  allowNotification!: boolean;
+
   @ForeignKey(() => Galerie)
   @Column({
     allowNull: false,
@@ -34,6 +43,13 @@ export default class GalerieUser extends Model implements GalerieUserI {
     type: DataType.BOOLEAN,
   })
   hasNewFrames!: boolean;
+
+  @Column({
+    allowNull: false,
+    defaultValue: false,
+    type: DataType.BOOLEAN,
+  })
+  notificationHasBeenSend!: boolean;
 
   // Allow different action based on
   // the role of the user on this galerie.

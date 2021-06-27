@@ -80,6 +80,7 @@ describe('/users', () => {
               status,
             } = await getUsersId(app, token, userTwo.id);
             expect(action).toBe('GET');
+            expect(returnedUser.hasNewNotifications).toBeUndefined();
             expect(status).toBe(200);
             testUser(returnedUser, userTwo);
           });

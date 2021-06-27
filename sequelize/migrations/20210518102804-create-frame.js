@@ -20,6 +20,11 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('f
     primaryKey: true,
     type: DataTypes.UUID,
   },
+  notificationHasBeenSend: {
+    allowNull: false,
+    default: false,
+    type: DataTypes.BOOLEAN,
+  },
   numOfLikes: {
     allowNull: false,
     default: 0,

@@ -9,6 +9,7 @@ import {
   Frame,
   Galerie,
   Like,
+  Notification,
   User,
 } from '@src/db/models';
 
@@ -16,6 +17,7 @@ import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
+import { signNotificationToken } from '@src/helpers/issueJWT';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -27,6 +29,7 @@ export default async (req: Request, res: Response) => {
   let galerie: Galerie | null;
   let like: Like | null;
   let liked: boolean;
+  let notificationToken;
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -93,22 +96,89 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // If like exist, destroy it,
-  // decrement frame.numOfLike
   if (like) {
-    await like.destroy();
-    await galerie.frames[0].decrement({ numOfLikes: 1 });
+    let notification: Notification | null;
+    // Destroy like
+    try {
+      await like.destroy();
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+
+    // Decrement frame.numOfLikes.
+    try {
+      await galerie.frames[0].decrement({ numOfLikes: 1 });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
     liked = false;
 
-  // Else, create one
+    // Fetch notification where
+    // type === 'FRAME_LIKED',
+    // frameId === request.params.frameId
+    // and frameLiked.userId === currentUser.id
+    try {
+      notification = await Notification.findOne({
+        include: [
+          {
+            as: 'notificationsFrameLiked',
+            model: User,
+            where: {
+              id: currentUser.id,
+            },
+          },
+        ],
+        where: {
+          frameId,
+          type: 'FRAME_LIKED',
+        },
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+
+    // If notification.num <= 1 destroy notification,
+    // else, decrement num and destroy through model.
+    if (notification) {
+      if (notification.num <= 1) {
+        try {
+          await notification.destroy();
+        } catch (err) {
+          return res.status(500).send(err);
+        }
+      } else {
+        try {
+          await notification.decrement({ num: 1 });
+          await notification.notificationsFrameLiked[0].destroy();
+        } catch (err) {
+          return res.status(500).send(err);
+        }
+      }
+    }
+
+  // ...else, create a Like,
   // increment frame.numOfLike
+  // and create notificationToken.
   } else {
-    await Like.create({
-      frameId,
-      userId: currentUser.id,
-    });
-    await galerie.frames[0].increment({ numOfLikes: 1 });
+    let likeId: string;
+
+    try {
+      const createdLike = await Like.create({
+        frameId,
+        userId: currentUser.id,
+      });
+      likeId = createdLike.id;
+      await galerie.frames[0].increment({ numOfLikes: 1 });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
     liked = true;
+    if (galerie.frames[0].userId !== currentUser.id) {
+      const signToken = signNotificationToken('FRAME_LIKED', {
+        likeId,
+      });
+      notificationToken = signToken.token;
+    }
   }
 
   return res.status(200).send({
@@ -117,6 +187,7 @@ export default async (req: Request, res: Response) => {
       frameId,
       galerieId,
       liked,
+      notificationToken,
       numOfLikes: galerie.frames[0].numOfLikes,
     },
   });

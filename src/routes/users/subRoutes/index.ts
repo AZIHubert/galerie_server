@@ -28,6 +28,7 @@ export { default as putUsersConfirmation } from './putUsersConfirmation';
 export { default as putUsersIdBlackLists } from './putUsersIdBlackLists';
 export { default as putUsersIdRole } from './putUsersIdRole';
 export { default as putUsersMeEmail } from './putUsersMeEmail';
+export { default as putUsersMeHasNewNotifications } from './putUsersMeHasNewNotifications';
 export { default as putUsersMePassword } from './putUsersMePassword';
 export { default as putUsersMePseudonym } from './putUsersMePseudonym';
 export { default as putUsersPassword } from './putUsersPassword';

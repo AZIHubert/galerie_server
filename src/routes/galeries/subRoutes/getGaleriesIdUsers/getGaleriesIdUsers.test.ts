@@ -112,6 +112,7 @@ describe('/galeries', () => {
             } = await getGaleriesIdUsers(app, token, galerieId);
             expect(users.length).toBe(1);
             expect(users[0].galerieRole).not.toBeUndefined();
+            expect(users[0].hasNewNotifications).toBeUndefined();
             testUser(users[0]);
           });
           it('do not return users if their not subscribe to this galerie', async () => {

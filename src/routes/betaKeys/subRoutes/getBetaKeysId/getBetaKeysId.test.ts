@@ -93,6 +93,7 @@ describe('/betaKeys', () => {
             },
           },
         } = await getBetaKeysId(app, token, betaKeyId);
+        expect(createdBy.hasNewNotifications).toBeUndefined();
         testUser(createdBy, user);
       });
       it('include user', async () => {
@@ -110,6 +111,7 @@ describe('/betaKeys', () => {
             },
           },
         } = await getBetaKeysId(app, token, betaKeyId);
+        expect(betaKey.user.hasNewNotifications).toBeUndefined();
         testUser(betaKey.user, userTwo);
       });
     });

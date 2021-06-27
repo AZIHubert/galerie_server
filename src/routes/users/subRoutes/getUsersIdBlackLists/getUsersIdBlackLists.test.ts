@@ -186,6 +186,7 @@ describe('/admin', () => {
                   },
                 },
               } = await getUsersIdBlackLists(app, token, userTwo.id);
+              expect(createdBy.hasNewNotifications).toBeUndefined();
               testUser(createdBy, user);
             });
             it('include updatedBy', async () => {
@@ -202,6 +203,7 @@ describe('/admin', () => {
                   },
                 },
               } = await getUsersIdBlackLists(app, token, userTwo.id);
+              expect(updatedBy.hasNewNotifications).toBeUndefined();
               testUser(updatedBy, user);
             });
           });

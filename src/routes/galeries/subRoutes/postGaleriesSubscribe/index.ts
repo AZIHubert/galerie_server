@@ -16,6 +16,7 @@ import {
 import {
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
+import { signNotificationToken } from '@src/helpers/issueJWT';
 import {
   normalizeJoiErrors,
   validatePostGaleriesSubscribeBody,
@@ -161,10 +162,17 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  const { token: notificationToken } = signNotificationToken('USER_SUBSCRIBE', {
+    galerieId: invitation.galerieId,
+    subscribedUserId: currentUser.id,
+    userId: invitation.userId,
+  });
+
   return res.status(200).send({
     action: 'POST',
     data: {
       galerieId: galerie.id,
+      notificationToken,
     },
   });
 };

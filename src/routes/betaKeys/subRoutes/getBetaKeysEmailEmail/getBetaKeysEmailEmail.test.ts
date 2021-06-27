@@ -211,6 +211,7 @@ describe('/betaKeys', () => {
               },
             },
           } = await getBetaKeysEmailEmail(app, token, email);
+          expect(betaKeys[0].createdBy.hasNewNotifications).toBeUndefined();
           testUser(betaKeys[0].createdBy);
         });
         it('include user', async () => {
@@ -230,6 +231,7 @@ describe('/betaKeys', () => {
               },
             },
           } = await getBetaKeysEmailEmail(app, token, email);
+          expect(betaKeys[0].user.hasNewNotifications).toBeUndefined();
           testUser(betaKeys[0].user);
         });
       });

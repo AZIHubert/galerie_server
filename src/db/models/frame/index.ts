@@ -1,10 +1,12 @@
 import {
   BelongsTo,
+  BelongsToMany,
   Column,
   DataType,
   Default,
   ForeignKey,
   HasMany,
+  HasOne,
   Model,
   Table,
 } from 'sequelize-typescript';
@@ -12,12 +14,15 @@ import {
 import Galerie from '../galerie';
 import GaleriePicture from '../galeriePicture';
 import Like from '../like';
+import Notification from '../notification';
+import NotificationFramePosted from '../notificationFramePosted';
 import User from '../user';
 
 interface FrameI {
   description?: string;
   galerieId: string;
   id: string;
+  notificationHasBeenSend: boolean;
   numOfLikes: number;
   userId: string;
 }
@@ -45,6 +50,13 @@ export default class Frame extends Model implements FrameI {
   })
   id!: string;
 
+  @Column({
+    allowNull: false,
+    defaultValue: false,
+    type: DataType.BOOLEAN,
+  })
+  notificationHasBeenSend!: boolean;
+
   // Each time someone like this frame,
   // increment by one.
   // Each time someone unlike this frame,
@@ -71,11 +83,20 @@ export default class Frame extends Model implements FrameI {
   @BelongsTo(() => User)
   user!: User;
 
+  @BelongsToMany(() => Notification, () => NotificationFramePosted)
+  notificationsFramePosted!: Array<
+  Notification &
+  {NotificationFramePosted: NotificationFramePosted}
+  >;
+
   @HasMany(() => GaleriePicture, {
     hooks: true,
     onDelete: 'CASCADE',
   })
   galeriePictures!: GaleriePicture[];
+
+  @HasOne(() => Notification)
+  notification!: Notification;
 
   @HasMany(() => Like)
   likes!: Like[];

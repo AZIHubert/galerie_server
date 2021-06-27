@@ -10,6 +10,7 @@ export default async ({
   facebookId,
   googleId,
   isBlackListed = false,
+  hasNewNotifications,
   password = 'Password0!',
   pseudonym,
   role = 'user',
@@ -20,6 +21,7 @@ export default async ({
   email?: string;
   facebookId?: string;
   googleId?: string;
+  hasNewNotifications?: number;
   isBlackListed?: boolean;
   password?: string;
   pseudonym?: string;
@@ -32,6 +34,7 @@ export default async ({
     email: email || 'user@email.com',
     facebookId,
     googleId,
+    hasNewNotifications,
     isBlackListed,
     pseudonym: pseudonym || userName || 'pseudonym',
     role: role || 'superAdmin',

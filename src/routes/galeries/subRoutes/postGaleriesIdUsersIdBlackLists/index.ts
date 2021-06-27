@@ -4,6 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Frame,
@@ -11,6 +12,7 @@ import {
   GalerieBlackList,
   GaleriePicture,
   Invitation,
+  Notification,
   Like,
   User,
 } from '@src/db/models';
@@ -36,6 +38,7 @@ export default async (req: Request, res: Response) => {
   const objectGalerieBlackListExcluder: { [key:string]: undefined} = {};
   let galerie: Galerie | null;
   let galerieBlackList: GalerieBlackList;
+  let notificationsUserSubscribe: Notification[];
   let user: User | null;
 
   // Check if request.params.galerieId
@@ -206,13 +209,43 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Destroy all frames and Google Buckets images.
   if (user.frames) {
     try {
       await Promise.all(
         user.frames.map(
           async (frame) => {
+            // Destroy or decrement num
+            // for all notification
+            // where type === 'FRAME_POSTED'
+            // and notificationsFramePosted.frameId === frame.id
+            const notifications = await Notification.findAll({
+              include: [{
+                as: 'notificationsFramePosted',
+                model: Frame,
+                where: {
+                  id: frame.id,
+                },
+              }],
+              where: {
+                type: 'FRAME_POSTED',
+              },
+            });
+            await Promise.all(
+              notifications.map(
+                async (notification) => {
+                  if (notification.num <= 1) {
+                    await notification.destroy();
+                  } else {
+                    await notification.decrement({ num: 1 });
+                  }
+                },
+              ),
+            );
+
+            // Destroy frame.
             await frame.destroy();
+
+            // Destoy images from Google Bucket.
             await Promise.all(
               frame.galeriePictures.map(
                 async (galeriePicture) => {
@@ -245,6 +278,21 @@ export default async (req: Request, res: Response) => {
     }
   }
 
+  // Set createdById === nul for all galerieBlackList
+  // posted by deleted user
+  try {
+    await GalerieBlackList.update({
+      createdById: null,
+    }, {
+      where: {
+        galerieId,
+        createdById: user.id,
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
   // Destroy all likes post by
   // deleted user on this galerie.
   // and decrement frames.numOfLikes.
@@ -253,8 +301,39 @@ export default async (req: Request, res: Response) => {
       try {
         await Promise.all(
           user.likes.map(async (like) => {
-            like.destroy();
             await like.frame.decrement({ numOfLikes: 1 });
+            like.destroy();
+
+            // Fetch notification where
+            // type === 'FRAME_LIKED', frameId === frame.id
+            // and frameLiked.userId === currentUser.id exist.
+            const notification = await Notification.findOne({
+              include: [
+                {
+                  as: 'notificationsFrameLiked',
+                  model: User,
+                  where: {
+                    id: userId,
+                  },
+                },
+              ],
+              where: {
+                frameId: like.frameId,
+                type: 'FRAME_LIKED',
+              },
+            });
+
+            // If notification exist and
+            // num <= 1, destroy it,
+            // else destroy through model and decrement num.
+            if (notification) {
+              if (notification.num <= 1) {
+                await notification.destroy();
+              } else {
+                await notification.decrement({ num: 1 });
+                await notification.notificationsFrameLiked[0].destroy();
+              }
+            }
           }),
         );
       } catch (err) {
@@ -277,17 +356,65 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Set createdById === nul for all galerieBlackList
-  // posted by deleted user
+  // Destroy all notifications
+  // where galerieId === request.params.galerieId,
+  // type === FRAME_POSTED || 'USER_SUBSCRIBE',
+  // and userId === currentUser.id
   try {
-    await GalerieBlackList.update({
-      createdById: null,
-    }, {
+    await Notification.destroy({
       where: {
         galerieId,
-        createdById: user.id,
+        type: {
+          [Op.or]: [
+            'FRAME_POSTED',
+            'USER_SUBSCRIBE',
+          ],
+        },
+        userId,
       },
     });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
+  // Fetch all notifications
+  // where type === 'USER_SUBSCRIBE',
+  // galerieId === request.params.galerieId
+  // and usersSubscribe.id === currentUser.id.
+  try {
+    notificationsUserSubscribe = await Notification.findAll({
+      include: [
+        {
+          as: 'usersSubscribe',
+          model: User,
+          where: {
+            id: userId,
+          },
+        },
+      ],
+      where: {
+        galerieId,
+        type: 'USER_SUBSCRIBE',
+      },
+    });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  // If notification.num <= 1 destroy it,
+  // else, delete though model and decrement num.
+  try {
+    await Promise.all(
+      notificationsUserSubscribe.map(
+        async (notification) => {
+          if (notification.num <= 1) {
+            await notification.destroy();
+          } else {
+            await notification.usersSubscribe[0].destroy();
+            await notification.decrement({ num: 1 });
+          }
+        },
+      ),
+    );
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -317,11 +444,13 @@ export default async (req: Request, res: Response) => {
       ...currentUser.toJSON(),
       ...objectUserExcluder,
       currentProfilePicture: null,
+      hasNewNotifications: undefined,
     },
     user: {
       ...user.toJSON(),
       ...objectUserExcluder,
       currentProfilePicture: null,
+      hasNewNotifications: undefined,
     },
   };
 

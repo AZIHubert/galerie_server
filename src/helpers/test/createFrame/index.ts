@@ -8,18 +8,21 @@ export default async ({
   current = false,
   description,
   galerieId,
+  notificationHasBeenSend,
   numOfGaleriePictures = 1,
   userId,
 }: {
   current?: boolean;
   description?: string;
   galerieId: string;
+  notificationHasBeenSend?: boolean;
   numOfGaleriePictures?: number;
   userId: string;
 }) => {
   const frame = await Frame.create({
     description,
     galerieId,
+    notificationHasBeenSend,
     userId,
   });
   const iterator = Array(numOfGaleriePictures).fill(0);

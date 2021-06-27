@@ -35,6 +35,7 @@ export default (
   expect(frame.galeriePictures[0].pendingImageId).toBeUndefined();
   expect(frame.likes).toBeUndefined();
   expect(frame.liked).not.toBeUndefined();
+  expect(frame.notificationHasBeenSend).toBeUndefined();
   expect(frame.updatedAt).toBeUndefined();
   expect(frame.userId).toBeUndefined();
   if (refFrame) {

@@ -6,14 +6,17 @@ import {
 export default async ({
   frameId,
   incrementNumOfLikes = false,
+  notificationHasBeenSend = false,
   userId,
 }: {
   frameId: string;
   incrementNumOfLikes?: boolean;
+  notificationHasBeenSend?: boolean;
   userId: string;
 }) => {
   const like = await Like.create({
     frameId,
+    notificationHasBeenSend,
     userId,
   });
   if (incrementNumOfLikes) {

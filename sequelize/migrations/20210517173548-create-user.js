@@ -52,6 +52,11 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
     defaultValue: false,
     type: DataTypes.BOOLEAN,
   },
+  hasNewNotifications: {
+    allowNull: false,
+    defaultValue: false,
+    type: DataTypes.BOOLEAN,
+  },
   pseudonym: {
     allowNull: false,
     type: DataTypes.STRING,

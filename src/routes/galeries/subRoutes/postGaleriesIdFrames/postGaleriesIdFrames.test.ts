@@ -1,4 +1,7 @@
+import fs from 'fs';
 import { Server } from 'http';
+import { verify } from 'jsonwebtoken';
+import path from 'path';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -142,6 +145,7 @@ describe('/galeries', () => {
             expect(createdGaleriePicture.length).toBe(1);
             expect(createdOriginalImage).not.toBeNull();
             expect(createdPendingImage).not.toBeNull();
+            expect(returnedFrame.user.hasNewNotifications).toBeUndefined();
             expect(returnedGalerieId).toBe(galerieId);
             testFrame(returnedFrame);
             testUser(returnedFrame.user, user);
@@ -505,6 +509,27 @@ describe('/galeries', () => {
             expect(createdPendingImageSecond).not.toBeNull();
             expect(createdPendingImageSixth).not.toBeNull();
             expect(createdPendingImageThird).not.toBeNull();
+          });
+          it('should sign notificationToken', async () => {
+            const {
+              body: {
+                data: {
+                  frame,
+                  notificationToken,
+                },
+              },
+            } = await postGaleriesIdFrames(app, token, galerieId);
+            const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.notificationToken.pem'));
+            const splitToken = (<string>notificationToken).split(' ');
+            const verifyToken = verify(splitToken[1], PUB_KEY) as {
+              data: {
+                frameId: string;
+              }
+              type: string;
+            };
+            expect(splitToken[0]).toBe('Bearer');
+            expect(verifyToken.data.frameId).toBe(frame.id);
+            expect(verifyToken.type).toBe('FRAME_POSTED');
           });
           it('post a frame with a description', async () => {
             const description = 'frame\'s description';

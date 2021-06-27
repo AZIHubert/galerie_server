@@ -4,12 +4,14 @@ import {
 } from '@src/db/models';
 
 export default async ({
+  allowNotification,
   archived = false,
   userId,
   description,
   name = 'galerie\'s name',
   role = 'creator',
 }: {
+  allowNotification?: boolean;
   archived?: boolean;
   userId: string;
   description?: string;
@@ -23,6 +25,7 @@ export default async ({
     name,
   });
   await GalerieUser.create({
+    allowNotification,
     galerieId: galerie.id,
     hasNewFrames: false,
     role,

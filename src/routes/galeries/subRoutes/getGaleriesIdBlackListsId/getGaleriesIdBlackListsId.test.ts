@@ -113,6 +113,8 @@ describe('/galeries', () => {
               expect(returnedGalerieId).toBe(galerieId);
               expect(status).toBe(200);
               testGalerieBlackList(blackList, galerieBlackList);
+              expect(blackList.createdBy.hasNewNotifications).toBeUndefined();
+              expect(blackList.user.hasNewNotifications).toBeUndefined();
               testUser(blackList.createdBy, user);
               testUser(blackList.user, userTwo);
             });

@@ -1,5 +1,8 @@
+import fs from 'fs';
 import { Server } from 'http';
+import { verify } from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
+import path from 'path';
 
 import '@src/helpers/initEnv';
 
@@ -87,7 +90,38 @@ describe('/users', () => {
             expect(action).toBe('POST');
             expect(status).toBe(200);
             expect(users.length).toBe(1);
+            expect(user.hasNewNotifications).not.toBeUndefined();
             testUser(user);
+          });
+          it('return notificationToken', async () => {
+            const betaKey = await createBetaKey({});
+            const password = 'Password0!';
+            const {
+              body: {
+                data: {
+                  notificationToken,
+                },
+              },
+            } = await postUsersSigninBeta(app, {
+              body: {
+                betaKey: betaKey.code,
+                confirmPassword: password,
+                email: 'user@email.com',
+                password,
+                userName: 'user',
+              },
+            });
+            const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.notificationToken.pem'));
+            const splitToken = (<string>notificationToken).split(' ');
+            const verifyToken = verify(splitToken[1], PUB_KEY) as {
+              data: {
+                betaKeyId: string;
+              }
+              type: string;
+            };
+            expect(notificationToken).not.toBeUndefined();
+            expect(verifyToken.data.betaKeyId).toBe(betaKey.id);
+            expect(verifyToken.type).toBe('BETA_KEY_USED');
           });
           it('create a user with user.userName === \'@request.body.userName\'', async () => {
             const betaKey = await createBetaKey({});

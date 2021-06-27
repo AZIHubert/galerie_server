@@ -14,6 +14,10 @@ import {
   Image,
   Invitation,
   Like,
+  Notification,
+  NotificationBetaKeyUsed,
+  NotificationFrameLiked,
+  NotificationFramePosted,
   ProfilePicture,
   User,
 } from '@src/db/models';
@@ -35,6 +39,10 @@ import {
   createGalerieUser,
   createInvitation,
   createLike,
+  createNotification,
+  createNotificationBetaKeyUsed,
+  createNotificationFrameLiked,
+  createNotificationFramePosted,
   createProfilePicture,
   createTicket,
   createUser,
@@ -635,6 +643,276 @@ describe('/users', () => {
           const betaKeys = await BetaKey.findAll();
           expect(betaKeys.length).toBe(0);
           expect(status).toBe(200);
+        });
+        it('destoy all notifications where notification.userId === currentUser.id', async () => {
+          await createNotification({
+            type: 'BETA_KEY_USED',
+            userId: user.id,
+          });
+          await createNotification({
+            type: 'FRAME_LIKED',
+            userId: user.id,
+          });
+          await createNotification({
+            type: 'FRAME_POSTED',
+            userId: user.id,
+          });
+          await createNotification({
+            type: 'USER_SUBSCRIBE',
+            userId: user.id,
+          });
+          await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const notifications = await Notification.findAll();
+          expect(notifications.length).toBe(0);
+        });
+        it('destroy all notificationFramePosted where num <= 1 && frameId was posted by the currentUser', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: user.id,
+          });
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: user.id,
+          });
+          const { id: notificationId } = await createNotificationFramePosted({
+            frameId,
+            galerieId,
+            userId: userTwo.id,
+          });
+          await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const notification = await Notification.findByPk(notificationId);
+          const notificationsFramePosted = await NotificationFramePosted.findAll();
+          expect(notification).toBeNull();
+          expect(notificationsFramePosted.length).toBe(0);
+        });
+        it('decrement notification.num where type === \'FRAME_POSTED\' where num > 1 && frameId was posted by the currentUser', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: user.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: userThree.id,
+          });
+          const frameOne = await createFrame({
+            galerieId,
+            userId: user.id,
+          });
+          const frameTwo = await createFrame({
+            galerieId,
+            userId: userThree.id,
+          });
+          const notification = await createNotificationFramePosted({
+            frameId: frameOne.id,
+            galerieId,
+            userId: userTwo.id,
+          });
+          await NotificationFramePosted.create({
+            frameId: frameTwo.id,
+            notificationId: notification.id,
+          });
+          await notification.increment({ num: 1 });
+          await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          await notification.reload();
+          const notificationFramePosted = await NotificationFramePosted.findOne({
+            where: {
+              notificationId: notification.id,
+              frameId: frameOne.id,
+            },
+          });
+          expect(notification.num).toBe(1);
+          expect(notificationFramePosted).toBeNull();
+        });
+        it('destroy all notificationBetaKeyUsed where num <= 1 betaKeyUsed.userId === currentUser.id', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            role: 'admin',
+            userName: 'user2',
+          });
+          const { id: notificationId } = await createNotificationBetaKeyUsed({
+            usedById: user.id,
+            userId: userTwo.id,
+          });
+          await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const notification = await Notification.findByPk(notificationId);
+          const notificationsBetaKeyUsed = await NotificationBetaKeyUsed.findAll();
+          expect(notification).toBeNull();
+          expect(notificationsBetaKeyUsed.length).toBe(0);
+        });
+        it('decrement notification.num for notification where num > 1 && betaKeyUsed.userId === currentUser.id', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            role: 'admin',
+            userName: 'user2',
+          });
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            role: 'admin',
+            userName: 'user3',
+          });
+          const notification = await createNotificationBetaKeyUsed({
+            usedById: user.id,
+            userId: userTwo.id,
+          });
+          await NotificationBetaKeyUsed.create({
+            notificationId: notification.id,
+            userId: userThree.id,
+          });
+          await notification.increment({ num: 1 });
+          await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          await notification.reload();
+          const notificationBetaKeyUsed = await NotificationBetaKeyUsed.findOne({
+            where: {
+              notificationId: notification.id,
+              userId: user.id,
+            },
+          });
+          expect(notification.num).toBe(1);
+          expect(notificationBetaKeyUsed).toBeNull();
+        });
+        it('destroy all notificationFrameLikes where num <= 1 frameLiked.userId === currentUser.id', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: user.id,
+          });
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: userTwo.id,
+          });
+          await createLike({
+            frameId,
+            userId: user.id,
+          });
+          const { id: notificationId } = await createNotificationFrameLiked({
+            frameId,
+            likedById: user.id,
+            userId: userTwo.id,
+          });
+          await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const notification = await Notification.findByPk(notificationId);
+          const notificationsFrameLiked = await NotificationFrameLiked.findAll();
+          expect(notification).toBeNull();
+          expect(notificationsFrameLiked.length).toBe(0);
+        });
+        it('decrement all notification where type === \'FRAME_LIKED\',  num > 1 frameLiked.userId === currentUser.id', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          const { id: galerieId } = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: user.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: userThree.id,
+          });
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: userTwo.id,
+          });
+          await createLike({
+            frameId,
+            userId: user.id,
+          });
+          await createLike({
+            frameId,
+            userId: userThree.id,
+          });
+          const notification = await createNotificationFrameLiked({
+            frameId,
+            likedById: user.id,
+            userId: userTwo.id,
+          });
+          await NotificationFrameLiked.create({
+            notificationId: notification.id,
+            userId: userThree.id,
+          });
+          await notification.increment({ num: 1 });
+          await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          await notification.reload();
+          const notificationFrameLiked = await NotificationFrameLiked.findOne({
+            where: {
+              notificationId: notification.id,
+              userId: user.id,
+            },
+          });
+          expect(notification.num).toBe(1);
+          expect(notificationFrameLiked).toBeNull();
         });
         it('destroy the current user', async () => {
           const {

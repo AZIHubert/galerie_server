@@ -61,11 +61,14 @@ export default async (req: Request, res: Response) => {
 
       return {
         ...galerie.toJSON(),
+        allowNotification: userFromGalerie
+          ? userFromGalerie.GalerieUser.allowNotification
+          : null,
         currentCoverPicture: null,
         frames: [],
         hasNewFrames: userFromGalerie
           ? userFromGalerie.GalerieUser.hasNewFrames
-          : false,
+          : null,
         role: userFromGalerie
           ? userFromGalerie.GalerieUser.role
           : null,

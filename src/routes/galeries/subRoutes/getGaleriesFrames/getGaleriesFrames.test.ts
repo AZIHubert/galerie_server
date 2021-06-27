@@ -127,6 +127,7 @@ describe('/galeries', () => {
             },
           } = await getGaleriesFrames(app, token);
           testFrame(frames[0]);
+          expect(frames[0].user.hasNewNotifications).toBeUndefined();
           testUser(frames[0].user);
         });
         it('return two frames from two different galeries', async () => {

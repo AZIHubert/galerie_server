@@ -25,6 +25,8 @@ export const INVALID_UUID = (
   'galerie' |
   'galerie picture' |
   'invitation' |
+  'like' |
+  'notification' |
   'profile picture' |
   'ticket' |
   'user',
@@ -36,11 +38,21 @@ export const MODEL_NOT_FOUND = (
   'frame' |
   'galerie' |
   'galerie picture' |
+  'galerieUser' |
   'invitation' |
+  'like' |
+  'notification' |
   'profile picture' |
   'ticket' |
   'user',
 ) => `${type} not found`;
+export const NOTIFICATION_ALREADY_SEND = (
+  type:
+  'beta key' |
+  'frame' |
+  'like' |
+  'subscription',
+) => `notifications already send for this ${type}`;
 export const TOKEN_NOT_FOUND = 'token not found';
 export const USER_SHOULD_BE_A_SUPER_ADMIN = 'you need to be a super admin';
 export const USER_SHOULD_BE_AN_ADMIN = 'you need to be an admin';

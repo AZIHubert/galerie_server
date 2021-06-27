@@ -1,5 +1,8 @@
+import fs from 'fs';
 import { Server } from 'http';
+import { verify } from 'jsonwebtoken';
 import mockDate from 'mockdate';
+import path from 'path';
 import { Sequelize } from 'sequelize';
 
 import '@src/helpers/initEnv';
@@ -112,6 +115,38 @@ describe('/galeries', () => {
           expect(returnedGalerieId).toBe(galerieId);
           expect(status).toBe(200);
         });
+        it('should return a notificationToken', async () => {
+          const { code } = await createInvitation({
+            galerieId,
+            userId: userTwo.id,
+          });
+          const {
+            body: {
+              data: {
+                notificationToken,
+              },
+            },
+          } = await postGaleriesSubscribe(app, token, {
+            body: {
+              code,
+            },
+          });
+          const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.notificationToken.pem'));
+          const splitToken = (<string>notificationToken).split(' ');
+          const verifyToken = verify(splitToken[1], PUB_KEY) as {
+            data: {
+              galerieId: string;
+              subscribedUserId: string;
+              userId: string;
+            }
+            type: string;
+          };
+          expect(notificationToken).not.toBeUndefined();
+          expect(verifyToken.data.galerieId).toBe(galerieId);
+          expect(verifyToken.data.userId).toBe(userTwo.id);
+          expect(verifyToken.data.subscribedUserId).toBe(user.id);
+          expect(verifyToken.type).toBe('USER_SUBSCRIBE');
+        });
         it('trim req.body.code', async () => {
           const { code } = await createInvitation({
             galerieId,
@@ -135,7 +170,6 @@ describe('/galeries', () => {
         });
         it('set req.body.code to lower case', async () => {
           const { code } = await createInvitation({
-            code: 'abcd',
             galerieId,
             userId: userTwo.id,
           });

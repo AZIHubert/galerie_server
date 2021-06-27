@@ -17,6 +17,11 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('l
     primaryKey: true,
     type: DataTypes.UUID,
   },
+  notificationHasBeenSend: {
+    allowNull: false,
+    default: false,
+    type: DataTypes.BOOLEAN,
+  },
   updatedAt: {
     allowNull: false,
     type: DataTypes.DATE,

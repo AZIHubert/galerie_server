@@ -64,7 +64,10 @@ export default async (req: Request, res: Response) => {
     // Fetch all user which matches with requested userName
     users = await User.findAll({
       attributes: {
-        exclude: userExcluder,
+        exclude: [
+          ...userExcluder,
+          'hasNewNotifications',
+        ],
       },
       limit,
       offset,

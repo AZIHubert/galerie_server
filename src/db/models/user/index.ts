@@ -16,8 +16,10 @@ import GalerieBlackList from '../galerieBlackLists';
 import GalerieUser from '../galerieUser';
 import Invitation from '../invitation';
 import Like from '../like';
-// import Notification from '../notification';
-// import NotificationUser from '../notificationUser';
+import Notification from '../notification';
+import NotificationBetaKeyUsed from '../notificationBetaKeyUsed';
+import NotificationFrameLiked from '../notificationFrameLiked';
+import NotificationUserSubscribe from '../notificationUserSubscribe';
 import ProfilePicture from '../profilePicture';
 import Ticket from '../ticket';
 
@@ -33,6 +35,7 @@ interface UserI {
   hash?: string;
   id: string;
   isBlackListed: boolean;
+  hasNewNotifications: boolean;
   pseudonym?: string;
   resetPasswordTokenVersion: number;
   role: 'superAdmin' | 'admin' | 'user';
@@ -137,6 +140,13 @@ export default class User extends Model implements UserI {
   })
   isBlackListed!: boolean
 
+  @Default(false)
+  @Column({
+    allowNull: false,
+    type: DataType.BOOLEAN,
+  })
+  hasNewNotifications!: boolean;
+
   // user.userName can't be changed
   // but pseudonym can.
   // when a user is created,
@@ -206,8 +216,23 @@ export default class User extends Model implements UserI {
   @BelongsToMany(() => Galerie, () => GalerieUser)
   galeries!: Array<Galerie & {GalerieUser: GalerieUser}>;
 
-  // @BelongsToMany(() => Notification, () => NotificationUser)
-  // notificationsUser!: Notification[]
+  @BelongsToMany(() => Notification, () => NotificationBetaKeyUsed)
+  notificationsBetaKeyUsed!: Array<
+  Notification &
+  {NotificationBetaKeyUsed: NotificationBetaKeyUsed}
+  >;
+
+  @BelongsToMany(() => Notification, () => NotificationFrameLiked)
+  notificationsFrameLiked!: Array<
+  Notification &
+  {NotificationFrameLiked: NotificationFrameLiked}
+  >;
+
+  @BelongsToMany(() => Notification, () => NotificationUserSubscribe)
+  notificationsUserSubscribe!: Array<
+  Notification &
+  {NotificationUserSubscribe: NotificationUserSubscribe}
+  >;
 
   @HasMany(() => BetaKey, 'createdById')
   betaKeyCreatedBy!: BetaKey[];
@@ -248,8 +273,11 @@ export default class User extends Model implements UserI {
   })
   likes!: Like[];
 
-  // @HasMany(() => Notification)
-  // notifications!: Notification[];
+  @HasMany(() => Notification, {
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
+  notifications!: Notification[];
 
   @HasMany(() => ProfilePicture, {
     hooks: true,

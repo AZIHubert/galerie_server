@@ -1,21 +1,33 @@
 import { Router } from 'express';
 
+import {
+  shouldBeAuth,
+} from '@src/helpers/middlewares';
+
+import {
+  deleteNotificationsId,
+
+  getNotifications,
+  getNotificationsId,
+
+  postNotifications,
+
+  putNotificationsId,
+} from './subRoutes';
+
 const router = Router();
 
 const notificationRouter: () => Router = () => {
-  router.get('/'); // get all notification
-  router.delete('/:id'); // delete notification
-  router.get('/:id');
+  router.delete('/:notificationId', shouldBeAuth, deleteNotificationsId);
+
+  router.get('/', shouldBeAuth, getNotifications);
+  router.get('/:notificationId', shouldBeAuth, getNotificationsId);
+
+  router.post('/', postNotifications);
+
+  router.put('/:notificationId', shouldBeAuth, putNotificationsId);
+
   return router;
 };
 
 export default notificationRouter;
-
-// TODO:
-// Notification when
-// someone likes your frame
-// someone subscribe with your invitation
-// your the creator of the galerie and someone subscribe to it
-// someone delete one of your frame
-// Notification when a admin delete your frame/ your profile pictures/ your galerie.
-// Notification when a admin delete a galerie you was subscribe.

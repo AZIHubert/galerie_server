@@ -1,5 +1,8 @@
+import fs from 'fs';
 import { Server } from 'http';
+import { verify } from 'jsonwebtoken';
 import mockDate from 'mockdate';
+import path from 'path';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -161,6 +164,35 @@ describe('/users', () => {
             expect(status).toBe(200);
             expect(userId).toBe(userTwo.id);
             expect(userTwo.role).toBe(role);
+          });
+          it('return a notificationToken', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            const {
+              body: {
+                data: {
+                  notificationToken,
+                },
+              },
+            } = await putUsersIdRole(app, token, userTwo.id, {
+              body: {
+                password,
+                role: 'admin',
+              },
+            });
+            const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.notificationToken.pem'));
+            const splitToken = (<string>notificationToken).split(' ');
+            const verifyToken = verify(splitToken[1], PUB_KEY) as {
+              data: {
+                userId: string;
+              }
+              type: string;
+            };
+            expect(splitToken[0]).toBe('Bearer');
+            expect(verifyToken.data.userId).toBe(userTwo.id);
+            expect(verifyToken.type).toBe('ROLE_CHANGE');
           });
         });
         describe('should return status 400 if', () => {

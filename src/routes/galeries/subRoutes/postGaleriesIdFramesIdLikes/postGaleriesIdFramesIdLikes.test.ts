@@ -1,4 +1,7 @@
+import fs from 'fs';
 import { Server } from 'http';
+import { verify } from 'jsonwebtoken';
+import path from 'path';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -7,6 +10,8 @@ import '@src/helpers/initEnv';
 import {
   Frame,
   Like,
+  Notification,
+  NotificationFrameLiked,
   User,
 } from '@src/db/models';
 
@@ -20,7 +25,9 @@ import signedUrl from '@src/helpers/signedUrl';
 import {
   createFrame,
   createGalerie,
+  createGalerieUser,
   createLike,
+  createNotificationFrameLiked,
   createUser,
   postGaleriesIdFramesIdLikes,
 } from '@src/helpers/test';
@@ -86,11 +93,22 @@ describe('/galerie', () => {
 
             describe('it should return status 200 and', () => {
               let frame: any;
+              let userTwo: User;
+
               beforeEach(async (done) => {
                 try {
+                  const { user: newUser } = await createUser({
+                    email: 'user2@email.com',
+                    userName: 'user2',
+                  });
+                  userTwo = newUser;
+                  await createGalerieUser({
+                    galerieId,
+                    userId: userTwo.id,
+                  });
                   const createdFrame = await createFrame({
                     galerieId,
-                    userId: user.id,
+                    userId: userTwo.id,
                   });
                   frame = createdFrame;
                 } catch (err) {
@@ -98,13 +116,15 @@ describe('/galerie', () => {
                 }
                 done();
               });
-              it('post Like if this frame wasn\'s like by current user', async () => {
+
+              it('post Like and return notificationToken if this frame wasn\'t like by current user', async () => {
                 const {
                   body: {
                     action,
                     data: {
                       frameId: returnedFrameId,
                       galerieId: returnedGalerieId,
+                      notificationToken,
                       numOfLikes,
                     },
                   },
@@ -115,13 +135,24 @@ describe('/galerie', () => {
                     frameId: frame.id,
                     userId: user.id,
                   },
-                });
+                }) as Like;
+                const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.notificationToken.pem'));
+                const splitToken = (<string>notificationToken).split(' ');
+                const verifyToken = verify(splitToken[1], PUB_KEY) as {
+                  data: {
+                    likeId: string;
+                  }
+                  type: string;
+                };
                 expect(action).toBe('POST');
                 expect(like).not.toBeNull();
+                expect(notificationToken).not.toBeUndefined();
                 expect(numOfLikes).toBe(frame.numOfLikes + 1);
                 expect(returnedFrameId).toBe(frame.id.toString());
                 expect(returnedGalerieId).toBe(galerieId);
                 expect(status).toBe(200);
+                expect(verifyToken.data.likeId).toBe(like.id);
+                expect(verifyToken.type).toBe('FRAME_LIKED');
               });
               it('increment frame.numOfLikes if this frame wasn\'t like by current user', async () => {
                 const {
@@ -144,7 +175,7 @@ describe('/galerie', () => {
                 } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
                 expect(liked).toBe(true);
               });
-              it('destroy Like if this frame was like by current user', async () => {
+              it('destroy Like and do not return notificationToken if this frame was like by current user', async () => {
                 const {
                   body: {
                     data: {
@@ -156,6 +187,7 @@ describe('/galerie', () => {
                   body: {
                     data: {
                       numOfLikes: numOfLikesAfterUnlike,
+                      notificationToken,
                     },
                   },
                 } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
@@ -166,6 +198,7 @@ describe('/galerie', () => {
                   },
                 });
                 expect(like).toBeNull();
+                expect(notificationToken).toBeUndefined();
                 expect(numOfLikesAfterUnlike).toBe(numOfLikesAfterLike - 1);
               });
               it('decrement frame.numOfLikes if this frame was like by current user', async () => {
@@ -196,6 +229,72 @@ describe('/galerie', () => {
                   },
                 } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
                 expect(liked).toBe(false);
+              });
+              it('do not return notificationToken if user like his own frame', async () => {
+                const { id: frameId } = await createFrame({
+                  galerieId,
+                  userId: user.id,
+                });
+                const {
+                  body: {
+                    data: {
+                      notificationToken,
+                    },
+                  },
+                } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+                expect(notificationToken).toBeUndefined();
+              });
+              it('destoy notification where type === \'FRAME_LIKED\', frameLiked.userId === currentUser.id && num <= 1 if currentUser dislike a frame', async () => {
+                await createLike({
+                  frameId: frame.id,
+                  userId: user.id,
+                });
+                const { id: notificationId } = await createNotificationFrameLiked({
+                  frameId: frame.id,
+                  likedById: user.id,
+                  userId: userTwo.id,
+                });
+                await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                const notification = await Notification.findByPk(notificationId);
+                expect(notification).toBeNull();
+              });
+              it('decrement notification.num where type === \'FRAME_LIKED\', frameLiked.userId === currentUser.id && num > 1 if currentUser dislike a frame', async () => {
+                const { user: userThree } = await createUser({
+                  email: 'user3@email.com',
+                  userName: 'user3',
+                });
+                await createGalerieUser({
+                  galerieId,
+                  userId: userThree.id,
+                });
+                await createLike({
+                  frameId: frame.id,
+                  userId: user.id,
+                });
+                await createLike({
+                  frameId: frame.id,
+                  userId: userThree.id,
+                });
+                const notification = await createNotificationFrameLiked({
+                  frameId: frame.id,
+                  likedById: user.id,
+                  userId: userTwo.id,
+                });
+                await NotificationFrameLiked.create({
+                  notificationId: notification.id,
+                  userId: userThree.id,
+                });
+                await notification.increment({ num: 1 });
+                await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                await notification.reload();
+                const notificationFrameLiked = await NotificationFrameLiked.findOne({
+                  where: {
+                    notificationId: notification.id,
+                    userId: user.id,
+                  },
+                });
+                expect(notification.num).toBe(1);
+                expect(notificationFrameLiked).toBeNull();
               });
             });
             describe('should return status 400 if', () => {

@@ -12,11 +12,11 @@ import initSequelize from '@src/helpers/initSequelize.js';
 
 import betaKeysRouter from '@src/routes/betaKeys';
 import blackListsRouter from '@src/routes/blackLists';
-import usersRouter from '@src/routes/users';
+import galeriesRouter from '@src/routes/galeries';
 import notificationsRouter from '@src/routes/notifications';
 import profilePicturesRouter from '@src/routes/profilePictures';
 import ticketsRouter from '@src/routes/tickets';
-import galeriesRouter from '@src/routes/galeries';
+import usersRouter from '@src/routes/users';
 
 const SESSION_SECRET = accEnv('SESSION_SECRET');
 

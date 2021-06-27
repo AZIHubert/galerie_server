@@ -14,7 +14,7 @@ interface BetaKeyI {
   createdById?: string;
   email?: string;
   id: string;
-  usedAt?: Date;
+  notificationHasBeenSend: boolean;
   userId: string;
 }
 
@@ -47,6 +47,13 @@ export default class BetaKey extends Model implements BetaKeyI {
     type: DataType.UUID,
   })
   id!: string;
+
+  @Column({
+    allowNull: false,
+    defaultValue: false,
+    type: DataType.BOOLEAN,
+  })
+  notificationHasBeenSend!: boolean;
 
   @ForeignKey(() => User)
   @Column({

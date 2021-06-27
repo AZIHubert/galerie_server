@@ -109,9 +109,10 @@ describe('/galeries', () => {
                 status,
               } = await getGaleriesIdFramesId(app, token, galerieId, frame.id);
               expect(action).toBe('GET');
-              testFrame(returnedFrame, frame);
               expect(returnedGalerieId).toBe(galerieId);
               expect(status).toBe(200);
+              expect(returnedFrame.user.hasNewNotifications).toBeUndefined();
+              testFrame(returnedFrame, frame);
               testUser(returnedFrame.user);
             });
             it('return frame if currentUser is not subscribe to the galerie and currentUser.role === \'admin\' | \'superAdmin\'', async () => {
