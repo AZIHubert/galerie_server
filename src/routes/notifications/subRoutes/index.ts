@@ -1,3 +1,5 @@
+export { default as deleteNotificationsId } from './deleteNotificationsId';
+
 export { default as getNotifications } from './getNotifications';
 export { default as getNotificationsId } from './getNotificationsId';
 

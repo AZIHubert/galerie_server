@@ -5,6 +5,8 @@ import {
 } from '@src/helpers/middlewares';
 
 import {
+  deleteNotificationsId,
+
   getNotifications,
   getNotificationsId,
 
@@ -16,7 +18,7 @@ import {
 const router = Router();
 
 const notificationRouter: () => Router = () => {
-  router.delete('/:notificationId', shouldBeAuth, () => {});
+  router.delete('/:notificationId', shouldBeAuth, deleteNotificationsId);
 
   router.get('/', shouldBeAuth, getNotifications);
   router.get('/:notificationId', shouldBeAuth, getNotificationsId);

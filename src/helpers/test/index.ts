@@ -26,6 +26,7 @@ export { default as deleteGaleriesIdInvitations } from './deleteGaleriesIdInvita
 export { default as deleteGaleriesIdInvitationId } from './deleteGaleriesIdInvitationId';
 export { default as deleteGaleriesIdUsersId } from './deleteGaleriesIdUsersId';
 export { default as deleteGaleriesUnsubscribe } from './deleteGaleriesUnsubscribe';
+export { default as deleteNotificationsId } from './deleteNotificationsId';
 export { default as deleteProfilePicturesId } from './deleteProfilePicturesId';
 export { default as deleteTicketsId } from './deleteTicketsId';
 export { default as deleteUsersIdProfilePicturesId } from './deleteUsersIdProfilePicturesId';
