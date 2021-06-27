@@ -4,6 +4,7 @@ import {
   NotificationBetaKeyUsed,
   User,
 } from '@src/db/models';
+import { Op } from 'sequelize';
 
 import {
   INVALID_UUID,
@@ -20,6 +21,8 @@ interface Error {
 interface Success {
   OK: true;
 }
+
+const DAY = 1000 * 60 * 60 * 24;
 
 export default async ({
   betaKeyId,
@@ -104,6 +107,17 @@ export default async ({
       where: {
         type: 'BETA_KEY_USED',
         userId: betaKey.createdById,
+        [Op.or]: [
+          {
+            seen: false,
+          },
+          {
+            seen: true,
+            updatedAt: {
+              [Op.gte]: new Date(Date.now() - DAY * 4),
+            },
+          },
+        ],
       },
     });
   } catch (err) {
@@ -118,7 +132,10 @@ export default async ({
   // Increment notification.num.
   if (notification) {
     try {
-      await notification.increment({ num: 1 });
+      await notification.update({
+        num: notification.num + 1,
+        seen: false,
+      });
       await NotificationBetaKeyUsed.create({
         notificationId: notification.id,
         userId: betaKey.userId,

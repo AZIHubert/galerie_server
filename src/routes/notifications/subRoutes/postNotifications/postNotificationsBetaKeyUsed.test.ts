@@ -1,4 +1,5 @@
 import { Server } from 'http';
+import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -37,6 +38,7 @@ describe('/notifications', () => {
       });
 
       beforeEach(async (done) => {
+        mockDate.reset();
         try {
           await sequelize.sync({ force: true });
         } catch (err) {
@@ -46,7 +48,9 @@ describe('/notifications', () => {
       });
 
       afterAll(async (done) => {
+        mockDate.reset();
         try {
+          mockDate.reset();
           await sequelize.sync({ force: true });
           await sequelize.close();
         } catch (err) {
@@ -88,7 +92,7 @@ describe('/notifications', () => {
           expect(notifications.length).toBe(0);
           expect(user.hasNewNotifications).toBe(false);
         });
-        it('increment notification.num if notification already exist', async () => {
+        it('increment notification.num if notification already exist && seen === false', async () => {
           const num = 1;
           const { user } = await createUser({
             role: 'superAdmin',
@@ -123,6 +127,37 @@ describe('/notifications', () => {
           expect(notificationsBetaKeyUsed[0].userId).toBe(userTwo.id);
           expect(user.hasNewNotifications).toBe(true);
         });
+        it('increment notification.num if notification exist && seen === true && was created there is 4 days or less', async () => {
+          const num = 1;
+          const { user } = await createUser({
+            role: 'superAdmin',
+          });
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const betaKey = await createBetaKey({
+            createdById: user.id,
+            userId: userTwo.id,
+          });
+          const notification = await createNotification({
+            type: 'BETA_KEY_USED',
+            num,
+            seen: true,
+            userId: user.id,
+          });
+          const { token: notificationtoken } = signNotificationToken('BETA_KEY_USED', {
+            betaKeyId: betaKey.id,
+          });
+          await postNotifications(app, {
+            notificationtoken,
+          });
+          await notification.reload();
+          const notifications = await Notification.findAll();
+          expect(notification.num).toBe(2);
+          expect(notification.seen).toBe(false);
+          expect(notifications.length).toBe(1);
+        });
         it('create notification if notification doen\'t exist', async () => {
           const { user } = await createUser({
             role: 'superAdmin',
@@ -153,6 +188,40 @@ describe('/notifications', () => {
           expect(notificationsBetaKeyUsed[0].notificationId).toBe(notifications[0].id);
           expect(notificationsBetaKeyUsed[0].userId).toBe(userTwo.id);
           expect(user.hasNewNotifications).toBe(true);
+        });
+        it('create notification if notification exist && seen === true && was create there is more than 4 days', async () => {
+          const num = 1;
+          const timeStamp = 1434319925275;
+          mockDate.set(timeStamp);
+          const { user } = await createUser({
+            role: 'superAdmin',
+          });
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const betaKey = await createBetaKey({
+            createdById: user.id,
+            userId: userTwo.id,
+          });
+          const notification = await createNotification({
+            type: 'BETA_KEY_USED',
+            num,
+            seen: true,
+            userId: user.id,
+          });
+          const { token: notificationtoken } = signNotificationToken('BETA_KEY_USED', {
+            betaKeyId: betaKey.id,
+          });
+          mockDate.set(timeStamp + 1000 * 60 * 60 * 24 * 4 + 1);
+          await postNotifications(app, {
+            notificationtoken,
+          });
+          await notification.reload();
+          const notifications = await Notification.findAll();
+          expect(notification.num).toBe(1);
+          expect(notification.seen).toBe(true);
+          expect(notifications.length).toBe(2);
         });
       });
       describe('should return status 400 if', () => {

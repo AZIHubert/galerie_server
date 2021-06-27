@@ -6,6 +6,7 @@ import {
   NotificationFrameLiked,
   User,
 } from '@src/db/models';
+import { Op } from 'sequelize';
 
 import {
   INVALID_UUID,
@@ -22,6 +23,8 @@ interface Error {
 interface Success {
   OK: true;
 }
+
+const DAY = 1000 * 60 * 60 * 24;
 
 export default async ({
   likeId,
@@ -119,6 +122,17 @@ export default async ({
         frameId: like.frameId,
         type: 'FRAME_LIKED',
         userId: like.frame.userId,
+        [Op.or]: [
+          {
+            seen: false,
+          },
+          {
+            seen: true,
+            updatedAt: {
+              [Op.gte]: new Date(Date.now() - DAY * 4),
+            },
+          },
+        ],
       },
     });
   } catch (err) {
@@ -133,7 +147,10 @@ export default async ({
   // Increment notification.num.
   if (notification) {
     try {
-      await notification.increment({ num: 1 });
+      await notification.update({
+        num: notification.num + 1,
+        seen: false,
+      });
       await NotificationFrameLiked.create({
         notificationId: notification.id,
         userId: like.userId,

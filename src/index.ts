@@ -18,25 +18,6 @@ initSequelize(() => {
 });
 
 // TODO:
-// Create a new notification
-// Only if not find notification
-// or if other notification (seen or not seen)
-// .updatedAt < last week
-// Exemple
-// find notification
-// seen false
-// or
-// seen true
-// through model
-// createdAt il y a moins de 1 semaine
-// si une notification a été créer et lu il y a moins d'une semaine
-// pas besoin de créer une nouvelle notification
-// juste notification.read === false
-// et incrémenter notification.
-// si une notification a été créer il y a plus d'une semaine mais n'a pas été lu
-// pas besoin d'en créer une nouvelle, juste increment num.
-
-// TODO:
 // when get notification orderBy trhought model createdBy
 // https://github.com/sequelize/sequelize/issues/7634
 // https://github.com/sequelize/sequelize/issues/10074

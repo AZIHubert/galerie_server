@@ -1,4 +1,5 @@
 import { Server } from 'http';
+import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -40,6 +41,7 @@ describe('/Notification', () => {
       });
 
       beforeEach(async (done) => {
+        mockDate.reset();
         try {
           await sequelize.sync({ force: true });
         } catch (err) {
@@ -49,6 +51,7 @@ describe('/Notification', () => {
       });
 
       afterAll(async (done) => {
+        mockDate.reset();
         try {
           await sequelize.sync({ force: true });
           await sequelize.close();
@@ -107,7 +110,7 @@ describe('/Notification', () => {
           expect(galerieUser.notificationHasBeenSend).toBe(true);
           expect(status).toBe(204);
         });
-        it('increment notification.num for notification of the creator of the galerie if the galerie have a creator and the creator still have a notification', async () => {
+        it('increment notification.num for notification of the creator of the galerie if the galerie have a creator and the creator have a notification && seen === false', async () => {
           const num = 1;
           const notification = await createNotification({
             galerieId,
@@ -133,6 +136,39 @@ describe('/Notification', () => {
           const notificationsUserSubscribe = await NotificationUserSubscribe.findAll();
           expect(notifications.length).toBe(1);
           expect(notification.num).toBe(num + 1);
+          expect(notificationsUserSubscribe.length).toBe(1);
+          expect(notificationsUserSubscribe[0].notificationId).toBe(notification.id);
+          expect(notificationsUserSubscribe[0].userId).toBe(subscribedUserId);
+          expect(user.hasNewNotifications).toBe(true);
+        });
+        it('increment notification.num for notification of the creator of the galerie if the galerie have a creator and the creator have a notification && seen === true && was updated at least 4 days ago', async () => {
+          const num = 1;
+          const notification = await createNotification({
+            galerieId,
+            num,
+            seen: true,
+            type: 'USER_SUBSCRIBE',
+            userId: user.id,
+          });
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
+            galerieId,
+            subscribedUserId,
+            userId: userThree.id,
+          });
+          await postNotifications(app, {
+            notificationtoken,
+          });
+          await user.reload();
+          await notification.reload();
+          const notifications = await Notification.findAll();
+          const notificationsUserSubscribe = await NotificationUserSubscribe.findAll();
+          expect(notifications.length).toBe(1);
+          expect(notification.num).toBe(num + 1);
+          expect(notification.seen).toBe(false);
           expect(notificationsUserSubscribe.length).toBe(1);
           expect(notificationsUserSubscribe[0].notificationId).toBe(notification.id);
           expect(notificationsUserSubscribe[0].userId).toBe(subscribedUserId);
@@ -164,6 +200,37 @@ describe('/Notification', () => {
           expect(notificationsUserSubscribe[0].notificationId).toBe(notifications[0].id);
           expect(notificationsUserSubscribe[0].userId).toBe(subscribedUserId);
           expect(user.hasNewNotifications).toBe(true);
+        });
+        it('create a notification for the creator of the galerie is the galerie have a creator and the creator have a notification where seen === true && was updated there was more than 4 days', async () => {
+          const num = 1;
+          const timeStamp = 1434319925275;
+          mockDate.set(timeStamp);
+          const notification = await createNotification({
+            galerieId,
+            num,
+            seen: true,
+            type: 'USER_SUBSCRIBE',
+            userId: user.id,
+          });
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
+            galerieId,
+            subscribedUserId,
+            userId: userThree.id,
+          });
+          mockDate.set(timeStamp + 1000 * 60 * 60 * 24 * 4 + 1);
+          await postNotifications(app, {
+            notificationtoken,
+          });
+          await user.reload();
+          await notification.reload();
+          const notifications = await Notification.findAll();
+          expect(notification.num).toBe(num);
+          expect(notification.seen).toBe(true);
+          expect(notifications.length).toBe(2);
         });
         it('create a notification for the creator of the galerie if he have a notification for an another galerie', async () => {
           const galerieTwo = await createGalerie({
@@ -247,6 +314,37 @@ describe('/Notification', () => {
           expect(notificationUserSubscribe).not.toBeNull();
           expect(userThree.hasNewNotifications).toBe(true);
         });
+        it('increment notification.num for the notification of the creator of the invitation if the creator of the notification have a notification where seen === true && was created there is less than 4 days', async () => {
+          const num = 1;
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          await createGalerieUser({
+            galerieId,
+            role: 'admin',
+            userId: userThree.id,
+          });
+          const notification = await createNotification({
+            galerieId,
+            num,
+            seen: true,
+            type: 'USER_SUBSCRIBE',
+            userId: userThree.id,
+          });
+          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
+            galerieId,
+            subscribedUserId,
+            userId: userThree.id,
+          });
+          await postNotifications(app, {
+            notificationtoken,
+          });
+          await notification.reload();
+          await userThree.reload();
+          expect(notification.num).toBe(num + 1);
+          expect(notification.seen).toBe(false);
+        });
         it('create a notification if the creator of the invitation do not have a notification yet', async () => {
           const { user: userThree } = await createUser({
             email: 'user3@email.com',
@@ -283,6 +381,45 @@ describe('/Notification', () => {
           expect(notification.num).toBe(1);
           expect(notificationUserSubscribe).not.toBeNull();
           expect(userThree.hasNewNotifications).toBe(true);
+        });
+        it('create a notification for the creator of the invitation if the creator of the invitation where seen === true && was posted there is more than 4 days ago', async () => {
+          const num = 1;
+          const timeStamp = 1434319925275;
+          mockDate.set(timeStamp);
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'user3',
+          });
+          await createGalerieUser({
+            galerieId,
+            role: 'admin',
+            userId: userThree.id,
+          });
+          const notification = await createNotification({
+            galerieId,
+            num,
+            seen: true,
+            type: 'USER_SUBSCRIBE',
+            userId: userThree.id,
+          });
+          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
+            galerieId,
+            subscribedUserId,
+            userId: userThree.id,
+          });
+          mockDate.set(timeStamp + 1000 * 60 * 60 * 24 * 4 + 1);
+          await postNotifications(app, {
+            notificationtoken,
+          });
+          await notification.reload();
+          const notifications = await Notification.findAll({
+            where: {
+              userId: userThree.id,
+            },
+          });
+          expect(notification.num).toBe(num);
+          expect(notification.seen).toBe(true);
+          expect(notifications.length).toBe(2);
         });
         it('create a notification for the creator of the invitation if he have a notification for another galerie', async () => {
           const { user: userThree } = await createUser({

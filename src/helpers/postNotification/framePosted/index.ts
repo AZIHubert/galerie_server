@@ -24,6 +24,8 @@ interface Success {
   OK: true;
 }
 
+const DAY = 1000 * 60 * 60 * 24;
+
 export default async ({
   frameId,
 }: {
@@ -124,10 +126,24 @@ export default async ({
                 galerieId: frame!.galerieId,
                 type: 'FRAME_POSTED',
                 userId: galerieUser.userId,
+                [Op.or]: [
+                  {
+                    seen: false,
+                  },
+                  {
+                    seen: true,
+                    updatedAt: {
+                      [Op.gte]: new Date(Date.now() - DAY * 4),
+                    },
+                  },
+                ],
               },
             });
             if (notification) {
-              await notification.increment({ num: 1 });
+              await notification.update({
+                num: notification.num + 1,
+                seen: false,
+              });
               await NotificationFramePosted.create({
                 notificationId: notification.id,
                 frameId,

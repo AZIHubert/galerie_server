@@ -1,4 +1,5 @@
 import { Server } from 'http';
+import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -42,6 +43,7 @@ describe('/Notifications', () => {
       });
 
       beforeEach(async (done) => {
+        mockDate.reset();
         try {
           await sequelize.sync({ force: true });
         } catch (err) {
@@ -51,6 +53,7 @@ describe('/Notifications', () => {
       });
 
       afterAll(async (done) => {
+        mockDate.reset();
         try {
           await sequelize.sync({ force: true });
           await sequelize.close();
@@ -133,7 +136,28 @@ describe('/Notifications', () => {
           expect(notificationsFrameLiked[0].userId).toBe(userTwo.id);
           expect(user.hasNewNotifications).toBe(true);
         });
-        it('increment notification.num if a notification for this frame liked already exist', async () => {
+        it('create a notification if another notification exist && seen === true && was create there is more than 4 days', async () => {
+          const num = 1;
+          const timeStamp = 1434319925275;
+          mockDate.set(timeStamp);
+          const notification = await createNotification({
+            frameId,
+            num,
+            seen: true,
+            type: 'FRAME_LIKED',
+            userId: user.id,
+          });
+          mockDate.set(timeStamp + 1000 * 60 * 60 * 24 * 4 + 1);
+          await postNotifications(app, {
+            notificationtoken,
+          });
+          await notification.reload();
+          const notifications = await Notification.findAll();
+          expect(notification.num).toBe(num);
+          expect(notification.seen).toBe(true);
+          expect(notifications.length).toBe(2);
+        });
+        it('increment notification.num if a notification for this frame liked already exist && seen === false', async () => {
           const num = 1;
           const notification = await createNotification({
             frameId,
@@ -149,6 +173,30 @@ describe('/Notifications', () => {
           await notification.reload();
           await user.reload();
           expect(notification.num).toBe(num + 1);
+          expect(notifications.length).toBe(1);
+          expect(notificationsFrameLiked.length).toBe(1);
+          expect(notificationsFrameLiked[0].notificationId).toBe(notification.id);
+          expect(notificationsFrameLiked[0].userId).toBe(userTwo.id);
+          expect(user.hasNewNotifications).toBe(true);
+        });
+        it('increment notification.num if another notification exist && seen === true && was create less than 4 days ago', async () => {
+          const num = 1;
+          const notification = await createNotification({
+            frameId,
+            num,
+            seen: true,
+            type: 'FRAME_LIKED',
+            userId: user.id,
+          });
+          await postNotifications(app, {
+            notificationtoken,
+          });
+          const notifications = await Notification.findAll();
+          const notificationsFrameLiked = await NotificationFrameLiked.findAll();
+          await notification.reload();
+          await user.reload();
+          expect(notification.num).toBe(num + 1);
+          expect(notification.seen).toBe(false);
           expect(notifications.length).toBe(1);
           expect(notificationsFrameLiked.length).toBe(1);
           expect(notificationsFrameLiked[0].notificationId).toBe(notification.id);

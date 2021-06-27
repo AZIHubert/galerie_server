@@ -101,7 +101,7 @@ describe('/Notifications', () => {
           expect(notifications.length).toBe(0);
           expect(status).toBe(204);
         });
-        it('create notifications if a notification for a frame posted to the galerie do not exist', async () => {
+        it('create notifications if no other notification exist', async () => {
           const { user: userTwo } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
@@ -127,7 +127,36 @@ describe('/Notifications', () => {
           expect(notificationsFramePosted[0].notificationId).toBe(notifications[0].id);
           expect(userTwo.hasNewNotifications).toBe(true);
         });
-        it('increment notification.num if a notification for frame posted to the galerie already exist', async () => {
+        it('create notification if another notification exist && seen === true && was posted there is more than 4 days', async () => {
+          const num = 1;
+          const timeStamp = 1434319925275;
+          mockDate.set(timeStamp);
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: userTwo.id,
+          });
+          const notification = await createNotification({
+            galerieId,
+            num,
+            seen: true,
+            type: 'FRAME_POSTED',
+            userId: userTwo.id,
+          });
+          mockDate.set(timeStamp + 1000 * 60 * 60 * 24 * 4 + 1);
+          await postNotifications(app, {
+            notificationtoken,
+          });
+          await notification.reload();
+          const notifications = await Notification.findAll();
+          expect(notification.num).toBe(num);
+          expect(notification.seen).toBe(true);
+          expect(notifications.length).toBe(2);
+        });
+        it('increment notification.num if a notification exist && seen === false', async () => {
           const num = 1;
           const { user: userTwo } = await createUser({
             email: 'user2@email.com',
@@ -154,6 +183,30 @@ describe('/Notifications', () => {
           expect(notificationsFramePosted[0].frameId).toBe(frameId);
           expect(notificationsFramePosted[0].notificationId).toBe(notification.id);
           expect(userTwo.hasNewNotifications).toBe(true);
+        });
+        it('increment notification.num if notification exist && seen === true && was posted there is less than 4 days', async () => {
+          const num = 1;
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: userTwo.id,
+          });
+          const notification = await createNotification({
+            galerieId,
+            num,
+            seen: true,
+            type: 'FRAME_POSTED',
+            userId: userTwo.id,
+          });
+          await postNotifications(app, {
+            notificationtoken,
+          });
+          await notification.reload();
+          expect(notification.num).toBe(num + 1);
+          expect(notification.seen).toBe(false);
         });
         it('set frame.notificationHasBeenSend === true', async () => {
           await postNotifications(app, {

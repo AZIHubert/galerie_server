@@ -1,9 +1,4 @@
-import {
-  INVALID_UUID,
-  MODEL_NOT_FOUND,
-  NOTIFICATION_ALREADY_SEND,
-} from '@src/helpers/errorMessages';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+import { Op } from 'sequelize';
 
 import {
   GalerieUser,
@@ -11,6 +6,13 @@ import {
   NotificationUserSubscribe,
   User,
 } from '@src/db/models';
+
+import {
+  INVALID_UUID,
+  MODEL_NOT_FOUND,
+  NOTIFICATION_ALREADY_SEND,
+} from '@src/helpers/errorMessages';
+import uuidValidateV4 from '@src/helpers/uuidValidateV4';
 
 interface Error {
   OK: false;
@@ -20,6 +22,8 @@ interface Error {
 interface Success {
   OK: true;
 }
+
+const DAY = 1000 * 60 * 60 * 24;
 
 export default async ({
   galerieId,
@@ -97,9 +101,6 @@ export default async ({
     } as Error;
   }
 
-  // TODO:
-  // check if galerieUser.allowNotification === true
-
   // Set galerieUser.notificationHasBeenSend === true
   // to not allow to send notification relative
   // to this frame.
@@ -142,6 +143,17 @@ export default async ({
           galerieId,
           type: 'USER_SUBSCRIBE',
           userId: galerieUserCreator.userId,
+          [Op.or]: [
+            {
+              seen: false,
+            },
+            {
+              seen: true,
+              updatedAt: {
+                [Op.gte]: new Date(Date.now() - DAY * 4),
+              },
+            },
+          ],
         },
       });
     } catch (err) {
@@ -153,10 +165,14 @@ export default async ({
     }
 
     // If notification exist
-    // increment notification.num.
+    // increment notification.num
+    // and set seen to true.
     if (notificationCreator) {
       try {
-        await notificationCreator.increment({ num: 1 });
+        await notificationCreator.update({
+          num: notificationCreator.num + 1,
+          seen: false,
+        });
         await NotificationUserSubscribe.create({
           notificationId: notificationCreator.id,
           userId: subscribedUserId,
@@ -191,7 +207,7 @@ export default async ({
       }
     }
 
-    // increment user.hasNewNotifications
+    // Set user.hasNewNotifications to true.
     try {
       await User.update({
         hasNewNotifications: true,
@@ -251,6 +267,17 @@ export default async ({
         galerieId,
         type: 'USER_SUBSCRIBE',
         userId,
+        [Op.or]: [
+          {
+            seen: false,
+          },
+          {
+            seen: true,
+            updatedAt: {
+              [Op.gte]: new Date(Date.now() - DAY * 4),
+            },
+          },
+        ],
       },
     });
   } catch (err) {
@@ -262,10 +289,14 @@ export default async ({
   }
 
   // If notification exist
-  // increment notification.num.
+  // increment notification.num,
+  // and set seen to false.
   if (notification) {
     try {
-      await notification.increment({ num: 1 });
+      await notification.update({
+        num: notification.num + 1,
+        seen: false,
+      });
       await NotificationUserSubscribe.create({
         notificationId: notification.id,
         userId: subscribedUserId,
