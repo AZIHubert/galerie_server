@@ -123,6 +123,7 @@ describe('/Notifications', () => {
           expect(notifications[0].frameId).toBe(frameId);
           expect(notifications[0].galerieId).toBeNull();
           expect(notifications[0].num).toBe(1);
+          expect(notifications[0].seen).toBe(false);
           expect(notifications[0].type).toBe('FRAME_LIKED');
           expect(notifications[0].userId).toBe(userId);
           expect(notificationsFrameLiked.length).toBe(1);

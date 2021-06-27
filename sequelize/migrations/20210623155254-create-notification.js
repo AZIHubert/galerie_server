@@ -25,6 +25,11 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('n
   role: {
     type: DataTypes.STRING,
   },
+  seen: {
+    allowNull: false,
+    default: false,
+    type: DataTypes.BOOLEAN,
+  },
   type: {
     allowNull: false,
     type: DataTypes.ENUM('FRAME_POSTED'),

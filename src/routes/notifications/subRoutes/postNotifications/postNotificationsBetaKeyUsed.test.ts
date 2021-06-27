@@ -140,6 +140,7 @@ describe('/notifications', () => {
           const notificationsBetaKeyUsed = await NotificationBetaKeyUsed.findAll();
           expect(notifications.length).toBe(1);
           expect(notifications[0].num).toBe(1);
+          expect(notifications[0].seen).toBe(false);
           expect(notifications[0].type).toBe('BETA_KEY_USED');
           expect(notifications[0].userId).toBe(user.id);
           expect(notificationsBetaKeyUsed.length).toBe(1);

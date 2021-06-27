@@ -24,6 +24,7 @@ interface NotificationI {
   id: string;
   num?: number;
   role?: string;
+  seen: boolean;
   type: typeof notificationType[number];
   userId: string;
 }
@@ -61,6 +62,13 @@ export default class Notification extends Model implements NotificationI {
     type: DataType.STRING,
   })
   role!: string;
+
+  @Column({
+    allowNull: false,
+    defaultValue: false,
+    type: DataType.BOOLEAN,
+  })
+  seen!: boolean;
 
   @Column({
     allowNull: false,

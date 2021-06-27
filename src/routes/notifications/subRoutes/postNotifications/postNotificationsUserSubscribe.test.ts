@@ -152,6 +152,7 @@ describe('/Notification', () => {
           expect(notifications.length).toBe(1);
           expect(notifications[0].galerieId).toBe(galerieId);
           expect(notifications[0].num).toBe(1);
+          expect(notifications[0].seen).toBe(false);
           expect(notifications[0].type).toBe('USER_SUBSCRIBE');
           expect(notifications[0].userId).toBe(userId);
           expect(notificationsUserSubscribe.length).toBe(1);

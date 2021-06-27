@@ -88,6 +88,7 @@ describe('/notifications', () => {
           const notifications = await Notification.findAll();
           expect(notifications.length).toBe(1);
           expect(notifications[0].role).toBe(role);
+          expect(notifications[0].seen).toBe(false);
           expect(notifications[0].type).toBe('ROLE_CHANGE');
           expect(notifications[0].userId).toBe(user.id);
         });
