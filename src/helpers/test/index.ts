@@ -93,6 +93,7 @@ export { default as putGaleriesIdAllowNotification } from './putGaleriesIdAllowN
 export { default as putGaleriesIdFramesId } from './putGaleriesIdFramesId';
 export { default as putGaleriesIdFramesIdGaleriePicturesId } from './putGaleriesIdFramesIdGaleriePicturesId';
 export { default as putGaleriesIdUsersId } from './putGaleriesIdUsersId';
+export { default as putNotificationsId } from './putNotificationsId';
 export { default as putProfilePicturesId } from './putProfilePicturesId';
 export { default as putUsersConfirmation } from './putUsersConfirmation';
 export { default as putUsersIdBlackListsId } from './putUsersIdBlackListsId';

@@ -9,6 +9,8 @@ import {
   getNotificationsId,
 
   postNotifications,
+
+  putNotificationsId,
 } from './subRoutes';
 
 const router = Router();
@@ -21,8 +23,7 @@ const notificationRouter: () => Router = () => {
 
   router.post('/', postNotifications);
 
-  // set notification.seen to true.
-  router.put('/:notificationId', shouldBeAuth, () => {});
+  router.put('/:notificationId', shouldBeAuth, putNotificationsId);
 
   return router;
 };
