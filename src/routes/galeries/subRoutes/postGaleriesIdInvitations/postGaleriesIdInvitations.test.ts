@@ -92,6 +92,7 @@ describe('/galeries', () => {
             expect(action).toBe('POST');
             expect(createdInvitation).not.toBeNull();
             expect(returnedGalerieId).toBe(galerieId);
+            expect(returnedInvitation.user.hasNewNotifications).toBeUndefined();
             expect(status).toBe(200);
             testUser(returnedInvitation.user);
             testInvitation(returnedInvitation);

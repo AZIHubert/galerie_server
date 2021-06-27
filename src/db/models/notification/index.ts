@@ -8,7 +8,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 
-import notificationType from '@src/helpers/notificationTypes';
+import notificationType from '@src/helpers/notification/type';
 
 import Frame from '../frame';
 import Galerie from '../galerie';
@@ -106,7 +106,7 @@ export default class Notification extends Model implements NotificationI {
 
   @BelongsToMany(() => Frame, () => NotificationFramePosted)
   notificationsFramePosted!: Array<
-  User &
+  Frame &
   {NotificationFramePosted: NotificationFramePosted}
   >;
 

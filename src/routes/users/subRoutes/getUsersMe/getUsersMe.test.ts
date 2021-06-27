@@ -69,6 +69,7 @@ describe('/users', () => {
           } = await getUsersMe(app, token);
           expect(action).toBe('GET');
           expect(status).toBe(200);
+          expect(returnedUser.hasNewNotifications).not.toBeUndefined();
           testUser(returnedUser, user);
         });
       });

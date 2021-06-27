@@ -136,6 +136,7 @@ describe('/users', () => {
             },
           } = await getUsers(app, token);
           expect(users.length).toBe(1);
+          expect(users[0].hasNewNotifications).toBeUndefined();
           testUser(users[0]);
         });
         it('should return a pack of 20 users', async () => {

@@ -81,6 +81,7 @@ describe('/betaKeys', () => {
         expect(createdBetaKey).not.toBeNull();
         expect(createdBetaKey.email).toBeNull();
         expect(createdBetaKey.userId).toBeNull();
+        expect(betaKey.createdBy.hasNewNotifications).toBeUndefined();
         testBetaKey(betaKey);
         testUser(betaKey.createdBy, user);
       });

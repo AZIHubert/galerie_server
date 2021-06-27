@@ -144,6 +144,7 @@ export default async (req: Request, res: Response) => {
       ...currentUser.toJSON(),
       ...objectUserExcluder,
       currentProfilePicture: null,
+      hasNewNotifications: undefined,
     },
   };
 

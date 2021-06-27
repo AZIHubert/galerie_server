@@ -91,11 +91,13 @@ describe('/users', () => {
           expect(storeUser.confirmTokenVersion).toBe(0);
           expect(storeUser.defaultProfilePicture).toBeNull();
           expect(storeUser.emailTokenVersion).toBe(0);
+          expect(storeUser.hasNewNotifications).toBe(false);
           expect(storeUser.facebookId).toBeNull();
           expect(storeUser.googleId).toBeNull();
           expect(storeUser.isBlackListed).toBe(false);
           expect(storeUser.resetPasswordTokenVersion).toBe(0);
           expect(storeUser.updatedEmailTokenVersion).toBe(0);
+          expect(user.hasNewNotifications).not.toBeUndefined();
           testUser(user);
         });
         it('trim email and userName', async () => {

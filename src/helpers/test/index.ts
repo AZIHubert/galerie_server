@@ -6,6 +6,7 @@ export { default as createFrame } from './createFrame';
 export { default as createNotificationBetaKeyUsed } from './createNotificationBetaKeyUsed';
 export { default as createNotificationFrameLiked } from './createNotificationFrameLiked';
 export { default as createNotificationFramePosted } from './createNotificationFramePosted';
+export { default as createNotificationRoleChange } from './createNotificationRoleChange';
 export { default as createNotificationUserSubscribe } from './createNotificationUserSubscribe';
 export { default as createGalerie } from './createGalerie';
 export { default as createGalerieBlackList } from './createGalerieBlackList';
@@ -45,6 +46,7 @@ export { default as getGaleriesIdFramesIdLikes } from './getGaleriesIdFramesIdLi
 export { default as getGaleriesIdInvitations } from './getGaleriesIdInvitations';
 export { default as getGaleriesIdInvitationsId } from './getGaleriesIdInvitationsId';
 export { default as getGaleriesIdUsers } from './getGaleriesIdUsers';
+export { default as getNotifications } from './getNotifications';
 export { default as getProfilePictures } from './getProfilePictures';
 export { default as getProfilePicturesId } from './getProfilePicturesId';
 export { default as getTickets } from './getTickets';

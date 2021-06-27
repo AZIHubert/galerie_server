@@ -16,7 +16,7 @@ import {
   framePosted,
   roleChange,
   userSubscribe,
-} from '@src/helpers/postNotification';
+} from '@src/helpers/notification/post';
 
 export default async (req: Request, res: Response) => {
   const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.notificationToken.pem'));

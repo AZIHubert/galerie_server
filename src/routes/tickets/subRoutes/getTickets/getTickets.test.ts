@@ -82,6 +82,7 @@ describe('/tickets', () => {
         expect(action).toBe('GET');
         expect(status).toBe(200);
         expect(tickets.length).toBe(1);
+        expect(tickets[0].user.hasNewNotifications).toBeUndefined();
         testTicket(tickets[0]);
         testUser(tickets[0].user);
       });

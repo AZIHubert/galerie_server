@@ -109,6 +109,7 @@ describe('/galeries', () => {
               },
             } = await getGaleriesIdInvitations(app, token, galerieId);
             expect(invitations.length).toBe(1);
+            expect(invitations[0].user.hasNewNotifications).toBeUndefined();
             testInvitation(invitations[0]);
             testUser(invitations[0].user);
           });

@@ -79,7 +79,10 @@ export default async (req: Request, res: Response) => {
   try {
     users = await User.findAll({
       attributes: {
-        exclude: userExcluder,
+        exclude: [
+          ...userExcluder,
+          'hasNewNotifications',
+        ],
       },
       include: [
         {

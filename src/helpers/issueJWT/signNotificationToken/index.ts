@@ -2,7 +2,7 @@ import fs from 'fs';
 import { sign } from 'jsonwebtoken';
 import path from 'path';
 
-import notificationType from '@src/helpers/notificationTypes';
+import notificationType from '@src/helpers/notification/type';
 
 const PRIV_KEY = fs.readFileSync(path.join('./id_rsa_priv.notificationToken.pem'));
 

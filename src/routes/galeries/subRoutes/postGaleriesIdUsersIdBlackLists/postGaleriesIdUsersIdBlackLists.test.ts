@@ -138,6 +138,8 @@ describe('/galeries', () => {
                   .findByPk(galerieBlackList.id);
                 expect(action).toBe('POST');
                 expect(createdGAlerieBlackList).not.toBeNull();
+                expect(galerieBlackList.createdBy.hasNewNotifications).toBeUndefined();
+                expect(galerieBlackList.user.hasNewNotifications).toBeUndefined();
                 expect(returnedGalerieId).toBe(galerieId);
                 expect(userId).toBe(userTwo.id);
                 expect(status).toBe(200);

@@ -66,14 +66,20 @@ export default async (req: Request, res: Response) => {
             {
               as: 'createdBy',
               attributes: {
-                exclude: userExcluder,
+                exclude: [
+                  ...userExcluder,
+                  'hasNewNotifications',
+                ],
               },
               model: User,
             },
             {
               as: 'user',
               attributes: {
-                exclude: userExcluder,
+                exclude: [
+                  ...userExcluder,
+                  'hasNewNotifications',
+                ],
               },
               model: User,
             },

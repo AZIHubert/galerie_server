@@ -18,11 +18,6 @@ initSequelize(() => {
 });
 
 // TODO:
-// when get notification orderBy trhought model createdBy
-// https://github.com/sequelize/sequelize/issues/7634
-// https://github.com/sequelize/sequelize/issues/10074
-
-// TODO:
 // Every where multiple Model with limit and offset are fetched
 // Need to add a query.timestamp (Date)
 // to indicate when the first request was made

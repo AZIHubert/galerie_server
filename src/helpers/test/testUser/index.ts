@@ -21,7 +21,6 @@ export default (
   if (refUser) {
     expect(new Date(user.createdAt)).toEqual(new Date(refUser.createdAt));
     expect(user.defaultProfilePicture).toBe(refUser.defaultProfilePicture);
-    expect(user.hasNewNotifications).toEqual(refUser.hasNewNotifications);
     expect(user.id).toEqual(refUser.id);
     expect(user.pseudonym).toEqual(refUser.pseudonym);
     expect(user.role).toEqual(refUser.role);
@@ -32,7 +31,6 @@ export default (
     expect(user.createdAt).not.toBeUndefined();
     expect(user.defaultProfilePicture).not.toBeUndefined();
     expect(user.id).not.toBeUndefined();
-    expect(user.hasNewNotifications).not.toBeUndefined();
     expect(user.pseudonym).not.toBeUndefined();
     expect(user.role).not.toBeUndefined();
     expect(user.userName).not.toBeUndefined();

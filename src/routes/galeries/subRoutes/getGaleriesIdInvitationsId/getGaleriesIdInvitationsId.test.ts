@@ -99,9 +99,10 @@ describe('/galeries', () => {
               } = await getGaleriesIdInvitationsId(app, token, galerieId, invitation.id);
               expect(action).toBe('GET');
               expect(returnedGalerieId).toBe(galerieId);
+              expect(returnedInvitation.user.hasNewNotifications).toBeUndefined();
+              expect(status).toBe(200);
               testInvitation(returnedInvitation, invitation);
               testUser(returnedInvitation.user, user);
-              expect(status).toBe(200);
             });
             it('return invitation if it\'s not expired', async () => {
               const timeStamp = 1434319925275;

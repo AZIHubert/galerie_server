@@ -444,11 +444,13 @@ export default async (req: Request, res: Response) => {
       ...currentUser.toJSON(),
       ...objectUserExcluder,
       currentProfilePicture: null,
+      hasNewNotifications: undefined,
     },
     user: {
       ...user.toJSON(),
       ...objectUserExcluder,
       currentProfilePicture: null,
+      hasNewNotifications: undefined,
     },
   };
 

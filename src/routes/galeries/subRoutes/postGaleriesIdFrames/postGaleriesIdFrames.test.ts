@@ -145,6 +145,7 @@ describe('/galeries', () => {
             expect(createdGaleriePicture.length).toBe(1);
             expect(createdOriginalImage).not.toBeNull();
             expect(createdPendingImage).not.toBeNull();
+            expect(returnedFrame.user.hasNewNotifications).toBeUndefined();
             expect(returnedGalerieId).toBe(galerieId);
             testFrame(returnedFrame);
             testUser(returnedFrame.user, user);

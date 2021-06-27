@@ -117,6 +117,7 @@ describe('/galeries', () => {
               },
             } = await getGaleriesIdFrames(app, token, galerieId);
             expect(frames.length).toBe(1);
+            expect(frames[0].user.hasNewNotifications).toBeUndefined();
             testFrame(frames[0]);
             testUser(frames[0].user);
           });

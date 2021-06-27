@@ -6,6 +6,7 @@ import {
   Default,
   ForeignKey,
   HasMany,
+  HasOne,
   Model,
   Table,
 } from 'sequelize-typescript';
@@ -94,8 +95,8 @@ export default class Frame extends Model implements FrameI {
   })
   galeriePictures!: GaleriePicture[];
 
-  @HasMany(() => Notification)
-  notifications!: Notification[];
+  @HasOne(() => Notification)
+  notification!: Notification;
 
   @HasMany(() => Like)
   likes!: Like[];

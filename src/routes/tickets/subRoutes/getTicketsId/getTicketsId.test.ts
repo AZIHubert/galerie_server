@@ -86,6 +86,7 @@ describe('/tickets', () => {
           } = await getTicketsId(app, token, createdTicket.id);
           expect(action).toBe('GET');
           expect(status).toBe(200);
+          expect(ticket.user.hasNewNotifications).toBeUndefined();
           testTicket(ticket, createdTicket);
           testUser(ticket.user, user);
         });

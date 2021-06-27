@@ -90,6 +90,7 @@ describe('/users', () => {
             expect(action).toBe('POST');
             expect(status).toBe(200);
             expect(users.length).toBe(1);
+            expect(user.hasNewNotifications).not.toBeUndefined();
             testUser(user);
           });
           it('return notificationToken', async () => {

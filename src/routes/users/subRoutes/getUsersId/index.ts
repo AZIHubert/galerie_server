@@ -18,7 +18,6 @@ import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 export default async (req: Request, res: Response) => {
   const { userId } = req.params;
   const currentUser = req.user as User;
-  const objectUserExcluder: { [key: string]: undefined } = {};
   let user: User | null;
   let userIsBlackListed: boolean;
 
@@ -41,6 +40,12 @@ export default async (req: Request, res: Response) => {
   // Fetch confirmed user with id.
   try {
     user = await User.findOne({
+      attributes: {
+        exclude: [
+          ...userExcluder,
+          'hasNewNotifications',
+        ],
+      },
       where: {
         confirmed: true,
         id: userId,
@@ -69,21 +74,16 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  userExcluder.forEach((e) => {
-    objectUserExcluder[e] = undefined;
-  });
-
   // Compose final returned user.
-  const userWithProfilePicture: any = {
+  const normalizedUser: any = {
     ...user.toJSON(),
-    ...objectUserExcluder,
     currentProfilePicture: null,
   };
 
   return res.status(200).send({
     action: 'GET',
     data: {
-      user: userWithProfilePicture,
+      user: normalizedUser,
     },
   });
 };
