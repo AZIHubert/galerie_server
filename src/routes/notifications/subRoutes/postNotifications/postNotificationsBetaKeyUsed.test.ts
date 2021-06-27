@@ -12,6 +12,7 @@ import {
 import {
   MODEL_NOT_FOUND,
   INVALID_UUID,
+  NOTIFICATION_ALREADY_SEND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signNotificationToken } from '@src/helpers/issueJWT';
@@ -184,7 +185,7 @@ describe('/notifications', () => {
           } = await postNotifications(app, {
             notificationtoken,
           });
-          expect(body.errors).toBe('notifications already send for this beta key');
+          expect(body.errors).toBe(NOTIFICATION_ALREADY_SEND('beta key'));
           expect(status).toBe(400);
         });
         it('betaKey.userId === null', async () => {

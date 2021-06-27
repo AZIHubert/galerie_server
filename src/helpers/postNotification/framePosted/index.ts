@@ -10,6 +10,7 @@ import {
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
+  NOTIFICATION_ALREADY_SEND,
 } from '@src/helpers/errorMessages';
 import uuidValidateV4 from '@src/helpers/uuidValidateV4';
 
@@ -63,7 +64,7 @@ export default async ({
   if (frame.notificationHasBeenSend) {
     return {
       OK: false,
-      errors: 'notifications already send for this frame',
+      errors: NOTIFICATION_ALREADY_SEND('frame'),
       status: 400,
     } as Error;
   }

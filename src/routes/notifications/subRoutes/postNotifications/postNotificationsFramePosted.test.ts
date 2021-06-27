@@ -15,6 +15,7 @@ import {
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
+  NOTIFICATION_ALREADY_SEND,
 } from '@src/helpers/errorMessages';
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signNotificationToken } from '@src/helpers/issueJWT';
@@ -252,7 +253,7 @@ describe('/Notifications', () => {
           } = await postNotifications(app, {
             notificationtoken,
           });
-          expect(body.errors).toBe('notifications already send for this frame');
+          expect(body.errors).toBe(NOTIFICATION_ALREADY_SEND('frame'));
           expect(status).toBe(400);
         });
       });

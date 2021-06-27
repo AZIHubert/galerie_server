@@ -1,6 +1,7 @@
 import {
-  MODEL_NOT_FOUND,
   INVALID_UUID,
+  MODEL_NOT_FOUND,
+  NOTIFICATION_ALREADY_SEND,
 } from '@src/helpers/errorMessages';
 import uuidValidateV4 from '@src/helpers/uuidValidateV4';
 
@@ -90,7 +91,7 @@ export default async ({
   if (galerieUser.notificationHasBeenSend) {
     return {
       OK: false,
-      errors: 'notifications already send for this galerieUser',
+      errors: NOTIFICATION_ALREADY_SEND('subscription'),
       status: 400,
     } as Error;
   }

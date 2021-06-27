@@ -7,6 +7,7 @@ import {
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
+  NOTIFICATION_ALREADY_SEND,
 } from '@src/helpers/errorMessages';
 import uuidValidateV4 from '@src/helpers/uuidValidateV4';
 
@@ -70,7 +71,7 @@ export default async ({
   if (betaKey.notificationHasBeenSend) {
     return {
       OK: false,
-      errors: 'notifications already send for this beta key',
+      errors: NOTIFICATION_ALREADY_SEND('beta key'),
       status: 400,
     } as Error;
   }

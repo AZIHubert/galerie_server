@@ -18,20 +18,20 @@ initSequelize(() => {
 });
 
 // TODO:
-// notification.seen
-
-// TODO:
-// notification already send errorMessage
-
-// TODO:
-// user.numOfNotification
+// user.numOfNotifications
 
 // TODO:
 // Create a new notification
 // Only if not find notification
-// or if other notification (read or not read)
+// or if other notification (seen or not seen)
 // .updatedAt < last week
 // Exemple
+// find notification
+// seen false
+// or
+// seen true
+// through model
+// createdAt il y a moins de 1 semaine
 // si une notification a été créer et lu il y a moins d'une semaine
 // pas besoin de créer une nouvelle notification
 // juste notification.read === false
