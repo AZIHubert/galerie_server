@@ -47,6 +47,7 @@ export { default as getGaleriesIdInvitations } from './getGaleriesIdInvitations'
 export { default as getGaleriesIdInvitationsId } from './getGaleriesIdInvitationsId';
 export { default as getGaleriesIdUsers } from './getGaleriesIdUsers';
 export { default as getNotifications } from './getNotifications';
+export { default as getNotificationsId } from './getNotificationsId';
 export { default as getProfilePictures } from './getProfilePictures';
 export { default as getProfilePicturesId } from './getProfilePicturesId';
 export { default as getTickets } from './getTickets';

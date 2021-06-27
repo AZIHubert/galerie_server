@@ -6,6 +6,7 @@ import {
 
 import {
   getNotifications,
+  getNotificationsId,
 
   postNotifications,
 } from './subRoutes';
@@ -16,7 +17,7 @@ const notificationRouter: () => Router = () => {
   router.delete('/:notificationId', shouldBeAuth, () => {});
 
   router.get('/', shouldBeAuth, getNotifications);
-  router.get('/:notificationId', shouldBeAuth, () => {});
+  router.get('/:notificationId', shouldBeAuth, getNotificationsId);
 
   router.post('/', postNotifications);
 
