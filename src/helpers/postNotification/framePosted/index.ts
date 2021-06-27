@@ -5,6 +5,7 @@ import {
   Notification,
   NotificationFramePosted,
   GalerieUser,
+  User,
 } from '@src/db/models';
 
 import {
@@ -143,6 +144,13 @@ export default async ({
                 frameId,
               });
             }
+            await User.update({
+              hasNewNotifications: true,
+            }, {
+              where: {
+                id: galerieUser.userId,
+              },
+            });
           }
         },
       ),

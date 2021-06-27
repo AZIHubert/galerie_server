@@ -39,6 +39,7 @@ import {
   putUsersIdBlackLists,
   putUsersIdRole,
   putUsersMeEmail,
+  putUsersMeHasNewNotifications,
   putUsersMePseudonym,
   putUsersMePassword,
   putUsersPassword,
@@ -75,6 +76,7 @@ const usersRoutes: () => Router = () => {
 
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.put('/me/email/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, putUsersMeEmail);
+  router.put('/me/hasNewNotifications', shouldBeAuth, putUsersMeHasNewNotifications);
   router.put('/me/password/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, putUsersMePassword);
   router.put('/me/pseudonym/', shouldBeAuth, putUsersMePseudonym);
   router.put('/password/', shouldNotBeAuth, putUsersPassword);

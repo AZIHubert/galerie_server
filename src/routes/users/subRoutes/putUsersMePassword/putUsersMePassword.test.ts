@@ -29,47 +29,46 @@ import {
 import initApp from '@src/server';
 
 const userPassword = 'Password0!';
+let app: Server;
+let sequelize: Sequelize;
+let token: string;
+let user: User;
 
 describe('/users', () => {
-  let app: Server;
-  let sequelize: Sequelize;
-  let token: string;
-  let user: User;
-
-  beforeAll(() => {
-    app = initApp();
-    sequelize = initSequelize();
-  });
-
-  beforeEach(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      const {
-        user: createdUser,
-      } = await createUser({});
-      user = createdUser;
-      const jwt = signAuthToken(user);
-      token = jwt.token;
-    } catch (err) {
-      done(err);
-    }
-    jest.clearAllMocks();
-    done();
-  });
-
-  afterAll(async (done) => {
-    try {
-      await sequelize.sync({ force: true });
-      await sequelize.close();
-    } catch (err) {
-      done(err);
-    }
-    app.close();
-    done();
-  });
-
   describe('/me', () => {
     describe('/password', () => {
+      beforeAll(() => {
+        app = initApp();
+        sequelize = initSequelize();
+      });
+
+      beforeEach(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          const {
+            user: createdUser,
+          } = await createUser({});
+          user = createdUser;
+          const jwt = signAuthToken(user);
+          token = jwt.token;
+        } catch (err) {
+          done(err);
+        }
+        jest.clearAllMocks();
+        done();
+      });
+
+      afterAll(async (done) => {
+        try {
+          await sequelize.sync({ force: true });
+          await sequelize.close();
+        } catch (err) {
+          done(err);
+        }
+        app.close();
+        done();
+      });
+
       describe('should return status 200 and', () => {
         it('should return authToken', async () => {
           const newPassword = 'NewPassword0!';

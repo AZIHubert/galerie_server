@@ -4,6 +4,7 @@ import {
   Like,
   Notification,
   NotificationFrameLiked,
+  User,
 } from '@src/db/models';
 
 import {
@@ -137,6 +138,13 @@ export default async ({
         notificationId: notification.id,
         userId: like.userId,
       });
+      await User.update({
+        hasNewNotifications: true,
+      }, {
+        where: {
+          id: like.frame.userId,
+        },
+      });
     } catch (err) {
       return {
         OK: false,
@@ -159,6 +167,13 @@ export default async ({
     await NotificationFrameLiked.create({
       notificationId,
       userId: like.userId,
+    });
+    await User.update({
+      hasNewNotifications: true,
+    }, {
+      where: {
+        id: like.frame.userId,
+      },
     });
   } catch (err) {
     return {

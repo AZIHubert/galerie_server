@@ -2,6 +2,7 @@ import {
   BetaKey,
   Notification,
   NotificationBetaKeyUsed,
+  User,
 } from '@src/db/models';
 
 import {
@@ -122,6 +123,14 @@ export default async ({
         notificationId: notification.id,
         userId: betaKey.userId,
       });
+      // Increment numOfNotification.
+      await User.update({
+        hasNewNotifications: true,
+      }, {
+        where: {
+          id: betaKey.createdById,
+        },
+      });
     } catch (err) {
       return {
         OK: false,
@@ -144,6 +153,23 @@ export default async ({
     await NotificationBetaKeyUsed.create({
       notificationId,
       userId: betaKey.userId,
+    });
+  } catch (err) {
+    return {
+      OK: false,
+      errors: err,
+      status: 500,
+    } as Error;
+  }
+
+  // Increment numOfNotification.
+  try {
+    await User.update({
+      hasNewNotifications: true,
+    }, {
+      where: {
+        id: betaKey.createdById,
+      },
     });
   } catch (err) {
     return {

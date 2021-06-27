@@ -66,13 +66,13 @@ describe('/Notifications', () => {
         let frameId: string;
         let likeId: string;
         let notificationtoken: string;
-        let userId: string;
+        let user: User;
         let userTwo: User;
 
         beforeEach(async (done) => {
           try {
-            const { user } = await createUser({});
-            userId = user.id;
+            const { user: createdUser } = await createUser({});
+            user = createdUser;
             const { user: newUser } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
@@ -120,16 +120,18 @@ describe('/Notifications', () => {
           });
           const notifications = await Notification.findAll();
           const notificationsFrameLiked = await NotificationFrameLiked.findAll();
+          await user.reload();
           expect(notifications.length).toBe(1);
           expect(notifications[0].frameId).toBe(frameId);
           expect(notifications[0].galerieId).toBeNull();
           expect(notifications[0].num).toBe(1);
           expect(notifications[0].seen).toBe(false);
           expect(notifications[0].type).toBe('FRAME_LIKED');
-          expect(notifications[0].userId).toBe(userId);
+          expect(notifications[0].userId).toBe(user.id);
           expect(notificationsFrameLiked.length).toBe(1);
           expect(notificationsFrameLiked[0].notificationId).toBe(notifications[0].id);
           expect(notificationsFrameLiked[0].userId).toBe(userTwo.id);
+          expect(user.hasNewNotifications).toBe(true);
         });
         it('increment notification.num if a notification for this frame liked already exist', async () => {
           const num = 1;
@@ -137,7 +139,7 @@ describe('/Notifications', () => {
             frameId,
             num,
             type: 'FRAME_LIKED',
-            userId,
+            userId: user.id,
           });
           await postNotifications(app, {
             notificationtoken,
@@ -145,11 +147,13 @@ describe('/Notifications', () => {
           const notifications = await Notification.findAll();
           const notificationsFrameLiked = await NotificationFrameLiked.findAll();
           await notification.reload();
+          await user.reload();
           expect(notification.num).toBe(num + 1);
           expect(notifications.length).toBe(1);
           expect(notificationsFrameLiked.length).toBe(1);
           expect(notificationsFrameLiked[0].notificationId).toBe(notification.id);
           expect(notificationsFrameLiked[0].userId).toBe(userTwo.id);
+          expect(user.hasNewNotifications).toBe(true);
         });
         it('do not create notification if allowNotification === false', async () => {
           const { user: userThree } = await createUser({
@@ -177,9 +181,11 @@ describe('/Notifications', () => {
           });
           await like.reload();
           const notifications = await Notification.findAll();
+          await user.reload();
           expect(like.notificationHasBeenSend).toBe(true);
           expect(notifications.length).toBe(0);
           expect(status).toBe(204);
+          expect(user.hasNewNotifications).toBe(false);
         });
       });
       describe('should return status 400 if', () => {
@@ -227,8 +233,10 @@ describe('/Notifications', () => {
           } = await postNotifications(app, {
             notificationtoken,
           });
+          await user.reload();
           expect(body.errors).toBe(NOTIFICATION_ALREADY_SEND('like'));
           expect(status).toBe(400);
+          expect(user.hasNewNotifications).toBe(false);
         });
       });
       describe('should return status 404 if', () => {

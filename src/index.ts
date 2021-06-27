@@ -18,9 +18,6 @@ initSequelize(() => {
 });
 
 // TODO:
-// user.numOfNotifications
-
-// TODO:
 // Create a new notification
 // Only if not find notification
 // or if other notification (seen or not seen)

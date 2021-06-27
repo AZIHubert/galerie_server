@@ -69,9 +69,11 @@ describe('/notifications', () => {
           } = await postNotifications(app, {
             notificationtoken,
           });
+          await user.reload();
           const notifications = await Notification.findAll();
           expect(notifications.length).toBe(0);
           expect(status).toBe(204);
+          expect(user.hasNewNotifications).toBe(false);
         });
         it('create a notification with the new role of the user', async () => {
           const role = 'admin';
@@ -85,12 +87,14 @@ describe('/notifications', () => {
           await postNotifications(app, {
             notificationtoken,
           });
+          await user.reload();
           const notifications = await Notification.findAll();
           expect(notifications.length).toBe(1);
           expect(notifications[0].role).toBe(role);
           expect(notifications[0].seen).toBe(false);
           expect(notifications[0].type).toBe('ROLE_CHANGE');
           expect(notifications[0].userId).toBe(user.id);
+          expect(user.hasNewNotifications).toBe(true);
         });
       });
       describe('should return status 400 if', () => {

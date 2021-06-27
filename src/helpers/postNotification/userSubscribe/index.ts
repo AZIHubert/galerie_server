@@ -9,6 +9,7 @@ import {
   GalerieUser,
   Notification,
   NotificationUserSubscribe,
+  User,
 } from '@src/db/models';
 
 interface Error {
@@ -190,6 +191,23 @@ export default async ({
       }
     }
 
+    // increment user.hasNewNotifications
+    try {
+      await User.update({
+        hasNewNotifications: true,
+      }, {
+        where: {
+          id: galerieUserCreator.userId,
+        },
+      });
+    } catch (err) {
+      return {
+        OK: false,
+        errors: err,
+        status: 500,
+      } as Error;
+    }
+
     // Do not create two notification
     // if the creator of the galerie
     // and the creator of the invitation
@@ -280,6 +298,22 @@ export default async ({
         status: 500,
       } as Error;
     }
+  }
+
+  try {
+    await User.update({
+      hasNewNotifications: true,
+    }, {
+      where: {
+        id: userId,
+      },
+    });
+  } catch (err) {
+    return {
+      OK: false,
+      errors: err,
+      status: 500,
+    } as Error;
   }
 
   return { OK: true } as Success;

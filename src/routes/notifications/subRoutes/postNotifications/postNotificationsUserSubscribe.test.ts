@@ -8,6 +8,7 @@ import {
   GalerieUser,
   Notification,
   NotificationUserSubscribe,
+  User,
 } from '@src/db/models';
 
 import {
@@ -60,20 +61,20 @@ describe('/Notification', () => {
 
       describe('should return status 204 and', () => {
         let galerieId: string;
-        let userId: string;
         let subscribedUserId: string;
+        let user: User;
 
         beforeEach(async (done) => {
           try {
-            const { user } = await createUser({});
+            const { user: createdUser } = await createUser({});
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
             subscribedUserId = userTwo.id;
-            userId = user.id;
+            user = createdUser;
             const galerie = await createGalerie({
-              userId,
+              userId: user.id,
             });
             galerieId = galerie.id;
             await createGalerieUser({
@@ -90,7 +91,7 @@ describe('/Notification', () => {
           const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
             galerieId,
             subscribedUserId,
-            userId,
+            userId: user.id,
           });
           const {
             status,
@@ -112,7 +113,7 @@ describe('/Notification', () => {
             galerieId,
             num,
             type: 'USER_SUBSCRIBE',
-            userId,
+            userId: user.id,
           });
           const { user: userThree } = await createUser({
             email: 'user3@email.com',
@@ -126,6 +127,7 @@ describe('/Notification', () => {
           await postNotifications(app, {
             notificationtoken,
           });
+          await user.reload();
           await notification.reload();
           const notifications = await Notification.findAll();
           const notificationsUserSubscribe = await NotificationUserSubscribe.findAll();
@@ -134,6 +136,7 @@ describe('/Notification', () => {
           expect(notificationsUserSubscribe.length).toBe(1);
           expect(notificationsUserSubscribe[0].notificationId).toBe(notification.id);
           expect(notificationsUserSubscribe[0].userId).toBe(subscribedUserId);
+          expect(user.hasNewNotifications).toBe(true);
         });
         it('create a notification for the creator of the galerie if the galerie have a creator and the creator do not have a notification yet', async () => {
           const { user: userThree } = await createUser({
@@ -150,25 +153,27 @@ describe('/Notification', () => {
           });
           const notifications = await Notification.findAll();
           const notificationsUserSubscribe = await NotificationUserSubscribe.findAll();
+          await user.reload();
           expect(notifications.length).toBe(1);
           expect(notifications[0].galerieId).toBe(galerieId);
           expect(notifications[0].num).toBe(1);
           expect(notifications[0].seen).toBe(false);
           expect(notifications[0].type).toBe('USER_SUBSCRIBE');
-          expect(notifications[0].userId).toBe(userId);
+          expect(notifications[0].userId).toBe(user.id);
           expect(notificationsUserSubscribe.length).toBe(1);
           expect(notificationsUserSubscribe[0].notificationId).toBe(notifications[0].id);
           expect(notificationsUserSubscribe[0].userId).toBe(subscribedUserId);
+          expect(user.hasNewNotifications).toBe(true);
         });
-        it('create a notification for the creator of the galerie if he have a notification for another galerie', async () => {
+        it('create a notification for the creator of the galerie if he have a notification for an another galerie', async () => {
           const galerieTwo = await createGalerie({
-            userId,
+            userId: user.id,
           });
           await createNotification({
             galerieId: galerieTwo.id,
             num: 1,
             type: 'USER_SUBSCRIBE',
-            userId,
+            userId: user.id,
           });
           const { user: userThree } = await createUser({
             email: 'user3@email.com',
@@ -182,24 +187,28 @@ describe('/Notification', () => {
           await postNotifications(app, {
             notificationtoken,
           });
+          await user.reload();
           const notifications = await Notification.findAll();
           const notification = notifications.find((n) => n.galerieId === galerieId);
           expect(notifications.length).toBe(2);
           expect(notification).not.toBeNull();
+          expect(user.hasNewNotifications).toBe(true);
         });
         it('create only one notification if the creator of the galerie is also the creator of the invitation', async () => {
           const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
             galerieId,
             subscribedUserId,
-            userId,
+            userId: user.id,
           });
           await postNotifications(app, {
             notificationtoken,
           });
+          await user.reload();
           const notifications = await Notification.findAll();
           const notificationsUserSubscribe = await NotificationUserSubscribe.findAll();
           expect(notifications.length).toBe(1);
           expect(notificationsUserSubscribe.length).toBe(1);
+          expect(user.hasNewNotifications).toBe(true);
         });
         it('increment notification.num for the notification of the creator of the invitation if the creator of the notification still have a notification', async () => {
           const num = 1;
@@ -227,6 +236,7 @@ describe('/Notification', () => {
             notificationtoken,
           });
           await notification.reload();
+          await userThree.reload();
           const notificationUserSubscribe = await NotificationUserSubscribe.findOne({
             where: {
               notificationId: notification.id,
@@ -235,6 +245,7 @@ describe('/Notification', () => {
           });
           expect(notification.num).toBe(num + 1);
           expect(notificationUserSubscribe).not.toBeNull();
+          expect(userThree.hasNewNotifications).toBe(true);
         });
         it('create a notification if the creator of the invitation do not have a notification yet', async () => {
           const { user: userThree } = await createUser({
@@ -267,9 +278,11 @@ describe('/Notification', () => {
               userId: subscribedUserId,
             },
           });
+          await userThree.reload();
           expect(notification).not.toBeNull();
           expect(notification.num).toBe(1);
           expect(notificationUserSubscribe).not.toBeNull();
+          expect(userThree.hasNewNotifications).toBe(true);
         });
         it('create a notification for the creator of the invitation if he have a notification for another galerie', async () => {
           const { user: userThree } = await createUser({
@@ -305,10 +318,12 @@ describe('/Notification', () => {
           });
           const notification = notifications
             .find((n) => n.galerieId === galerieId && n.userId === userThree.id);
+          await userThree.reload();
           expect(notification).not.toBeUndefined();
           expect(notifications.length).toBe(2);
+          expect(userThree.hasNewNotifications).toBe(true);
         });
-        it('do not create a notification for the creator of the invitation if is role for the galerie is \'user\'', async () => {
+        it('do not create a notification for the creator of the invitation if his role for the galerie is \'user\'', async () => {
           const { user: userThree } = await createUser({
             email: 'user3@email.com',
             userName: 'user3',
@@ -328,8 +343,10 @@ describe('/Notification', () => {
           const notifications = await Notification.findAll();
           const notification = notifications
             .find((n) => n.galerieId === galerieId && n.userId === userThree.id);
+          await userThree.reload();
           expect(notification).toBeUndefined();
           expect(notifications.length).toBe(1);
+          expect(userThree.hasNewNotifications).toBe(false);
         });
         it('do not create a notification for the creator of the invitation if he is not subscribe to the galerie', async () => {
           const { user: userThree } = await createUser({
@@ -347,8 +364,10 @@ describe('/Notification', () => {
           const notifications = await Notification.findAll();
           const notification = notifications
             .find((n) => n.galerieId === galerieId && n.userId === userThree.id);
+          await userThree.reload();
           expect(notification).toBeUndefined();
           expect(notifications.length).toBe(1);
+          expect(userThree.hasNewNotifications).toBe(false);
         });
         it('increment notification.num for the notification of the creator of the galerie and the creator of the invitation if the both still have notification', async () => {
           const num = 1;
@@ -371,7 +390,7 @@ describe('/Notification', () => {
             galerieId,
             num,
             type: 'USER_SUBSCRIBE',
-            userId,
+            userId: user.id,
           });
           const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
             galerieId,
@@ -383,8 +402,12 @@ describe('/Notification', () => {
           });
           await adminNotification.reload();
           await creatorNotification.reload();
+          await user.reload();
+          await userThree.reload();
           expect(adminNotification.num).toBe(num + 1);
           expect(creatorNotification.num).toBe(num + 1);
+          expect(user.hasNewNotifications).toBe(true);
+          expect(userThree.hasNewNotifications).toBe(true);
         });
         it('create notification for the creator of the galerie and the creator of the invitation if the both not have a notification yet', async () => {
           const { user: userThree } = await createUser({
@@ -426,7 +449,7 @@ describe('/Notification', () => {
             galerieId,
             num,
             type: 'USER_SUBSCRIBE',
-            userId,
+            userId: user.id,
           });
           const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
             galerieId,
@@ -474,14 +497,14 @@ describe('/Notification', () => {
           const creatorNotification = await Notification.findOne({
             where: {
               galerieId,
-              userId,
+              userId: user.id,
             },
           });
           await adminNotification.reload();
           expect(adminNotification.num).toBe(num + 1);
           expect(creatorNotification).not.toBeNull();
         });
-        it('do not set notification to creator if allowNotification === false', async () => {
+        it('do not set notification for the creator if allowNotification === false', async () => {
           const { user: creator } = await createUser({
             email: 'creator@email.com',
             userName: 'creator',
@@ -525,8 +548,12 @@ describe('/Notification', () => {
               userId: creator.id,
             },
           });
+          await creator.reload();
+          await admin.reload();
           expect(adminNotification).not.toBeNull();
           expect(creatorNotification).toBeNull();
+          expect(creator.hasNewNotifications).toBe(false);
+          expect(admin.hasNewNotifications).toBe(true);
         });
         it('do not set notification to admin if allowNotification === false', async () => {
           const { user: creator } = await createUser({
@@ -572,8 +599,12 @@ describe('/Notification', () => {
               userId: creator.id,
             },
           });
+          await admin.reload();
+          await creator.reload();
           expect(adminNotification).toBeNull();
           expect(creatorNotification).not.toBeNull();
+          expect(creator.hasNewNotifications).toBe(true);
+          expect(admin.hasNewNotifications).toBe(false);
         });
         it('do not set notification if allowNotification === false && creator === admin', async () => {
           const { user: creator } = await createUser({
@@ -600,12 +631,14 @@ describe('/Notification', () => {
           await postNotifications(app, {
             notificationtoken,
           });
+          await creator.reload();
           const creatorNotification = await Notification.findOne({
             where: {
               userId: creator.id,
             },
           });
           expect(creatorNotification).toBeNull();
+          expect(creator.hasNewNotifications).toBe(false);
         });
       });
       describe('should return status 400 if', () => {
@@ -679,8 +712,10 @@ describe('/Notification', () => {
           } = await postNotifications(app, {
             notificationtoken,
           });
+          await user.reload();
           expect(body.errors).toBe(NOTIFICATION_ALREADY_SEND('subscription'));
           expect(status).toBe(400);
+          expect(user.hasNewNotifications).toBe(false);
         });
       });
       describe('should return status 404 if', () => {

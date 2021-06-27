@@ -82,6 +82,13 @@ export default async ({
       type: 'ROLE_CHANGE',
       userId,
     });
+    await User.update({
+      hasNewNotifications: true,
+    }, {
+      where: {
+        id: userId,
+      },
+    });
   } catch (err) {
     return {
       OK: false,

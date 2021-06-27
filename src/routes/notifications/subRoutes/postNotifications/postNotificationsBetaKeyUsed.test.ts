@@ -84,7 +84,9 @@ describe('/notifications', () => {
             notificationtoken,
           });
           const notifications = await Notification.findAll();
+          await user.reload();
           expect(notifications.length).toBe(0);
+          expect(user.hasNewNotifications).toBe(false);
         });
         it('increment notification.num if notification already exist', async () => {
           const num = 1;
@@ -113,11 +115,13 @@ describe('/notifications', () => {
           const notifications = await Notification.findAll();
           const notificationsBetaKeyUsed = await NotificationBetaKeyUsed.findAll();
           await notification.reload();
+          await user.reload();
           expect(notification.num).toBe(num + 1);
           expect(notifications.length).toBe(1);
           expect(notificationsBetaKeyUsed.length).toBe(1);
           expect(notificationsBetaKeyUsed[0].notificationId).toBe(notification.id);
           expect(notificationsBetaKeyUsed[0].userId).toBe(userTwo.id);
+          expect(user.hasNewNotifications).toBe(true);
         });
         it('create notification if notification doen\'t exist', async () => {
           const { user } = await createUser({
@@ -139,6 +143,7 @@ describe('/notifications', () => {
           });
           const notifications = await Notification.findAll();
           const notificationsBetaKeyUsed = await NotificationBetaKeyUsed.findAll();
+          await user.reload();
           expect(notifications.length).toBe(1);
           expect(notifications[0].num).toBe(1);
           expect(notifications[0].seen).toBe(false);
@@ -147,6 +152,7 @@ describe('/notifications', () => {
           expect(notificationsBetaKeyUsed.length).toBe(1);
           expect(notificationsBetaKeyUsed[0].notificationId).toBe(notifications[0].id);
           expect(notificationsBetaKeyUsed[0].userId).toBe(userTwo.id);
+          expect(user.hasNewNotifications).toBe(true);
         });
       });
       describe('should return status 400 if', () => {
@@ -185,8 +191,10 @@ describe('/notifications', () => {
           } = await postNotifications(app, {
             notificationtoken,
           });
+          await user.reload();
           expect(body.errors).toBe(NOTIFICATION_ALREADY_SEND('beta key'));
           expect(status).toBe(400);
+          expect(user.hasNewNotifications).toBe(false);
         });
         it('betaKey.userId === null', async () => {
           const { user } = await createUser({});

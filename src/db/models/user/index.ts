@@ -35,6 +35,7 @@ interface UserI {
   hash?: string;
   id: string;
   isBlackListed: boolean;
+  hasNewNotifications: boolean;
   pseudonym?: string;
   resetPasswordTokenVersion: number;
   role: 'superAdmin' | 'admin' | 'user';
@@ -138,6 +139,13 @@ export default class User extends Model implements UserI {
     type: DataType.BOOLEAN,
   })
   isBlackListed!: boolean
+
+  @Default(false)
+  @Column({
+    allowNull: false,
+    type: DataType.BOOLEAN,
+  })
+  hasNewNotifications!: boolean;
 
   // user.userName can't be changed
   // but pseudonym can.

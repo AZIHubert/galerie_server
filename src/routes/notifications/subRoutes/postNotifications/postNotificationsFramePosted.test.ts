@@ -115,6 +115,7 @@ describe('/Notifications', () => {
           });
           const notifications = await Notification.findAll();
           const notificationsFramePosted = await NotificationFramePosted.findAll();
+          await userTwo.reload();
           expect(notifications.length).toBe(1);
           expect(notifications[0].galerieId).toBe(galerieId);
           expect(notifications[0].num).toBe(1);
@@ -124,6 +125,7 @@ describe('/Notifications', () => {
           expect(notificationsFramePosted.length).toBe(1);
           expect(notificationsFramePosted[0].frameId).toBe(frameId);
           expect(notificationsFramePosted[0].notificationId).toBe(notifications[0].id);
+          expect(userTwo.hasNewNotifications).toBe(true);
         });
         it('increment notification.num if a notification for frame posted to the galerie already exist', async () => {
           const num = 1;
@@ -145,11 +147,13 @@ describe('/Notifications', () => {
             notificationtoken,
           });
           await notification.reload();
+          await userTwo.reload();
           const notificationsFramePosted = await NotificationFramePosted.findAll();
           expect(notification.num).toBe(num + 1);
           expect(notificationsFramePosted.length).toBe(1);
           expect(notificationsFramePosted[0].frameId).toBe(frameId);
           expect(notificationsFramePosted[0].notificationId).toBe(notification.id);
+          expect(userTwo.hasNewNotifications).toBe(true);
         });
         it('set frame.notificationHasBeenSend === true', async () => {
           await postNotifications(app, {
@@ -159,7 +163,7 @@ describe('/Notifications', () => {
           expect(frame.notificationHasBeenSend).toBe(true);
         });
         it('do not create notification for user not subscribe to the galerie', async () => {
-          await createUser({
+          const { user: userTwo } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
           });
@@ -167,7 +171,9 @@ describe('/Notifications', () => {
             notificationtoken,
           });
           const notifications = await Notification.findAll();
+          await userTwo.reload();
           expect(notifications.length).toBe(0);
+          expect(userTwo.hasNewNotifications).toBe(false);
         });
         it('do not increment notification where notification.galerieId !== frame.galerieId', async () => {
           const num = 1;
@@ -215,9 +221,11 @@ describe('/Notifications', () => {
           });
           const returnedFrame = await Frame.findByPk(frame.id) as Frame;
           const notifications = await Notification.findAll();
+          await userTwo.reload();
           expect(notifications.length).toBe(0);
           expect(returnedFrame.notificationHasBeenSend).toBe(true);
           expect(status).toBe(204);
+          expect(userTwo.hasNewNotifications).toBe(false);
         });
       });
       describe('should return status 400 if', () => {
@@ -236,8 +244,16 @@ describe('/Notifications', () => {
         });
         it('frame.notificationHasBeenSend === true', async () => {
           const { user } = await createUser({});
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
           const { id: galerieId } = await createGalerie({
             userId: user.id,
+          });
+          await createGalerieUser({
+            galerieId,
+            userId: userTwo.id,
           });
           const { id: frameId } = await createFrame({
             galerieId,
@@ -253,8 +269,10 @@ describe('/Notifications', () => {
           } = await postNotifications(app, {
             notificationtoken,
           });
+          await userTwo.reload();
           expect(body.errors).toBe(NOTIFICATION_ALREADY_SEND('frame'));
           expect(status).toBe(400);
+          expect(userTwo.hasNewNotifications).toBe(false);
         });
       });
       describe('should return status 404 if', () => {
