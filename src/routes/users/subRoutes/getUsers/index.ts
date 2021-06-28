@@ -16,6 +16,7 @@ export default async (req: Request, res: Response) => {
   const {
     blackListed,
     previousUser,
+    userName,
   } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
@@ -40,9 +41,24 @@ export default async (req: Request, res: Response) => {
     where.isBlackListed = false;
   }
 
-  if (previousUser) {
+  if (previousUser && userName) {
+    where.userName = {
+      [Op.and]: [
+        {
+          [Op.gt]: previousUser,
+        },
+        {
+          [Op.iLike]: `%${userName.toString().toLowerCase()}%`,
+        },
+      ],
+    };
+  } else if (previousUser) {
     where.userName = {
       [Op.gt]: previousUser,
+    };
+  } else if (userName) {
+    where.userName = {
+      [Op.iLike]: `%${userName.toString().toLowerCase()}%`,
     };
   }
 

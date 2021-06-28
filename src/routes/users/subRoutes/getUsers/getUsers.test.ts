@@ -204,6 +204,45 @@ describe('/users', () => {
           expect(users[3].id).toBe(userThree.id);
           expect(users[4].id).toBe(userTwo.id);
         });
+        it('filter by userName', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'a',
+          });
+          await createUser({
+            email: 'user3@email.com',
+            userName: 'b',
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getUsers(app, token, {
+            userName: 'a',
+          });
+          expect(users.length).toBe(1);
+          expect(users[0].id).toBe(userTwo.id);
+        });
+        it('filter by userName should be case insensitive', async () => {
+          const userName = 'user2';
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName,
+          });
+          const {
+            body: {
+              data: {
+                users,
+              },
+            },
+          } = await getUsers(app, token, {
+            userName: userName.toUpperCase(),
+          });
+          expect(users.length).toBe(1);
+          expect(users[0].id).toBe(userTwo.id);
+        });
         describe('if currentUser.role === \'admin\' | \'superAdmin\'', () => {
           let tokenTwo: string;
 

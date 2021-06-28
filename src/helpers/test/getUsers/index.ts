@@ -7,31 +7,26 @@ export default async (
   option: {
     blackListed?: 'true' | 'false';
     previousUser?: string;
+    userName?: string;
   } = {},
 ) => {
   const {
     blackListed,
     previousUser,
+    userName,
   } = option;
-  let response: request.Response;
+  let query = '';
   if (blackListed) {
-    if (previousUser) {
-      response = await request(app)
-        .get(`/users?previousUser=${previousUser}&blackListed=${blackListed}`)
-        .set('authorization', token);
-    } else {
-      response = await request(app)
-        .get(`/users?blackListed=${blackListed}`)
-        .set('authorization', token);
-    }
-  } else if (previousUser) {
-    response = await request(app)
-      .get(`/users?previousUser=${previousUser}`)
-      .set('authorization', token);
-  } else {
-    response = await request(app)
-      .get('/users/')
-      .set('authorization', token);
+    query = `${query}${query === '' ? '' : '&'}blackListed=${blackListed}`;
   }
+  if (previousUser) {
+    query = `${query}${query === '' ? '' : '&'}previousUser=${previousUser}`;
+  }
+  if (userName) {
+    query = `${query}${query === '' ? '' : '&'}userName=${userName}`;
+  }
+  const response = await request(app)
+    .get(`/users/${query === '' ? '' : `?${query}`}`)
+    .set('authorization', token);
   return response;
 };

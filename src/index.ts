@@ -21,19 +21,11 @@ initSequelize(() => {
 // check that Model.autoIncrementId is send.
 
 // TODO:
-// https://stackoverflow.com/questions/38211170/sequelize-pagination
-// create an autoincrement id for all models
-// where these are supposed to be return by pack
-// in this request send this autoIncrementId to the query of
-// the request
-// and return next where autoIncrementId > last model.autoIncrementId
-
-// When fetching by string
-// never allow to fetch by non unique field (user.pseudonym)
-// assure that all unique fields are really unique (betaKey.email)
+// Check that typeof +req.params.previous === number
+// and > 1
 
 // TODO:
-// create Report model
+// allow GET /galeries/ to filter by name
 
 // TODO:
 // normalize migration and model
@@ -51,3 +43,6 @@ initSequelize(() => {
 // set new (updated) galerie hidden Name ${name}-${existedGalerieHiddenNameNumGen + 1}
 // this hiddenName is used to order galerie by name.
 // [['hiddenName', 'ASC']]
+
+// TODO:
+// create Report model
