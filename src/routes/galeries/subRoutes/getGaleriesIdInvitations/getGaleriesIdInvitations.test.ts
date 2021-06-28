@@ -170,7 +170,9 @@ describe('/galeries', () => {
                   invitations: secondPack,
                 },
               },
-            } = await getGaleriesIdInvitations(app, token, galerieId, { page: 2 });
+            } = await getGaleriesIdInvitations(app, token, galerieId, {
+              previousInvitation: firstPack[firstPack.length - 1].autoIncrementId,
+            });
             expect(firstPack.length).toBe(20);
             expect(secondPack.length).toBe(1);
           });

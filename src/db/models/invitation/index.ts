@@ -11,6 +11,7 @@ import Galerie from '../galerie';
 import User from '../user';
 
 interface InvitationI {
+  autoIncrementId: number;
   code: string;
   galerieId: string;
   id: string;
@@ -23,6 +24,13 @@ interface InvitationI {
   tableName: 'invitation',
 })
 export default class Invitation extends Model implements InvitationI {
+  @Column({
+    allowNull: false,
+    autoIncrement: true,
+    type: DataType.BIGINT,
+  })
+  autoIncrementId!: number;
+
   // A unique code to enter
   // to register to this galerie.
   @Column({
