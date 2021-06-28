@@ -26,19 +26,17 @@ export default async (req: Request, res: Response) => {
     frameId,
     galerieId,
   } = req.params;
-  const limit = 20;
-  const { page } = req.query;
+  const {
+    previousLike,
+  } = req.query;
   const currentUser = req.user as User;
+  const limit = 20;
+  const where: {
+    autoIncrementId?: any;
+  } = {};
   let galerie: Galerie | null;
   let likes: Array<Like>;
-  let offset: number;
-  let returnedUsers: Array<any>;
-
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
-  }
+  let normalizedLikes: Array<any>;
 
   // Check if request.params.galerie
   // is a UUID v4.
@@ -94,6 +92,12 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  if (previousLike) {
+    where.autoIncrementId = {
+      [Op.lt]: previousLike,
+    };
+  }
+
   // Fetch likes
   try {
     likes = await Like.findAll({
@@ -114,9 +118,9 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['createdAt', 'DESC']],
+      order: [['autoIncrementId', 'DESC']],
       where: {
+        ...where,
         frameId,
       },
     });
@@ -126,14 +130,20 @@ export default async (req: Request, res: Response) => {
 
   // Fetch users profile pictures.
   try {
-    returnedUsers = await Promise.all(
-      likes.map(async ({ user }) => {
+    normalizedLikes = await Promise.all(
+      likes.map(async ({
+        autoIncrementId,
+        user,
+      }) => {
         const isBlackListed = await checkBlackList(user);
 
         return {
-          ...user.toJSON(),
-          currentProfilePicture: null,
-          isBlackListed,
+          autoIncrementId,
+          user: {
+            ...user.toJSON(),
+            currentProfilePicture: null,
+            isBlackListed,
+          },
         };
       }),
     );
@@ -146,7 +156,7 @@ export default async (req: Request, res: Response) => {
     data: {
       galerieId,
       frameId,
-      users: returnedUsers,
+      likes: normalizedLikes,
     },
   });
 };

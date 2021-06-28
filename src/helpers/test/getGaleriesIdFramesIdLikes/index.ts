@@ -7,13 +7,18 @@ export default async (
   galerieId: string,
   frameId: string,
   option: {
-    page: number;
-  } = {
-    page: 1,
-  },
+    previousLike?: string;
+  } = {},
 ) => {
-  const response = await request(app)
-    .get(`/galeries/${galerieId}/frames/${frameId}/likes/?page=${option.page}`)
-    .set('authorization', token);
+  let response: request.Response;
+  if (option.previousLike) {
+    response = await request(app)
+      .get(`/galeries/${galerieId}/frames/${frameId}/likes/?previousLike=${option.previousLike}`)
+      .set('authorization', token);
+  } else {
+    response = await request(app)
+      .get(`/galeries/${galerieId}/frames/${frameId}/likes/`)
+      .set('authorization', token);
+  }
   return response;
 };

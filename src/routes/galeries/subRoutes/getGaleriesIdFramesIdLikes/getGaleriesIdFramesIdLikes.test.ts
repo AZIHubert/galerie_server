@@ -106,7 +106,7 @@ describe('/galeries', () => {
                     data: {
                       frameId: returnedFrameId,
                       galerieId: returnedGalerieId,
-                      users,
+                      likes,
                     },
                   },
                   status,
@@ -114,18 +114,18 @@ describe('/galeries', () => {
                 expect(action).toBe('GET');
                 expect(returnedFrameId).toBe(frameId.toString());
                 expect(returnedGalerieId).toBe(galerieId);
-                expect(users.length).toBe(0);
+                expect(likes.length).toBe(0);
                 expect(status).toBe(200);
               });
               it('return no user', async () => {
                 const {
                   body: {
                     data: {
-                      users,
+                      likes,
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                expect(users.length).toBe(0);
+                expect(likes.length).toBe(0);
               });
               it('return One user', async () => {
                 const {
@@ -145,13 +145,13 @@ describe('/galeries', () => {
                 const {
                   body: {
                     data: {
-                      users,
+                      likes,
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                expect(users.length).toBe(1);
-                expect(users[0].hasNewNotifications).toBeUndefined();
-                testUser(users[0]);
+                expect(likes.length).toBe(1);
+                expect(likes[0].user.hasNewNotifications).toBeUndefined();
+                testUser(likes[0].user);
               });
               it('return a pack of 20 users', async () => {
                 const NUM = 21;
@@ -171,17 +171,19 @@ describe('/galeries', () => {
                 const {
                   body: {
                     data: {
-                      users: firstPack,
+                      likes: firstPack,
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 const {
                   body: {
                     data: {
-                      users: secondPack,
+                      likes: secondPack,
                     },
                   },
-                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId, { page: 2 });
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId, {
+                  previousLike: firstPack[firstPack.length - 1].autoIncrementId,
+                });
                 expect(firstPack.length).toBe(20);
                 expect(secondPack.length).toBe(1);
               });
@@ -229,16 +231,16 @@ describe('/galeries', () => {
                 const {
                   body: {
                     data: {
-                      users,
+                      likes,
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                expect(users.length).toBe(5);
-                expect(users[0].id).toBe(userSix.id);
-                expect(users[1].id).toBe(userFive.id);
-                expect(users[2].id).toBe(userFour.id);
-                expect(users[3].id).toBe(userThree.id);
-                expect(users[4].id).toBe(userTwo.id);
+                expect(likes.length).toBe(5);
+                expect(likes[0].user.id).toBe(userSix.id);
+                expect(likes[1].user.id).toBe(userFive.id);
+                expect(likes[2].user.id).toBe(userFour.id);
+                expect(likes[3].user.id).toBe(userThree.id);
+                expect(likes[4].user.id).toBe(userTwo.id);
               });
               it('return user.isBlackListed === true if is black listed', async () => {
                 const { user: userTwo } = await createUser({
@@ -260,12 +262,12 @@ describe('/galeries', () => {
                 const {
                   body: {
                     data: {
-                      users,
+                      likes,
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                expect(users.length).toBe(1);
-                expect(users[0].isBlackListed).toBe(true);
+                expect(likes.length).toBe(1);
+                expect(likes[0].user.isBlackListed).toBe(true);
               });
               it('return user.isBlackListed === false if black list has expired', async () => {
                 const timeStamp = 1434319925275;
@@ -294,12 +296,12 @@ describe('/galeries', () => {
                 const {
                   body: {
                     data: {
-                      users,
+                      likes,
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 await userTwo.reload();
-                expect(users[0].isBlackListed).toBe(false);
+                expect(likes[0].user.isBlackListed).toBe(false);
                 expect(userTwo.isBlackListed).toBe(false);
               });
             });
