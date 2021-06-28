@@ -24,12 +24,12 @@ export default async (req: Request, res: Response) => {
     previousBetaKey,
     used,
   } = req.query;
-  let betaKeys: Array<BetaKey>;
   const where: {
     autoIncrementId?: any;
     createdById?: string;
     userId?: any;
   } = {};
+  let betaKeys: Array<BetaKey>;
 
   // If ?me='false'
   // return all betaKey created

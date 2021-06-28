@@ -144,7 +144,9 @@ describe('/galeries', () => {
                   blackLists: secondPack,
                 },
               },
-            } = await getGaleriesIdBlackLists(app, token, galerieId, { page: 2 });
+            } = await getGaleriesIdBlackLists(app, token, galerieId, {
+              previousBlackList: firstPack[firstPack.length - 1].autoIncrementId,
+            });
             expect(firstPack.length).toBe(20);
             expect(secondPack.length).toBe(1);
           });
