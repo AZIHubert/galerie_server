@@ -117,7 +117,9 @@ describe('/profilePictures', () => {
               profilePictures: secondPack,
             },
           },
-        } = await getProfilePictures(app, token, { page: 2 });
+        } = await getProfilePictures(app, token, {
+          previousProfilePicture: firstPack[firstPack.length - 1].autoIncrementId,
+        });
         expect(firstPack.length).toEqual(20);
         expect(secondPack.length).toEqual(1);
       });

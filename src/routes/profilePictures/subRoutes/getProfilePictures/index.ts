@@ -4,6 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Image,
@@ -19,17 +20,21 @@ import {
 } from '@root/src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
-  const { page } = req.query;
+  const {
+    previousProfilePicture,
+  } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
-  let offset: number;
+  const where: {
+    autoIncrementId?: any
+  } = {};
   let profilePictures: ProfilePicture[];
   let returnedProfilePictures: Array<any>;
 
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
+  if (previousProfilePicture) {
+    where.autoIncrementId = {
+      [Op.lt]: previousProfilePicture,
+    };
   }
 
   try {
@@ -52,9 +57,9 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['createdAt', 'DESC']],
+      order: [['autoIncrementId', 'DESC']],
       where: {
+        ...where,
         userId: currentUser.id,
       },
     });
