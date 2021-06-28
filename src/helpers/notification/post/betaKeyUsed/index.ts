@@ -132,14 +132,23 @@ export default async ({
   // Increment notification.num.
   if (notification) {
     try {
-      await notification.update({
+      const newNotification = await Notification.create({
         num: notification.num + 1,
-        seen: false,
+        type: notification.type,
+        userId: notification.userId,
       });
       await NotificationBetaKeyUsed.create({
-        notificationId: notification.id,
+        notificationId: newNotification.id,
         userId: betaKey.userId,
       });
+      await NotificationBetaKeyUsed.update({
+        notificationId: newNotification.id,
+      }, {
+        where: {
+          notificationId: notification.id,
+        },
+      });
+      await notification.destroy();
       // Increment numOfNotification.
       await User.update({
         hasNewNotifications: true,
@@ -149,6 +158,7 @@ export default async ({
         },
       });
     } catch (err) {
+      console.log(err);
       return {
         OK: false,
         errors: err,

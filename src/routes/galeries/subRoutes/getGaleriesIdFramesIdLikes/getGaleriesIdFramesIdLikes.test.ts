@@ -117,7 +117,7 @@ describe('/galeries', () => {
                 expect(likes.length).toBe(0);
                 expect(status).toBe(200);
               });
-              it('return no user', async () => {
+              it('return no like', async () => {
                 const {
                   body: {
                     data: {
@@ -127,7 +127,7 @@ describe('/galeries', () => {
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 expect(likes.length).toBe(0);
               });
-              it('return One user', async () => {
+              it('return One like', async () => {
                 const {
                   user: userTwo,
                 } = await createUser({
@@ -150,10 +150,11 @@ describe('/galeries', () => {
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 expect(likes.length).toBe(1);
+                expect(likes[0].autoIncrementId).not.toBeUndefined();
                 expect(likes[0].user.hasNewNotifications).toBeUndefined();
                 testUser(likes[0].user);
               });
-              it('return a pack of 20 users', async () => {
+              it('return a pack of 20 likes', async () => {
                 const NUM = 21;
                 const numOfLikes = new Array(NUM).fill(0);
                 await Promise.all(
@@ -187,7 +188,7 @@ describe('/galeries', () => {
                 expect(firstPack.length).toBe(20);
                 expect(secondPack.length).toBe(1);
               });
-              it('order users by createdAt', async () => {
+              it('order likes by createdAt', async () => {
                 const { user: userTwo } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
@@ -242,7 +243,7 @@ describe('/galeries', () => {
                 expect(likes[3].user.id).toBe(userThree.id);
                 expect(likes[4].user.id).toBe(userTwo.id);
               });
-              it('return user.isBlackListed === true if is black listed', async () => {
+              it('return like.user.isBlackListed === true if is black listed', async () => {
                 const { user: userTwo } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
@@ -269,7 +270,7 @@ describe('/galeries', () => {
                 expect(likes.length).toBe(1);
                 expect(likes[0].user.isBlackListed).toBe(true);
               });
-              it('return user.isBlackListed === false if black list has expired', async () => {
+              it('return like.user.isBlackListed === false if black list has expired', async () => {
                 const timeStamp = 1434319925275;
                 const time = 1000 * 60 * 10;
                 mockDate.set(timeStamp);

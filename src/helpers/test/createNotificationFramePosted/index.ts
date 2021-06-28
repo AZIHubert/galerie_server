@@ -6,21 +6,28 @@ import {
 export default async ({
   frameId,
   galerieId,
+  num,
+  seen,
   userId,
 }: {
-  frameId: string;
+  frameId?: string;
   galerieId: string;
+  num?: number;
+  seen?: boolean;
   userId: string;
 }) => {
   const notification = await Notification.create({
     galerieId,
-    num: 1,
+    num: num || 1,
+    seen: seen || false,
     type: 'FRAME_POSTED',
     userId,
   });
-  await NotificationFramePosted.create({
-    notificationId: notification.id,
-    frameId,
-  });
+  if (frameId) {
+    await NotificationFramePosted.create({
+      notificationId: notification.id,
+      frameId,
+    });
+  }
   return notification;
 };

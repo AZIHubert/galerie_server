@@ -38,10 +38,12 @@ export default (
   expect(profilePicture.updatedAt).toBeUndefined();
   expect(profilePicture.userId).toBeUndefined();
   if (refProfilePicture) {
+    expect(profilePicture.autoIncrementId).toBe(refProfilePicture.autoIncrementId);
     expect(new Date(profilePicture.createdAt)).toEqual(new Date(refProfilePicture.createdAt));
     expect(profilePicture.id).toBe(refProfilePicture.id);
     expect(profilePicture.current).toBe(refProfilePicture.current);
   } else {
+    expect(profilePicture.autoIncrementId).not.toBeUndefined();
     expect(profilePicture.createdAt).not.toBeUndefined();
     expect(profilePicture.id).not.toBeUndefined();
     expect(profilePicture.current).not.toBeUndefined();

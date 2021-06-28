@@ -18,19 +18,11 @@ initSequelize(() => {
 });
 
 // TODO:
-// check that Model.autoIncrementId is send.
-
-// TODO:
 // Check that typeof +req.params.previous === number
 // and > 1
 
 // TODO:
 // allow GET /galeries/ to filter by name
-
-// TODO:
-// normalize migration and model
-// migration replace default by defaultValue
-// Model => use decorators everywhere
 
 // TODO:
 // change galerie.name => galerie.hiddenName (unique)
@@ -45,4 +37,19 @@ initSequelize(() => {
 // [['hiddenName', 'ASC']]
 
 // TODO:
+// normalize migration and model
+// migration replace default by defaultValue
+// Model => use decorators everywhere
+
+// TODO:
 // create Report model
+
+// TODO: for later
+// when the creator delete his account
+// create an election
+// If they're is only one admin
+// he become the steward for the admin (same right than the creator)
+// else all the admin became candidat to become the steward.
+// after one week, the admin who has the more vote become the intendant
+// if equality pink a random one.
+// if no admin, all users became candidat.

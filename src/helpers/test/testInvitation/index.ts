@@ -6,12 +6,14 @@ export default (
   expect(invitation.updatedAt).toBeUndefined();
   expect(invitation.userId).toBeUndefined();
   if (refInvitation) {
+    expect(invitation.autoIncrementId).toBe(refInvitation.autoIncrementId);
     expect(invitation.code).toBe(refInvitation.code);
     expect(new Date(invitation.createdAt)).toEqual(refInvitation.createdAt);
     expect(invitation.id).toBe(invitation.id);
     expect(invitation.numOfInvits).toBe(invitation.numOfInvits);
     expect(new Date(invitation.time)).toEqual(new Date(refInvitation.time));
   } else {
+    expect(invitation.autoIncrementId).not.toBeUndefined();
     expect(invitation.code).not.toBeUndefined();
     expect(invitation.createdAt).not.toBeUndefined();
     expect(invitation.id).not.toBeUndefined();

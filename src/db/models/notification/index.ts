@@ -19,6 +19,7 @@ import NotificationUserSubscribe from '../notificationUserSubscribe';
 import User from '../user';
 
 interface NotificationI {
+  autoIncrementId: number;
   frameId?: string;
   galerieId?: string;
   id: string;
@@ -33,6 +34,13 @@ interface NotificationI {
   tableName: 'notification',
 })
 export default class Notification extends Model implements NotificationI {
+  @Column({
+    allowNull: false,
+    autoIncrement: true,
+    type: DataType.BIGINT,
+  })
+  autoIncrementId!: number;
+
   @ForeignKey(() => Frame)
   @Column({
     type: DataType.UUID,

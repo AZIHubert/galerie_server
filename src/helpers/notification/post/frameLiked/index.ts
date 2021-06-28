@@ -147,20 +147,45 @@ export default async ({
   // Increment notification.num.
   if (notification) {
     try {
-      await notification.update({
+      const newNotification = await Notification.create({
+        frameId: notification.frameId,
         num: notification.num + 1,
-        seen: false,
+        type: notification.type,
+        userId: notification.userId,
       });
       await NotificationFrameLiked.create({
-        notificationId: notification.id,
+        notificationId: newNotification.id,
         userId: like.userId,
       });
-      await User.update({
-        hasNewNotifications: true,
+      await NotificationFrameLiked.update({
+        notificationId: newNotification.id,
       }, {
         where: {
-          id: like.frame.userId,
+          notificationId: notification.id,
         },
+      });
+      await notification.destroy();
+    } catch (err) {
+      return {
+        OK: false,
+        errors: err,
+        status: 500,
+      } as Error;
+    }
+
+  // If notification doesn't exist
+  // create a notification.
+  } else {
+    try {
+      const { id: notificationId } = await Notification.create({
+        frameId: like.frameId,
+        num: 1,
+        type: 'FRAME_LIKED',
+        userId: like.frame.userId,
+      });
+      await NotificationFrameLiked.create({
+        notificationId,
+        userId: like.userId,
       });
     } catch (err) {
       return {
@@ -169,22 +194,9 @@ export default async ({
         status: 500,
       } as Error;
     }
-    return { OK: true } as Success;
   }
 
-  // If notification doesn't exist
-  // create a notification.
   try {
-    const { id: notificationId } = await Notification.create({
-      frameId: like.frameId,
-      num: 1,
-      type: 'FRAME_LIKED',
-      userId: like.frame.userId,
-    });
-    await NotificationFrameLiked.create({
-      notificationId,
-      userId: like.userId,
-    });
     await User.update({
       hasNewNotifications: true,
     }, {

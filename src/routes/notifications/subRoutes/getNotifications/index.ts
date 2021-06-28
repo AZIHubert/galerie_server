@@ -2,6 +2,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Frame,
@@ -19,17 +20,21 @@ import {
 } from '@src/helpers/notification/fetch';
 
 export default async (req: Request, res: Response) => {
-  const { page } = req.query;
+  const {
+    previousNotification,
+  } = req.query;
   const currentUser = req.user as User;
   const limit = 6;
+  const where: {
+    autoIncrementId?: any;
+  } = {};
   let normalizedNotifications: any[];
   let notifications: Notification[];
-  let offset: number;
 
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
+  if (previousNotification) {
+    where.autoIncrementId = {
+      [Op.lt]: previousNotification,
+    };
   }
 
   try {
@@ -69,9 +74,9 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['updatedAt', 'DESC']],
+      order: [['autoIncrementId', 'DESC']],
       where: {
+        ...where,
         userId: currentUser.id,
       },
     });

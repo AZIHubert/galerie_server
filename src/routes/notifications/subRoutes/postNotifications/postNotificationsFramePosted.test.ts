@@ -23,7 +23,7 @@ import {
   createFrame,
   createGalerie,
   createGalerieUser,
-  createNotification,
+  createNotificationFramePosted,
   createUser,
   postNotifications,
 } from '@src/helpers/test';
@@ -91,6 +91,7 @@ describe('/Notifications', () => {
           }
           done();
         });
+
         it('set frame.notificationHasBeenSend === true', async () => {
           await postNotifications(app, {
             notificationtoken,
@@ -108,10 +109,9 @@ describe('/Notifications', () => {
             name: 'galerie2',
             userId: userTwo.id,
           });
-          const notification = await createNotification({
+          const notification = await createNotificationFramePosted({
             galerieId: galerieTwo.id,
             num,
-            type: 'FRAME_POSTED',
             userId: userTwo.id,
           });
           await postNotifications(app, {
@@ -121,7 +121,7 @@ describe('/Notifications', () => {
           expect(notification.num).toBe(num);
         });
         describe('increment notification.num', () => {
-          it('if a notification exist && seen === false', async () => {
+          it('if a notification exist where seen === false', async () => {
             const num = 1;
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
@@ -131,22 +131,40 @@ describe('/Notifications', () => {
               galerieId,
               userId: userTwo.id,
             });
-            const notification = await createNotification({
+            const frameTwo = await createFrame({
+              galerieId,
+              userId: user.id,
+            });
+            const { id: notificationId } = await createNotificationFramePosted({
+              frameId: frameTwo.id,
               galerieId,
               num,
-              type: 'FRAME_POSTED',
               userId: userTwo.id,
             });
             await postNotifications(app, {
               notificationtoken,
             });
-            await notification.reload();
+            const notificationFrameLikedFrameOne = await NotificationFramePosted.findOne({
+              where: {
+                frameId,
+              },
+            }) as NotificationFramePosted;
+            const notificationFrameLikedFrameTwo = await NotificationFramePosted.findOne({
+              where: {
+                frameId: frameTwo.id,
+              },
+            }) as NotificationFramePosted;
+            const notifications = await Notification.findAll();
+            const oldNotification = await Notification.findByPk(notificationId);
             await userTwo.reload();
-            const notificationsFramePosted = await NotificationFramePosted.findAll();
-            expect(notification.num).toBe(num + 1);
-            expect(notificationsFramePosted.length).toBe(1);
-            expect(notificationsFramePosted[0].frameId).toBe(frameId);
-            expect(notificationsFramePosted[0].notificationId).toBe(notification.id);
+            expect(notificationFrameLikedFrameOne).not.toBeNull();
+            expect(notificationFrameLikedFrameOne.notificationId).toBe(notifications[0].id);
+            expect(notificationFrameLikedFrameTwo).not.toBeNull();
+            expect(notificationFrameLikedFrameTwo.notificationId).toBe(notifications[0].id);
+            expect(notifications.length).toBe(1);
+            expect(notifications[0].num).toBe(num + 1);
+            expect(notifications[0].userId).toBe(userTwo.id);
+            expect(oldNotification).toBeNull();
             expect(userTwo.hasNewNotifications).toBe(true);
           });
           it('if notification exist && seen === true && was posted there is less than 4 days', async () => {
@@ -159,19 +177,42 @@ describe('/Notifications', () => {
               galerieId,
               userId: userTwo.id,
             });
-            const notification = await createNotification({
+            const frameTwo = await createFrame({
+              galerieId,
+              userId: user.id,
+            });
+            const { id: notificationId } = await createNotificationFramePosted({
+              frameId: frameTwo.id,
               galerieId,
               num,
               seen: true,
-              type: 'FRAME_POSTED',
               userId: userTwo.id,
             });
             await postNotifications(app, {
               notificationtoken,
             });
-            await notification.reload();
-            expect(notification.num).toBe(num + 1);
-            expect(notification.seen).toBe(false);
+            const notificationFrameLikedFrameOne = await NotificationFramePosted.findOne({
+              where: {
+                frameId,
+              },
+            }) as NotificationFramePosted;
+            const notificationFrameLikedFrameTwo = await NotificationFramePosted.findOne({
+              where: {
+                frameId: frameTwo.id,
+              },
+            }) as NotificationFramePosted;
+            const notifications = await Notification.findAll();
+            const oldNotification = await Notification.findByPk(notificationId);
+            await userTwo.reload();
+            expect(notificationFrameLikedFrameOne).not.toBeNull();
+            expect(notificationFrameLikedFrameOne.notificationId).toBe(notifications[0].id);
+            expect(notificationFrameLikedFrameTwo).not.toBeNull();
+            expect(notificationFrameLikedFrameTwo.notificationId).toBe(notifications[0].id);
+            expect(notifications.length).toBe(1);
+            expect(notifications[0].num).toBe(num + 1);
+            expect(notifications[0].userId).toBe(userTwo.id);
+            expect(oldNotification).toBeNull();
+            expect(userTwo.hasNewNotifications).toBe(true);
           });
         });
         describe('create notification', () => {
@@ -213,11 +254,10 @@ describe('/Notifications', () => {
               galerieId,
               userId: userTwo.id,
             });
-            const notification = await createNotification({
+            const notification = await createNotificationFramePosted({
               galerieId,
               num,
               seen: true,
-              type: 'FRAME_POSTED',
               userId: userTwo.id,
             });
             mockDate.set(timeStamp + 1000 * 60 * 60 * 24 * 4 + 1);

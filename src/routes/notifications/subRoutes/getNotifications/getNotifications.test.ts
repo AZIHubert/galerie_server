@@ -108,7 +108,9 @@ describe('/notifications', () => {
               notifications: secondPack,
             },
           },
-        } = await getNotifications(app, token, { page: 2 });
+        } = await getNotifications(app, token, {
+          previousNotification: firstPack[firstPack.length - 1].autoIncrementId,
+        });
         expect(firstPack.length).toBe(6);
         expect(secondPack.length).toBe(1);
       });
@@ -163,6 +165,7 @@ describe('/notifications', () => {
               },
             },
           } = await getNotifications(app, token);
+          expect(notifications[0].autoIncrementId).not.toBeUndefined();
           expect(notifications[0].createdAt).not.toBeUndefined();
           expect(notifications[0].frameId).toBeUndefined();
           expect(notifications[0].frame).toBeUndefined();
@@ -242,6 +245,7 @@ describe('/notifications', () => {
               },
             },
           } = await getNotifications(app, token);
+          expect(notifications[0].autoIncrementId).not.toBeUndefined();
           expect(notifications[0].createdAt).not.toBeUndefined();
           expect(notifications[0].frameId).toBeUndefined();
           expect(notifications[0].frame.createdAt).toBeUndefined();
@@ -336,6 +340,7 @@ describe('/notifications', () => {
               },
             },
           } = await getNotifications(app, token);
+          expect(notifications[0].autoIncrementId).not.toBeUndefined();
           expect(notifications[0].createdAt).not.toBeUndefined();
           expect(notifications[0].frameId).toBeUndefined();
           expect(notifications[0].frame).toBeUndefined();
@@ -420,6 +425,7 @@ describe('/notifications', () => {
               },
             },
           } = await getNotifications(app, token);
+          expect(notifications[0].autoIncrementId).not.toBeUndefined();
           expect(notifications[0].createdAt).not.toBeUndefined();
           expect(notifications[0].frameId).toBeUndefined();
           expect(notifications[0].frame).toBeUndefined();
@@ -456,6 +462,7 @@ describe('/notifications', () => {
               },
             },
           } = await getNotifications(app, token);
+          expect(notifications[0].autoIncrementId).not.toBeUndefined();
           expect(notifications[0].createdAt).not.toBeUndefined();
           expect(notifications[0].frameId).toBeUndefined();
           expect(notifications[0].frame).toBeUndefined();
