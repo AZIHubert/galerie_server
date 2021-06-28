@@ -144,7 +144,9 @@ describe('/betaKeys', () => {
               betaKeys: secondPack,
             },
           },
-        } = await getBetaKeys(app, token, { page: 2 });
+        } = await getBetaKeys(app, token, {
+          previousBetaKey: firstPack[firstPack.length - 1].autoIncrementId,
+        });
         expect(firstPack.length).toBe(20);
         expect(secondPack.length).toBe(1);
       });

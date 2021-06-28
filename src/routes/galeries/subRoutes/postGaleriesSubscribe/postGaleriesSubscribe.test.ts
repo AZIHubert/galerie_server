@@ -241,6 +241,7 @@ describe('/galeries', () => {
         });
         it('subscribe to this galerie even if current user is black listed from other galeries', async () => {
           const galerieTwo = await createGalerie({
+            name: 'galerie2',
             userId: userTwo.id,
           });
           await createGalerieBlackList({
@@ -343,6 +344,7 @@ describe('/galeries', () => {
         it('galerie is archived', async () => {
           const galerieTwo = await createGalerie({
             archived: true,
+            name: 'galerie2',
             userId: userTwo.id,
           });
           const { code } = await createInvitation({

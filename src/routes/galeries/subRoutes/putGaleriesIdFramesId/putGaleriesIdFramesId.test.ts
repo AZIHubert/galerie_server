@@ -313,6 +313,7 @@ describe('/galeries', () => {
                 userId: user.id,
               });
               const galerieTwo = await createGalerie({
+                name: 'galerie2',
                 userId: user.id,
               });
               const { id: frameId } = await createFrame({

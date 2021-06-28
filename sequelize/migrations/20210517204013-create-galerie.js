@@ -23,6 +23,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('g
   },
   name: {
     allowNull: false,
+    unique: true,
     type: DataTypes.STRING,
   },
   updatedAt: {

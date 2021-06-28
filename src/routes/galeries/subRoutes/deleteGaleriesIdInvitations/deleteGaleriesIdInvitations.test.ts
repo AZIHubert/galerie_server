@@ -115,6 +115,7 @@ describe('/galeries', () => {
           });
           it('do not destoy invitations from other galeries even if there are supposed to be deleted', async () => {
             const galerieTwo = await createGalerie({
+              name: 'galerie2',
               userId: user.id,
             });
             const { id: invitationId } = await createInvitation({

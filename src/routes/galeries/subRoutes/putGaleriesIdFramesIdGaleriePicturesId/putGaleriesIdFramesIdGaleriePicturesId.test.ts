@@ -279,6 +279,7 @@ describe('/galeries', () => {
                 it('galerie is archived', async () => {
                   const galerieTwo = await createGalerie({
                     archived: true,
+                    name: 'galerie2',
                     userId: user.id,
                   });
                   const frame = await createFrame({
@@ -322,6 +323,7 @@ describe('/galeries', () => {
                     userName: 'user2',
                   });
                   const galerie = await createGalerie({
+                    name: 'galerie2',
                     userId: userTwo.id,
                   });
                   const {
@@ -359,6 +361,7 @@ describe('/galeries', () => {
                     userName: 'user2',
                   });
                   const galerie = await createGalerie({
+                    name: 'galerie2',
                     userId: userTwo.id,
                   });
                   const frame = await createFrame({

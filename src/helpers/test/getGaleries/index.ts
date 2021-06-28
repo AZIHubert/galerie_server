@@ -6,17 +6,27 @@ export default async (
   token: string,
   option: {
     all?: 'true' | 'false'
-    page?: number;
+    previousGalerie?: string;
   } = {},
 ) => {
   let response: request.Response;
   if (option.all) {
+    if (option.previousGalerie) {
+      response = await request(app)
+        .get(`/galeries?previousGalerie=${option.previousGalerie}&all=${option.all}`)
+        .set('authorization', token);
+    } else {
+      response = await request(app)
+        .get(`/galeries?all=${option.all}`)
+        .set('authorization', token);
+    }
+  } else if (option.previousGalerie) {
     response = await request(app)
-      .get(`/galeries?page=${option.page || 1}&all=${option.all}`)
+      .get(`/galeries?previousGalerie=${option.previousGalerie}`)
       .set('authorization', token);
   } else {
     response = await request(app)
-      .get(`/galeries?page=${option.page || 1}`)
+      .get('/galeries')
       .set('authorization', token);
   }
   return response;

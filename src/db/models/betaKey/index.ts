@@ -10,6 +10,7 @@ import {
 import User from '../user';
 
 interface BetaKeyI {
+  autoIncrementId: number;
   code: string;
   createdById?: string;
   email?: string;
@@ -22,6 +23,13 @@ interface BetaKeyI {
   tableName: 'betaKey',
 })
 export default class BetaKey extends Model implements BetaKeyI {
+  @Column({
+    allowNull: false,
+    autoIncrement: true,
+    type: DataType.BIGINT,
+  })
+  autoIncrementId!: number;
+
   @Column({
     allowNull: false,
     type: DataType.STRING,

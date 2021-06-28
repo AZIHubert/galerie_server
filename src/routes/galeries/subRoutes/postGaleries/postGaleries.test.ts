@@ -10,6 +10,7 @@ import {
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import {
+  createGalerie,
   createUser,
   postGaleries,
   testGalerie,
@@ -19,6 +20,7 @@ import initApp from '@src/server';
 
 import {
   FIELD_CANNOT_BE_EMPTY,
+  FIELD_IS_ALREADY_TAKEN,
   FIELD_IS_REQUIRED,
   FIELD_MAX_LENGTH,
   FIELD_MIN_LENGTH,
@@ -236,6 +238,25 @@ describe('/galerie', () => {
           });
           expect(body.errors).toEqual({
             name: FIELD_MAX_LENGTH(30),
+          });
+          expect(status).toBe(400);
+        });
+        it('is already taken', async () => {
+          const name = 'Galerie\'s name';
+          await createGalerie({
+            name,
+            userId: user.id,
+          });
+          const {
+            body,
+            status,
+          } = await postGaleries(app, token, {
+            body: {
+              name,
+            },
+          });
+          expect(body.errors).toEqual({
+            name: FIELD_IS_ALREADY_TAKEN,
           });
           expect(status).toBe(400);
         });

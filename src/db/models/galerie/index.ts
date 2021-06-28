@@ -66,6 +66,7 @@ export default class Galerie extends Model implements GalerieI {
   // of the galerie can changed it.
   @Column({
     allowNull: false,
+    unique: true,
     type: DataType.STRING,
   })
   name!: string;

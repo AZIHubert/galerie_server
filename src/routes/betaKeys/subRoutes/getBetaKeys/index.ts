@@ -4,9 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
-import {
-  Op,
-} from 'sequelize';
+import { Op } from 'sequelize';
 
 import {
   BetaKey,
@@ -23,15 +21,15 @@ export default async (req: Request, res: Response) => {
   const limit = 20;
   const {
     me,
-    page,
+    previousBetaKey,
     used,
   } = req.query;
   let betaKeys: Array<BetaKey>;
   const where: {
+    autoIncrementId?: any;
     createdById?: string;
     userId?: any;
   } = {};
-  let offset: number;
 
   // If ?me='false'
   // return all betaKey created
@@ -46,10 +44,10 @@ export default async (req: Request, res: Response) => {
       where.createdById = currentUser.id;
   }
 
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
+  if (previousBetaKey) {
+    where.autoIncrementId = {
+      [Op.lt]: previousBetaKey,
+    };
   }
 
   switch (used) {
@@ -100,8 +98,7 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['createdAt', 'DESC']],
+      order: [['autoIncrementId', 'DESC']],
       where,
     });
   } catch (err) {

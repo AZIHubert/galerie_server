@@ -18,16 +18,33 @@ initSequelize(() => {
 });
 
 // TODO:
-// Every where multiple Model with limit and offset are fetched
-// Need to add a query.timestamp (Date)
-// to indicate when the first request was made
-// During to request of 2 different pages
-// Model can be added and the are modifing the order
-// so, some Model can be skipped
-// so query.timestamp is require
-// and returned Model are only the one
-// where
-// createdAt < query.timestamp
+// https://stackoverflow.com/questions/38211170/sequelize-pagination
+// create an autoincrement id for all models
+// where these are supposed to be return by pack
+// in this request send this autoIncrementId to the query of
+// the request
+// and return next where autoIncrementId > last model.autoIncrementId
+
+// When fetching by string
+// never allow to fetch by non unique field (user.pseudonym)
+// assure that all unique fields are really unique (betaKey.email)
 
 // TODO:
 // create Report model
+
+// TODO:
+// normalize migration and model
+// migration replace default by defaultValue
+// Model => use decorators everywhere
+
+// TODO:
+// change galerie.name => galerie.hiddenName (unique)
+// add galerie.name (non unique)
+// when create (put name of) a galerie
+// generate a unique hiddenName = ${name}-${uniqueId}
+// =>
+// check (by last created) if a galerie with same name exist
+// hiddrenNamNumGen = existingGalerie.hiddenName.replace(`${name}-`, '');
+// set new (updated) galerie hidden Name ${name}-${existedGalerieHiddenNameNumGen + 1}
+// this hiddenName is used to order galerie by name.
+// [['hiddenName', 'ASC']]

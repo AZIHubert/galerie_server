@@ -159,9 +159,11 @@ describe('/galeries', () => {
               });
               it('do not destroy other GalerieUser', async () => {
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: user.id,
                 });
                 const galerieThree = await createGalerie({
+                  name: 'galerie3',
                   userId: userTwo.id,
                 });
                 await createGalerieUser({
@@ -208,6 +210,7 @@ describe('/galeries', () => {
               });
               it('blackList a user even if is blackListed from other galeries', async () => {
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: user.id,
                 });
                 await createGalerieBlackList({
@@ -256,6 +259,7 @@ describe('/galeries', () => {
               });
               it('do not delete frames/galeriePictures/images posted by the black listed user on other galeries', async () => {
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: userTwo.id,
                 });
                 await createFrame({
@@ -290,6 +294,7 @@ describe('/galeries', () => {
                   userName: 'user3',
                 });
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: userTwo.id,
                 });
                 const galerieBlackList = await createGalerieBlackList({
@@ -316,6 +321,7 @@ describe('/galeries', () => {
               });
               it('do not delete likes posted on frames posted by the black listed user on other galeries', async () => {
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: userTwo.id,
                 });
                 await createGalerieUser({
@@ -376,6 +382,7 @@ describe('/galeries', () => {
               });
               it('do not delete likes posted by the black listed user on other galeries', async () => {
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: userTwo.id,
                 });
                 const { id: frameId } = await createFrame({
@@ -410,6 +417,7 @@ describe('/galeries', () => {
               });
               it('do not delete invitations posted by the black listed user on other galeries', async () => {
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: userTwo.id,
                 });
                 await createInvitation({
@@ -506,7 +514,7 @@ describe('/galeries', () => {
                 });
                 const { id: notificationId } = await createNotificationUserSubscribe({
                   galerieId,
-                  subscribeUserId: userThree.id,
+                  subscribedUserId: userThree.id,
                   userId: userTwo.id,
                 });
                 await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
@@ -554,7 +562,7 @@ describe('/galeries', () => {
               it('destroy all notifications where userSubscribe.userId === request.params.userId, num <= 1 && type === \'USER_SUSCBIBE\'', async () => {
                 const { id: notificationId } = await createNotificationUserSubscribe({
                   galerieId,
-                  subscribeUserId: userTwo.id,
+                  subscribedUserId: userTwo.id,
                   userId: user.id,
                 });
                 await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
@@ -652,7 +660,7 @@ describe('/galeries', () => {
                 });
                 const notification = await createNotificationUserSubscribe({
                   galerieId,
-                  subscribeUserId: userTwo.id,
+                  subscribedUserId: userTwo.id,
                   userId: user.id,
                 });
                 await NotificationUserSubscribe.create({
@@ -744,7 +752,7 @@ describe('/galeries', () => {
                 });
                 const notification = await createNotificationUserSubscribe({
                   galerieId,
-                  subscribeUserId: userThree.id,
+                  subscribedUserId: userThree.id,
                   userId: user.id,
                 });
                 await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
@@ -760,6 +768,7 @@ describe('/galeries', () => {
               });
               it('do not destroy notification where type === \'FRAME_LIKED\' && userId === request.params.userId from other galerie', async () => {
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: userTwo.id,
                 });
                 await createGalerieUser({
@@ -785,6 +794,7 @@ describe('/galeries', () => {
               });
               it('do not destroy notification where type === \'FRAME_POSTED\' && userId === request.params.userId from other galerie', async () => {
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: userTwo.id,
                 });
                 await createGalerieUser({
@@ -806,6 +816,7 @@ describe('/galeries', () => {
               });
               it('do not destroy notification where type === \'USER_SUBSCRIBE\' && userId === request.params.userId from other galeries', async () => {
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: userTwo.id,
                 });
                 await createGalerieUser({
@@ -814,7 +825,7 @@ describe('/galeries', () => {
                 });
                 const { id: notificationId } = await createNotificationUserSubscribe({
                   galerieId: galerieTwo.id,
-                  subscribeUserId: user.id,
+                  subscribedUserId: user.id,
                   userId: userTwo.id,
                 });
                 await postGaleriesIdUserUserIdBlackLists(app, token, galerieId, userTwo.id);
@@ -971,6 +982,7 @@ describe('/galeries', () => {
                   userName: 'user2',
                 });
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: userTwo.id,
                 });
                 const {

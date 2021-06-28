@@ -4,6 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Galerie,
@@ -17,24 +18,26 @@ import {
 export default async (req: Request, res: Response) => {
   const {
     all,
+    previousGalerie,
   } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
-  const { page } = req.query;
-  const where: {
-    id?: string
+  const whereGalerie: {
+    name?: any;
+  } = {};
+  const whereUser: {
+    id?: string;
   } = {};
   let galeries: Galerie[];
-  let offset: number;
   let returnedGaleries: Array<any>;
 
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
-  }
   if (currentUser.role === 'user' || all !== 'true') {
-    where.id = currentUser.id;
+    whereUser.id = currentUser.id;
+  }
+  if (previousGalerie) {
+    whereGalerie.name = {
+      [Op.gt]: previousGalerie,
+    };
   }
 
   try {
@@ -44,11 +47,11 @@ export default async (req: Request, res: Response) => {
       },
       include: [{
         model: User,
-        where,
+        where: whereUser,
       }],
       limit,
-      offset,
-      order: [['createdAt', 'DESC']],
+      order: [['name', 'ASC']],
+      where: whereGalerie,
     });
   } catch (err) {
     return res.status(500).send(err);
