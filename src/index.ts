@@ -18,6 +18,9 @@ initSequelize(() => {
 });
 
 // TODO:
+// check that Model.autoIncrementId is send.
+
+// TODO:
 // https://stackoverflow.com/questions/38211170/sequelize-pagination
 // create an autoincrement id for all models
 // where these are supposed to be return by pack

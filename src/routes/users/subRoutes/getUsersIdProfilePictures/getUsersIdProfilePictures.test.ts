@@ -145,7 +145,9 @@ describe('/users', () => {
                   profilePictures: secondPack,
                 },
               },
-            } = await getUsersIdProfilePictures(app, token, userTwo.id, { page: 2 });
+            } = await getUsersIdProfilePictures(app, token, userTwo.id, {
+              previousProfilePicture: firstPack[firstPack.length - 1].autoIncrementId,
+            });
             expect(firstPack.length).toBe(20);
             expect(secondPack.length).toBe(1);
           });

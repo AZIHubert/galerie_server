@@ -6,13 +6,18 @@ export default async (
   token: string,
   userId: string,
   option: {
-    page: number;
-  } = {
-    page: 1,
-  },
+    previousProfilePicture?: string;
+  } = {},
 ) => {
-  const response = await request(app)
-    .get(`/users/${userId}/profilePictures?page=${option.page}`)
-    .set('authorization', token);
+  let response: request.Response;
+  if (option.previousProfilePicture) {
+    response = await request(app)
+      .get(`/users/${userId}/profilePictures?previousProfilePicture=${option.previousProfilePicture}`)
+      .set('authorization', token);
+  } else {
+    response = await request(app)
+      .get(`/users/${userId}/profilePictures/`)
+      .set('authorization', token);
+  }
   return response;
 };
