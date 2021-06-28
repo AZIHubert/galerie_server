@@ -4,6 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Ticket,
@@ -16,15 +17,19 @@ import {
 } from '@src/helpers/excluders';
 
 export default async (req: Request, res: Response) => {
-  const { page } = req.query;
+  const {
+    previousTicket,
+  } = req.query;
   const limit = 20;
-  let offset: number;
+  const where: {
+    autoIncrementId?: any;
+  } = {};
   let tickets: Ticket[];
 
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
+  if (previousTicket) {
+    where.autoIncrementId = {
+      [Op.lt]: previousTicket,
+    };
   }
 
   try {
@@ -45,8 +50,8 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['createdAt', 'DESC']],
+      order: [['autoIncrementId', 'DESC']],
+      where,
     });
   } catch (err) {
     return res.status(500).send(err);

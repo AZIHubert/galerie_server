@@ -111,7 +111,9 @@ describe('/tickets', () => {
               tickets: secondPack,
             },
           },
-        } = await getTickets(app, token, { page: 2 });
+        } = await getTickets(app, token, {
+          previousTicket: firstPack[firstPack.length - 1].autoIncrementId,
+        });
         expect(firstPack.length).toBe(20);
         expect(secondPack.length).toBe(1);
       });
