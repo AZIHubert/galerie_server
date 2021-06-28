@@ -5,13 +5,18 @@ export default async (
   app: Server,
   token: string,
   option: {
-    page: number;
-  } = {
-    page: 1,
-  },
+    previousFrame?: string,
+  } = {},
 ) => {
-  const response = await request(app)
-    .get(`/galeries/frames?page=${option.page}`)
-    .set('authorization', token);
+  let response: request.Response;
+  if (option.previousFrame) {
+    response = await request(app)
+      .get(`/galeries/frames?previousFrame=${option.previousFrame}`)
+      .set('authorization', token);
+  } else {
+    response = await request(app)
+      .get('/galeries/frames/')
+      .set('authorization', token);
+  }
   return response;
 };

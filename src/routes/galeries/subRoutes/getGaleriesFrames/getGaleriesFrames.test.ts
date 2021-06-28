@@ -211,7 +211,9 @@ describe('/galeries', () => {
                 frames: secondPack,
               },
             },
-          } = await getGaleriesFrames(app, token, { page: 2 });
+          } = await getGaleriesFrames(app, token, {
+            previousFrame: firstPack[firstPack.length - 1].autoIncrementId,
+          });
           expect(firstPack.length).toBe(20);
           expect(secondPack.length).toBe(1);
         });
