@@ -138,7 +138,9 @@ describe('/admin', () => {
                     blackLists: secondPack,
                   },
                 },
-              } = await getUsersIdBlackLists(app, token, userTwo.id, { page: 2 });
+              } = await getUsersIdBlackLists(app, token, userTwo.id, {
+                previousBlackList: firstPack[firstPack.length - 1].autoIncrementId,
+              });
               expect(firstPack.length).toBe(20);
               expect(secondPack.length).toBe(1);
             });
