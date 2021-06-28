@@ -104,6 +104,7 @@ export default async (req: Request, res: Response) => {
         },
         {
           model: Like,
+          limit: 1,
           required: false,
           where: {
             userId: currentUser.id,

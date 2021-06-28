@@ -4,6 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Frame,
@@ -31,16 +32,22 @@ import {
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
-  const { galerieId } = req.params;
+  const {
+    galerieId,
+  } = req.params;
+  const {
+    previousFrame,
+  } = req.query;
   const limit = 20;
-  const { page } = req.query;
   const currentUser = req.user as User;
-  const where: {
+  const whereFrame: {
+    autoIncrementId?: any
+  } = {};
+  const whereGalerie: {
     id?: string;
   } = {};
   let frames: Frame[];
   let galerie: Galerie | null;
-  let offset: number;
   let returnedFrames: Array<any>;
 
   // Check if request.params.galerieId
@@ -51,14 +58,8 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
-  }
-
   if (currentUser.role === 'user') {
-    where.id = currentUser.id;
+    whereGalerie.id = currentUser.id;
   }
 
   // Fecth galerie,
@@ -66,7 +67,7 @@ export default async (req: Request, res: Response) => {
     galerie = await Galerie.findByPk(galerieId, {
       include: [{
         model: User,
-        where,
+        where: whereGalerie,
       }],
     });
   } catch (err) {
@@ -78,6 +79,11 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  if (previousFrame) {
+    whereFrame.autoIncrementId = {
+      [Op.lt]: previousFrame,
+    };
+  }
   // Fetch all frames relative to this galerie.
   try {
     frames = await Frame.findAll({
@@ -125,9 +131,9 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['createdAt', 'DESC']],
+      order: [['autoIncrementId', 'DESC']],
       where: {
+        ...whereFrame,
         galerieId,
       },
     });
