@@ -5,38 +5,32 @@ export default async (
   app: Server,
   token: string,
   option: {
-    direction?: 'ASC' | 'DESC';
     blackListed?: 'true' | 'false';
-    order?: 'createdAt' | 'pseudonym' | 'userName';
-    page?: number;
+    previousUser?: string;
   } = {},
 ) => {
   const {
-    direction,
     blackListed,
-    order,
-    page,
+    previousUser,
   } = option;
   let response: request.Response;
-  if (option.direction && option.order) {
+  if (blackListed) {
+    if (previousUser) {
+      response = await request(app)
+        .get(`/users?previousUser=${previousUser}&blackListed=${blackListed}`)
+        .set('authorization', token);
+    } else {
+      response = await request(app)
+        .get(`/users?blackListed=${blackListed}`)
+        .set('authorization', token);
+    }
+  } else if (previousUser) {
     response = await request(app)
-      .get(`/users?page=${page || 1}&direction=${direction}&order=${order}`)
-      .set('authorization', token);
-  } else if (option.direction) {
-    response = await request(app)
-      .get(`/users?page=${page || 1}&direction=${direction}`)
-      .set('authorization', token);
-  } else if (option.order) {
-    response = await request(app)
-      .get(`/users?page=${page || 1}&order=${order}`)
-      .set('authorization', token);
-  } else if (blackListed) {
-    response = await request(app)
-      .get(`/users?page=${page || 1}&blackListed=${blackListed}`)
+      .get(`/users?previousUser=${previousUser}`)
       .set('authorization', token);
   } else {
     response = await request(app)
-      .get(`/users?page=${page || 1}`)
+      .get('/users/')
       .set('authorization', token);
   }
   return response;

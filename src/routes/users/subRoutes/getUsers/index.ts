@@ -15,40 +15,16 @@ import {
 export default async (req: Request, res: Response) => {
   const {
     blackListed,
-    direction: queryDirection,
-    order: queryOrder,
-    page,
+    previousUser,
   } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
   const where: {
     isBlackListed?: boolean;
+    userName?: any;
   } = {};
-  let direction = 'ASC';
-  let offset: number;
-  let order = 'pseudonym';
   let users: Array<User>;
 
-  if (
-    queryDirection === 'ASC'
-    || queryDirection === 'DESC'
-  ) {
-    direction = queryDirection;
-  }
-
-  if (
-    queryOrder === 'createdAt'
-    || queryOrder === 'pseudonym'
-    || queryOrder === 'userName'
-  ) {
-    order = queryOrder;
-  }
-
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
-  }
   if (currentUser.role !== 'user') {
     switch (blackListed) {
       case 'true':
@@ -64,6 +40,12 @@ export default async (req: Request, res: Response) => {
     where.isBlackListed = false;
   }
 
+  if (previousUser) {
+    where.userName = {
+      [Op.gt]: previousUser,
+    };
+  }
+
   // fetch users exept current one,
   // black listed and not confirmed.
   try {
@@ -75,8 +57,7 @@ export default async (req: Request, res: Response) => {
         ],
       },
       limit,
-      offset,
-      order: [[order, direction]],
+      order: [['userName', 'ASC']],
       where: {
         ...where,
         confirmed: true,

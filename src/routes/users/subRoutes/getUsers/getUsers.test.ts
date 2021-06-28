@@ -163,259 +163,46 @@ describe('/users', () => {
                 users: secondPack,
               },
             },
-          } = await getUsers(app, token, { page: 2 });
+          } = await getUsers(app, token, {
+            previousUser: firstPack[firstPack.length - 1].userName,
+          });
           expect(firstPack.length).toBe(20);
           expect(secondPack.length).toBe(1);
         });
-        describe('order users ASC', () => {
-          it('by createdAt', async () => {
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              pseudonym: 'a',
-              userName: 'e',
-            });
-            const { user: userThree } = await createUser({
-              email: 'user3@email.com',
-              pseudonym: 'b',
-              userName: 'd',
-            });
-            const { user: userFour } = await createUser({
-              email: 'user4@email.com',
-              pseudonym: 'c',
-              userName: 'c',
-            });
-            const { user: userFive } = await createUser({
-              email: 'user5@email.com',
-              pseudonym: 'd',
-              userName: 'b',
-            });
-            const { user: userSix } = await createUser({
-              email: 'user6@email.com',
-              pseudonym: 'e',
-              userName: 'a',
-            });
-            const {
-              body: {
-                data: {
-                  users,
-                },
-              },
-            } = await getUsers(app, token, { order: 'createdAt' });
-            expect(users.length).toBe(5);
-            expect(users[0].id).toBe(userTwo.id);
-            expect(users[1].id).toBe(userThree.id);
-            expect(users[2].id).toBe(userFour.id);
-            expect(users[3].id).toBe(userFive.id);
-            expect(users[4].id).toBe(userSix.id);
+        it('order users by userName (ASC)', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'e',
           });
-          it('by pseudonym', async () => {
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              pseudonym: 'a',
-              userName: 'e',
-            });
-            const { user: userThree } = await createUser({
-              email: 'user3@email.com',
-              pseudonym: 'b',
-              userName: 'd',
-            });
-            const { user: userFour } = await createUser({
-              email: 'user4@email.com',
-              pseudonym: 'c',
-              userName: 'c',
-            });
-            const { user: userFive } = await createUser({
-              email: 'user5@email.com',
-              pseudonym: 'd',
-              userName: 'b',
-            });
-            const { user: userSix } = await createUser({
-              email: 'user6@email.com',
-              pseudonym: 'e',
-              userName: 'a',
-            });
-            const {
-              body: {
-                data: {
-                  users,
-                },
-              },
-            } = await getUsers(app, token);
-            expect(users.length).toBe(5);
-            expect(users[0].id).toBe(userTwo.id);
-            expect(users[1].id).toBe(userThree.id);
-            expect(users[2].id).toBe(userFour.id);
-            expect(users[3].id).toBe(userFive.id);
-            expect(users[4].id).toBe(userSix.id);
+          const { user: userThree } = await createUser({
+            email: 'user3@email.com',
+            userName: 'd',
           });
-          it('by userName', async () => {
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              pseudonym: 'a',
-              userName: 'e',
-            });
-            const { user: userThree } = await createUser({
-              email: 'user3@email.com',
-              pseudonym: 'b',
-              userName: 'd',
-            });
-            const { user: userFour } = await createUser({
-              email: 'user4@email.com',
-              pseudonym: 'c',
-              userName: 'c',
-            });
-            const { user: userFive } = await createUser({
-              email: 'user5@email.com',
-              pseudonym: 'd',
-              userName: 'b',
-            });
-            const { user: userSix } = await createUser({
-              email: 'user6@email.com',
-              pseudonym: 'e',
-              userName: 'a',
-            });
-            const {
-              body: {
-                data: {
-                  users,
-                },
-              },
-            } = await getUsers(app, token, { order: 'userName' });
-            expect(users.length).toBe(5);
-            expect(users[0].id).toBe(userSix.id);
-            expect(users[1].id).toBe(userFive.id);
-            expect(users[2].id).toBe(userFour.id);
-            expect(users[3].id).toBe(userThree.id);
-            expect(users[4].id).toBe(userTwo.id);
+          const { user: userFour } = await createUser({
+            email: 'user4@email.com',
+            userName: 'c',
           });
-        });
-        describe('order users DESC', () => {
-          it('by createdAt', async () => {
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              pseudonym: 'a',
-              userName: 'e',
-            });
-            const { user: userThree } = await createUser({
-              email: 'user3@email.com',
-              pseudonym: 'b',
-              userName: 'd',
-            });
-            const { user: userFour } = await createUser({
-              email: 'user4@email.com',
-              pseudonym: 'c',
-              userName: 'c',
-            });
-            const { user: userFive } = await createUser({
-              email: 'user5@email.com',
-              pseudonym: 'd',
-              userName: 'b',
-            });
-            const { user: userSix } = await createUser({
-              email: 'user6@email.com',
-              pseudonym: 'e',
-              userName: 'a',
-            });
-            const {
-              body: {
-                data: {
-                  users,
-                },
-              },
-            } = await getUsers(app, token, {
-              direction: 'DESC',
-              order: 'createdAt',
-            });
-            expect(users.length).toBe(5);
-            expect(users[0].id).toBe(userSix.id);
-            expect(users[1].id).toBe(userFive.id);
-            expect(users[2].id).toBe(userFour.id);
-            expect(users[3].id).toBe(userThree.id);
-            expect(users[4].id).toBe(userTwo.id);
+          const { user: userFive } = await createUser({
+            email: 'user5@email.com',
+            userName: 'b',
           });
-          it('by pseudonym', async () => {
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              pseudonym: 'a',
-              userName: 'e',
-            });
-            const { user: userThree } = await createUser({
-              email: 'user3@email.com',
-              pseudonym: 'b',
-              userName: 'd',
-            });
-            const { user: userFour } = await createUser({
-              email: 'user4@email.com',
-              pseudonym: 'c',
-              userName: 'c',
-            });
-            const { user: userFive } = await createUser({
-              email: 'user5@email.com',
-              pseudonym: 'd',
-              userName: 'b',
-            });
-            const { user: userSix } = await createUser({
-              email: 'user6@email.com',
-              pseudonym: 'e',
-              userName: 'a',
-            });
-            const {
-              body: {
-                data: {
-                  users,
-                },
-              },
-            } = await getUsers(app, token, { direction: 'DESC' });
-            expect(users.length).toBe(5);
-            expect(users[0].id).toBe(userSix.id);
-            expect(users[1].id).toBe(userFive.id);
-            expect(users[2].id).toBe(userFour.id);
-            expect(users[3].id).toBe(userThree.id);
-            expect(users[4].id).toBe(userTwo.id);
+          const { user: userSix } = await createUser({
+            email: 'user6@email.com',
+            userName: 'a',
           });
-          it('by userName', async () => {
-            const { user: userTwo } = await createUser({
-              email: 'user2@email.com',
-              pseudonym: 'a',
-              userName: 'e',
-            });
-            const { user: userThree } = await createUser({
-              email: 'user3@email.com',
-              pseudonym: 'b',
-              userName: 'd',
-            });
-            const { user: userFour } = await createUser({
-              email: 'user4@email.com',
-              pseudonym: 'c',
-              userName: 'c',
-            });
-            const { user: userFive } = await createUser({
-              email: 'user5@email.com',
-              pseudonym: 'd',
-              userName: 'b',
-            });
-            const { user: userSix } = await createUser({
-              email: 'user6@email.com',
-              pseudonym: 'e',
-              userName: 'a',
-            });
-            const {
-              body: {
-                data: {
-                  users,
-                },
+          const {
+            body: {
+              data: {
+                users,
               },
-            } = await getUsers(app, token, {
-              direction: 'DESC',
-              order: 'userName',
-            });
-            expect(users.length).toBe(5);
-            expect(users[0].id).toBe(userTwo.id);
-            expect(users[1].id).toBe(userThree.id);
-            expect(users[2].id).toBe(userFour.id);
-            expect(users[3].id).toBe(userFive.id);
-            expect(users[4].id).toBe(userSix.id);
-          });
+            },
+          } = await getUsers(app, token);
+          expect(users.length).toBe(5);
+          expect(users[0].id).toBe(userSix.id);
+          expect(users[1].id).toBe(userFive.id);
+          expect(users[2].id).toBe(userFour.id);
+          expect(users[3].id).toBe(userThree.id);
+          expect(users[4].id).toBe(userTwo.id);
         });
         describe('if currentUser.role === \'admin\' | \'superAdmin\'', () => {
           let tokenTwo: string;
