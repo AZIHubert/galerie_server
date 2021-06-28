@@ -6,13 +6,18 @@ export default async (
   token: string,
   galerieId: string,
   option: {
-    page: number;
-  } = {
-    page: 1,
-  },
+    previousUser?: string;
+  } = {},
 ) => {
-  const response = await request(app)
-    .get(`/galeries/${galerieId}/users/?page=${option.page}`)
-    .set('authorization', token);
+  let response: request.Response;
+  if (option.previousUser) {
+    response = await request(app)
+      .get(`/galeries/${galerieId}/users/?previousUser=${option.previousUser}`)
+      .set('authorization', token);
+  } else {
+    response = await request(app)
+      .get(`/galeries/${galerieId}/users/`)
+      .set('authorization', token);
+  }
   return response;
 };
