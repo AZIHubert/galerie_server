@@ -1,6 +1,7 @@
 import {
   Column,
   DataType,
+  Default,
   HasOne,
   Model,
   Table,
@@ -48,9 +49,9 @@ export default class Image extends Model implements ImageI {
   })
   height!: number;
 
+  @Default(DataType.UUIDV4)
   @Column({
     allowNull: false,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
     type: DataType.UUID,
   })
@@ -72,17 +73,17 @@ export default class Image extends Model implements ImageI {
   @HasOne(() => GaleriePicture)
   cropedGaleriePicture!: GaleriePicture;
 
-  @HasOne(() => GaleriePicture)
-  originalGaleriePicture!: GaleriePicture;
-
-  @HasOne(() => GaleriePicture)
-  pendingGaleriePicture!: GaleriePicture;
-
   @HasOne(() => ProfilePicture)
   cropedProfilePicture!: ProfilePicture;
 
+  @HasOne(() => GaleriePicture)
+  originalGaleriePicture!: GaleriePicture;
+
   @HasOne(() => ProfilePicture)
   originalProfilePicture!: ProfilePicture;
+
+  @HasOne(() => GaleriePicture)
+  pendingGaleriePicture!: GaleriePicture;
 
   @HasOne(() => ProfilePicture)
   pendingProfilePicture!: ProfilePicture;

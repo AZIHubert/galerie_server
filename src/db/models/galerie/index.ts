@@ -17,8 +17,8 @@ import User from '../user';
 
 interface GalerieI {
   archived: boolean;
-  defaultCoverPicture?: string;
-  description?: string;
+  defaultCoverPicture: string;
+  description: string | null;
   hiddenName: string;
   id: string;
   name: string;
@@ -49,11 +49,15 @@ export default class Galerie extends Model implements GalerieI {
   })
   defaultCoverPicture!: string;
 
+  // The description of the galerie.
   @Column({
     type: DataType.STRING,
   })
   description!: string;
 
+  // ${name}-${increment}
+  // HiddenName is used to order galeries
+  // by name without having replicant.
   @Column({
     allowNull: false,
     unique: true,
@@ -61,9 +65,9 @@ export default class Galerie extends Model implements GalerieI {
   })
   hiddenName!: string;
 
+  @Default(DataType.UUIDV4)
   @Column({
     allowNull: false,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
     type: DataType.UUID,
   })

@@ -2,6 +2,7 @@ import {
   BelongsTo,
   Column,
   DataType,
+  Default,
   ForeignKey,
   Model,
   Table,
@@ -16,7 +17,7 @@ interface InvitationI {
   galerieId: string;
   id: string;
   numOfInvits: number | null;
-  time?: Date;
+  time: Date | null;
   userId: string;
 }
 
@@ -48,9 +49,9 @@ export default class Invitation extends Model implements InvitationI {
   })
   galerieId!: string;
 
+  @Default(DataType.UUIDV4)
   @Column({
     allowNull: false,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
     type: DataType.UUID,
   })

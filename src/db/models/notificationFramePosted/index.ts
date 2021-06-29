@@ -10,7 +10,7 @@ import Frame from '../frame';
 import Notification from '../notification';
 
 interface NotificationFramePostedI {
-  frameId?: string;
+  frameId: string;
   notificationId?: string;
 }
 

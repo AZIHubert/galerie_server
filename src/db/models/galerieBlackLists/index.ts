@@ -2,6 +2,7 @@ import {
   BelongsTo,
   Column,
   DataType,
+  Default,
   ForeignKey,
   Model,
   Table,
@@ -12,7 +13,7 @@ import User from '../user';
 
 interface GalerieBlackListI {
   autoIncrementId: number;
-  createdById?: string;
+  createdById: string | null;
   galerieId: string;
   id: string;
   userId: string;
@@ -22,6 +23,8 @@ interface GalerieBlackListI {
   tableName: 'galerieBlackList',
 })
 export default class GalerieBlackList extends Model implements GalerieBlackListI {
+  // Required to order by created at without
+  // having replicate Model.
   @Column({
     allowNull: false,
     autoIncrement: true,
@@ -29,12 +32,16 @@ export default class GalerieBlackList extends Model implements GalerieBlackListI
   })
   autoIncrementId!: number;
 
+  // Id of the user who post
+  // the galerieBlackList.
   @ForeignKey(() => User)
   @Column({
     type: DataType.UUID,
   })
   createdById!: string;
 
+  // Id of the galerie where the
+  // galerieBlackList whas posted.
   @ForeignKey(() => Galerie)
   @Column({
     allowNull: false,
@@ -42,14 +49,16 @@ export default class GalerieBlackList extends Model implements GalerieBlackListI
   })
   galerieId!: string;
 
+  @Default(DataType.UUIDV4)
   @Column({
     allowNull: false,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
     type: DataType.UUID,
   })
   id!: string;
 
+  // Id of the user who post
+  // the galerieBlackList.
   @ForeignKey(() => User)
   @Column({
     allowNull: false,

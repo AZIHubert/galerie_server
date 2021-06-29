@@ -18,11 +18,6 @@ initSequelize(() => {
 });
 
 // TODO:
-// normalize migration and model
-// migration replace default by defaultValue
-// Model => use decorators everywhere
-
-// TODO:
 // delete @root/
 
 // TODO:
@@ -37,3 +32,12 @@ initSequelize(() => {
 // after one week, the admin who has the more vote become the intendant
 // if equality pink a random one.
 // if no admin, all users became candidat.
+
+// TODO: for later
+// when allow registration through social media
+// when register with a social media
+// do not use socialMediaUserName
+// instead, use ${userName}${increment}
+// check if another user exist with the same userName
+// if true, create a user with increment + 1
+// same logic as Galerie.hiddenName.

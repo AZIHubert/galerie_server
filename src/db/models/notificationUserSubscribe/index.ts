@@ -10,8 +10,8 @@ import Notification from '../notification';
 import User from '../user';
 
 interface NotificationUserSubscribeI {
-  frameId?: string;
   notificationId?: string;
+  userId: string;
 }
 
 @Table({

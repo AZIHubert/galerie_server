@@ -12,20 +12,20 @@ import User from '../user';
 
 interface GalerieUserI {
   allowNotification: boolean;
-  galerieId?: string;
+  galerieId: string;
   hasNewFrames: boolean;
   notificationHasBeenSend: boolean;
-  role?: string;
-  userId?: string;
+  role: string;
+  userId: string;
 }
 
 @Table({
   tableName: 'galerieUser',
 })
 export default class GalerieUser extends Model implements GalerieUserI {
+  @Default(true)
   @Column({
     allowNull: false,
-    defaultValue: true,
     type: DataType.BOOLEAN,
   })
   allowNotification!: boolean;
@@ -44,9 +44,9 @@ export default class GalerieUser extends Model implements GalerieUserI {
   })
   hasNewFrames!: boolean;
 
+  @Default(false)
   @Column({
     allowNull: false,
-    defaultValue: false,
     type: DataType.BOOLEAN,
   })
   notificationHasBeenSend!: boolean;

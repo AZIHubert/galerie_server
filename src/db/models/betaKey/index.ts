@@ -2,6 +2,7 @@ import {
   BelongsTo,
   Column,
   DataType,
+  Default,
   ForeignKey,
   Model,
   Table,
@@ -12,8 +13,8 @@ import User from '../user';
 interface BetaKeyI {
   autoIncrementId: number;
   code: string;
-  createdById?: string;
-  email?: string;
+  createdById: string | null;
+  email: string | null;
   id: string;
   notificationHasBeenSend: boolean;
   userId: string;
@@ -23,6 +24,8 @@ interface BetaKeyI {
   tableName: 'betaKey',
 })
 export default class BetaKey extends Model implements BetaKeyI {
+  // Required to order by created at without
+  // having replicate Model.
   @Column({
     allowNull: false,
     autoIncrement: true,
@@ -30,6 +33,8 @@ export default class BetaKey extends Model implements BetaKeyI {
   })
   autoIncrementId!: number;
 
+  // Unique code to register
+  // to the app.
   @Column({
     allowNull: false,
     type: DataType.STRING,
@@ -37,32 +42,40 @@ export default class BetaKey extends Model implements BetaKeyI {
   })
   code!: string;
 
+  // The superAdmin who create the betaKey.
+  // If null, the superAdmin has deleted his account.
   @ForeignKey(() => User)
   @Column({
     type: DataType.UUID,
   })
   createdById!: string;
 
+  // Email which this betaKey has been send.
   @Column({
     type: DataType.STRING,
   })
   email!: string;
 
+  @Default(DataType.UUIDV4)
   @Column({
     allowNull: false,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
     type: DataType.UUID,
   })
   id!: string;
 
+  // If true, the superAdmin
+  // has receive a notification when
+  // a user subscribe with this beta key.
+  @Default(false)
   @Column({
     allowNull: false,
-    defaultValue: false,
     type: DataType.BOOLEAN,
   })
   notificationHasBeenSend!: boolean;
 
+  // The id of the user who use
+  // this beta key.
   @ForeignKey(() => User)
   @Column({
     unique: true,
