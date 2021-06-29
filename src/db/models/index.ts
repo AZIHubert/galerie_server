@@ -14,5 +14,6 @@ export { default as NotificationFrameLiked } from './notificationFrameLiked';
 export { default as NotificationFramePosted } from './notificationFramePosted';
 export { default as NotificationUserSubscribe } from './notificationUserSubscribe';
 export { default as ProfilePicture } from './profilePicture';
+export { default as Report } from './report';
 export { default as User } from './user';
 export { default as Ticket } from './ticket';

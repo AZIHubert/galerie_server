@@ -17,9 +17,6 @@ initSequelize(() => {
   });
 });
 
-// TODO:
-// create Report model
-
 // TODO: for later
 // when the creator delete his account
 // create an election
