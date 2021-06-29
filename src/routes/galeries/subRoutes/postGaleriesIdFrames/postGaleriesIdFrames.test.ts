@@ -5,7 +5,7 @@ import path from 'path';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   Frame,
@@ -13,20 +13,20 @@ import {
   GalerieUser,
   Image,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
+import accEnv from '#src/helpers/accEnv';
 import {
   FIELD_MAX_LENGTH,
   FILES_ARE_REQUIRED,
   FILE_SHOULD_BE_AN_IMAGE,
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
-import gc from '@src/helpers/gc';
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
+} from '#src/helpers/errorMessages';
+import gc from '#src/helpers/gc';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
+import signedUrl from '#src/helpers/signedUrl';
 import {
   cleanGoogleBuckets,
   createGalerie,
@@ -35,9 +35,9 @@ import {
   postGaleriesIdFrames,
   testFrame,
   testUser,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
@@ -48,7 +48,7 @@ let sequelize: Sequelize;
 let token: string;
 let user: User;
 
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
+jest.mock('#src/helpers/signedUrl', () => jest.fn());
 
 describe('/galeries', () => {
   describe('/:galerieId', () => {

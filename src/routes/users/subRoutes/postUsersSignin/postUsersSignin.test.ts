@@ -1,9 +1,9 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
 import {
   FIELD_CANNOT_CONTAIN_SPACES,
@@ -17,16 +17,16 @@ import {
   FIELD_SHOULD_BE_A_STRING,
   FIELD_SHOULD_BE_AN_EMAIL,
   FIELD_SHOULD_MATCH,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
 import {
   createUser,
   postUsersSignin,
   testUser,
-} from '@src/helpers/test';
-import validatePassword from '@src/helpers/validatePassword';
+} from '#src/helpers/test';
+import validatePassword from '#src/helpers/validatePassword';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 let app: Server;
 let sequelize: Sequelize;

@@ -6,7 +6,7 @@ import {
   shouldBeSuperAdmin,
   shouldNotBeAuth,
   shouldNotBeGoogleOrFacebookUser,
-} from '@src/helpers/middlewares';
+} from '#src/helpers/middlewares';
 
 import {
   deleteUsersIdProfilePicturesId,

@@ -1,21 +1,21 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import { USER_SHOULD_NOT_BE_BLACK_LISTED } from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
+import { USER_SHOULD_NOT_BE_BLACK_LISTED } from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
 import {
   createBlackList,
   createUser,
   postUsersLoginSocialMedia,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 let app: Server;
 let sequelize: Sequelize;

@@ -1,15 +1,15 @@
 import { Request, Response } from 'express';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
 import {
   MODEL_NOT_FOUND,
   USER_SHOULD_NOT_BE_CONFIRMED,
   WRONG_TOKEN_VERSION,
-} from '@src/helpers/errorMessages';
-import { signAuthToken } from '@src/helpers/issueJWT';
-import setRefreshToken from '@src/helpers/setRefreshToken';
-import { confirmUser } from '@src/helpers/verifyConfirmation';
+} from '#src/helpers/errorMessages';
+import { signAuthToken } from '#src/helpers/issueJWT';
+import setRefreshToken from '#src/helpers/setRefreshToken';
+import { confirmUser } from '#src/helpers/verifyConfirmation';
 
 export default async (req: Request, res: Response) => {
   let user: User | null;

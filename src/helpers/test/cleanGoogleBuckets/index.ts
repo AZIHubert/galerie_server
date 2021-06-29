@@ -1,5 +1,5 @@
-import accEnv from '@src/helpers/accEnv';
-import gc from '@src/helpers/gc';
+import accEnv from '#src/helpers/accEnv';
+import gc from '#src/helpers/gc';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');

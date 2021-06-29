@@ -2,18 +2,18 @@ import { Server } from 'http';
 import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   Frame,
   GaleriePicture,
   Image,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
+import signedUrl from '#src/helpers/signedUrl';
 import {
   createBlackList,
   createFrame,
@@ -24,11 +24,11 @@ import {
   getGaleriesFrames,
   testFrame,
   testUser,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
+jest.mock('#src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let sequelize: Sequelize;

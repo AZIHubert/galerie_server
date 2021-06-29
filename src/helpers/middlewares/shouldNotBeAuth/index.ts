@@ -4,7 +4,7 @@ import {
   Response,
 } from 'express';
 
-import { USER_SHOULD_NOT_BE_AUTHENTICATED } from '@src/helpers/errorMessages';
+import { USER_SHOULD_NOT_BE_AUTHENTICATED } from '#src/helpers/errorMessages';
 
 export default (
   req: Request,

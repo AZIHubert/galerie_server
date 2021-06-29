@@ -3,7 +3,7 @@ import { Router } from 'express';
 import {
   shouldBeAdmin,
   shouldBeAuth,
-} from '@src/helpers/middlewares';
+} from '#src/helpers/middlewares';
 
 import putBlackLists from './subRoutes';
 

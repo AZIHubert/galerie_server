@@ -1,7 +1,7 @@
 import {
   Notification,
   NotificationFramePosted,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async ({
   frameId,

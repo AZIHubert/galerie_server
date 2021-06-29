@@ -6,12 +6,12 @@ import {
 import {
   User,
   Ticket,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   normalizeJoiErrors,
   validatePostTicketBody,
-} from '@src/helpers/schemas';
+} from '#src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;

@@ -1,7 +1,7 @@
 import {
   Notification,
   NotificationBetaKeyUsed,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async ({
   num,

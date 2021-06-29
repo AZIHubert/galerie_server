@@ -34,9 +34,7 @@
     "test": "cross-env NODE_ENV=test PORT=2000 yarn db:migrate:undo:all:test && yarn db:migrate:test && yarn jest --verbose --detectOpenHandles"
   },
   "_moduleAliases": {
-    "@sequelize": "./sequelize",
-    "@src": "./src",
-    "@root": "./"
+    "#src": "./src"
   },
   "dependencies": {
     "@google-cloud/storage": "^5.7.2",

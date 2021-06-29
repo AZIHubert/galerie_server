@@ -2,17 +2,17 @@ import passportJwt from 'passport-jwt';
 import path from 'path';
 import fs from 'fs';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
-import checkBlackList from '@src/helpers/checkBlackList';
+import checkBlackList from '#src/helpers/checkBlackList';
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
   USER_SHOULD_BE_CONFIRMED,
   USER_SHOULD_NOT_BE_BLACK_LISTED,
   WRONG_TOKEN_VERSION,
-} from '@src/helpers/errorMessages';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/errorMessages';
+import uuidValidateV4 from '#src/helpers/uuidValidateV4';
 
 const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.authToken.pem'));
 const { ExtractJwt } = passportJwt;

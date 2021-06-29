@@ -6,14 +6,14 @@ import {
 import {
   ProfilePicture,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
-import gc from '@src/helpers/gc';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/errorMessages';
+import gc from '#src/helpers/gc';
+import uuidValidateV4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {

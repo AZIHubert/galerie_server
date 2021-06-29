@@ -8,20 +8,20 @@ import {
   Galerie,
   Notification,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   betaKeyUsed,
   frameLiked,
   framePosted,
   roleChange,
   userSubscribe,
-} from '@src/helpers/notification/fetch';
-import uuidValidatev4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/notification/fetch';
+import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {

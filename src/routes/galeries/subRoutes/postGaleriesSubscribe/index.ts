@@ -11,16 +11,16 @@ import {
   GalerieUser,
   Galerie,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
-import { signNotificationToken } from '@src/helpers/issueJWT';
+} from '#src/helpers/errorMessages';
+import { signNotificationToken } from '#src/helpers/issueJWT';
 import {
   normalizeJoiErrors,
   validatePostGaleriesSubscribeBody,
-} from '@src/helpers/schemas';
+} from '#src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;

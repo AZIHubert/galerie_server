@@ -11,21 +11,21 @@ import {
   Image,
   ProfilePicture,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
-import checkExtension from '@src/helpers/checkExtension';
+import accEnv from '#src/helpers/accEnv';
+import checkExtension from '#src/helpers/checkExtension';
 import {
   DEFAULT_ERROR_MESSAGE,
   FILE_SHOULD_BE_AN_IMAGE,
   FILE_IS_REQUIRED,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   imageExcluder,
   profilePictureExcluder,
-} from '@src/helpers/excluders';
-import gc from '@src/helpers/gc';
-import signedUrl from '@src/helpers/signedUrl';
+} from '#src/helpers/excluders';
+import gc from '#src/helpers/gc';
+import signedUrl from '#src/helpers/signedUrl';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');

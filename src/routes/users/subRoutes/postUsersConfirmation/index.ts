@@ -1,19 +1,19 @@
 import { Request, Response } from 'express';
 import { sign } from 'jsonwebtoken';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
-import { sendConfirmAccount } from '@src/helpers/email';
+import accEnv from '#src/helpers/accEnv';
+import { sendConfirmAccount } from '#src/helpers/email';
 import {
   DEFAULT_ERROR_MESSAGE,
   MODEL_NOT_FOUND,
   USER_SHOULD_NOT_BE_CONFIRMED,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   normalizeJoiErrors,
   validatePostUsersConfirmationBody,
-} from '@src/helpers/schemas';
+} from '#src/helpers/schemas';
 
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 

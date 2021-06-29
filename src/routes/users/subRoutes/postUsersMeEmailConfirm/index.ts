@@ -4,24 +4,24 @@ import {
 } from 'express';
 import { sign } from 'jsonwebtoken';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
+import accEnv from '#src/helpers/accEnv';
 import {
   sendValidateEmailMessage,
-} from '@src/helpers/email';
+} from '#src/helpers/email';
 import {
   DEFAULT_ERROR_MESSAGE,
   WRONG_PASSWORD,
   WRONG_TOKEN_USER_ID,
   WRONG_TOKEN_VERSION,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   validatePostUsersMeUpdateEmailConfirmBody,
   normalizeJoiErrors,
-} from '@src/helpers/schemas';
-import validatePassword from '@src/helpers/validatePassword';
-import { sendEmailToken } from '@src/helpers/verifyConfirmation';
+} from '#src/helpers/schemas';
+import validatePassword from '#src/helpers/validatePassword';
+import { sendEmailToken } from '#src/helpers/verifyConfirmation';
 
 const UPDATE_EMAIL_SECRET = accEnv('UPDATE_EMAIL_SECRET');
 

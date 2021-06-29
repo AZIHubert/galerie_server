@@ -9,19 +9,19 @@ import { customAlphabet } from 'nanoid';
 import {
   BetaKey,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   DEFAULT_ERROR_MESSAGE,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   betaKeyExcluder,
   userExcluder,
-} from '@src/helpers/excluders';
+} from '#src/helpers/excluders';
 import {
   normalizeJoiErrors,
   validatePostBetaKeysBody,
-} from '@src/helpers/schemas';
+} from '#src/helpers/schemas';
 
 // Recursive function to check if code is unique
 const checkIfCodeExis = async (limit: number) => {

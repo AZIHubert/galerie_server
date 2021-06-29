@@ -5,14 +5,14 @@ import {
   Notification,
   NotificationUserSubscribe,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
   NOTIFICATION_ALREADY_SEND,
-} from '@src/helpers/errorMessages';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/errorMessages';
+import uuidValidateV4 from '#src/helpers/uuidValidateV4';
 
 interface Error {
   OK: false;

@@ -5,15 +5,15 @@ import {
   Response,
 } from 'express';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
-import checkBlackList from '@src/helpers/checkBlackList';
-import { USER_SHOULD_NOT_BE_BLACK_LISTED } from '@src/helpers/errorMessages';
+import accEnv from '#src/helpers/accEnv';
+import checkBlackList from '#src/helpers/checkBlackList';
+import { USER_SHOULD_NOT_BE_BLACK_LISTED } from '#src/helpers/errorMessages';
 import {
   signAuthToken,
-} from '@src/helpers/issueJWT';
-import setRefreshToken from '@src/helpers/setRefreshToken';
+} from '#src/helpers/issueJWT';
+import setRefreshToken from '#src/helpers/setRefreshToken';
 
 const IS_BETA = accEnv('IS_BETA', 'false');
 

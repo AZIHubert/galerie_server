@@ -6,7 +6,7 @@ import {
   FIELD_SHOULD_BE_A_STRING,
   FIELD_SHOULD_BE_AN_EMAIL,
   WRONG_TOKEN,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 
 import options from '../options';
 

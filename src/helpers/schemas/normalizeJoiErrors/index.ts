@@ -3,12 +3,12 @@ import {
   FIELD_CANNOT_CONTAIN_SPACES,
   FIELD_CANNOT_CONTAIN_SPECIAL_CHARS,
   FIELD_SHOULD_BE_A_PASSWORD,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   SPECIAL_CHARS_ERROR,
   PASSWORD_ERROR,
   SPACES_ERROR,
-} from '@root/src/helpers/patternErrorsName';
+} from '#src/helpers/patternErrorsName';
 
 export default (errors: ValidationError) => {
   const normalizeErrors: {[key:string]: string} = {};

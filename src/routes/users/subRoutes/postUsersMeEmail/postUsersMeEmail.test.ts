@@ -2,25 +2,25 @@ import { Server } from 'http';
 import jwt from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
-import * as email from '@src/helpers/email';
+import * as email from '#src/helpers/email';
 import {
   FIELD_IS_REQUIRED,
   FIELD_SHOULD_BE_A_STRING,
   FIELD_CANNOT_BE_EMPTY,
   WRONG_PASSWORD,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
 import {
   createUser,
   postUsersMeEmail,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 const emailMock = jest.spyOn(email, 'sendUpdateEmailMessage');
 const signMock = jest.spyOn(jwt, 'sign');

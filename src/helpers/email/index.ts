@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-import accEnv from '@src/helpers/accEnv';
+import accEnv from '#src/helpers/accEnv';
 
 const MAIL_PASSWORD = accEnv('MAIL_PASSWORD');
 const MAIL_USERNAME = accEnv('MAIL_USERNAME');

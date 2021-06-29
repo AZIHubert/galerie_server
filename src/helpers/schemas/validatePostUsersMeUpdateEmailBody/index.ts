@@ -4,7 +4,7 @@ import {
   FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
   FIELD_SHOULD_BE_A_STRING,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 
 import options from '../options';
 

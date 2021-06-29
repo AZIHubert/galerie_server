@@ -9,16 +9,16 @@ import {
   Galerie,
   GalerieUser,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   galerieExcluder,
-} from '@src/helpers/excluders';
-import generateGalerieHiddenName from '@src/helpers/generateGalerieHiddenName';
+} from '#src/helpers/excluders';
+import generateGalerieHiddenName from '#src/helpers/generateGalerieHiddenName';
 import {
   normalizeJoiErrors,
   validatePostGaleriesBody,
-} from '@src/helpers/schemas';
+} from '#src/helpers/schemas';
 
 // TODO: for later
 // add field galerie.blackListLimit: number (<5) | null

@@ -2,7 +2,7 @@ import { customAlphabet } from 'nanoid';
 
 import {
   Invitation,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async ({
   galerieId,

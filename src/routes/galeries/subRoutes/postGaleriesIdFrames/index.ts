@@ -15,31 +15,31 @@ import {
   GalerieUser,
   Image,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
-import checkExtension from '@src/helpers/checkExtension';
+import accEnv from '#src/helpers/accEnv';
+import checkExtension from '#src/helpers/checkExtension';
 import {
   DEFAULT_ERROR_MESSAGE,
   FILE_SHOULD_BE_AN_IMAGE,
   FILES_ARE_REQUIRED,
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   frameExcluder,
   galeriePictureExcluder,
   imageExcluder,
   userExcluder,
-} from '@src/helpers/excluders';
-import gc from '@src/helpers/gc';
-import { signNotificationToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
+} from '#src/helpers/excluders';
+import gc from '#src/helpers/gc';
+import { signNotificationToken } from '#src/helpers/issueJWT';
+import signedUrl from '#src/helpers/signedUrl';
 import {
   normalizeJoiErrors,
   validatePostGaleriesIdFramesBody,
-} from '@src/helpers/schemas';
-import uuidValidatev4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/schemas';
+import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');

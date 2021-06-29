@@ -11,9 +11,7 @@ module.exports = {
     'tsx',
   ],
   moduleNameMapper: {
-    '@src/(.*)': '<rootDir>/src/$1',
-    '@sequelize/(.*)': '<rootDir>/sequelize/$1',
-    '@root/(.*)': '<rootDir>/$1',
+    '#src/(.*)': '<rootDir>/src/$1',
   },
   preset: 'ts-jest',
   setupFilesAfterEnv: ['./jest.setup.js'],

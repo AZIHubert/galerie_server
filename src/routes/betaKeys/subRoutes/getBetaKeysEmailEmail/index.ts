@@ -7,12 +7,12 @@ import { Op } from 'sequelize';
 import {
   BetaKey,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   betaKeyExcluder,
   userExcluder,
-} from '@src/helpers/excluders';
+} from '#src/helpers/excluders';
 
 export default async (req: Request, res: Response) => {
   const {

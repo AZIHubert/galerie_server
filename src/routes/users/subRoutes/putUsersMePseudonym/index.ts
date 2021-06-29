@@ -5,12 +5,12 @@ import {
 
 import {
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   normalizeJoiErrors,
   validatePutUsersMePseudonymBody,
-} from '@src/helpers/schemas';
+} from '#src/helpers/schemas';
 
 export default async (req: Request, res: Response) => {
   const user = req.user as User;

@@ -1,6 +1,6 @@
 import {
   GalerieUser,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async ({
   allowNotification,

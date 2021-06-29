@@ -9,13 +9,13 @@ import { Op } from 'sequelize';
 import {
   BetaKey,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   betaKeyExcluder,
   userExcluder,
-} from '@src/helpers/excluders';
-import isNormalInteger from '@src/helpers/isNormalInteger';
+} from '#src/helpers/excluders';
+import isNormalInteger from '#src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;

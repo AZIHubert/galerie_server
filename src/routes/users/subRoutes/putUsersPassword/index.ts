@@ -5,21 +5,21 @@ import {
   Response,
 } from 'express';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
-import checkBlackList from '@src/helpers/checkBlackList';
+import checkBlackList from '#src/helpers/checkBlackList';
 import {
   MODEL_NOT_FOUND,
   USER_SHOULD_BE_CONFIRMED,
   USER_SHOULD_NOT_BE_BLACK_LISTED,
   WRONG_TOKEN_VERSION,
-} from '@src/helpers/errorMessages';
-import genPassword from '@src/helpers/genPassword';
+} from '#src/helpers/errorMessages';
+import genPassword from '#src/helpers/genPassword';
 import {
   normalizeJoiErrors,
   validatePutUsersPasswordBody,
-} from '@src/helpers/schemas';
-import { resetPassword } from '@src/helpers/verifyConfirmation';
+} from '#src/helpers/schemas';
+import { resetPassword } from '#src/helpers/verifyConfirmation';
 
 export default async (req: Request, res: Response) => {
   let isBlackListed: boolean;

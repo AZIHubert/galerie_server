@@ -1,9 +1,9 @@
 import {
   Galerie,
   GalerieUser,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import generateGalerieHiddenName from '@src/helpers/generateGalerieHiddenName';
+import generateGalerieHiddenName from '#src/helpers/generateGalerieHiddenName';
 
 export default async ({
   allowNotification,

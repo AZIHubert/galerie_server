@@ -19,17 +19,17 @@ import {
   ProfilePicture,
   Ticket,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   WRONG_PASSWORD,
-} from '@src/helpers/errorMessages';
-import gc from '@src/helpers/gc';
+} from '#src/helpers/errorMessages';
+import gc from '#src/helpers/gc';
 import {
   normalizeJoiErrors,
   validateDeleteUserMeBody,
-} from '@src/helpers/schemas';
-import validatePassword from '@src/helpers/validatePassword';
+} from '#src/helpers/schemas';
+import validatePassword from '#src/helpers/validatePassword';
 
 export default async (req: Request, res: Response) => {
   const user = req.user as User;

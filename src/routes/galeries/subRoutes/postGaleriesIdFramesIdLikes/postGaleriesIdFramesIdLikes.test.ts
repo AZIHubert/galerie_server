@@ -5,7 +5,7 @@ import path from 'path';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   Frame,
@@ -13,15 +13,15 @@ import {
   Notification,
   NotificationFrameLiked,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
-import signedUrl from '@src/helpers/signedUrl';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
+import signedUrl from '#src/helpers/signedUrl';
 import {
   createFrame,
   createGalerie,
@@ -30,11 +30,11 @@ import {
   createNotificationFrameLiked,
   createUser,
   postGaleriesIdFramesIdLikes,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
+jest.mock('#src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let galerieId: string;

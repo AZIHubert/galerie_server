@@ -1,7 +1,7 @@
 import {
   Notification,
   NotificationUserSubscribe,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async ({
   galerieId,

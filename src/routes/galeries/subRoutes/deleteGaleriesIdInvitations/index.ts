@@ -7,7 +7,7 @@ import { Op } from 'sequelize';
 import {
   Galerie,
   Invitation,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async (req: Request, res: Response) => {
   const {

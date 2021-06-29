@@ -9,11 +9,11 @@ import { Op } from 'sequelize';
 import {
   Galerie,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   galerieExcluder,
-} from '@src/helpers/excluders';
+} from '#src/helpers/excluders';
 
 export default async (req: Request, res: Response) => {
   const {

@@ -4,21 +4,21 @@ import {
 } from 'express';
 import { sign } from 'jsonwebtoken';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
+import accEnv from '#src/helpers/accEnv';
 import {
   sendUpdateEmailMessage,
-} from '@src/helpers/email';
+} from '#src/helpers/email';
 import {
   DEFAULT_ERROR_MESSAGE,
   WRONG_PASSWORD,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   normalizeJoiErrors,
   validatePostUsersMeUpdateEmailBody,
-} from '@src/helpers/schemas';
-import validatePassword from '@src/helpers/validatePassword';
+} from '#src/helpers/schemas';
+import validatePassword from '#src/helpers/validatePassword';
 
 const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 

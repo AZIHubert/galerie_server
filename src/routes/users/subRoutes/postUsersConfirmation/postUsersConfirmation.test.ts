@@ -2,11 +2,11 @@ import { Server } from 'http';
 import jwt from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
-import * as email from '@src/helpers/email';
+import * as email from '#src/helpers/email';
 import {
   FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
@@ -14,14 +14,14 @@ import {
   FIELD_SHOULD_BE_AN_EMAIL,
   MODEL_NOT_FOUND,
   USER_SHOULD_NOT_BE_CONFIRMED,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
 import {
   createUser,
   postUsersConfirmation,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 const signMocked = jest.spyOn(jwt, 'sign');
 const emailMocked = jest.spyOn(email, 'sendConfirmAccount');

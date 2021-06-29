@@ -1,7 +1,7 @@
 import {
   BlackList,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 const blackListExpire = (blackList: BlackList) => {
   if (blackList.time) {

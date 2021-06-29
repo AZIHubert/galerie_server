@@ -6,11 +6,11 @@ import {
 } from 'express';
 import { Op } from 'sequelize';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
 import {
   userExcluder,
-} from '@src/helpers/excluders';
+} from '#src/helpers/excluders';
 
 export default async (req: Request, res: Response) => {
   const {

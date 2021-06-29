@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-import { FIELD_SHOULD_BE_A_NUMBER } from '@src/helpers/errorMessages';
+import { FIELD_SHOULD_BE_A_NUMBER } from '#src/helpers/errorMessages';
 
 import options from '../options';
 

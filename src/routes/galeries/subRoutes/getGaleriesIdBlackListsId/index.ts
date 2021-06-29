@@ -9,18 +9,18 @@ import {
   Galerie,
   GalerieBlackList,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import checkBlackList from '@src/helpers/checkBlackList';
+import checkBlackList from '#src/helpers/checkBlackList';
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   galerieBlackListExcluder,
   userExcluder,
-} from '@src/helpers/excluders';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/excluders';
+import uuidValidateV4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {

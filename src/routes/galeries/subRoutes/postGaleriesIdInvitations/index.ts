@@ -10,22 +10,22 @@ import {
   Galerie,
   Invitation,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   DEFAULT_ERROR_MESSAGE,
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   invitationExcluder,
   userExcluder,
-} from '@src/helpers/excluders';
+} from '#src/helpers/excluders';
 import {
   normalizeJoiErrors,
   validatePostGaleriesIdInvationsBody,
-} from '@src/helpers/schemas';
-import uuidValidatev4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/schemas';
+import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 // Recursive function to check if code is unique
 const checkIfCodeExis = async (limit: number) => {

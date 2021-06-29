@@ -5,22 +5,22 @@ import mockDate from 'mockdate';
 import path from 'path';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   GalerieUser,
   Invitation,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
   FIELD_SHOULD_BE_A_STRING,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
 import {
   createGalerie,
   createGalerieBlackList,
@@ -28,9 +28,9 @@ import {
   createInvitation,
   createUser,
   postGaleriesSubscribe,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 let app: Server;
 let galerieId: string;
