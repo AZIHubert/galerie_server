@@ -141,6 +141,7 @@ describe('/galeries', () => {
             userId: userTwo.id,
           });
           const galerieTwo = await createGalerie({
+            name: 'galerie2',
             userId: user.id,
           });
           await createGalerieUser({
@@ -210,7 +211,9 @@ describe('/galeries', () => {
                 frames: secondPack,
               },
             },
-          } = await getGaleriesFrames(app, token, { page: 2 });
+          } = await getGaleriesFrames(app, token, {
+            previousFrame: firstPack[firstPack.length - 1].autoIncrementId,
+          });
           expect(firstPack.length).toBe(20);
           expect(secondPack.length).toBe(1);
         });
@@ -467,6 +470,56 @@ describe('/galeries', () => {
           expect(frame).toBeNull();
           expect(galeriePictures.length).toBe(0);
           expect(images.length).toBe(0);
+        });
+        describe('should return first frames if req.query.previousFrame', () => {
+          let frameId: string;
+
+          beforeEach(async (done) => {
+            try {
+              const { id: galerieId } = await createGalerie({
+                userId: user.id,
+              });
+              await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              const frame = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              frameId = frame.id;
+            } catch (err) {
+              done(err);
+            }
+            done();
+          });
+
+          it('is not a number', async () => {
+            const {
+              body: {
+                data: {
+                  frames,
+                },
+              },
+            } = await getGaleriesFrames(app, token, {
+              previousFrame: 'notANumber',
+            });
+            expect(frames.length).toBe(2);
+            expect(frames[0].id).toBe(frameId);
+          });
+          it('is less than 0', async () => {
+            const {
+              body: {
+                data: {
+                  frames,
+                },
+              },
+            } = await getGaleriesFrames(app, token, {
+              previousFrame: '-1',
+            });
+            expect(frames.length).toBe(2);
+            expect(frames[0].id).toBe(frameId);
+          });
         });
       });
     });

@@ -1,4 +1,9 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('ticket', {
+  autoIncrementId: {
+    allowNull: false,
+    autoIncrement: true,
+    type: DataTypes.BIGINT,
+  },
   body: {
     allowNull: false,
     type: DataTypes.STRING,

@@ -117,7 +117,9 @@ describe('/profilePictures', () => {
               profilePictures: secondPack,
             },
           },
-        } = await getProfilePictures(app, token, { page: 2 });
+        } = await getProfilePictures(app, token, {
+          previousProfilePicture: firstPack[firstPack.length - 1].autoIncrementId,
+        });
         expect(firstPack.length).toEqual(20);
         expect(secondPack.length).toEqual(1);
       });
@@ -187,6 +189,51 @@ describe('/profilePictures', () => {
         expect(profilePicture).toBeNull();
         expect(profilePictures[0]).toBeNull();
         expect(images.length).toBe(0);
+      });
+      describe('should return first profilePictures if req.query.previousProfilePicture', () => {
+        let profilePictureId: string;
+
+        beforeEach(async (done) => {
+          try {
+            await createProfilePicture({
+              userId: user.id,
+            });
+            const profilePicture = await createProfilePicture({
+              userId: user.id,
+            });
+            profilePictureId = profilePicture.id;
+          } catch (err) {
+            done(err);
+          }
+          done();
+        });
+
+        it('is not a number', async () => {
+          const {
+            body: {
+              data: {
+                profilePictures,
+              },
+            },
+          } = await getProfilePictures(app, token, {
+            previousProfilePicture: 'notANumber',
+          });
+          expect(profilePictures.length).toBe(2);
+          expect(profilePictures[0].id).toBe(profilePictureId);
+        });
+        it('is less than 0', async () => {
+          const {
+            body: {
+              data: {
+                profilePictures,
+              },
+            },
+          } = await getProfilePictures(app, token, {
+            previousProfilePicture: '-1',
+          });
+          expect(profilePictures.length).toBe(2);
+          expect(profilePictures[0].id).toBe(profilePictureId);
+        });
       });
     });
   });

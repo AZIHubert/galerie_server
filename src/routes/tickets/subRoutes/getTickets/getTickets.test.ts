@@ -111,7 +111,9 @@ describe('/tickets', () => {
               tickets: secondPack,
             },
           },
-        } = await getTickets(app, token, { page: 2 });
+        } = await getTickets(app, token, {
+          previousTicket: firstPack[firstPack.length - 1].autoIncrementId,
+        });
         expect(firstPack.length).toBe(20);
         expect(secondPack.length).toBe(1);
       });
@@ -145,6 +147,47 @@ describe('/tickets', () => {
         } = await getTickets(app, token);
         expect(tickets.length).toBe(1);
         expect(tickets[0].user).toBeNull();
+      });
+      describe('should return first tickets id req.queru.previousTicket', () => {
+        let ticketId: string;
+
+        beforeEach(async (done) => {
+          try {
+            await createTicket({});
+            const ticket = await createTicket({});
+            ticketId = ticket.id;
+          } catch (err) {
+            done(err);
+          }
+          done();
+        });
+
+        it('is not a number', async () => {
+          const {
+            body: {
+              data: {
+                tickets,
+              },
+            },
+          } = await getTickets(app, token, {
+            previousTicket: 'notANumber',
+          });
+          expect(tickets.length).toBe(2);
+          expect(tickets[0].id).toBe(ticketId);
+        });
+        it('is less than 0', async () => {
+          const {
+            body: {
+              data: {
+                tickets,
+              },
+            },
+          } = await getTickets(app, token, {
+            previousTicket: '-1',
+          });
+          expect(tickets.length).toBe(2);
+          expect(tickets[0].id).toBe(ticketId);
+        });
       });
     });
   });

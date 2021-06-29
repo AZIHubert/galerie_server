@@ -10,6 +10,7 @@ import {
 import initSequelize from '@src/helpers/initSequelize.js';
 import { signAuthToken } from '@src/helpers/issueJWT';
 import {
+  createGalerie,
   createUser,
   postGaleries,
   testGalerie,
@@ -85,8 +86,57 @@ describe('/galerie', () => {
         const galerie = await Galerie.findByPk(returnedGalerie.id);
         expect(action).toBe('POST');
         expect(galerie).not.toBeNull();
-        testGalerie(returnedGalerie);
+        expect(returnedGalerie.hiddenName).toBe(`${name}-0`);
         expect(status).toBe(200);
+        testGalerie(returnedGalerie);
+      });
+      it('create a galerie with a unque hiddenName', async () => {
+        const { name } = await createGalerie({
+          name: 'galerie',
+          userId: user.id,
+        });
+        const {
+          body: {
+            data: {
+              galerie: galerieOne,
+            },
+          },
+        } = await postGaleries(app, token, {
+          body: { name },
+        });
+        const {
+          body: {
+            data: {
+              galerie: galerieTwo,
+            },
+          },
+        } = await postGaleries(app, token, {
+          body: { name },
+        });
+        const {
+          body: {
+            data: {
+              galerie: galerieThree,
+            },
+          },
+        } = await postGaleries(app, token, {
+          body: { name },
+        });
+        const {
+          body: {
+            data: {
+              galerie: galerieFour,
+            },
+          },
+        } = await postGaleries(app, token, {
+          body: {
+            name: `${name}a`,
+          },
+        });
+        expect(galerieOne.hiddenName).toBe(`${name}-1`);
+        expect(galerieTwo.hiddenName).toBe(`${name}-2`);
+        expect(galerieThree.hiddenName).toBe(`${name}-3`);
+        expect(galerieFour.hiddenName).toBe(`${name}a-0`);
       });
       it('create galerie with descrition', async () => {
         const description = 'galerie\'s description';

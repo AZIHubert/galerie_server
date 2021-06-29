@@ -379,7 +379,7 @@ describe('/notifications', () => {
             });
             const { id: notificationId } = await createNotificationUserSubscribe({
               galerieId,
-              subscribeUserId: userTwo.id,
+              subscribedUserId: userTwo.id,
               userId: user.id,
             });
             const {
@@ -419,7 +419,7 @@ describe('/notifications', () => {
             });
             const { id: notificationId } = await createNotificationUserSubscribe({
               galerieId,
-              subscribeUserId: userTwo.id,
+              subscribedUserId: userTwo.id,
               userId: user.id,
             });
             const arrayOfUsers = new Array(4).fill(0);

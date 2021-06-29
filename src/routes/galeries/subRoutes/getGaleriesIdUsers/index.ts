@@ -24,14 +24,14 @@ import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
   const {
-    direction: queryDirection,
-    page,
+    previousUser,
   } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
-  let direction = 'ASC';
+  const where: {
+    userName?: any
+  } = {};
   let galerie: Galerie | null;
-  let offset: number;
   let users: User[] = [];
   let usersWithProfilePicture: Array<any> = [];
 
@@ -64,16 +64,10 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  if (
-    queryDirection === 'ASC'
-    || queryDirection === 'DESC'
-  ) {
-    direction = queryDirection;
-  }
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
+  if (previousUser) {
+    where.userName = {
+      [Op.gt]: previousUser,
+    };
   }
 
   try {
@@ -93,9 +87,9 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['pseudonym', direction]],
+      order: [['userName', 'ASC']],
       where: {
+        ...where,
         id: {
           [Op.not]: currentUser.id,
         },

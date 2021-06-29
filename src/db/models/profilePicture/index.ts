@@ -12,6 +12,7 @@ import Image from '../image';
 import User from '../user';
 
 interface ProfilePictureI {
+  autoIncrementId: number;
   cropedImageId?: string;
   current: boolean;
   id: string;
@@ -24,6 +25,13 @@ interface ProfilePictureI {
   tableName: 'profilePicture',
 })
 export default class ProfilePicture extends Model implements ProfilePictureI {
+  @Column({
+    allowNull: false,
+    autoIncrement: true,
+    type: DataType.BIGINT,
+  })
+  autoIncrementId!: number;
+
   @ForeignKey(() => Image)
   @Column({
     allowNull: false,

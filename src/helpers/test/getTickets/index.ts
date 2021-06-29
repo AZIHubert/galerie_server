@@ -5,13 +5,18 @@ export default async (
   app: Server,
   token: string,
   option: {
-    page: number;
-  } = {
-    page: 1,
-  },
+    previousTicket?: string;
+  } = {},
 ) => {
-  const response = await request(app)
-    .get(`/tickets?page=${option.page}`)
-    .set('authorization', token);
+  let response: request.Response;
+  if (option.previousTicket) {
+    response = await request(app)
+      .get(`/tickets?previousTicket=${option.previousTicket}`)
+      .set('authorization', token);
+  } else {
+    response = await request(app)
+      .get('/tickets/')
+      .set('authorization', token);
+  }
   return response;
 };

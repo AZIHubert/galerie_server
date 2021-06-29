@@ -19,6 +19,7 @@ import NotificationFramePosted from '../notificationFramePosted';
 import User from '../user';
 
 interface FrameI {
+  autoIncrementId: number;
   description?: string;
   galerieId: string;
   id: string;
@@ -31,6 +32,13 @@ interface FrameI {
   tableName: 'frame',
 })
 export default class Frame extends Model implements FrameI {
+  @Column({
+    allowNull: false,
+    autoIncrement: true,
+    type: DataType.BIGINT,
+  })
+  autoIncrementId!: number;
+
   @Column({
     type: DataType.STRING,
   })

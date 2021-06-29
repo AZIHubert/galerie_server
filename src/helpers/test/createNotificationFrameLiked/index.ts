@@ -5,22 +5,29 @@ import {
 
 export default async ({
   frameId,
-  userId,
   likedById,
+  num,
+  seen,
+  userId,
 }: {
   frameId: string;
+  likedById?: string;
+  num?: number;
+  seen?: boolean;
   userId: string;
-  likedById: string;
 }) => {
   const notification = await Notification.create({
     frameId,
-    num: 1,
+    num: num || 1,
+    seen: seen || false,
     type: 'FRAME_LIKED',
     userId,
   });
-  await NotificationFrameLiked.create({
-    notificationId: notification.id,
-    userId: likedById,
-  });
+  if (likedById) {
+    await NotificationFrameLiked.create({
+      notificationId: notification.id,
+      userId: likedById,
+    });
+  }
   return notification;
 };

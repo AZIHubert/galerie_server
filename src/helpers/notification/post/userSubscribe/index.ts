@@ -169,14 +169,24 @@ export default async ({
     // and set seen to true.
     if (notificationCreator) {
       try {
-        await notificationCreator.update({
+        const newNotification = await Notification.create({
+          galerieId: notificationCreator.galerieId,
           num: notificationCreator.num + 1,
-          seen: false,
+          type: notificationCreator.type,
+          userId: notificationCreator.userId,
         });
         await NotificationUserSubscribe.create({
           notificationId: notificationCreator.id,
           userId: subscribedUserId,
         });
+        await NotificationUserSubscribe.update({
+          notificationId: newNotification.id,
+        }, {
+          where: {
+            notificationId: notificationCreator.id,
+          },
+        });
+        await notificationCreator.destroy();
       } catch (err) {
         return {
           OK: false,
@@ -293,14 +303,24 @@ export default async ({
   // and set seen to false.
   if (notification) {
     try {
-      await notification.update({
+      const newNotification = await Notification.create({
+        galerieId: notification.galerieId,
         num: notification.num + 1,
-        seen: false,
+        type: notification.type,
+        userId: notification.userId,
       });
       await NotificationUserSubscribe.create({
         notificationId: notification.id,
         userId: subscribedUserId,
       });
+      await NotificationUserSubscribe.update({
+        notificationId: newNotification.id,
+      }, {
+        where: {
+          notificationId: notification.id,
+        },
+      });
+      await notification.destroy();
     } catch (err) {
       return {
         OK: false,

@@ -64,7 +64,6 @@ export { default as getUsersIdProfilePicturesId } from './getUsersIdProfilePictu
 export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersMeCurrentProfilePicture } from './getUsersMeCurrentProfilePicture';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
-export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 
 export { default as postBetaKey } from './postBetaKey';
 export { default as postBetaKeysIdSend } from './postBetaKeysIdSend';

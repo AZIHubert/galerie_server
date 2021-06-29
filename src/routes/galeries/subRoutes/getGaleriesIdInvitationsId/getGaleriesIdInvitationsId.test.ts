@@ -305,6 +305,7 @@ describe('/galeries', () => {
                 userName: 'user2',
               });
               const galerieTwo = await createGalerie({
+                name: 'galerie2',
                 userId: userTwo.id,
               });
               const {
@@ -324,6 +325,7 @@ describe('/galeries', () => {
             });
             it('invitation exist but does not belong to galerie', async () => {
               const galerieTwo = await createGalerie({
+                name: 'galerie2',
                 userId: user.id,
               });
               const { id: invitationId } = await createInvitation({

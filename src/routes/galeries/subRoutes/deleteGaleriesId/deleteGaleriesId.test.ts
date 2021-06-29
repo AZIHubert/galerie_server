@@ -346,7 +346,7 @@ describe('/galeries', () => {
           });
           const { id: notificationId } = await createNotificationUserSubscribe({
             galerieId,
-            subscribeUserId: userTwo.id,
+            subscribedUserId: userTwo.id,
             userId: user.id,
           });
           await deleteGaleriesId(app, token, galerieId, {

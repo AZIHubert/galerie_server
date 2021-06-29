@@ -39,11 +39,13 @@ export default (
   expect(frame.updatedAt).toBeUndefined();
   expect(frame.userId).toBeUndefined();
   if (refFrame) {
+    expect(frame.autoIncrementId).toBe(refFrame.autoIncrementId);
     expect(new Date(frame.createdAt)).toEqual(new Date(refFrame.createdAt));
     expect(frame.description).toBe(refFrame.description);
     expect(frame.id).toBe(refFrame.id);
     expect(frame.numOfLikes).toBe(refFrame.numOfLikes);
   } else {
+    expect(frame.autoIncrementId).not.toBeUndefined();
     expect(frame.createdAt).not.toBeUndefined();
     expect(frame.description).not.toBeUndefined();
     expect(frame.galeriePictures[0].id).not.toBeUndefined();

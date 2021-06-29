@@ -4,6 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Frame,
@@ -23,21 +24,20 @@ import {
 import {
   fetchFrame,
 } from '@src/helpers/fetch';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
-  const limit = 20;
-  const { page } = req.query;
+  const {
+    previousFrame,
+  } = req.query;
   const currentUser = req.user as User;
+  const limit = 20;
   let frames: Array<Frame>;
   let galeries: Array<Galerie>;
-  let offset: number;
   let returnedFrames: Array<any>;
-
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
-  }
+  const where: {
+    autoIncrementId?: any;
+  } = {};
 
   // Fetch all galeries where
   // current user is subscribe.
@@ -64,6 +64,12 @@ export default async (req: Request, res: Response) => {
         frames: [],
       },
     });
+  }
+
+  if (previousFrame && isNormalInteger(previousFrame.toString())) {
+    where.autoIncrementId = {
+      [Op.lt]: previousFrame.toString(),
+    };
   }
 
   // Map galeries to an array of id.
@@ -99,6 +105,7 @@ export default async (req: Request, res: Response) => {
         },
         {
           model: Like,
+          limit: 1,
           required: false,
           where: {
             userId: currentUser.id,
@@ -116,9 +123,9 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['createdAt', 'DESC']],
+      order: [['autoIncrementId', 'DESC']],
       where: {
+        ...where,
         galerieId: galeriesId,
       },
     });

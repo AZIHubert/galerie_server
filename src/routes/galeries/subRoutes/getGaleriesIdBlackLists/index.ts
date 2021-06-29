@@ -4,6 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Galerie,
@@ -21,19 +22,20 @@ import {
   userExcluder,
 } from '@src/helpers/excluders';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {
     galerieId,
   } = req.params;
   const {
-    direction: queryDirection,
-    page,
+    previousBlackList,
   } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
-  let direction = 'DESC';
-  let offset: number;
+  const where: {
+    autoIncrementId?: any;
+  } = {};
   let galerie: Galerie | null;
   let blackLists: Array<GalerieBlackList>;
   let normalizeBlackLists: Array<any>;
@@ -80,17 +82,10 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
-  }
-
-  if (
-    queryDirection === 'ASC'
-    || queryDirection === 'DESC'
-  ) {
-    direction = queryDirection;
+  if (previousBlackList && isNormalInteger(previousBlackList.toString())) {
+    where.autoIncrementId = {
+      [Op.lt]: previousBlackList.toString(),
+    };
   }
 
   try {
@@ -127,9 +122,9 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['createdAt', direction]],
+      order: [['autoIncrementId', 'DESC']],
       where: {
+        ...where,
         galerieId,
       },
     });

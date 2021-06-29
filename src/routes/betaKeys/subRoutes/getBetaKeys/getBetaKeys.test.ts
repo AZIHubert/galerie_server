@@ -144,7 +144,9 @@ describe('/betaKeys', () => {
               betaKeys: secondPack,
             },
           },
-        } = await getBetaKeys(app, token, { page: 2 });
+        } = await getBetaKeys(app, token, {
+          previousBetaKey: firstPack[firstPack.length - 1].autoIncrementId,
+        });
         expect(firstPack.length).toBe(20);
         expect(secondPack.length).toBe(1);
       });
@@ -181,6 +183,51 @@ describe('/betaKeys', () => {
         expect(betaKeys[3].id).toBe(betaKeyThree.id);
         expect(betaKeys[4].id).toBe(betaKeyTwo.id);
         expect(betaKeys[5].id).toBe(betaKeyOne.id);
+      });
+      describe('should return first betaKeys if req.query.previousBetaKey', () => {
+        let betaKeyId: string;
+
+        beforeEach(async (done) => {
+          try {
+            await createBetaKey({
+              createdById: user.id,
+            });
+            const betaKey = await createBetaKey({
+              createdById: user.id,
+            });
+            betaKeyId = betaKey.id;
+          } catch (err) {
+            done(err);
+          }
+          done();
+        });
+
+        it('is not a number', async () => {
+          const {
+            body: {
+              data: {
+                betaKeys,
+              },
+            },
+          } = await getBetaKeys(app, token, {
+            previousBetaKey: 'notANumber',
+          });
+          expect(betaKeys.length).toBe(2);
+          expect(betaKeys[0].id).toBe(betaKeyId);
+        });
+        it('is less than 0', async () => {
+          const {
+            body: {
+              data: {
+                betaKeys,
+              },
+            },
+          } = await getBetaKeys(app, token, {
+            previousBetaKey: '-1',
+          });
+          expect(betaKeys.length).toBe(2);
+          expect(betaKeys[0].id).toBe(betaKeyId);
+        });
       });
       describe('return only betaKey', () => {
         it('used', async () => {

@@ -2,6 +2,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Frame,
@@ -17,19 +18,24 @@ import {
   roleChange,
   userSubscribe,
 } from '@src/helpers/notification/fetch';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
-  const { page } = req.query;
+  const {
+    previousNotification,
+  } = req.query;
   const currentUser = req.user as User;
   const limit = 6;
+  const where: {
+    autoIncrementId?: any;
+  } = {};
   let normalizedNotifications: any[];
   let notifications: Notification[];
-  let offset: number;
 
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
+  if (previousNotification && isNormalInteger(previousNotification.toString())) {
+    where.autoIncrementId = {
+      [Op.lt]: previousNotification.toString(),
+    };
   }
 
   try {
@@ -69,9 +75,9 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['updatedAt', 'DESC']],
+      order: [['autoIncrementId', 'DESC']],
       where: {
+        ...where,
         userId: currentUser.id,
       },
     });
@@ -108,7 +114,6 @@ export default async (req: Request, res: Response) => {
       ),
     );
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
 

@@ -19,6 +19,7 @@ interface GalerieI {
   archived: boolean;
   defaultCoverPicture?: string;
   description?: string;
+  hiddenName: string;
   id: string;
   name: string;
 }
@@ -52,6 +53,13 @@ export default class Galerie extends Model implements GalerieI {
     type: DataType.STRING,
   })
   description!: string;
+
+  @Column({
+    allowNull: false,
+    unique: true,
+    type: DataType.STRING,
+  })
+  hiddenName!: string;
 
   @Column({
     allowNull: false,

@@ -22,7 +22,7 @@ import { signNotificationToken } from '@src/helpers/issueJWT';
 import {
   createGalerie,
   createGalerieUser,
-  createNotification,
+  createNotificationUserSubscribe,
   createUser,
   postNotifications,
 } from '@src/helpers/test';
@@ -65,19 +65,19 @@ describe('/Notification', () => {
       describe('should return status 204 and', () => {
         let galerieId: string;
         let subscribedUserId: string;
-        let user: User;
+        let creator: User;
 
         beforeEach(async (done) => {
           try {
-            const { user: createdUser } = await createUser({});
+            const { user: userOne } = await createUser({});
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
             subscribedUserId = userTwo.id;
-            user = createdUser;
+            creator = userOne;
             const galerie = await createGalerie({
-              userId: user.id,
+              userId: creator.id,
             });
             galerieId = galerie.id;
             await createGalerieUser({
@@ -94,7 +94,7 @@ describe('/Notification', () => {
           const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
             galerieId,
             subscribedUserId,
-            userId: user.id,
+            userId: creator.id,
           });
           const {
             status,
@@ -110,456 +110,129 @@ describe('/Notification', () => {
           expect(galerieUser.notificationHasBeenSend).toBe(true);
           expect(status).toBe(204);
         });
-        it('increment notification.num for notification of the creator of the galerie if the galerie have a creator and the creator have a notification && seen === false', async () => {
-          const num = 1;
-          const notification = await createNotification({
-            galerieId,
-            num,
-            type: 'USER_SUBSCRIBE',
-            userId: user.id,
-          });
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          await user.reload();
-          await notification.reload();
-          const notifications = await Notification.findAll();
-          const notificationsUserSubscribe = await NotificationUserSubscribe.findAll();
-          expect(notifications.length).toBe(1);
-          expect(notification.num).toBe(num + 1);
-          expect(notificationsUserSubscribe.length).toBe(1);
-          expect(notificationsUserSubscribe[0].notificationId).toBe(notification.id);
-          expect(notificationsUserSubscribe[0].userId).toBe(subscribedUserId);
-          expect(user.hasNewNotifications).toBe(true);
-        });
-        it('increment notification.num for notification of the creator of the galerie if the galerie have a creator and the creator have a notification && seen === true && was updated at least 4 days ago', async () => {
-          const num = 1;
-          const notification = await createNotification({
-            galerieId,
-            num,
-            seen: true,
-            type: 'USER_SUBSCRIBE',
-            userId: user.id,
-          });
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          await user.reload();
-          await notification.reload();
-          const notifications = await Notification.findAll();
-          const notificationsUserSubscribe = await NotificationUserSubscribe.findAll();
-          expect(notifications.length).toBe(1);
-          expect(notification.num).toBe(num + 1);
-          expect(notification.seen).toBe(false);
-          expect(notificationsUserSubscribe.length).toBe(1);
-          expect(notificationsUserSubscribe[0].notificationId).toBe(notification.id);
-          expect(notificationsUserSubscribe[0].userId).toBe(subscribedUserId);
-          expect(user.hasNewNotifications).toBe(true);
-        });
-        it('create a notification for the creator of the galerie if the galerie have a creator and the creator do not have a notification yet', async () => {
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          const notifications = await Notification.findAll();
-          const notificationsUserSubscribe = await NotificationUserSubscribe.findAll();
-          await user.reload();
-          expect(notifications.length).toBe(1);
-          expect(notifications[0].galerieId).toBe(galerieId);
-          expect(notifications[0].num).toBe(1);
-          expect(notifications[0].seen).toBe(false);
-          expect(notifications[0].type).toBe('USER_SUBSCRIBE');
-          expect(notifications[0].userId).toBe(user.id);
-          expect(notificationsUserSubscribe.length).toBe(1);
-          expect(notificationsUserSubscribe[0].notificationId).toBe(notifications[0].id);
-          expect(notificationsUserSubscribe[0].userId).toBe(subscribedUserId);
-          expect(user.hasNewNotifications).toBe(true);
-        });
-        it('create a notification for the creator of the galerie is the galerie have a creator and the creator have a notification where seen === true && was updated there was more than 4 days', async () => {
-          const num = 1;
-          const timeStamp = 1434319925275;
-          mockDate.set(timeStamp);
-          const notification = await createNotification({
-            galerieId,
-            num,
-            seen: true,
-            type: 'USER_SUBSCRIBE',
-            userId: user.id,
-          });
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          mockDate.set(timeStamp + 1000 * 60 * 60 * 24 * 4 + 1);
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          await user.reload();
-          await notification.reload();
-          const notifications = await Notification.findAll();
-          expect(notification.num).toBe(num);
-          expect(notification.seen).toBe(true);
-          expect(notifications.length).toBe(2);
-        });
-        it('create a notification for the creator of the galerie if he have a notification for an another galerie', async () => {
-          const galerieTwo = await createGalerie({
-            userId: user.id,
-          });
-          await createNotification({
-            galerieId: galerieTwo.id,
-            num: 1,
-            type: 'USER_SUBSCRIBE',
-            userId: user.id,
-          });
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          await user.reload();
-          const notifications = await Notification.findAll();
-          const notification = notifications.find((n) => n.galerieId === galerieId);
-          expect(notifications.length).toBe(2);
-          expect(notification).not.toBeNull();
-          expect(user.hasNewNotifications).toBe(true);
-        });
         it('create only one notification if the creator of the galerie is also the creator of the invitation', async () => {
           const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
             galerieId,
             subscribedUserId,
-            userId: user.id,
+            userId: creator.id,
           });
           await postNotifications(app, {
             notificationtoken,
           });
-          await user.reload();
+          await creator.reload();
           const notifications = await Notification.findAll();
           const notificationsUserSubscribe = await NotificationUserSubscribe.findAll();
           expect(notifications.length).toBe(1);
           expect(notificationsUserSubscribe.length).toBe(1);
-          expect(user.hasNewNotifications).toBe(true);
+          expect(creator.hasNewNotifications).toBe(true);
         });
-        it('increment notification.num for the notification of the creator of the invitation if the creator of the notification still have a notification', async () => {
+        it('increment notification.num for the creator of the galerie && the creator of the invitation if they both already have a notification', async () => {
           const num = 1;
-          const { user: userThree } = await createUser({
+          const { user: admin } = await createUser({
             email: 'user3@email.com',
             userName: 'user3',
           });
           await createGalerieUser({
             galerieId,
             role: 'admin',
-            userId: userThree.id,
+            userId: admin.id,
           });
-          const notification = await createNotification({
+          const { id: adminNotificationId } = await createNotificationUserSubscribe({
             galerieId,
             num,
-            type: 'USER_SUBSCRIBE',
-            userId: userThree.id,
+            userId: admin.id,
+          });
+          const { id: creatorNotificationId } = await createNotificationUserSubscribe({
+            galerieId,
+            num,
+            userId: creator.id,
           });
           const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
             galerieId,
             subscribedUserId,
-            userId: userThree.id,
+            userId: admin.id,
           });
           await postNotifications(app, {
             notificationtoken,
           });
-          await notification.reload();
-          await userThree.reload();
-          const notificationUserSubscribe = await NotificationUserSubscribe.findOne({
+          await admin.reload();
+          const adminNotifications = await Notification.findAll({
             where: {
-              notificationId: notification.id,
-              userId: subscribedUserId,
+              userId: admin.id,
             },
           });
-          expect(notification.num).toBe(num + 1);
-          expect(notificationUserSubscribe).not.toBeNull();
-          expect(userThree.hasNewNotifications).toBe(true);
+          await creator.reload();
+          const creatorNotification = await Notification.findAll({
+            where: {
+              userId: creator.id,
+            },
+          });
+          const oldAdminNotification = await Notification.findByPk(adminNotificationId);
+          const oldCreatorNotification = await Notification.findByPk(creatorNotificationId);
+          expect(admin.hasNewNotifications).toBe(true);
+          expect(adminNotifications.length).toBe(1);
+          expect(adminNotifications[0].num).toBe(num + 1);
+          expect(creator.hasNewNotifications).toBe(true);
+          expect(creatorNotification.length).toBe(1);
+          expect(creatorNotification[0].num).toBe(num + 1);
+          expect(oldAdminNotification).toBeNull();
+          expect(oldCreatorNotification).toBeNull();
         });
-        it('increment notification.num for the notification of the creator of the invitation if the creator of the notification have a notification where seen === true && was created there is less than 4 days', async () => {
+        it('increment notification.num for the creator of the galerie if he already have a notification and create a notification for the creator of the invitation if he do not have a notification yet', async () => {
           const num = 1;
-          const { user: userThree } = await createUser({
+          const { user: admin } = await createUser({
             email: 'user3@email.com',
             userName: 'user3',
           });
           await createGalerieUser({
             galerieId,
             role: 'admin',
-            userId: userThree.id,
+            userId: admin.id,
           });
-          const notification = await createNotification({
+          const { id: creatorNotificationId } = await createNotificationUserSubscribe({
             galerieId,
             num,
-            seen: true,
-            type: 'USER_SUBSCRIBE',
-            userId: userThree.id,
+            userId: creator.id,
           });
           const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
             galerieId,
             subscribedUserId,
-            userId: userThree.id,
+            userId: admin.id,
           });
           await postNotifications(app, {
             notificationtoken,
           });
-          await notification.reload();
-          await userThree.reload();
-          expect(notification.num).toBe(num + 1);
-          expect(notification.seen).toBe(false);
-        });
-        it('create a notification if the creator of the invitation do not have a notification yet', async () => {
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          await createGalerieUser({
-            galerieId,
-            role: 'admin',
-            userId: userThree.id,
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          const notification = await Notification.findOne({
+          const adminNotification = await Notification.findOne({
             where: {
               galerieId,
-              type: 'USER_SUBSCRIBE',
-              userId: userThree.id,
+              userId: admin.id,
             },
-          }) as Notification;
-          const notificationUserSubscribe = await NotificationUserSubscribe.findOne({
+          });
+          const creatorNotification = await Notification.findAll({
             where: {
-              notificationId: notification.id,
-              userId: subscribedUserId,
+              userId: creator.id,
             },
           });
-          await userThree.reload();
-          expect(notification).not.toBeNull();
-          expect(notification.num).toBe(1);
-          expect(notificationUserSubscribe).not.toBeNull();
-          expect(userThree.hasNewNotifications).toBe(true);
-        });
-        it('create a notification for the creator of the invitation if the creator of the invitation where seen === true && was posted there is more than 4 days ago', async () => {
-          const num = 1;
-          const timeStamp = 1434319925275;
-          mockDate.set(timeStamp);
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          await createGalerieUser({
-            galerieId,
-            role: 'admin',
-            userId: userThree.id,
-          });
-          const notification = await createNotification({
-            galerieId,
-            num,
-            seen: true,
-            type: 'USER_SUBSCRIBE',
-            userId: userThree.id,
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          mockDate.set(timeStamp + 1000 * 60 * 60 * 24 * 4 + 1);
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          await notification.reload();
-          const notifications = await Notification.findAll({
-            where: {
-              userId: userThree.id,
-            },
-          });
-          expect(notification.num).toBe(num);
-          expect(notification.seen).toBe(true);
-          expect(notifications.length).toBe(2);
-        });
-        it('create a notification for the creator of the invitation if he have a notification for another galerie', async () => {
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          const galerieTwo = await createGalerie({
-            userId: userThree.id,
-          });
-          await createNotification({
-            galerieId: galerieTwo.id,
-            num: 1,
-            type: 'USER_SUBSCRIBE',
-            userId: userThree.id,
-          });
-          await createGalerieUser({
-            galerieId,
-            role: 'admin',
-            userId: userThree.id,
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          const notifications = await Notification.findAll({
-            where: {
-              userId: userThree.id,
-            },
-          });
-          const notification = notifications
-            .find((n) => n.galerieId === galerieId && n.userId === userThree.id);
-          await userThree.reload();
-          expect(notification).not.toBeUndefined();
-          expect(notifications.length).toBe(2);
-          expect(userThree.hasNewNotifications).toBe(true);
-        });
-        it('do not create a notification for the creator of the invitation if his role for the galerie is \'user\'', async () => {
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          await createGalerieUser({
-            galerieId,
-            userId: userThree.id,
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          const notifications = await Notification.findAll();
-          const notification = notifications
-            .find((n) => n.galerieId === galerieId && n.userId === userThree.id);
-          await userThree.reload();
-          expect(notification).toBeUndefined();
-          expect(notifications.length).toBe(1);
-          expect(userThree.hasNewNotifications).toBe(false);
-        });
-        it('do not create a notification for the creator of the invitation if he is not subscribe to the galerie', async () => {
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          const notifications = await Notification.findAll();
-          const notification = notifications
-            .find((n) => n.galerieId === galerieId && n.userId === userThree.id);
-          await userThree.reload();
-          expect(notification).toBeUndefined();
-          expect(notifications.length).toBe(1);
-          expect(userThree.hasNewNotifications).toBe(false);
-        });
-        it('increment notification.num for the notification of the creator of the galerie and the creator of the invitation if the both still have notification', async () => {
-          const num = 1;
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          await createGalerieUser({
-            galerieId,
-            role: 'admin',
-            userId: userThree.id,
-          });
-          const adminNotification = await createNotification({
-            galerieId,
-            num,
-            type: 'USER_SUBSCRIBE',
-            userId: userThree.id,
-          });
-          const creatorNotification = await createNotification({
-            galerieId,
-            num,
-            type: 'USER_SUBSCRIBE',
-            userId: user.id,
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          await adminNotification.reload();
-          await creatorNotification.reload();
-          await user.reload();
-          await userThree.reload();
-          expect(adminNotification.num).toBe(num + 1);
-          expect(creatorNotification.num).toBe(num + 1);
-          expect(user.hasNewNotifications).toBe(true);
-          expect(userThree.hasNewNotifications).toBe(true);
+          const oldCreatorNotification = await Notification.findByPk(creatorNotificationId);
+          expect(adminNotification).not.toBeNull();
+          expect(creatorNotification.length).toBe(1);
+          expect(creatorNotification[0].num).toBe(num + 1);
+          expect(oldCreatorNotification).toBeNull();
         });
         it('create notification for the creator of the galerie and the creator of the invitation if the both not have a notification yet', async () => {
-          const { user: userThree } = await createUser({
+          const { user: admin } = await createUser({
             email: 'user3@email.com',
             userName: 'user3',
           });
           await createGalerieUser({
             galerieId,
             role: 'admin',
-            userId: userThree.id,
+            userId: admin.id,
           });
           const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
             galerieId,
             subscribedUserId,
-            userId: userThree.id,
+            userId: admin.id,
           });
           await postNotifications(app, {
             notificationtoken,
@@ -571,215 +244,558 @@ describe('/Notification', () => {
           });
           expect(notifications.length).toBe(2);
         });
-        it('increment notification.num for the creator of the galerie if is still have a notification and create a notification for the creator of the invitation if he not have a notification yet', async () => {
+        it('create a notification for the creator of the galerie if he do not have a notification yet and increment notification.num for the creator of the invitation if he already have a notification', async () => {
           const num = 1;
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          await createGalerieUser({
-            galerieId,
-            role: 'admin',
-            userId: userThree.id,
-          });
-          const creatorNotification = await createNotification({
-            galerieId,
-            num,
-            type: 'USER_SUBSCRIBE',
-            userId: user.id,
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          const adminNotification = await Notification.findOne({
-            where: {
-              galerieId,
-              userId: userThree.id,
-            },
-          });
-          await creatorNotification.reload();
-          expect(adminNotification).not.toBeNull();
-          expect(creatorNotification.num).toBe(num + 1);
-        });
-        it('create a notification for the creator of the galerie if he not have a notification yet and increment notification.num for the creator of the invitation if he still have a notification', async () => {
-          const num = 1;
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          await createGalerieUser({
-            galerieId,
-            role: 'admin',
-            userId: userThree.id,
-          });
-          const adminNotification = await createNotification({
-            galerieId,
-            num,
-            type: 'USER_SUBSCRIBE',
-            userId: userThree.id,
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId,
-            subscribedUserId,
-            userId: userThree.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          const creatorNotification = await Notification.findOne({
-            where: {
-              galerieId,
-              userId: user.id,
-            },
-          });
-          await adminNotification.reload();
-          expect(adminNotification.num).toBe(num + 1);
-          expect(creatorNotification).not.toBeNull();
-        });
-        it('do not set notification for the creator if allowNotification === false', async () => {
-          const { user: creator } = await createUser({
-            email: 'creator@email.com',
-            userName: 'creator',
-          });
           const { user: admin } = await createUser({
-            email: 'admin@email.com',
-            userName: 'admin',
-          });
-          const { user: userThree } = await createUser({
             email: 'user3@email.com',
             userName: 'user3',
           });
-          const galerie = await createGalerie({
-            userId: creator.id,
-            allowNotification: false,
-          });
           await createGalerieUser({
-            galerieId: galerie.id,
+            galerieId,
             role: 'admin',
             userId: admin.id,
           });
-          await createGalerieUser({
-            galerieId: galerie.id,
-            userId: userThree.id,
+          const { id: adminNotificationId } = await createNotificationUserSubscribe({
+            galerieId,
+            num,
+            userId: admin.id,
           });
           const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId: galerie.id,
-            subscribedUserId: userThree.id,
+            galerieId,
+            subscribedUserId,
             userId: admin.id,
           });
           await postNotifications(app, {
             notificationtoken,
           });
-          const adminNotification = await Notification.findOne({
+          const adminNotifications = await Notification.findAll({
             where: {
               userId: admin.id,
             },
           });
           const creatorNotification = await Notification.findOne({
             where: {
+              galerieId,
               userId: creator.id,
             },
           });
-          await creator.reload();
-          await admin.reload();
-          expect(adminNotification).not.toBeNull();
-          expect(creatorNotification).toBeNull();
-          expect(creator.hasNewNotifications).toBe(false);
-          expect(admin.hasNewNotifications).toBe(true);
-        });
-        it('do not set notification to admin if allowNotification === false', async () => {
-          const { user: creator } = await createUser({
-            email: 'creator@email.com',
-            userName: 'creator',
-          });
-          const { user: admin } = await createUser({
-            email: 'admin@email.com',
-            userName: 'admin',
-          });
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
-          });
-          const galerie = await createGalerie({
-            userId: creator.id,
-          });
-          await createGalerieUser({
-            allowNotification: false,
-            galerieId: galerie.id,
-            role: 'admin',
-            userId: admin.id,
-          });
-          await createGalerieUser({
-            galerieId: galerie.id,
-            userId: userThree.id,
-          });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId: galerie.id,
-            subscribedUserId: userThree.id,
-            userId: admin.id,
-          });
-          await postNotifications(app, {
-            notificationtoken,
-          });
-          const adminNotification = await Notification.findOne({
-            where: {
-              userId: admin.id,
-            },
-          });
-          const creatorNotification = await Notification.findOne({
-            where: {
-              userId: creator.id,
-            },
-          });
-          await admin.reload();
-          await creator.reload();
-          expect(adminNotification).toBeNull();
+          const oldAdminNotification = await Notification.findByPk(adminNotificationId);
           expect(creatorNotification).not.toBeNull();
-          expect(creator.hasNewNotifications).toBe(true);
-          expect(admin.hasNewNotifications).toBe(false);
+          expect(adminNotifications.length).toBe(1);
+          expect(adminNotifications[0].num).toBe(num + 1);
+          expect(oldAdminNotification).toBeNull();
         });
-        it('do not set notification if allowNotification === false && creator === admin', async () => {
-          const { user: creator } = await createUser({
-            email: 'creator@email.com',
-            userName: 'creator',
+        describe('increment notification.num', () => {
+          const num = 1;
+          let oldSubscriber: User;
+
+          beforeEach(async (done) => {
+            try {
+              const { user: newUser } = await createUser({
+                email: 'user4@email@email.com',
+                userName: 'user4',
+              });
+              oldSubscriber = newUser;
+            } catch (err) {
+              done(err);
+            }
+            done();
           });
-          const { user: userThree } = await createUser({
-            email: 'user3@email.com',
-            userName: 'user3',
+
+          describe('for the creator of the galerie', () => {
+            let notificationtoken: string;
+
+            beforeEach(async (done) => {
+              try {
+                const signToken = signNotificationToken('USER_SUBSCRIBE', {
+                  galerieId,
+                  subscribedUserId,
+                  userId: creator.id,
+                });
+                notificationtoken = signToken.token;
+              } catch (err) {
+                done(err);
+              }
+              done();
+            });
+
+            it('if he already have a notification where seen === false', async () => {
+              const { id: notificationId } = await createNotificationUserSubscribe({
+                galerieId,
+                num,
+                subscribedUserId: oldSubscriber.id,
+                userId: creator.id,
+              });
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              const notificationUserSubscribeOne = await NotificationUserSubscribe.findOne({
+                where: {
+                  userId: oldSubscriber.id,
+                },
+              }) as NotificationUserSubscribe;
+              const notificationUserSubscribeTwo = await NotificationUserSubscribe.findOne({
+                where: {
+                  userId: subscribedUserId,
+                },
+              }) as NotificationUserSubscribe;
+              await creator.reload();
+              const notifications = await Notification.findAll();
+              const oldNotification = await Notification.findByPk(notificationId);
+              expect(notificationUserSubscribeOne).not.toBeNull();
+              expect(notificationUserSubscribeOne.notificationId).toBe(notifications[0].id);
+              expect(notificationUserSubscribeTwo).not.toBeNull();
+              expect(notificationUserSubscribeTwo.notificationId).toBe(notifications[0].id);
+              expect(notifications.length).toBe(1);
+              expect(notifications[0].num).toBe(num + 1);
+              expect(notifications[0].userId).toBe(creator.id);
+              expect(oldNotification).toBeNull();
+              expect(creator.hasNewNotifications).toBe(true);
+            });
+            it('if he already have a notification where seen === true and was updated at least 4 days ago', async () => {
+              const { id: notificationId } = await createNotificationUserSubscribe({
+                galerieId,
+                num,
+                seen: true,
+                subscribedUserId: oldSubscriber.id,
+                userId: creator.id,
+              });
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              const notificationUserSubscribeOne = await NotificationUserSubscribe.findOne({
+                where: {
+                  userId: oldSubscriber.id,
+                },
+              }) as NotificationUserSubscribe;
+              const notificationUserSubscribeTwo = await NotificationUserSubscribe.findOne({
+                where: {
+                  userId: subscribedUserId,
+                },
+              }) as NotificationUserSubscribe;
+              await creator.reload();
+              const notifications = await Notification.findAll();
+              const oldNotification = await Notification.findByPk(notificationId);
+              expect(notificationUserSubscribeOne).not.toBeNull();
+              expect(notificationUserSubscribeOne.notificationId).toBe(notifications[0].id);
+              expect(notificationUserSubscribeTwo).not.toBeNull();
+              expect(notificationUserSubscribeTwo.notificationId).toBe(notifications[0].id);
+              expect(notifications.length).toBe(1);
+              expect(notifications[0].num).toBe(num + 1);
+              expect(notifications[0].userId).toBe(creator.id);
+              expect(oldNotification).toBeNull();
+              expect(creator.hasNewNotifications).toBe(true);
+            });
           });
-          const galerie = await createGalerie({
-            allowNotification: false,
-            userId: creator.id,
+          describe('for the creator of the invitation', () => {
+            let notificationtoken: string;
+            let admin: User;
+
+            beforeEach(async (done) => {
+              try {
+                const { user: createdUser } = await createUser({
+                  email: 'user3@email.com',
+                  userName: 'user3',
+                });
+                admin = createdUser;
+                await createGalerieUser({
+                  galerieId,
+                  role: 'admin',
+                  userId: admin.id,
+                });
+                const signToken = signNotificationToken('USER_SUBSCRIBE', {
+                  galerieId,
+                  subscribedUserId,
+                  userId: admin.id,
+                });
+                notificationtoken = signToken.token;
+              } catch (err) {
+                done(err);
+              }
+              done();
+            });
+
+            it('if he already have a notification where seen === false', async () => {
+              const { id: notificationId } = await createNotificationUserSubscribe({
+                galerieId,
+                num,
+                subscribedUserId: oldSubscriber.id,
+                userId: admin.id,
+              });
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              const { id: newNotificationId } = await Notification.findOne({
+                where: {
+                  userId: admin.id,
+                },
+              }) as Notification;
+              const notificationUserSubscribeOne = await NotificationUserSubscribe.findOne({
+                where: {
+                  notificationId: newNotificationId,
+                  userId: oldSubscriber.id,
+                },
+              }) as NotificationUserSubscribe;
+              const notificationUserSubscribeTwo = await NotificationUserSubscribe.findOne({
+                where: {
+                  notificationId: newNotificationId,
+                  userId: subscribedUserId,
+                },
+              }) as NotificationUserSubscribe;
+              await admin.reload();
+              const notifications = await Notification.findAll({
+                where: {
+                  userId: admin.id,
+                },
+              });
+              const oldNotification = await Notification.findByPk(notificationId);
+              expect(notificationUserSubscribeOne).not.toBeNull();
+              expect(notificationUserSubscribeOne.notificationId).toBe(notifications[0].id);
+              expect(notificationUserSubscribeTwo).not.toBeNull();
+              expect(notificationUserSubscribeTwo.notificationId).toBe(notifications[0].id);
+              expect(notifications.length).toBe(1);
+              expect(notifications[0].num).toBe(num + 1);
+              expect(notifications[0].userId).toBe(admin.id);
+              expect(oldNotification).toBeNull();
+              expect(admin.hasNewNotifications).toBe(true);
+            });
+            it('if he already have a notification where seen === true and was updated at least 4 days ago', async () => {
+              const { id: notificationId } = await createNotificationUserSubscribe({
+                galerieId,
+                num,
+                seen: true,
+                subscribedUserId: oldSubscriber.id,
+                userId: admin.id,
+              });
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              const { id: newNotificationId } = await Notification.findOne({
+                where: {
+                  userId: admin.id,
+                },
+              }) as Notification;
+              const notificationUserSubscribeOne = await NotificationUserSubscribe.findOne({
+                where: {
+                  notificationId: newNotificationId,
+                  userId: oldSubscriber.id,
+                },
+              }) as NotificationUserSubscribe;
+              const notificationUserSubscribeTwo = await NotificationUserSubscribe.findOne({
+                where: {
+                  notificationId: newNotificationId,
+                  userId: subscribedUserId,
+                },
+              }) as NotificationUserSubscribe;
+              await admin.reload();
+              const notifications = await Notification.findAll({
+                where: {
+                  userId: admin.id,
+                },
+              });
+              const oldNotification = await Notification.findByPk(notificationId);
+              expect(notificationUserSubscribeOne).not.toBeNull();
+              expect(notificationUserSubscribeOne.notificationId).toBe(notifications[0].id);
+              expect(notificationUserSubscribeTwo).not.toBeNull();
+              expect(notificationUserSubscribeTwo.notificationId).toBe(notifications[0].id);
+              expect(notifications.length).toBe(1);
+              expect(notifications[0].num).toBe(num + 1);
+              expect(notifications[0].userId).toBe(admin.id);
+              expect(oldNotification).toBeNull();
+              expect(admin.hasNewNotifications).toBe(true);
+            });
           });
-          await createGalerieUser({
-            galerieId: galerie.id,
-            userId: userThree.id,
+        });
+        describe('create a notification', () => {
+          describe('for the creator of the galerie', () => {
+            let notificationtoken: string;
+
+            beforeEach(() => {
+              const signToken = signNotificationToken('USER_SUBSCRIBE', {
+                galerieId,
+                subscribedUserId,
+                userId: creator.id,
+              });
+              notificationtoken = signToken.token;
+            });
+
+            it('if he do not have a notification yet', async () => {
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              await creator.reload();
+              const notification = await Notification.findOne({
+                where: {
+                  userId: creator.id,
+                },
+              }) as Notification;
+              const notificationUserSubscribe = await NotificationUserSubscribe.findOne({
+                where: {
+                  notificationId: notification.id,
+                },
+              }) as NotificationUserSubscribe;
+              expect(creator.hasNewNotifications).toBe(true);
+              expect(notification.galerieId).toBe(galerieId);
+              expect(notification.num).toBe(1);
+              expect(notification.seen).toBe(false);
+              expect(notification.type).toBe('USER_SUBSCRIBE');
+              expect(notification.userId).toBe(creator.id);
+              expect(notificationUserSubscribe.userId).toBe(subscribedUserId);
+            });
+            it('if he already have a notification where seen === true and was updated there was more than 4 days', async () => {
+              const num = 1;
+              const timeStamp = 1434319925275;
+              mockDate.set(timeStamp);
+              const notification = await createNotificationUserSubscribe({
+                galerieId,
+                num,
+                seen: true,
+                userId: creator.id,
+              });
+              mockDate.set(timeStamp + 1000 * 60 * 60 * 24 * 4 + 1);
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              await creator.reload();
+              await notification.reload();
+              const notifications = await Notification.findAll({
+                where: {
+                  userId: creator.id,
+                },
+              });
+              expect(notification.num).toBe(num);
+              expect(notification.seen).toBe(true);
+              expect(notifications.length).toBe(2);
+            });
+            it('if he have a notification for an another galerie', async () => {
+              const galerieTwo = await createGalerie({
+                name: 'galerie2',
+                userId: creator.id,
+              });
+              await createNotificationUserSubscribe({
+                galerieId: galerieTwo.id,
+                userId: creator.id,
+              });
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              await creator.reload();
+              const notification = await Notification.findOne({
+                where: {
+                  galerieId,
+                  userId: creator.id,
+                },
+              });
+              expect(creator.hasNewNotifications).toBe(true);
+              expect(notification).not.toBeNull();
+            });
           });
-          const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
-            galerieId: galerie.id,
-            subscribedUserId: userThree.id,
-            userId: creator.id,
+          describe('for the creator of the invitation', () => {
+            let admin: User;
+            let notificationtoken: string;
+
+            beforeEach(async (done) => {
+              try {
+                const { user: createdUser } = await createUser({
+                  email: 'user3@email.com',
+                  userName: 'user3',
+                });
+                admin = createdUser;
+                await createGalerieUser({
+                  galerieId,
+                  role: 'admin',
+                  userId: admin.id,
+                });
+                const signToken = signNotificationToken('USER_SUBSCRIBE', {
+                  galerieId,
+                  subscribedUserId,
+                  userId: admin.id,
+                });
+                notificationtoken = signToken.token;
+              } catch (err) {
+                done(err);
+              }
+              done();
+            });
+
+            it('if he do not have a notification yet', async () => {
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              await admin.reload();
+              const notification = await Notification.findOne({
+                where: {
+                  userId: admin.id,
+                },
+              }) as Notification;
+              const notificationUserSubscribe = await NotificationUserSubscribe.findOne({
+                where: {
+                  notificationId: notification.id,
+                },
+              });
+              expect(admin.hasNewNotifications).toBe(true);
+              expect(notification.galerieId).toBe(galerieId);
+              expect(notification.num).toBe(1);
+              expect(notification.seen).toBe(false);
+              expect(notification.type).toBe('USER_SUBSCRIBE');
+              expect(notification.userId).toBe(admin.id);
+              expect(notificationUserSubscribe).not.toBeNull();
+            });
+            it('if he already have a notification where seen === true and was updated there was more than 4 days', async () => {
+              const num = 1;
+              const timeStamp = 1434319925275;
+              mockDate.set(timeStamp);
+              const notification = await createNotificationUserSubscribe({
+                galerieId,
+                num,
+                seen: true,
+                userId: admin.id,
+              });
+              mockDate.set(timeStamp + 1000 * 60 * 60 * 24 * 4 + 1);
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              await notification.reload();
+              const notifications = await Notification.findAll({
+                where: {
+                  userId: admin.id,
+                },
+              });
+              expect(notification.num).toBe(num);
+              expect(notification.seen).toBe(true);
+              expect(notifications.length).toBe(2);
+            });
+            it('if he have a notification for an another galerie', async () => {
+              const galerieTwo = await createGalerie({
+                name: 'galerie2',
+                userId: admin.id,
+              });
+              await createNotificationUserSubscribe({
+                galerieId: galerieTwo.id,
+                userId: admin.id,
+              });
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              await admin.reload();
+              const notification = await Notification.findOne({
+                where: {
+                  galerieId,
+                  userId: admin.id,
+                },
+              });
+              expect(admin.hasNewNotifications).toBe(true);
+              expect(notification).not.toBeUndefined();
+            });
           });
-          await postNotifications(app, {
-            notificationtoken,
+        });
+        describe('do not create a notification', () => {
+          describe('for the creator of the galerie', () => {
+            it('if allowNotification === false', async () => {
+              const galerieTwo = await createGalerie({
+                allowNotification: false,
+                name: 'galerie2',
+                userId: creator.id,
+              });
+              await createGalerieUser({
+                galerieId: galerieTwo.id,
+                userId: subscribedUserId,
+              });
+              const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
+                galerieId: galerieTwo.id,
+                subscribedUserId,
+                userId: creator.id,
+              });
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              const notification = await Notification.findOne({
+                where: {
+                  userId: creator.id,
+                },
+              });
+              await creator.reload();
+              expect(notification).toBeNull();
+              expect(creator.hasNewNotifications).toBe(false);
+            });
           });
-          await creator.reload();
-          const creatorNotification = await Notification.findOne({
-            where: {
-              userId: creator.id,
-            },
+          describe('for the creator of the invitation', () => {
+            let admin: User;
+            let notificationtoken: string;
+
+            beforeEach(async (done) => {
+              try {
+                const { user } = await createUser({
+                  email: 'user3@email.com',
+                  userName: 'user3',
+                });
+                admin = user;
+              } catch (err) {
+                done(err);
+              }
+              const signToken = signNotificationToken('USER_SUBSCRIBE', {
+                galerieId,
+                subscribedUserId,
+                userId: admin.id,
+              });
+              notificationtoken = signToken.token;
+              done();
+            });
+
+            it('if his role for the galerie is \'user\'', async () => {
+              await createGalerieUser({
+                galerieId,
+                userId: admin.id,
+              });
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              await admin.reload();
+              const notification = await Notification.findOne({
+                where: {
+                  userId: admin.id,
+                },
+              });
+              expect(admin.hasNewNotifications).toBe(false);
+              expect(notification).toBeNull();
+            });
+            it('if he is not subscribe to the galerie', async () => {
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              await admin.reload();
+              const notification = await Notification.findOne({
+                where: {
+                  userId: admin.id,
+                },
+              });
+              expect(admin.hasNewNotifications).toBe(false);
+              expect(notification).toBeNull();
+            });
+            it('if allowNotification === false', async () => {
+              await createGalerieUser({
+                allowNotification: false,
+                galerieId,
+                role: 'admin',
+                userId: admin.id,
+              });
+              await postNotifications(app, {
+                notificationtoken,
+              });
+              await admin.reload();
+              const notification = await Notification.findOne({
+                where: {
+                  userId: admin.id,
+                },
+              });
+              expect(notification).toBeNull();
+              expect(admin.hasNewNotifications).toBe(false);
+            });
           });
-          expect(creatorNotification).toBeNull();
-          expect(creator.hasNewNotifications).toBe(false);
         });
       });
       describe('should return status 400 if', () => {
-        it('notification.data.galeriId is not a UUIDv4', async () => {
+        it('notification.data.galerieId is not a UUIDv4', async () => {
           const { token: notificationtoken } = signNotificationToken('USER_SUBSCRIBE', {
             galerieId: '100',
             subscribedUserId: uuidv4(),

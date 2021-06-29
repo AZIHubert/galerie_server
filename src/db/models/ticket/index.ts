@@ -10,6 +10,7 @@ import {
 import User from '../user';
 
 interface TicketI {
+  autoIncrementId: number;
   body: string;
   header: string;
   id: string;
@@ -20,6 +21,13 @@ interface TicketI {
   tableName: 'ticket',
 })
 export default class Ticket extends Model implements TicketI {
+  @Column({
+    allowNull: false,
+    autoIncrement: true,
+    type: DataType.BIGINT,
+  })
+  autoIncrementId!: number;
+
   @Column({
     allowNull: false,
     type: DataType.STRING,

@@ -4,9 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
-import {
-  Op,
-} from 'sequelize';
+import { Op } from 'sequelize';
 
 import {
   BetaKey,
@@ -17,21 +15,22 @@ import {
   betaKeyExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   const limit = 20;
   const {
     me,
-    page,
+    previousBetaKey,
     used,
   } = req.query;
-  let betaKeys: Array<BetaKey>;
   const where: {
+    autoIncrementId?: any;
     createdById?: string;
     userId?: any;
   } = {};
-  let offset: number;
+  let betaKeys: Array<BetaKey>;
 
   // If ?me='false'
   // return all betaKey created
@@ -46,10 +45,10 @@ export default async (req: Request, res: Response) => {
       where.createdById = currentUser.id;
   }
 
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
+  if (previousBetaKey && isNormalInteger(previousBetaKey.toString())) {
+    where.autoIncrementId = {
+      [Op.lt]: previousBetaKey.toString(),
+    };
   }
 
   switch (used) {
@@ -100,8 +99,7 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['createdAt', 'DESC']],
+      order: [['autoIncrementId', 'DESC']],
       where,
     });
   } catch (err) {

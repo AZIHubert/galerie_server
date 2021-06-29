@@ -170,7 +170,9 @@ describe('/galeries', () => {
                   invitations: secondPack,
                 },
               },
-            } = await getGaleriesIdInvitations(app, token, galerieId, { page: 2 });
+            } = await getGaleriesIdInvitations(app, token, galerieId, {
+              previousInvitation: firstPack[firstPack.length - 1].autoIncrementId,
+            });
             expect(firstPack.length).toBe(20);
             expect(secondPack.length).toBe(1);
           });
@@ -316,6 +318,53 @@ describe('/galeries', () => {
             expect(isBlackListed).toBe(false);
             expect(userTwo.isBlackListed).toBe(false);
           });
+          describe('should return first invitations if req.query.previousInvitations', () => {
+            let invitationId: string;
+
+            beforeEach(async (done) => {
+              try {
+                await createInvitation({
+                  galerieId,
+                  userId: user.id,
+                });
+                const invitation = await createInvitation({
+                  galerieId,
+                  userId: user.id,
+                });
+                invitationId = invitation.id;
+              } catch (err) {
+                done(err);
+              }
+              done();
+            });
+
+            it('is not a number', async () => {
+              const {
+                body: {
+                  data: {
+                    invitations,
+                  },
+                },
+              } = await getGaleriesIdInvitations(app, token, galerieId, {
+                previousInvitation: 'notANumber',
+              });
+              expect(invitations.length).toBe(2);
+              expect(invitations[0].id).toBe(invitationId);
+            });
+            it('is less than 0', async () => {
+              const {
+                body: {
+                  data: {
+                    invitations,
+                  },
+                },
+              } = await getGaleriesIdInvitations(app, token, galerieId, {
+                previousInvitation: '-1',
+              });
+              expect(invitations.length).toBe(2);
+              expect(invitations[0].id).toBe(invitationId);
+            });
+          });
         });
         describe('should return status 400 if', () => {
           it('request.params.invitationId is not a UUID v4', async () => {
@@ -363,6 +412,7 @@ describe('/galeries', () => {
               userName: 'user2',
             });
             const galerieTwo = await createGalerie({
+              name: 'galerie2',
               userId: userTwo.id,
             });
             const {

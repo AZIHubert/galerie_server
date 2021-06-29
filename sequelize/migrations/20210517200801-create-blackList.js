@@ -1,4 +1,9 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('blackList', {
+  autoIncrementId: {
+    allowNull: false,
+    autoIncrement: true,
+    type: DataTypes.BIGINT,
+  },
   createdAt: {
     allowNull: false,
     type: DataTypes.DATE,

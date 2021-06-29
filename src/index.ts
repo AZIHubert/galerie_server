@@ -18,16 +18,25 @@ initSequelize(() => {
 });
 
 // TODO:
-// Every where multiple Model with limit and offset are fetched
-// Need to add a query.timestamp (Date)
-// to indicate when the first request was made
-// During to request of 2 different pages
-// Model can be added and the are modifing the order
-// so, some Model can be skipped
-// so query.timestamp is require
-// and returned Model are only the one
-// where
-// createdAt < query.timestamp
+// allow GET /galeries/ to filter by name
+
+// TODO:
+// normalize migration and model
+// migration replace default by defaultValue
+// Model => use decorators everywhere
+
+// TODO:
+// delete @root/
 
 // TODO:
 // create Report model
+
+// TODO: for later
+// when the creator delete his account
+// create an election
+// If they're is only one admin
+// he become the steward for the admin (same right than the creator)
+// else all the admin became candidat to become the steward.
+// after one week, the admin who has the more vote become the intendant
+// if equality pink a random one.
+// if no admin, all users became candidat.

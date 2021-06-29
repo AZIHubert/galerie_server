@@ -5,13 +5,18 @@ export default async (
   app: Server,
   token: string,
   option: {
-    page: number;
-  } = {
-    page: 1,
-  },
+    previousProfilePicture?: string;
+  } = {},
 ) => {
-  const response = await request(app)
-    .get(`/profilePictures?page=${option.page}`)
-    .set('authorization', token);
+  let response: request.Response;
+  if (option.previousProfilePicture) {
+    response = await request(app)
+      .get(`/profilePictures?previousProfilePicture=${option.previousProfilePicture}`)
+      .set('authorization', token);
+  } else {
+    response = await request(app)
+      .get('/profilePictures/')
+      .set('authorization', token);
+  }
   return response;
 };

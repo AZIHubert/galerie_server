@@ -10,6 +10,7 @@ import {
 import User from '../user';
 
 interface BlackListI {
+  autoIncrementId: number;
   createdById?: string;
   id: string;
   reason: string;
@@ -22,6 +23,13 @@ interface BlackListI {
   tableName: 'blackList',
 })
 export default class BlackList extends Model implements BlackListI {
+  @Column({
+    allowNull: false,
+    autoIncrement: true,
+    type: DataType.BIGINT,
+  })
+  autoIncrementId!: number;
+
   // Id of the user who
   // created the black list.
   @ForeignKey(() => User)

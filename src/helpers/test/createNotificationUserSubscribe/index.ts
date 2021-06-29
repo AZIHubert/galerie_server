@@ -5,22 +5,29 @@ import {
 
 export default async ({
   galerieId,
+  num,
+  seen,
   userId,
-  subscribeUserId,
+  subscribedUserId,
 }: {
   galerieId: string;
+  num?: number;
+  seen?: boolean;
   userId: string;
-  subscribeUserId: string;
+  subscribedUserId?: string;
 }) => {
   const notification = await Notification.create({
     galerieId,
-    num: 1,
+    num: num || 1,
+    seen: seen || false,
     type: 'USER_SUBSCRIBE',
     userId,
   });
-  await NotificationUserSubscribe.create({
-    notificationId: notification.id,
-    userId: subscribeUserId,
-  });
+  if (subscribedUserId) {
+    await NotificationUserSubscribe.create({
+      notificationId: notification.id,
+      userId: subscribedUserId,
+    });
+  }
   return notification;
 };

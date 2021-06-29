@@ -1,4 +1,9 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('notification', {
+  autoIncrementId: {
+    allowNull: false,
+    autoIncrement: true,
+    type: DataTypes.BIGINT,
+  },
   frameId: {
     references: {
       key: 'id',

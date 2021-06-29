@@ -144,7 +144,9 @@ describe('/galeries', () => {
                   blackLists: secondPack,
                 },
               },
-            } = await getGaleriesIdBlackLists(app, token, galerieId, { page: 2 });
+            } = await getGaleriesIdBlackLists(app, token, galerieId, {
+              previousBlackList: firstPack[firstPack.length - 1].autoIncrementId,
+            });
             expect(firstPack.length).toBe(20);
             expect(secondPack.length).toBe(1);
           });
@@ -296,6 +298,63 @@ describe('/galeries', () => {
             } = await getGaleriesIdBlackLists(app, tokenTwo, galerieId);
             expect(status).toBe(200);
           });
+          describe('should return first blackLists if req.query.previousBlackList', () => {
+            let blackListId: string;
+
+            beforeEach(async (done) => {
+              try {
+                const { user: userTwo } = await createUser({
+                  email: 'user2@email.com',
+                  userName: 'user2',
+                });
+                const { user: userThree } = await createUser({
+                  email: 'user3@email.com',
+                  userName: 'user3',
+                });
+                await createGalerieBlackList({
+                  createdById: user.id,
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                const blackList = await createGalerieBlackList({
+                  createdById: user.id,
+                  galerieId,
+                  userId: userThree.id,
+                });
+                blackListId = blackList.id;
+              } catch (err) {
+                done(err);
+              }
+              done();
+            });
+
+            it('is not a number', async () => {
+              const {
+                body: {
+                  data: {
+                    blackLists,
+                  },
+                },
+              } = await getGaleriesIdBlackLists(app, token, galerieId, {
+                previousBlackList: 'notANumber',
+              });
+              expect(blackLists.length).toBe(2);
+              expect(blackLists[0].id).toBe(blackListId);
+            });
+            it('is less than 0', async () => {
+              const {
+                body: {
+                  data: {
+                    blackLists,
+                  },
+                },
+              } = await getGaleriesIdBlackLists(app, token, galerieId, {
+                previousBlackList: '-1',
+              });
+              expect(blackLists.length).toBe(2);
+              expect(blackLists[0].id).toBe(blackListId);
+            });
+          });
         });
         describe('should return status 400 if', () => {
           it('request.params.galerieId is not a UUID v4', async () => {
@@ -339,6 +398,7 @@ describe('/galeries', () => {
               userName: 'user2',
             });
             const galerieTwo = await createGalerie({
+              name: 'galerie2',
               userId: userTwo.id,
             });
             const {

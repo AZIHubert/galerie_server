@@ -140,14 +140,24 @@ export default async ({
               },
             });
             if (notification) {
-              await notification.update({
+              const newNotification = await Notification.create({
+                galerieId: notification.galerieId,
                 num: notification.num + 1,
-                seen: false,
+                type: notification.type,
+                userId: notification.userId,
               });
               await NotificationFramePosted.create({
                 notificationId: notification.id,
                 frameId,
               });
+              await NotificationFramePosted.update({
+                notificationId: newNotification.id,
+              }, {
+                where: {
+                  notificationId: notification.id,
+                },
+              });
+              await notification.destroy();
             } else {
               const { id: notificationId } = await Notification.create({
                 galerieId: frame!.galerieId,

@@ -21,16 +21,21 @@ import {
   invitationExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
-  const { page } = req.query;
+  const {
+    previousInvitation,
+  } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
+  const where: {
+    autoIncrementId?: any
+  } = {};
   let galerie: Galerie | null;
   let invitations: Array<Invitation>;
-  let offset: number;
   let returnedInvitations: Array<any>;
 
   // Check if request.params.galerieId
@@ -72,10 +77,10 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
+  if (previousInvitation && isNormalInteger(previousInvitation.toString())) {
+    where.autoIncrementId = {
+      [Op.lt]: previousInvitation.toString(),
+    };
   }
 
   // Fetch all invitations.
@@ -94,9 +99,9 @@ export default async (req: Request, res: Response) => {
         model: User,
       }],
       limit,
-      offset,
-      order: [['createdAt', 'DESC']],
+      order: [['autoIncrementId', 'DESC']],
       where: {
+        ...where,
         [Op.and]: [
           {
             [Op.or]: [

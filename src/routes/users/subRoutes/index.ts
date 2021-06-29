@@ -12,7 +12,6 @@ export { default as getUsersLogout } from './getUsersLogout';
 export { default as getUsersMe } from './getUsersMe';
 export { default as getUsersMeCurrentProfilePicture } from './getUsersMeCurrentProfilePicture';
 export { default as getUsersRefreshToken } from './getUsersRefreshToken';
-export { default as getUsersUserNameUserName } from './getUsersUserNameUserName';
 
 export { default as postUsersConfirmation } from './postUsersConfirmation';
 export { default as postUsersIdBlackLists } from './postUsersIdBlackLists';

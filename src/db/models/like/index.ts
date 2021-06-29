@@ -11,6 +11,7 @@ import Frame from '../frame';
 import User from '../user';
 
 interface LikeI {
+  autoIncrementId: number;
   frameId: string;
   id: string;
   notificationHasBeenSend: boolean;
@@ -21,6 +22,13 @@ interface LikeI {
   tableName: 'like',
 })
 export default class Like extends Model implements LikeI {
+  @Column({
+    allowNull: false,
+    autoIncrement: true,
+    type: DataType.BIGINT,
+  })
+  autoIncrementId!: number;
+
   @ForeignKey(() => Frame)
   @Column({
     allowNull: false,

@@ -11,6 +11,7 @@ import Galerie from '../galerie';
 import User from '../user';
 
 interface GalerieBlackListI {
+  autoIncrementId: number;
   createdById?: string;
   galerieId: string;
   id: string;
@@ -21,6 +22,13 @@ interface GalerieBlackListI {
   tableName: 'galerieBlackList',
 })
 export default class GalerieBlackList extends Model implements GalerieBlackListI {
+  @Column({
+    allowNull: false,
+    autoIncrement: true,
+    type: DataType.BIGINT,
+  })
+  autoIncrementId!: number;
+
   @ForeignKey(() => User)
   @Column({
     type: DataType.UUID,

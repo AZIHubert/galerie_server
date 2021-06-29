@@ -1,4 +1,9 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('invitation', {
+  autoIncrementId: {
+    allowNull: false,
+    autoIncrement: true,
+    type: DataTypes.BIGINT,
+  },
   code: {
     allowNull: false,
     type: DataTypes.STRING,

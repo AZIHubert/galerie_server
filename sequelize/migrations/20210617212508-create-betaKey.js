@@ -1,4 +1,9 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('betaKey', {
+  autoIncrementId: {
+    allowNull: false,
+    autoIncrement: true,
+    type: DataTypes.BIGINT,
+  },
   code: {
     type: DataTypes.STRING,
     unique: true,

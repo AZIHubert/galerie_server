@@ -157,11 +157,13 @@ describe('/galeries', () => {
                   users: secondPack,
                 },
               },
-            } = await getGaleriesIdUsers(app, token, galerieId, { page: 2 });
+            } = await getGaleriesIdUsers(app, token, galerieId, {
+              previousUser: firstPack[firstPack.length - 1].userName,
+            });
             expect(firstPack.length).toBe(20);
             expect(secondPack.length).toBe(1);
           });
-          it('sort users by pseudonym', async () => {
+          it('sort users by userName', async () => {
             const {
               user: userTwo,
             } = await createUser({
@@ -300,6 +302,7 @@ describe('/galeries', () => {
               userName: 'user2',
             });
             const galerieTwo = await createGalerie({
+              name: 'galerie2',
               userId: userTwo.id,
             });
             const {

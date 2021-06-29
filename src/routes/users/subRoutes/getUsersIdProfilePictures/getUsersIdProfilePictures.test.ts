@@ -145,7 +145,9 @@ describe('/users', () => {
                   profilePictures: secondPack,
                 },
               },
-            } = await getUsersIdProfilePictures(app, token, userTwo.id, { page: 2 });
+            } = await getUsersIdProfilePictures(app, token, userTwo.id, {
+              previousProfilePicture: firstPack[firstPack.length - 1].autoIncrementId,
+            });
             expect(firstPack.length).toBe(20);
             expect(secondPack.length).toBe(1);
           });
@@ -198,6 +200,51 @@ describe('/users', () => {
             expect(images.length).toBe(0);
             expect(profilePictures.length).toBe(0);
             expect(returnedProfilePictures[0]).toBeNull();
+          });
+          describe('should return first profile pictures if req.query.previousProfilePicture', () => {
+            let profilePictureId: string;
+
+            beforeEach(async (done) => {
+              try {
+                await createProfilePicture({
+                  userId: userTwo.id,
+                });
+                const profilePicture = await createProfilePicture({
+                  userId: userTwo.id,
+                });
+                profilePictureId = profilePicture.id;
+              } catch (err) {
+                done(err);
+              }
+              done();
+            });
+
+            it('is not a number', async () => {
+              const {
+                body: {
+                  data: {
+                    profilePictures,
+                  },
+                },
+              } = await getUsersIdProfilePictures(app, token, userTwo.id, {
+                previousProfilePicture: 'notANumber',
+              });
+              expect(profilePictures.length).toBe(2);
+              expect(profilePictures[0].id).toBe(profilePictureId);
+            });
+            it('is less than -1', async () => {
+              const {
+                body: {
+                  data: {
+                    profilePictures,
+                  },
+                },
+              } = await getUsersIdProfilePictures(app, token, userTwo.id, {
+                previousProfilePicture: '-1',
+              });
+              expect(profilePictures.length).toBe(2);
+              expect(profilePictures[0].id).toBe(profilePictureId);
+            });
           });
         });
         describe('should return status 400 if', () => {

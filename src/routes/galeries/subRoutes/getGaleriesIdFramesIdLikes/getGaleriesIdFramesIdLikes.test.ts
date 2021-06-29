@@ -106,7 +106,7 @@ describe('/galeries', () => {
                     data: {
                       frameId: returnedFrameId,
                       galerieId: returnedGalerieId,
-                      users,
+                      likes,
                     },
                   },
                   status,
@@ -114,20 +114,20 @@ describe('/galeries', () => {
                 expect(action).toBe('GET');
                 expect(returnedFrameId).toBe(frameId.toString());
                 expect(returnedGalerieId).toBe(galerieId);
-                expect(users.length).toBe(0);
+                expect(likes.length).toBe(0);
                 expect(status).toBe(200);
               });
-              it('return no user', async () => {
+              it('return no like', async () => {
                 const {
                   body: {
                     data: {
-                      users,
+                      likes,
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                expect(users.length).toBe(0);
+                expect(likes.length).toBe(0);
               });
-              it('return One user', async () => {
+              it('return One like', async () => {
                 const {
                   user: userTwo,
                 } = await createUser({
@@ -145,15 +145,17 @@ describe('/galeries', () => {
                 const {
                   body: {
                     data: {
-                      users,
+                      likes,
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                expect(users.length).toBe(1);
-                expect(users[0].hasNewNotifications).toBeUndefined();
-                testUser(users[0]);
+                expect(likes.length).toBe(1);
+                expect(likes[0].autoIncrementId).not.toBeUndefined();
+                expect(likes[0].id).not.toBeUndefined();
+                expect(likes[0].user.hasNewNotifications).toBeUndefined();
+                testUser(likes[0].user);
               });
-              it('return a pack of 20 users', async () => {
+              it('return a pack of 20 likes', async () => {
                 const NUM = 21;
                 const numOfLikes = new Array(NUM).fill(0);
                 await Promise.all(
@@ -171,21 +173,23 @@ describe('/galeries', () => {
                 const {
                   body: {
                     data: {
-                      users: firstPack,
+                      likes: firstPack,
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 const {
                   body: {
                     data: {
-                      users: secondPack,
+                      likes: secondPack,
                     },
                   },
-                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId, { page: 2 });
+                } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId, {
+                  previousLike: firstPack[firstPack.length - 1].autoIncrementId,
+                });
                 expect(firstPack.length).toBe(20);
                 expect(secondPack.length).toBe(1);
               });
-              it('order users by createdAt', async () => {
+              it('order likes by createdAt', async () => {
                 const { user: userTwo } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
@@ -229,18 +233,18 @@ describe('/galeries', () => {
                 const {
                   body: {
                     data: {
-                      users,
+                      likes,
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                expect(users.length).toBe(5);
-                expect(users[0].id).toBe(userSix.id);
-                expect(users[1].id).toBe(userFive.id);
-                expect(users[2].id).toBe(userFour.id);
-                expect(users[3].id).toBe(userThree.id);
-                expect(users[4].id).toBe(userTwo.id);
+                expect(likes.length).toBe(5);
+                expect(likes[0].user.id).toBe(userSix.id);
+                expect(likes[1].user.id).toBe(userFive.id);
+                expect(likes[2].user.id).toBe(userFour.id);
+                expect(likes[3].user.id).toBe(userThree.id);
+                expect(likes[4].user.id).toBe(userTwo.id);
               });
-              it('return user.isBlackListed === true if is black listed', async () => {
+              it('return like.user.isBlackListed === true if is black listed', async () => {
                 const { user: userTwo } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
@@ -260,14 +264,14 @@ describe('/galeries', () => {
                 const {
                   body: {
                     data: {
-                      users,
+                      likes,
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
-                expect(users.length).toBe(1);
-                expect(users[0].isBlackListed).toBe(true);
+                expect(likes.length).toBe(1);
+                expect(likes[0].user.isBlackListed).toBe(true);
               });
-              it('return user.isBlackListed === false if black list has expired', async () => {
+              it('return like.user.isBlackListed === false if black list has expired', async () => {
                 const timeStamp = 1434319925275;
                 const time = 1000 * 60 * 10;
                 mockDate.set(timeStamp);
@@ -294,13 +298,68 @@ describe('/galeries', () => {
                 const {
                   body: {
                     data: {
-                      users,
+                      likes,
                     },
                   },
                 } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
                 await userTwo.reload();
-                expect(users[0].isBlackListed).toBe(false);
+                expect(likes[0].user.isBlackListed).toBe(false);
                 expect(userTwo.isBlackListed).toBe(false);
+              });
+              describe('should return first likes if req.query.previousLike', () => {
+                let likeId: string;
+
+                beforeEach(async (done) => {
+                  try {
+                    const { user: userTwo } = await createUser({
+                      email: 'user2@email.com',
+                      userName: 'user2',
+                    });
+                    const { user: userThree } = await createUser({
+                      email: 'user3@email.com',
+                      userName: 'user3',
+                    });
+                    await createLike({
+                      frameId,
+                      userId: userTwo.id,
+                    });
+                    const like = await createLike({
+                      frameId,
+                      userId: userThree.id,
+                    });
+                    likeId = like.id;
+                  } catch (err) {
+                    done(err);
+                  }
+                  done();
+                });
+
+                it('is not a number', async () => {
+                  const {
+                    body: {
+                      data: {
+                        likes,
+                      },
+                    },
+                  } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId, {
+                    previousLike: 'notANumber',
+                  });
+                  expect(likes.length).toBe(2);
+                  expect(likes[0].id).toBe(likeId);
+                });
+                it('is less than 0', async () => {
+                  const {
+                    body: {
+                      data: {
+                        likes,
+                      },
+                    },
+                  } = await getGaleriesIdFramesIdLikes(app, token, galerieId, frameId, {
+                    previousLike: '-1',
+                  });
+                  expect(likes.length).toBe(2);
+                  expect(likes[0].id).toBe(likeId);
+                });
               });
             });
             describe('should return status 400 if', () => {
@@ -338,6 +397,7 @@ describe('/galeries', () => {
                   userName: 'user2',
                 });
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: userTwo.id,
                 });
                 const {
@@ -357,6 +417,7 @@ describe('/galeries', () => {
               });
               it('frame exist but is not post on this galerie', async () => {
                 const galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: user.id,
                 });
                 const { id: frameId } = await createFrame({

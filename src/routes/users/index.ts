@@ -23,7 +23,6 @@ import {
   getUsersMe,
   getUsersMeCurrentProfilePicture,
   getUsersRefreshToken,
-  getUsersUserNameUserName,
 
   postUsersConfirmation,
   postUsersIdBlackLists,
@@ -56,7 +55,6 @@ const usersRoutes: () => Router = () => {
   router.get('/me/', shouldBeAuth, getUsersMe);
   router.get('/me/currentProfilePicture/', shouldBeAuth, getUsersMeCurrentProfilePicture);
   router.get('/refreshToken/', getUsersRefreshToken);
-  router.get('/userName/:userName/', shouldBeAuth, getUsersUserNameUserName);
   router.get('/:userId/', shouldBeAuth, getUsersId);
   router.get('/:userId/blackLists', shouldBeAuth, shouldBeAdmin, getUsersIdBlackLists);
   router.get('/:userId/blackLists/:blackListId', shouldBeAuth, shouldBeAdmin, getUsersIdBlackListsId);

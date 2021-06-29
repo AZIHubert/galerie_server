@@ -389,6 +389,7 @@ describe('/galeries', () => {
                 userName: 'user2',
               });
               const galerie = await createGalerie({
+                name: 'galerie2',
                 userId: userTwo.id,
               });
               const {
@@ -400,6 +401,7 @@ describe('/galeries', () => {
             });
             it('frame exist but not belong to the galerie', async () => {
               const galerie = await createGalerie({
+                name: 'galerie2',
                 userId: user.id,
               });
               const { id: frameId } = await createFrame({

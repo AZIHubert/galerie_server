@@ -4,6 +4,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   Image,
@@ -22,16 +23,21 @@ import uuidValidateV4 from '@src/helpers/uuidValidateV4';
 import {
   fetchProfilePicture,
 } from '@root/src/helpers/fetch';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
-  const { page } = req.query;
+  const {
+    previousProfilePicture,
+  } = req.query;
   const {
     userId,
   } = req.params;
   const limit = 20;
+  const where: {
+    autoIncrementId?: any
+  } = {};
   let user: User | null;
   let normalizedProfilePictures;
-  let offset: number;
   let profilePictures: ProfilePicture[];
 
   // Check if request.params.userId is a UUIDv4.
@@ -55,10 +61,10 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
+  if (previousProfilePicture && isNormalInteger(previousProfilePicture.toString())) {
+    where.autoIncrementId = {
+      [Op.lt]: previousProfilePicture.toString(),
+    };
   }
 
   // Fetch profile pictures.
@@ -82,9 +88,9 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['createdAt', 'DESC']],
+      order: [['autoIncrementId', 'DESC']],
       where: {
+        ...where,
         userId,
       },
     });

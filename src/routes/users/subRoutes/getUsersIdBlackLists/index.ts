@@ -2,6 +2,7 @@ import {
   Request,
   Response,
 } from 'express';
+import { Op } from 'sequelize';
 
 import {
   BlackList,
@@ -17,17 +18,20 @@ import {
   userExcluder,
 } from '@src/helpers/excluders';
 import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {
-    page,
+    previousBlackList,
   } = req.query;
   const {
     userId,
   } = req.params;
   const limit = 20;
+  const where: {
+    autoIncrementId?: any
+  } = {};
   let blackLists: BlackList[];
-  let offset: number;
   let user: User | null;
 
   // Check if request.params.userId is a UUIDv4.
@@ -35,12 +39,6 @@ export default async (req: Request, res: Response) => {
     return res.status(400).send({
       errors: INVALID_UUID('user'),
     });
-  }
-
-  if (typeof page === 'string') {
-    offset = ((+page || 1) - 1) * limit;
-  } else {
-    offset = 0;
   }
 
   // Fetch user.
@@ -55,6 +53,12 @@ export default async (req: Request, res: Response) => {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('user'),
     });
+  }
+
+  if (previousBlackList && isNormalInteger(previousBlackList.toString())) {
+    where.autoIncrementId = {
+      [Op.lt]: previousBlackList.toString(),
+    };
   }
 
   // Fetch blackLists.
@@ -86,9 +90,9 @@ export default async (req: Request, res: Response) => {
         },
       ],
       limit,
-      offset,
-      order: [['createdAt', 'DESC']],
+      order: [['autoIncrementId', 'DESC']],
       where: {
+        ...where,
         userId: user.id,
       },
     });

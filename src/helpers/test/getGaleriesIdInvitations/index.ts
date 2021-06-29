@@ -6,13 +6,18 @@ export default async (
   token: string,
   galerieId: string,
   option: {
-    page: number;
-  } = {
-    page: 1,
-  },
+    previousInvitation?: string;
+  } = {},
 ) => {
-  const response = await request(app)
-    .get(`/galeries/${galerieId}/invitations/?page=${option.page}`)
-    .set('authorization', token);
+  let response: request.Response;
+  if (option.previousInvitation) {
+    response = await request(app)
+      .get(`/galeries/${galerieId}/invitations/?previousInvitation=${option.previousInvitation}`)
+      .set('authorization', token);
+  } else {
+    response = await request(app)
+      .get(`/galeries/${galerieId}/invitations/`)
+      .set('authorization', token);
+  }
   return response;
 };

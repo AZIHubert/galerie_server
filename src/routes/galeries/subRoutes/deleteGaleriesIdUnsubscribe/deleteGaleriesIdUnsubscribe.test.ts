@@ -260,7 +260,7 @@ describe('/galeries', () => {
               });
               const notification = await createNotificationUserSubscribe({
                 galerieId,
-                subscribeUserId: userThree.id,
+                subscribedUserId: userThree.id,
                 userId: userTwo.id,
               });
               await deleteGaleriesUnsubscribe(app, token, galerieId);
@@ -281,6 +281,7 @@ describe('/galeries', () => {
             beforeEach(async (done) => {
               try {
                 galerieTwo = await createGalerie({
+                  name: 'galerie2',
                   userId: user.id,
                 });
               } catch (err) {
@@ -391,7 +392,7 @@ describe('/galeries', () => {
               });
               const notification = await createNotificationUserSubscribe({
                 galerieId: galerieTwo.id,
-                subscribeUserId: user.id,
+                subscribedUserId: user.id,
                 userId: userTwo.id,
               });
               await deleteGaleriesUnsubscribe(app, token, galerieId);
@@ -559,7 +560,7 @@ describe('/galeries', () => {
               });
               const { id: notificationId } = await createNotificationUserSubscribe({
                 galerieId,
-                subscribeUserId: userThree.id,
+                subscribedUserId: userThree.id,
                 userId: user.id,
               });
               await deleteGaleriesUnsubscribe(app, token, galerieId);
@@ -659,7 +660,7 @@ describe('/galeries', () => {
               });
               const notification = await createNotificationUserSubscribe({
                 galerieId,
-                subscribeUserId: user.id,
+                subscribedUserId: user.id,
                 userId: userTwo.id,
               });
               await NotificationUserSubscribe.create({
@@ -777,7 +778,7 @@ describe('/galeries', () => {
             it('delete notification where num <= 1 where type === \'USER_SUBSCRIBE\' and notificationsUserSubscribe.userId === currentUser.id', async () => {
               const { id: notificationId } = await createNotificationUserSubscribe({
                 galerieId,
-                subscribeUserId: user.id,
+                subscribedUserId: user.id,
                 userId: userTwo.id,
               });
               await deleteGaleriesUnsubscribe(app, token, galerieId);
@@ -795,7 +796,7 @@ describe('/galeries', () => {
               });
               const notification = await createNotificationUserSubscribe({
                 galerieId,
-                subscribeUserId: user.id,
+                subscribedUserId: user.id,
                 userId: userTwo.id,
               });
               await NotificationUserSubscribe.create({
@@ -917,6 +918,7 @@ describe('/galeries', () => {
           });
           it('galerie exist but user is not subscribe to it', async () => {
             const galerie = await createGalerie({
+              name: 'galerie2',
               userId: userTwo.id,
             });
             const {

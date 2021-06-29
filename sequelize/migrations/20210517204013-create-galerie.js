@@ -15,6 +15,11 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('g
   description: {
     type: DataTypes.STRING,
   },
+  hiddenName: {
+    allowNull: false,
+    type: DataTypes.STRING,
+    unique: true,
+  },
   id: {
     allowNull: false,
     defaultValue: DataTypes.UUIDV4,
