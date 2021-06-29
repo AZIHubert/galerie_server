@@ -15,6 +15,7 @@ export { default as createInvitation } from './createInvitation';
 export { default as createLike } from './createLike';
 export { default as createNotification } from './createNotification';
 export { default as createProfilePicture } from './createProfilePicture';
+export { default as createReport } from './createReport';
 export { default as createTicket } from './createTicket';
 export { default as createUser } from './createUser';
 
@@ -75,6 +76,7 @@ export { default as postGaleriesIdUserUserIdBlackLists } from './postGaleriesIdU
 export { default as postGaleriesSubscribe } from './postGaleriesSubscribe';
 export { default as postProfilePictures } from './postProfilePictures';
 export { default as postNotifications } from './postNotifications';
+export { default as postGaleriesIdFramesIdReports } from './postGaleriesIdFramesIdReports';
 export { default as postTickets } from './postTickets';
 export { default as postUsersConfirmation } from './postUsersConfirmation';
 export { default as postUsersIdBlackLists } from './postUsersIdBlackLists';

@@ -22,20 +22,17 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('r
     primaryKey: true,
     type: DataTypes.UUID,
   },
+  numOfReports: {
+    allowNull: false,
+    defaultValue: 1,
+    type: DataTypes.INTEGER,
+  },
   updatedAt: {
     allowNull: false,
     type: DataTypes.DATE,
-  },
-  userId: {
-    allowNull: false,
-    references: {
-      key: 'id',
-      model: 'users',
-    },
-    type: DataTypes.UUID,
   },
 }, {
   charset: 'utf8',
 });
 
-module.exports.down = (queryInterface) => queryInterface.dropTable('betaKey');
+module.exports.down = (queryInterface) => queryInterface.dropTable('report');

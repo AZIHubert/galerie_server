@@ -20,6 +20,7 @@ import {
   NotificationUserSubscribe,
   ProfilePicture,
   Report,
+  ReportUser,
   Ticket,
   User,
 } from './models';
@@ -53,6 +54,7 @@ const sequelize = new Sequelize({
     NotificationUserSubscribe,
     ProfilePicture,
     Report,
+    ReportUser,
     Ticket,
     User,
   ],

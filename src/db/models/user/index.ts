@@ -21,6 +21,8 @@ import NotificationBetaKeyUsed from '../notificationBetaKeyUsed';
 import NotificationFrameLiked from '../notificationFrameLiked';
 import NotificationUserSubscribe from '../notificationUserSubscribe';
 import ProfilePicture from '../profilePicture';
+import Report from '../report';
+import ReportUser from '../reportUser';
 import Ticket from '../ticket';
 
 interface UserI {
@@ -233,6 +235,9 @@ export default class User extends Model implements UserI {
   Notification &
   {NotificationUserSubscribe: NotificationUserSubscribe}
   >;
+
+  @BelongsToMany(() => Report, () => ReportUser)
+  reports!: Array<Report & {GalerieUser: ReportUser}>;
 
   @HasMany(() => BetaKey, 'createdById')
   betaKeyCreatedBy!: BetaKey[];

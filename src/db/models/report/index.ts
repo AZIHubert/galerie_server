@@ -1,5 +1,6 @@
 import {
   BelongsTo,
+  BelongsToMany,
   Column,
   DataType,
   Default,
@@ -10,12 +11,13 @@ import {
 
 import User from '../user';
 import Frame from '../frame';
+import ReportUser from '../reportUser';
 
 interface ReportI {
   autoIncrementId: number;
   frameId: string;
   id: string;
-  userId: string;
+  numOfReports: number;
 }
 
 @Table({
@@ -37,6 +39,7 @@ export default class Report extends Model implements ReportI {
   @Column({
     allowNull: false,
     type: DataType.UUID,
+    unique: true,
   })
   frameId!: string;
 
@@ -48,14 +51,12 @@ export default class Report extends Model implements ReportI {
   })
   id!: string;
 
-  // The id of the user who use
-  // this beta key.
-  @ForeignKey(() => User)
+  @Default(1)
   @Column({
     allowNull: false,
-    type: DataType.UUID,
+    type: DataType.INTEGER,
   })
-  userId!: string;
+  numOfReports!: number;
 
   @BelongsTo(() => Frame, {
     foreignKey: 'frameId',
@@ -64,10 +65,6 @@ export default class Report extends Model implements ReportI {
   })
   frame!: Frame;
 
-  @BelongsTo(() => User, {
-    foreignKey: 'userId',
-    hooks: true,
-    onDelete: 'CASCADE',
-  })
-  user!: User;
+  @BelongsToMany(() => User, () => ReportUser)
+  users!: Array<User & {GalerieUser: ReportUser}>;
 }
