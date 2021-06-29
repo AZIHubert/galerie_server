@@ -5,29 +5,28 @@ export default async (
   app: Server,
   token: string,
   option: {
-    all?: 'true' | 'false'
+    all?: 'true' | 'false';
+    name?: string;
     previousGalerie?: string;
   } = {},
 ) => {
-  let response: request.Response;
-  if (option.all) {
-    if (option.previousGalerie) {
-      response = await request(app)
-        .get(`/galeries?previousGalerie=${option.previousGalerie}&all=${option.all}`)
-        .set('authorization', token);
-    } else {
-      response = await request(app)
-        .get(`/galeries?all=${option.all}`)
-        .set('authorization', token);
-    }
-  } else if (option.previousGalerie) {
-    response = await request(app)
-      .get(`/galeries?previousGalerie=${option.previousGalerie}`)
-      .set('authorization', token);
-  } else {
-    response = await request(app)
-      .get('/galeries')
-      .set('authorization', token);
+  const {
+    all,
+    name,
+    previousGalerie,
+  } = option;
+  let query = '';
+  if (all) {
+    query = `${query}${query === '' ? '' : '&'}all=${all}`;
   }
+  if (name) {
+    query = `${query}${query === '' ? '' : '&'}name=${name}`;
+  }
+  if (previousGalerie) {
+    query = `${query}${query === '' ? '' : '&'}previousGalerie=${previousGalerie}`;
+  }
+  const response = await request(app)
+    .get(`/galeries${query === '' ? '' : `?${query}`}`)
+    .set('authorization', token);
   return response;
 };

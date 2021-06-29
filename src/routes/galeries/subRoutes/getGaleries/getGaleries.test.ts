@@ -309,6 +309,45 @@ describe('/galeries', () => {
         } = await getGaleries(app, token);
         expect(galeries.length).toBe(1);
       });
+      it('filter galerie by name', async () => {
+        const { id: galerieId } = await createGalerie({
+          name: 'a',
+          userId: user.id,
+        });
+        await createGalerie({
+          name: 'b',
+          userId: user.id,
+        });
+        const {
+          body: {
+            data: {
+              galeries,
+            },
+          },
+        } = await getGaleries(app, token, {
+          name: 'a',
+        });
+        expect(galeries.length).toBe(1);
+        expect(galeries[0].id).toBe(galerieId);
+      });
+      it('request.query.name should be case insensitive', async () => {
+        const name = 'galerie';
+        const { id: galerieId } = await createGalerie({
+          name,
+          userId: user.id,
+        });
+        const {
+          body: {
+            data: {
+              galeries,
+            },
+          },
+        } = await getGaleries(app, token, {
+          name: name.toUpperCase(),
+        });
+        expect(galeries.length).toBe(1);
+        expect(galeries[0].id).toBe(galerieId);
+      });
     });
   });
 });

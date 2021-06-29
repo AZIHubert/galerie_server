@@ -18,12 +18,14 @@ import {
 export default async (req: Request, res: Response) => {
   const {
     all,
+    name,
     previousGalerie,
   } = req.query;
   const currentUser = req.user as User;
   const limit = 20;
   const whereGalerie: {
     hiddenName?: any;
+    name?: any;
   } = {};
   const whereUser: {
     id?: string;
@@ -33,6 +35,11 @@ export default async (req: Request, res: Response) => {
 
   if (currentUser.role === 'user' || all !== 'true') {
     whereUser.id = currentUser.id;
+  }
+  if (name) {
+    whereGalerie.name = {
+      [Op.iLike]: `%${name.toString().toLowerCase()}%`,
+    };
   }
   if (previousGalerie) {
     whereGalerie.hiddenName = {
