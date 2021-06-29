@@ -15,6 +15,7 @@ import ReportUser from '../reportUser';
 
 interface ReportI {
   autoIncrementId: number;
+  classed: boolean;
   frameId: string;
   id: string;
   numOfReports: number;
@@ -32,6 +33,13 @@ export default class Report extends Model implements ReportI {
     type: DataType.BIGINT,
   })
   autoIncrementId!: number;
+
+  @Default(false)
+  @Column({
+    allowNull: false,
+    type: DataType.BOOLEAN,
+  })
+  classed!: boolean;
 
   // The superAdmin who create the betaKey.
   // If null, the superAdmin has deleted his account.

@@ -4,6 +4,11 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('r
     autoIncrement: true,
     type: DataTypes.BIGINT,
   },
+  classed: {
+    allowNull: false,
+    defaultValue: false,
+    type: DataTypes.BOOLEAN,
+  },
   createdAt: {
     allowNull: false,
     type: DataTypes.DATE,

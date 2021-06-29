@@ -89,48 +89,64 @@ describe('/galeries', () => {
             });
 
             describe('should return status 200 and', () => {
-              it('if report for this frame already exist, create a ReportUser and increment numOfReports', async () => {
-                const numOfReports = 1;
-                const report = await createReport({
-                  frameId,
-                  numOfReports,
-                });
-                const {
-                  body: {
-                    action,
-                    data,
-                  },
-                  status,
-                } = await postGaleriesIdFramesIdReports(app, token, galerieId, frameId);
-                await report.reload();
-                const reportUser = await ReportUser.findOne({
-                  where: {
-                    reportId: report.id,
-                    userId: user.id,
-                  },
-                });
-                const reports = await Report.findAll();
-                expect(action).toBe('POST');
-                expect(data.frameId).toBe(frameId);
-                expect(data.galerieId).toBe(galerieId);
-                expect(report.numOfReports).toBe(numOfReports + 1);
-                expect(reportUser).not.toBeNull();
-                expect(reports.length).toBe(1);
-                expect(status).toBe(200);
-              });
-              it('if report for this frame doesn\'t exist, create a Report and a ReportUser', async () => {
-                await postGaleriesIdFramesIdReports(app, token, galerieId, frameId);
-                const reports = await Report.findAll({
-                  include: [
-                    {
-                      model: User,
+              describe('if report for this frame already exist', () => {
+                it('create a ReportUser and increment numOfReports', async () => {
+                  const numOfReports = 1;
+                  const report = await createReport({
+                    frameId,
+                    numOfReports,
+                  });
+                  const {
+                    body: {
+                      action,
+                      data,
                     },
-                  ],
+                    status,
+                  } = await postGaleriesIdFramesIdReports(app, token, galerieId, frameId);
+                  await report.reload();
+                  const reportUser = await ReportUser.findOne({
+                    where: {
+                      reportId: report.id,
+                      userId: user.id,
+                    },
+                  });
+                  const reports = await Report.findAll();
+                  expect(action).toBe('POST');
+                  expect(data.frameId).toBe(frameId);
+                  expect(data.galerieId).toBe(galerieId);
+                  expect(report.numOfReports).toBe(numOfReports + 1);
+                  expect(reportUser).not.toBeNull();
+                  expect(reports.length).toBe(1);
+                  expect(status).toBe(200);
                 });
-                expect(reports.length).toBe(1);
-                expect(reports[0].numOfReports).toBe(1);
-                expect(reports[0].frameId).toBe(frameId);
-                expect(reports[0].users[0].id).toBe(user.id);
+                it('set classed to false', async () => {
+                  const report = await createReport({
+                    classed: true,
+                    frameId,
+                  });
+                  const {
+                    status,
+                  } = await postGaleriesIdFramesIdReports(app, token, galerieId, frameId);
+                  await report.reload();
+                  expect(report.classed).toBe(false);
+                  expect(status).toBe(200);
+                });
+              });
+              describe('if report for this frame doesn\'t exist', () => {
+                it('create a Report and a ReportUser', async () => {
+                  await postGaleriesIdFramesIdReports(app, token, galerieId, frameId);
+                  const reports = await Report.findAll({
+                    include: [
+                      {
+                        model: User,
+                      },
+                    ],
+                  });
+                  expect(reports.length).toBe(1);
+                  expect(reports[0].numOfReports).toBe(1);
+                  expect(reports[0].frameId).toBe(frameId);
+                  expect(reports[0].users[0].id).toBe(user.id);
+                });
               });
             });
             describe('should return status 400 if', () => {

@@ -130,7 +130,10 @@ export default async (req: Request, res: Response) => {
         reportId: report.id,
         userId: currentUser.id,
       });
-      await report.increment({ numOfReports: 1 });
+      await report.update({
+        classed: false,
+        numOfReports: report.numOfReports + 1,
+      });
     } catch (err) {
       return res.status(500).send(err);
     }
