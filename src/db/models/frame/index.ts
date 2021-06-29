@@ -94,7 +94,9 @@ export default class Frame extends Model implements FrameI {
   })
   userId!: string;
 
-  @BelongsTo(() => Galerie)
+  @BelongsTo(() => Galerie, {
+    onDelete: 'CASCADE',
+  })
   galerie!: Galerie;
 
   @BelongsTo(() => User)

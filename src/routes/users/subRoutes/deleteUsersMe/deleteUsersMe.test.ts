@@ -19,6 +19,7 @@ import {
   NotificationFrameLiked,
   NotificationFramePosted,
   ProfilePicture,
+  ReportUser,
   User,
 } from '#src/db/models';
 
@@ -44,6 +45,7 @@ import {
   createNotificationFrameLiked,
   createNotificationFramePosted,
   createProfilePicture,
+  createReport,
   createTicket,
   createUser,
   deleteUsersMe,
@@ -913,6 +915,33 @@ describe('/users', () => {
           });
           expect(notification.num).toBe(1);
           expect(notificationFrameLiked).toBeNull();
+        });
+        it.only('TODO: destroy reportUsers', async () => {
+          const { id: galerieId } = await createGalerie({
+            userId: user.id,
+          });
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: user.id,
+          });
+          const { id: reportId } = await createReport({
+            frameId,
+            userId: user.id,
+          });
+          await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const reportUser = await ReportUser.findOne({
+            where: {
+              reportId,
+              userId: user.id,
+            },
+          });
+          expect(reportUser).toBeNull();
         });
         it('destroy the current user', async () => {
           const {
