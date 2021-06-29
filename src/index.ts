@@ -18,15 +18,12 @@ initSequelize(() => {
 });
 
 // Include report when fetch frame
-// delete report when delete frame
-// delete report when delete galerie
-// report.classified (default false)
 // if an admin decide to not delete a frame
 // report.classified become true
 // if another user report this frame
 // classified become true
 // allow to fetch report by clased 'all' 'true' 'false'
-// decrement report.numOfReports and destroy ReportUser when delete userMe
+// allow to report a profilePicture.
 
 // TODO: for later
 // when the creator delete his account

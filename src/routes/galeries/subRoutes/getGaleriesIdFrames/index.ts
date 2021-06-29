@@ -12,6 +12,7 @@ import {
   GaleriePicture,
   Image,
   Like,
+  Report,
   User,
 } from '#src/db/models';
 
@@ -121,6 +122,18 @@ export default async (req: Request, res: Response) => {
           },
         },
         {
+          include: [
+            {
+              model: User,
+              required: false,
+              where: {
+                id: currentUser.id,
+              },
+            },
+          ],
+          model: Report,
+        },
+        {
           as: 'user',
           attributes: {
             exclude: [
@@ -153,6 +166,8 @@ export default async (req: Request, res: Response) => {
             ...normalizedFrame,
             liked: !!frame.likes.length,
             likes: undefined,
+            report: undefined,
+            reported: !!(frame.report && frame.report.users.length),
             user: {
               ...frame.user.toJSON(),
               currentProfilePicture: null,
