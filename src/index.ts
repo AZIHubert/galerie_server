@@ -18,9 +18,6 @@ initSequelize(() => {
 });
 
 // TODO:
-// allow GET /galeries/ to filter by name
-
-// TODO:
 // normalize migration and model
 // migration replace default by defaultValue
 // Model => use decorators everywhere
