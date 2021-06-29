@@ -20,7 +20,7 @@ import User from '../user';
 
 interface FrameI {
   autoIncrementId: number;
-  description?: string;
+  description: string | null;
   galerieId: string;
   id: string;
   notificationHasBeenSend: boolean;
@@ -32,6 +32,8 @@ interface FrameI {
   tableName: 'frame',
 })
 export default class Frame extends Model implements FrameI {
+  // Required to order by created at without
+  // having replicate Model.
   @Column({
     allowNull: false,
     autoIncrement: true,
@@ -39,28 +41,34 @@ export default class Frame extends Model implements FrameI {
   })
   autoIncrementId!: number;
 
+  // The description to the frame.
   @Column({
     type: DataType.STRING,
   })
   description!: string;
 
+  // Id of the galerie where this frame
+  // was posted.
   @ForeignKey(() => Galerie)
   @Column({
     type: DataType.UUID,
   })
   galerieId!: string;
 
+  @Default(DataType.UUIDV4)
   @Column({
     allowNull: false,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
     type: DataType.UUID,
   })
   id!: string;
 
+  // If true, all user who are subscribe
+  // to the galerie where the frame was posted
+  // have receive a notification.
+  @Default(false)
   @Column({
     allowNull: false,
-    defaultValue: false,
     type: DataType.BOOLEAN,
   })
   notificationHasBeenSend!: boolean;
@@ -79,6 +87,7 @@ export default class Frame extends Model implements FrameI {
   })
   numOfLikes!: number;
 
+  // Id of the user who post this frame.
   @ForeignKey(() => User)
   @Column({
     type: DataType.UUID,

@@ -3,6 +3,7 @@ import {
   BelongsToMany,
   Column,
   DataType,
+  Default,
   ForeignKey,
   Model,
   Table,
@@ -20,11 +21,11 @@ import User from '../user';
 
 interface NotificationI {
   autoIncrementId: number;
-  frameId?: string;
-  galerieId?: string;
+  frameId: string | null;
+  galerieId: string | null;
   id: string;
-  num?: number;
-  role?: string;
+  num: number | null;
+  role: string | null;
   seen: boolean;
   type: typeof notificationType[number];
   userId: string;
@@ -53,9 +54,9 @@ export default class Notification extends Model implements NotificationI {
   })
   galerieId!: string;
 
+  @Default(DataType.UUIDV4)
   @Column({
     allowNull: false,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
     type: DataType.UUID,
   })
@@ -71,9 +72,9 @@ export default class Notification extends Model implements NotificationI {
   })
   role!: string;
 
+  @Default(false)
   @Column({
     allowNull: false,
-    defaultValue: false,
     type: DataType.BOOLEAN,
   })
   seen!: boolean;

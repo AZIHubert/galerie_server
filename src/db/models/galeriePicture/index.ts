@@ -12,13 +12,13 @@ import Frame from '../frame';
 import Image from '../image';
 
 interface GaleriePictureI {
-  cropedImageId?: string;
+  cropedImageId: string;
   current: boolean;
   frameId: string;
   id: string;
   index: number;
-  originalImageId?: string;
-  pendingImageId?: string;
+  originalImageId: string;
+  pendingImageId: string;
 }
 
 @Table({
@@ -50,9 +50,9 @@ export default class GaleriePicture extends Model implements GaleriePictureI {
   })
   frameId!: string;
 
+  @Default(DataType.UUIDV4)
   @Column({
     allowNull: false,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
     type: DataType.UUID,
   })

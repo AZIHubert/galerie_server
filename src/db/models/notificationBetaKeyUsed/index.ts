@@ -10,8 +10,8 @@ import Notification from '../notification';
 import User from '../user';
 
 interface NotificationBetaKeyUsedI {
-  notificationId?: string;
-  userId?: string;
+  notificationId: string;
+  userId: string;
 }
 
 @Table({

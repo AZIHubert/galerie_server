@@ -27,22 +27,22 @@ interface UserI {
   authTokenVersion: number;
   confirmed: boolean;
   confirmTokenVersion: number;
-  defaultProfilePicture?: string;
+  defaultProfilePicture: string | null;
   emailTokenVersion: number;
-  email?: string;
-  facebookId?: string;
-  googleId?: string;
-  hash?: string;
+  email: string | null;
+  facebookId: string | null;
+  googleId: string | null;
+  hash: string | null;
   id: string;
   isBlackListed: boolean;
   hasNewNotifications: boolean;
-  pseudonym?: string;
+  pseudonym: string;
   resetPasswordTokenVersion: number;
   role: 'superAdmin' | 'admin' | 'user';
-  salt?: string;
-  socialMediaUserName?: string;
+  salt: string | null;
+  socialMediaUserName: string | null;
   updatedEmailTokenVersion: number;
-  userName?: string;
+  userName: string | null;
 }
 
 @Table({
@@ -125,9 +125,9 @@ export default class User extends Model implements UserI {
   })
   hash!: string;
 
+  @Default(DataType.UUIDV4)
   @Column({
     allowNull: false,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
     type: DataType.UUID,
   })

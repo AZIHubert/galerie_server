@@ -13,10 +13,10 @@ import User from '../user';
 
 interface ProfilePictureI {
   autoIncrementId: number;
-  cropedImageId?: string;
+  cropedImageId: string;
   current: boolean;
   id: string;
-  originalImageId?: string;
+  originalImageId: string;
   pendingImageId?: string;
   userId: string;
 }
@@ -48,9 +48,9 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
   })
   current!: boolean;
 
+  @Default(DataType.UUIDV4)
   @Column({
     allowNull: false,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
     type: DataType.UUID,
   })

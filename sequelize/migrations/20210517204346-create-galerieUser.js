@@ -1,7 +1,7 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('galerieUser', {
   allowNotification: {
     allowNull: false,
-    default: true,
+    defaultValue: true,
     type: DataTypes.BOOLEAN,
   },
   createdAt: {
@@ -18,12 +18,12 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('g
   },
   hasNewFrames: {
     allowNull: false,
-    default: false,
+    defaultValue: false,
     type: DataTypes.BOOLEAN,
   },
   notificationHasBeenSend: {
     allowNull: false,
-    default: false,
+    defaultValue: false,
     type: DataTypes.BOOLEAN,
   },
   role: {

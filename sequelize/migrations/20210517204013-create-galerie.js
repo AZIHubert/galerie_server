@@ -1,7 +1,7 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('galerie', {
   archived: {
     allowNull: false,
-    default: false,
+    defaultValue: false,
     type: DataTypes.BOOLEAN,
   },
   createdAt: {

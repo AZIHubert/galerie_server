@@ -2,6 +2,7 @@ import {
   BelongsTo,
   Column,
   DataType,
+  Default,
   ForeignKey,
   Model,
   Table,
@@ -11,11 +12,11 @@ import User from '../user';
 
 interface BlackListI {
   autoIncrementId: number;
-  createdById?: string;
+  createdById: string | null;
   id: string;
   reason: string;
-  time?: Date;
-  updatedById?: string;
+  time: Date | null;
+  updatedById: string | null;
   userId: string;
 }
 
@@ -23,6 +24,8 @@ interface BlackListI {
   tableName: 'blackList',
 })
 export default class BlackList extends Model implements BlackListI {
+  // Required to order by created at without
+  // having replicate Model.
   @Column({
     allowNull: false,
     autoIncrement: true,
@@ -38,30 +41,31 @@ export default class BlackList extends Model implements BlackListI {
   })
   createdById!: string;
 
+  @Default(DataType.UUIDV4)
   @Column({
     allowNull: false,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
     type: DataType.UUID,
   })
   id!: string;
 
-  // Reason why the user has been baned.
+  // The reason why the user has been baned.
   @Column({
     allowNull: false,
     type: DataType.STRING,
   })
   reason!: string;
 
-  // How many time the user is baned.
-  // If null, the ban is illimited.
+  // How many time the user is blackListed.
+  // If null, the user is blackListed during
+  // an illimited amount of time.
   @Column({
     type: DataType.DATE,
   })
   time!: Date;
 
-  // Id of the user who update this blackList
-  // (set active to false manually).
+  // Id of the blackListed user.
+
   @ForeignKey(() => User)
   @Column({
     allowNull: false,
@@ -69,7 +73,10 @@ export default class BlackList extends Model implements BlackListI {
   })
   userId!: string;
 
-  // Id of the baned user.
+  // Id of the admin who un blackListed
+  // this user. updatedById is set only
+  // if this blackList was the active one
+  // when a user is unblacklisted.
   @ForeignKey(() => User)
   @Column({
     type: DataType.UUID,

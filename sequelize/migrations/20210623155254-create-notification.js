@@ -32,7 +32,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('n
   },
   seen: {
     allowNull: false,
-    default: false,
+    defaultValue: false,
     type: DataTypes.BOOLEAN,
   },
   type: {
