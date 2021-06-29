@@ -18,9 +18,6 @@ initSequelize(() => {
 });
 
 // TODO:
-// delete @root/
-
-// TODO:
 // create Report model
 
 // TODO: for later

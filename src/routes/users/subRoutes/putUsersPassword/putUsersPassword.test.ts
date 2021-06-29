@@ -3,13 +3,13 @@ import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 import { sign } from 'jsonwebtoken';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
+import accEnv from '#src/helpers/accEnv';
 import {
   INVALID_UUID,
   FIELD_CANNOT_CONTAIN_SPACES,
@@ -26,17 +26,17 @@ import {
   USER_SHOULD_NOT_BE_BLACK_LISTED,
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
-import validatePassword from '@src/helpers/validatePassword';
-import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
+import validatePassword from '#src/helpers/validatePassword';
+import * as verifyConfirmation from '#src/helpers/verifyConfirmation';
 import {
   createUser,
   createBlackList,
   putUsersPassword,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 const RESET_PASSWORD_SECRET = accEnv('RESET_PASSWORD_SECRET');
 let app: Server;

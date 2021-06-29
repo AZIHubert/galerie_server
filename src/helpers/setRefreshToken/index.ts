@@ -1,8 +1,8 @@
 import { Request } from 'express';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
-import { signRefreshToken } from '@src/helpers/issueJWT';
+import { signRefreshToken } from '#src/helpers/issueJWT';
 
 declare module 'express-session' {
   export interface SessionData {

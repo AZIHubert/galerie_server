@@ -8,12 +8,12 @@ import {
   FIELD_SHOULD_BE_A_STRING,
   FIELD_SHOULD_BE_AN_EMAIL,
   FIELD_SHOULD_MATCH,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   SPECIAL_CHARS_ERROR,
   PASSWORD_ERROR,
   SPACES_ERROR,
-} from '@root/src/helpers/patternErrorsName';
+} from '#src/helpers/patternErrorsName';
 
 import options from '../options';
 

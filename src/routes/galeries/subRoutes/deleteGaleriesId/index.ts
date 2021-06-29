@@ -10,20 +10,20 @@ import {
   Galerie,
   GaleriePicture,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   WRONG_PASSWORD,
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
-import gc from '@src/helpers/gc';
+} from '#src/helpers/errorMessages';
+import gc from '#src/helpers/gc';
 import {
   normalizeJoiErrors,
   validateDeleteGaleriesIdBody,
-} from '@src/helpers/schemas';
-import validatePassword from '@src/helpers/validatePassword';
-import uuidValidatev4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/schemas';
+import validatePassword from '#src/helpers/validatePassword';
+import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;

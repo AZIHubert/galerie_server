@@ -9,7 +9,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 
-import notificationType from '@src/helpers/notification/type';
+import notificationType from '#src/helpers/notification/type';
 
 import Frame from '../frame';
 import Galerie from '../galerie';

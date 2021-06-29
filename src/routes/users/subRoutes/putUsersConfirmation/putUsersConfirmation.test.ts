@@ -3,13 +3,13 @@ import { sign } from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
+import accEnv from '#src/helpers/accEnv';
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
@@ -17,15 +17,15 @@ import {
   TOKEN_NOT_FOUND,
   WRONG_TOKEN,
   WRONG_TOKEN_VERSION,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
 import {
   createUser,
   putUsersConfirmation,
-} from '@src/helpers/test';
-import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
+} from '#src/helpers/test';
+import * as verifyConfirmation from '#src/helpers/verifyConfirmation';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 let app: Server;

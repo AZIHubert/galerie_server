@@ -1,13 +1,13 @@
 import { Request } from 'express';
 import { verify } from 'jsonwebtoken';
 
-import accEnv from '@src/helpers/accEnv';
+import accEnv from '#src/helpers/accEnv';
 import {
   INVALID_UUID,
   TOKEN_NOT_FOUND,
   WRONG_TOKEN,
-} from '@src/helpers/errorMessages';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/errorMessages';
+import uuidValidateV4 from '#src/helpers/uuidValidateV4';
 
 const CONFIRM_SECRET = accEnv('CONFIRM_SECRET');
 

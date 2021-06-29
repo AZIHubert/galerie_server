@@ -1,6 +1,6 @@
 import {
   Notification,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default (
   notification: Notification,

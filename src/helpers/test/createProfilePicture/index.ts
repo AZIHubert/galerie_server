@@ -1,7 +1,7 @@
 import {
   Image,
   ProfilePicture,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async ({
   current = true,

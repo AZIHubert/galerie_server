@@ -13,18 +13,18 @@ import {
   Image,
   Like,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import checkBlackList from '@src/helpers/checkBlackList';
+import checkBlackList from '#src/helpers/checkBlackList';
 import {
   frameExcluder,
   galeriePictureExcluder,
   userExcluder,
-} from '@src/helpers/excluders';
+} from '#src/helpers/excluders';
 import {
   fetchFrame,
-} from '@src/helpers/fetch';
-import isNormalInteger from '@src/helpers/isNormalInteger';
+} from '#src/helpers/fetch';
+import isNormalInteger from '#src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {

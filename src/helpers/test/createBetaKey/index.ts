@@ -2,7 +2,7 @@ import { customAlphabet } from 'nanoid';
 
 import {
   BetaKey,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async ({
   createdById,

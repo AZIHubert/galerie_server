@@ -5,7 +5,7 @@ import {
   Response,
 } from 'express';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
 import {
   FIELD_IS_ALREADY_TAKEN,
@@ -13,16 +13,16 @@ import {
   WRONG_TOKEN,
   WRONG_TOKEN_USER_ID,
   WRONG_TOKEN_VERSION,
-} from '@src/helpers/errorMessages';
-import { signAuthToken } from '@src/helpers/issueJWT';
+} from '#src/helpers/errorMessages';
+import { signAuthToken } from '#src/helpers/issueJWT';
 import {
   validatePutUsersMeEmailBody,
   validatePutUsersMeEmailConfirmToken,
   normalizeJoiErrors,
-} from '@src/helpers/schemas';
-import setRefreshToken from '@src/helpers/setRefreshToken';
-import validatePassword from '@src/helpers/validatePassword';
-import { updateEmailToken } from '@src/helpers/verifyConfirmation';
+} from '#src/helpers/schemas';
+import setRefreshToken from '#src/helpers/setRefreshToken';
+import validatePassword from '#src/helpers/validatePassword';
+import { updateEmailToken } from '#src/helpers/verifyConfirmation';
 
 export default async (req: Request, res: Response) => {
   const user = req.user as User;

@@ -9,14 +9,14 @@ import path from 'path';
 import {
   TOKEN_NOT_FOUND,
   WRONG_TOKEN,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   betaKeyUsed,
   frameLiked,
   framePosted,
   roleChange,
   userSubscribe,
-} from '@src/helpers/notification/post';
+} from '#src/helpers/notification/post';
 
 export default async (req: Request, res: Response) => {
   const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.notificationToken.pem'));

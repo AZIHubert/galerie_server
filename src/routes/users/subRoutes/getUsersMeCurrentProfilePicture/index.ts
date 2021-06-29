@@ -5,8 +5,8 @@ import {
 
 import {
   User,
-} from '@src/db/models';
-import { fetchCurrentProfilePicture } from '@src/helpers/fetch';
+} from '#src/db/models';
+import { fetchCurrentProfilePicture } from '#src/helpers/fetch';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;

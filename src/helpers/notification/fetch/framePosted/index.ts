@@ -1,7 +1,7 @@
 import {
   Frame,
   Notification,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async (
   notification: Notification,

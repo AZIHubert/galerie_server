@@ -9,7 +9,7 @@ import {
   Galerie,
   Notification,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   betaKeyUsed,
@@ -17,8 +17,8 @@ import {
   framePosted,
   roleChange,
   userSubscribe,
-} from '@src/helpers/notification/fetch';
-import isNormalInteger from '@src/helpers/isNormalInteger';
+} from '#src/helpers/notification/fetch';
+import isNormalInteger from '#src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {

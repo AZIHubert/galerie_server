@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import {
   shouldBeAuth,
-} from '@src/helpers/middlewares';
+} from '#src/helpers/middlewares';
 
 import {
   deleteNotificationsId,

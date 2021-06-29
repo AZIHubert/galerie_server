@@ -7,11 +7,11 @@ import {
 
 import {
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   userExcluder,
-} from '@src/helpers/excluders';
+} from '#src/helpers/excluders';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;

@@ -4,11 +4,11 @@ import { verify } from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
 import path from 'path';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   FIELD_CANNOT_BE_EMPTY,
@@ -22,16 +22,16 @@ import {
   FIELD_SHOULD_BE_AN_EMAIL,
   FIELD_SHOULD_MATCH,
   FIELD_IS_REQUIRED,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
 import {
   createUser,
   createBetaKey,
   postUsersSigninBeta,
   testUser,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 let app: Server;
 let sequelize: Sequelize;

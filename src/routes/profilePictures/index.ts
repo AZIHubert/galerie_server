@@ -3,7 +3,7 @@ import { Router } from 'express';
 import {
   shouldBeAuth,
   uploadFile,
-} from '@src/helpers/middlewares';
+} from '#src/helpers/middlewares';
 
 import {
   deleteProfilePicturesId,

@@ -1,6 +1,6 @@
 import {
   Ticket,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async ({
   body = 'ticket\'s body',

@@ -1,6 +1,6 @@
 import { Sequelize } from 'sequelize-typescript';
 
-import accessEnv from '@src/helpers/accEnv';
+import accessEnv from '#src/helpers/accEnv';
 
 import {
   BetaKey,

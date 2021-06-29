@@ -2,7 +2,7 @@ import {
   Frame,
   GaleriePicture,
   Image,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async ({
   current = false,

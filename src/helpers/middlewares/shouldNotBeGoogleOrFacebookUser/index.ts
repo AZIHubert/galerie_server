@@ -4,9 +4,9 @@ import {
   Response,
 } from 'express';
 
-import User from '@src/db/models/user';
+import User from '#src/db/models/user';
 
-import { USER_SHOULD_NOT_BE_REGISTERED_WITH_A_SOCIAL_MEDIA } from '@src/helpers/errorMessages';
+import { USER_SHOULD_NOT_BE_REGISTERED_WITH_A_SOCIAL_MEDIA } from '#src/helpers/errorMessages';
 
 export default async (
   req: Request,

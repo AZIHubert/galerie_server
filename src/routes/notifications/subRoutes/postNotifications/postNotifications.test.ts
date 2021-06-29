@@ -5,18 +5,18 @@ import mockDate from 'mockdate';
 import path from 'path';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   TOKEN_NOT_FOUND,
   WRONG_TOKEN,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
 import {
   postNotifications,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 let app: Server;
 let sequelize: Sequelize;

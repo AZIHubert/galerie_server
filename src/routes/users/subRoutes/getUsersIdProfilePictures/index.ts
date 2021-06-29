@@ -10,20 +10,20 @@ import {
   Image,
   ProfilePicture,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   profilePictureExcluder,
-} from '@src/helpers/excluders';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/excluders';
+import uuidValidateV4 from '#src/helpers/uuidValidateV4';
 import {
   fetchProfilePicture,
-} from '@root/src/helpers/fetch';
-import isNormalInteger from '@src/helpers/isNormalInteger';
+} from '#src/helpers/fetch';
+import isNormalInteger from '#src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {

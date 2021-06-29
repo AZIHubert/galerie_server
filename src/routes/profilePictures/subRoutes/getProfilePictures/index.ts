@@ -10,15 +10,15 @@ import {
   Image,
   ProfilePicture,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   profilePictureExcluder,
-} from '@src/helpers/excluders';
+} from '#src/helpers/excluders';
 import {
   fetchProfilePicture,
-} from '@root/src/helpers/fetch';
-import isNormalInteger from '@src/helpers/isNormalInteger';
+} from '#src/helpers/fetch';
+import isNormalInteger from '#src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {

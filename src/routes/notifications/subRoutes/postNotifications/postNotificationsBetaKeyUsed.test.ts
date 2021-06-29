@@ -3,28 +3,28 @@ import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   Notification,
   NotificationBetaKeyUsed,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   MODEL_NOT_FOUND,
   INVALID_UUID,
   NOTIFICATION_ALREADY_SEND,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signNotificationToken } from '@src/helpers/issueJWT';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signNotificationToken } from '#src/helpers/issueJWT';
 import {
   createBetaKey,
   createNotificationBetaKeyUsed,
   createUser,
   postNotifications,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 let app: Server;
 let sequelize: Sequelize;

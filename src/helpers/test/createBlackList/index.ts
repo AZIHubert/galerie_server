@@ -1,7 +1,7 @@
 import {
   BlackList,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async ({
   active = true,

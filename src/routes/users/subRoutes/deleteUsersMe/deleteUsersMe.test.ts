@@ -1,7 +1,7 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   BetaKey,
@@ -20,16 +20,16 @@ import {
   NotificationFramePosted,
   ProfilePicture,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
   FIELD_SHOULD_BE_A_STRING,
   WRONG_PASSWORD,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
 import {
   createBetaKey,
   createBlackList,
@@ -47,9 +47,9 @@ import {
   createTicket,
   createUser,
   deleteUsersMe,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 let app: Server;
 let sequelize: Sequelize;
@@ -57,7 +57,7 @@ let password: string;
 let token: string;
 let user: User;
 
-jest.mock('@src/helpers/gc', () => ({
+jest.mock('#src/helpers/gc', () => ({
   __esModule: true,
   default: ({
     bucket: () => ({

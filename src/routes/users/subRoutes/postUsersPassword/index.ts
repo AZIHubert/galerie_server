@@ -6,21 +6,21 @@ import {
 } from 'express';
 import { sign } from 'jsonwebtoken';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
-import { sendResetPassword } from '@src/helpers/email';
-import checkBlackList from '@src/helpers/checkBlackList';
+import accEnv from '#src/helpers/accEnv';
+import { sendResetPassword } from '#src/helpers/email';
+import checkBlackList from '#src/helpers/checkBlackList';
 import {
   DEFAULT_ERROR_MESSAGE,
   MODEL_NOT_FOUND,
   USER_SHOULD_BE_CONFIRMED,
   USER_SHOULD_NOT_BE_BLACK_LISTED,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   normalizeJoiErrors,
   validatePostUsersResetPasswordBody,
-} from '@src/helpers/schemas';
+} from '#src/helpers/schemas';
 
 const RESET_PASSWORD_SECRET = accEnv('RESET_PASSWORD_SECRET');
 

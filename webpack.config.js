@@ -26,9 +26,7 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.js'],
     alias: {
-      '@sequelize': path.resolve(__dirname, './sequelize'),
-      '@src': path.resolve(__dirname, './src'),
-      '@root': path.resolve(__dirname, './'),
+      '#src': path.resolve(__dirname, './src'),
     },
   },
   plugins: [

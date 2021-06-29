@@ -2,7 +2,7 @@ import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   Frame,
@@ -16,7 +16,7 @@ import {
   Notification,
   NotificationFramePosted,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   FIELD_CANNOT_BE_EMPTY,
@@ -25,9 +25,9 @@ import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
   WRONG_PASSWORD,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
 import {
   createFrame,
   createGalerie,
@@ -40,11 +40,11 @@ import {
   createNotificationUserSubscribe,
   createUser,
   deleteGaleriesId,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
-jest.mock('@src/helpers/gc', () => ({
+jest.mock('#src/helpers/gc', () => ({
   __esModule: true,
   default: ({
     bucket: () => ({

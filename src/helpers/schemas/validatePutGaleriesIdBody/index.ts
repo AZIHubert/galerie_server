@@ -5,7 +5,7 @@ import {
   FIELD_MAX_LENGTH,
   FIELD_MIN_LENGTH,
   FIELD_SHOULD_BE_A_STRING,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 
 import options from '../options';
 

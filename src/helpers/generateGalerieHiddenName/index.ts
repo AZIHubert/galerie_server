@@ -1,6 +1,6 @@
 import {
   Galerie,
-} from '@src/db/models';
+} from '#src/db/models';
 
 export default async (name: string) => {
   let hiddenName: string;

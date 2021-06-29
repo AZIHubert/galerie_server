@@ -3,17 +3,17 @@ import {
   Response,
 } from 'express';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
-import { WRONG_PASSWORD } from '@src/helpers/errorMessages';
-import genPassword from '@src/helpers/genPassword';
-import { signAuthToken } from '@src/helpers/issueJWT';
+import { WRONG_PASSWORD } from '#src/helpers/errorMessages';
+import genPassword from '#src/helpers/genPassword';
+import { signAuthToken } from '#src/helpers/issueJWT';
 import {
   normalizeJoiErrors,
   validatePutUsersMePasswordBody,
-} from '@src/helpers/schemas';
-import setRefreshToken from '@src/helpers/setRefreshToken';
-import validatePassword from '@src/helpers/validatePassword';
+} from '#src/helpers/schemas';
+import setRefreshToken from '#src/helpers/setRefreshToken';
+import validatePassword from '#src/helpers/validatePassword';
 
 export default async (req: Request, res: Response) => {
   const { currentPassword, newPassword } = req.body;

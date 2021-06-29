@@ -1,22 +1,22 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   Galerie,
   User,
-} from '@src/db/models';
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
+} from '#src/db/models';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
 import {
   createGalerie,
   createUser,
   postGaleries,
   testGalerie,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 import {
   FIELD_CANNOT_BE_EMPTY,
@@ -24,7 +24,7 @@ import {
   FIELD_MAX_LENGTH,
   FIELD_MIN_LENGTH,
   FIELD_SHOULD_BE_A_STRING,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 
 let app: Server;
 let sequelize: Sequelize;

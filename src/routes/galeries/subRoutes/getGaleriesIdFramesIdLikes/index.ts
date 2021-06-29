@@ -11,16 +11,16 @@ import {
   Galerie,
   Like,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import checkBlackList from '@src/helpers/checkBlackList';
+import checkBlackList from '#src/helpers/checkBlackList';
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
-import { userExcluder } from '@src/helpers/excluders';
-import isNormalInteger from '@src/helpers/isNormalInteger';
-import uuidValidatev4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/errorMessages';
+import { userExcluder } from '#src/helpers/excluders';
+import isNormalInteger from '#src/helpers/isNormalInteger';
+import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {

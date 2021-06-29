@@ -6,17 +6,17 @@ import {
 import {
   BlackList,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   MODEL_NOT_FOUND,
   INVALID_UUID,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   blackListExcluder,
   userExcluder,
-} from '@src/helpers/excluders';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/excluders';
+import uuidValidateV4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {

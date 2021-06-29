@@ -10,13 +10,13 @@ import {
   GalerieBlackList,
   GalerieUser,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
-import uuidValidatev4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/errorMessages';
+import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {

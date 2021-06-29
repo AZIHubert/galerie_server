@@ -6,21 +6,21 @@ import {
 import {
   BetaKey,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import accEnv from '@src/helpers/accEnv';
+import accEnv from '#src/helpers/accEnv';
 import {
   FIELD_IS_ALREADY_TAKEN,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   userExcluder,
-} from '@src/helpers/excluders';
-import genPassword from '@src/helpers/genPassword';
-import { signNotificationToken } from '@src/helpers/issueJWT';
+} from '#src/helpers/excluders';
+import genPassword from '#src/helpers/genPassword';
+import { signNotificationToken } from '#src/helpers/issueJWT';
 import {
   normalizeJoiErrors,
   validatePostUsersSigninBetaBody,
-} from '@src/helpers/schemas';
+} from '#src/helpers/schemas';
 
 const IS_BETA = accEnv('IS_BETA', 'true');
 

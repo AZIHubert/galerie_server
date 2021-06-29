@@ -3,19 +3,19 @@ import mockDate from 'mockdate';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   FIELD_SHOULD_BE_A_NUMBER,
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   Invitation,
   User,
-} from '@src/db/models';
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
+} from '#src/db/models';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
 import {
   createGalerie,
   createGalerieUser,
@@ -23,11 +23,11 @@ import {
   postGaleriesIdInvitations,
   testInvitation,
   testUser,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
+jest.mock('#src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let galerieId: string;

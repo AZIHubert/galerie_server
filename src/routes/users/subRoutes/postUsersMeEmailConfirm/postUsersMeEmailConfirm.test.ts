@@ -2,12 +2,12 @@ import { Server } from 'http';
 import jwt from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
-import User from '@src/db/models/user';
+import User from '#src/db/models/user';
 
-import accEnv from '@src/helpers/accEnv';
-import * as email from '@src/helpers/email';
+import accEnv from '#src/helpers/accEnv';
+import * as email from '#src/helpers/email';
 import {
   FIELD_CANNOT_BE_EMPTY,
   FIELD_SHOULD_BE_AN_EMAIL,
@@ -19,16 +19,16 @@ import {
   WRONG_TOKEN,
   WRONG_TOKEN_USER_ID,
   WRONG_TOKEN_VERSION,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
-import * as verifyConfirmation from '@src/helpers/verifyConfirmation';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
+import * as verifyConfirmation from '#src/helpers/verifyConfirmation';
 import {
   createUser,
   postUsersMeEmailConfirm,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 const SEND_EMAIL_SECRET = accEnv('SEND_EMAIL_SECRET');
 const emailMocked = jest.spyOn(email, 'sendValidateEmailMessage');

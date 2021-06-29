@@ -7,20 +7,20 @@ import {
 
 import {
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
   WRONG_PASSWORD,
-} from '@src/helpers/errorMessages';
-import { signNotificationToken } from '@src/helpers/issueJWT';
+} from '#src/helpers/errorMessages';
+import { signNotificationToken } from '#src/helpers/issueJWT';
 import {
   normalizeJoiErrors,
   validatePutUsersIdRoleBody,
-} from '@src/helpers/schemas';
-import validatePassword from '@src/helpers/validatePassword';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/schemas';
+import validatePassword from '#src/helpers/validatePassword';
+import uuidValidateV4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {

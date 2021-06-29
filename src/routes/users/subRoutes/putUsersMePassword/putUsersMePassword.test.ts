@@ -1,11 +1,11 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   FIELD_CANNOT_CONTAIN_SPACES,
@@ -17,16 +17,16 @@ import {
   FIELD_SHOULD_BE_A_STRING,
   FIELD_SHOULD_MATCH,
   WRONG_PASSWORD,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
-import validatePassword from '@src/helpers/validatePassword';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
+import validatePassword from '#src/helpers/validatePassword';
 import {
   createUser,
   putUsersMePassword,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 const userPassword = 'Password0!';
 let app: Server;

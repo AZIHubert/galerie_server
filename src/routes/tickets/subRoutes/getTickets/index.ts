@@ -9,13 +9,13 @@ import { Op } from 'sequelize';
 import {
   Ticket,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   ticketExcluder,
   userExcluder,
-} from '@src/helpers/excluders';
-import isNormalInteger from '@src/helpers/isNormalInteger';
+} from '#src/helpers/excluders';
+import isNormalInteger from '#src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {

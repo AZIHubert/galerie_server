@@ -2,10 +2,10 @@ import {
   Image,
   ProfilePicture,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import gc from '@src/helpers/gc';
-import signedUrl from '@src/helpers/signedUrl';
+import gc from '#src/helpers/gc';
+import signedUrl from '#src/helpers/signedUrl';
 
 export default async (user: User, exlude?: Array<string>) => {
   const currentProfilePicture = await ProfilePicture.findOne({

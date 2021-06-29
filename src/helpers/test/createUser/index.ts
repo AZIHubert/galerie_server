@@ -1,8 +1,8 @@
 import {
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import genPassword from '@src/helpers/genPassword';
+import genPassword from '#src/helpers/genPassword';
 
 export default async ({
   confirmed = true,

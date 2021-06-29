@@ -2,13 +2,13 @@ import { Server } from 'http';
 import jwt from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import * as email from '@src/helpers/email';
+import * as email from '#src/helpers/email';
 import {
   FIELD_CANNOT_BE_EMPTY,
   FIELD_IS_REQUIRED,
@@ -17,15 +17,15 @@ import {
   MODEL_NOT_FOUND,
   USER_SHOULD_BE_CONFIRMED,
   USER_SHOULD_NOT_BE_BLACK_LISTED,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
 import {
   createUser,
   createBlackList,
   postUsersPassword,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 let app: Server;
 let sequelize: Sequelize;

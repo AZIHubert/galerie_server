@@ -7,8 +7,8 @@ import {
 import {
   DEFAULT_ERROR_MESSAGE,
   USER_SHOULD_NOT_BE_BLACK_LISTED,
-} from '@src/helpers/errorMessages';
-import passport from '@src/helpers/passport';
+} from '#src/helpers/errorMessages';
+import passport from '#src/helpers/passport';
 
 export default (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('jwt', { session: false }, (err, user, info) => {

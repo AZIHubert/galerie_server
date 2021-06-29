@@ -1,24 +1,24 @@
 import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
 import {
   createBlackList,
   createUser,
   getUsers,
   testUser,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
-jest.mock('@src/helpers/signedUrl', () => jest.fn());
+jest.mock('#src/helpers/signedUrl', () => jest.fn());
 
 let app: Server;
 let sequelize: Sequelize;

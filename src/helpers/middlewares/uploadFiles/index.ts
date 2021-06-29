@@ -7,7 +7,7 @@ import multer from 'multer';
 
 import {
   DEFAULT_ERROR_MESSAGE,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 
 export default (
   req: Request,

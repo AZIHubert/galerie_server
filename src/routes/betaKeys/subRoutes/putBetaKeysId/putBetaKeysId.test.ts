@@ -2,12 +2,12 @@ import { Server } from 'http';
 import { Sequelize } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
-import '@src/helpers/initEnv';
+import '#src/helpers/initEnv';
 
 import {
   BetaKey,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   FIELD_CANNOT_BE_EMPTY,
@@ -16,16 +16,16 @@ import {
   FIELD_SHOULD_BE_AN_EMAIL,
   MODEL_NOT_FOUND,
   INVALID_UUID,
-} from '@src/helpers/errorMessages';
-import initSequelize from '@src/helpers/initSequelize.js';
-import { signAuthToken } from '@src/helpers/issueJWT';
+} from '#src/helpers/errorMessages';
+import initSequelize from '#src/helpers/initSequelize.js';
+import { signAuthToken } from '#src/helpers/issueJWT';
 import {
   createBetaKey,
   createUser,
   putBetaKeysId,
-} from '@src/helpers/test';
+} from '#src/helpers/test';
 
-import initApp from '@src/server';
+import initApp from '#src/server';
 
 let app: Server;
 let sequelize: Sequelize;

@@ -9,19 +9,19 @@ import {
   Image,
   ProfilePicture,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   profilePictureExcluder,
-} from '@src/helpers/excluders';
+} from '#src/helpers/excluders';
 import {
   fetchProfilePicture,
-} from '@src/helpers/fetch';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/fetch';
+import uuidValidateV4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {

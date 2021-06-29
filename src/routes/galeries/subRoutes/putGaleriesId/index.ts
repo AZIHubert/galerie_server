@@ -8,18 +8,18 @@ import {
 import {
   Galerie,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
-import generateGalerieHiddenName from '@src/helpers/generateGalerieHiddenName';
+} from '#src/helpers/errorMessages';
+import generateGalerieHiddenName from '#src/helpers/generateGalerieHiddenName';
 import {
   validatePutGaleriesIdBody,
   normalizeJoiErrors,
-} from '@src/helpers/schemas';
-import uuidValidatev4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/schemas';
+import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;

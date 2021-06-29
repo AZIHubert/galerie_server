@@ -13,23 +13,23 @@ import {
   Image,
   Like,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import checkBlackList from '@src/helpers/checkBlackList';
+import checkBlackList from '#src/helpers/checkBlackList';
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   frameExcluder,
   galeriePictureExcluder,
   userExcluder,
-} from '@src/helpers/excluders';
+} from '#src/helpers/excluders';
 import {
   fetchFrame,
-} from '@root/src/helpers/fetch';
-import isNormalInteger from '@src/helpers/isNormalInteger';
-import uuidValidatev4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/fetch';
+import isNormalInteger from '#src/helpers/isNormalInteger';
+import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {

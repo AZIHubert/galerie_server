@@ -5,14 +5,14 @@ import {
 
 import {
   BetaKey,
-} from '@src/db/models';
+} from '#src/db/models';
 
-import { sendBetaKey } from '@src/helpers/email';
+import { sendBetaKey } from '#src/helpers/email';
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/errorMessages';
+import uuidValidateV4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {

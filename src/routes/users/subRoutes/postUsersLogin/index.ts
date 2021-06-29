@@ -6,22 +6,22 @@ import {
 } from 'express';
 import { Op } from 'sequelize';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
-import checkBlackList from '@src/helpers/checkBlackList';
+import checkBlackList from '#src/helpers/checkBlackList';
 import {
   MODEL_NOT_FOUND,
   WRONG_PASSWORD,
   USER_SHOULD_BE_CONFIRMED,
   USER_SHOULD_NOT_BE_BLACK_LISTED,
-} from '@src/helpers/errorMessages';
-import { signAuthToken } from '@src/helpers/issueJWT';
-import setRefreshToken from '@src/helpers/setRefreshToken';
+} from '#src/helpers/errorMessages';
+import { signAuthToken } from '#src/helpers/issueJWT';
+import setRefreshToken from '#src/helpers/setRefreshToken';
 import {
   normalizeJoiErrors,
   validatePostUsersLoginBody,
-} from '@src/helpers/schemas';
-import validatePassword from '@src/helpers/validatePassword';
+} from '#src/helpers/schemas';
+import validatePassword from '#src/helpers/validatePassword';
 
 export default async (req: Request, res: Response) => {
   let user: User | null;

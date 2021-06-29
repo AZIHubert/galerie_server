@@ -1,3 +1,5 @@
+import { Op } from 'sequelize';
+
 import {
   Frame,
   GalerieUser,
@@ -5,15 +7,14 @@ import {
   Notification,
   NotificationFrameLiked,
   User,
-} from '@src/db/models';
-import { Op } from 'sequelize';
+} from '#src/db/models';
 
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
   NOTIFICATION_ALREADY_SEND,
-} from '@src/helpers/errorMessages';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/errorMessages';
+import uuidValidateV4 from '#src/helpers/uuidValidateV4';
 
 interface Error {
   OK: false;

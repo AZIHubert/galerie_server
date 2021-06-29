@@ -2,7 +2,7 @@ import fs from 'fs';
 import { sign } from 'jsonwebtoken';
 import path from 'path';
 
-import { User } from '@src/db/models';
+import { User } from '#src/db/models';
 
 const PRIV_KEY = fs.readFileSync(path.join('./id_rsa_priv.authToken.pem'));
 

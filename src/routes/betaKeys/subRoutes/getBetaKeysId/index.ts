@@ -8,17 +8,17 @@ import {
 import {
   BetaKey,
   User,
-} from '@src/db/models';
+} from '#src/db/models';
 
 import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
-} from '@src/helpers/errorMessages';
+} from '#src/helpers/errorMessages';
 import {
   userExcluder,
   betaKeyExcluder,
-} from '@src/helpers/excluders';
-import uuidValidateV4 from '@src/helpers/uuidValidateV4';
+} from '#src/helpers/excluders';
+import uuidValidateV4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {
