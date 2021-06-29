@@ -34,6 +34,7 @@ let galerieId: string;
 let sequelize: Sequelize;
 let token: string;
 let user: User;
+let userTwo: User;
 
 describe('/galeries', () => {
   describe('/:galerieId', () => {
@@ -50,12 +51,17 @@ describe('/galeries', () => {
               try {
                 await sequelize.sync({ force: true });
                 const { user: userOne } = await createUser({});
-                const { user: userTwo } = await createUser({
-                  email: 'user2',
-                  userName: 'user2@email.com',
+                const { user: craetedUserOne } = await createUser({
+                  email: 'user2@email.com',
+                  userName: 'user2',
+                });
+                const { user: createdUserTwo } = await createUser({
+                  email: 'user3@email.com',
+                  userName: 'user3',
                 });
                 creator = userOne;
-                user = userTwo;
+                user = craetedUserOne;
+                userTwo = createdUserTwo;
                 const jwt = signAuthToken(user);
                 token = jwt.token;
                 const galerie = await createGalerie({
@@ -66,9 +72,13 @@ describe('/galeries', () => {
                   galerieId,
                   userId: user.id,
                 });
+                await createGalerieUser({
+                  galerieId,
+                  userId: userTwo.id,
+                });
                 const frame = await createFrame({
                   galerieId,
-                  userId: creator.id,
+                  userId: userTwo.id,
                 });
                 frameId = frame.id;
               } catch (err) {
@@ -150,11 +160,20 @@ describe('/galeries', () => {
               });
             });
             describe('should return status 400 if', () => {
+              it('currentUser.id === frame.userId', async () => {
+                const { token: tokenTwo } = signAuthToken(userTwo);
+                const {
+                  body,
+                  status,
+                } = await postGaleriesIdFramesIdReports(app, tokenTwo, galerieId, frameId);
+                expect(body.errors).toBe('you are not allow to report your own frame');
+                expect(status).toBe(400);
+              });
               it('currentUser.role !== \'user\'', async () => {
                 const { user: admin } = await createUser({
-                  email: 'user3@email.com',
+                  email: 'admin@email.com',
                   role: 'admin',
-                  userName: 'user3',
+                  userName: 'admin',
                 });
                 const { token: tokenTwo } = signAuthToken(admin);
                 const {
@@ -213,8 +232,8 @@ describe('/galeries', () => {
               });
               it('galerie exist but user is not subscribe to it and user.role === \'user\'', async () => {
                 const { user: userThree } = await createUser({
-                  email: 'user3',
-                  userName: 'user3',
+                  email: 'user4',
+                  userName: 'user4',
                 });
                 const galerieTwo = await createGalerie({
                   userId: userThree.id,
@@ -236,8 +255,8 @@ describe('/galeries', () => {
               });
               it('frame exist but was not post on this galerie', async () => {
                 const { user: userThree } = await createUser({
-                  email: 'user3',
-                  userName: 'user3',
+                  email: 'user4',
+                  userName: 'user4',
                 });
                 const galerieTwo = await createGalerie({
                   userId: userThree.id,

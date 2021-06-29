@@ -85,6 +85,12 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  if (currentUser.id === galerie.frames[0].userId) {
+    return res.status(400).send({
+      errors: 'you are not allow to report your own frame',
+    });
+  }
+
   const userFromGalerie = galerie.users
     .find((user) => user.id === currentUser.id);
 
