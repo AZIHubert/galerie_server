@@ -19,6 +19,7 @@ import {
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
 import { userExcluder } from '@src/helpers/excluders';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -92,9 +93,9 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  if (previousLike) {
+  if (previousLike && isNormalInteger(previousLike.toString())) {
     where.autoIncrementId = {
-      [Op.lt]: previousLike,
+      [Op.lt]: previousLike.toString(),
     };
   }
 
@@ -133,12 +134,14 @@ export default async (req: Request, res: Response) => {
     normalizedLikes = await Promise.all(
       likes.map(async ({
         autoIncrementId,
+        id,
         user,
       }) => {
         const isBlackListed = await checkBlackList(user);
 
         return {
           autoIncrementId,
+          id,
           user: {
             ...user.toJSON(),
             currentProfilePicture: null,

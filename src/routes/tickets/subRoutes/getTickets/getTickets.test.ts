@@ -148,6 +148,47 @@ describe('/tickets', () => {
         expect(tickets.length).toBe(1);
         expect(tickets[0].user).toBeNull();
       });
+      describe('should return first tickets id req.queru.previousTicket', () => {
+        let ticketId: string;
+
+        beforeEach(async (done) => {
+          try {
+            await createTicket({});
+            const ticket = await createTicket({});
+            ticketId = ticket.id;
+          } catch (err) {
+            done(err);
+          }
+          done();
+        });
+
+        it('is not a number', async () => {
+          const {
+            body: {
+              data: {
+                tickets,
+              },
+            },
+          } = await getTickets(app, token, {
+            previousTicket: 'notANumber',
+          });
+          expect(tickets.length).toBe(2);
+          expect(tickets[0].id).toBe(ticketId);
+        });
+        it('is less than 0', async () => {
+          const {
+            body: {
+              data: {
+                tickets,
+              },
+            },
+          } = await getTickets(app, token, {
+            previousTicket: '-1',
+          });
+          expect(tickets.length).toBe(2);
+          expect(tickets[0].id).toBe(ticketId);
+        });
+      });
     });
   });
 });

@@ -24,6 +24,7 @@ import {
 import {
   fetchFrame,
 } from '@src/helpers/fetch';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {
@@ -65,9 +66,9 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  if (previousFrame) {
+  if (previousFrame && isNormalInteger(previousFrame.toString())) {
     where.autoIncrementId = {
-      [Op.lt]: previousFrame,
+      [Op.lt]: previousFrame.toString(),
     };
   }
 

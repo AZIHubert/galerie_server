@@ -208,6 +208,53 @@ describe('/admin', () => {
               expect(updatedBy.hasNewNotifications).toBeUndefined();
               testUser(updatedBy, user);
             });
+            describe('should return first blackLists if req.query.previousBlackList', () => {
+              let blackListId: string;
+
+              beforeEach(async (done) => {
+                try {
+                  await createBlackList({
+                    updatedById: user.id,
+                    userId: userTwo.id,
+                  });
+                  const blackList = await createBlackList({
+                    updatedById: user.id,
+                    userId: userTwo.id,
+                  });
+                  blackListId = blackList.id;
+                } catch (err) {
+                  done(err);
+                }
+                done();
+              });
+
+              it('is not a number', async () => {
+                const {
+                  body: {
+                    data: {
+                      blackLists,
+                    },
+                  },
+                } = await getUsersIdBlackLists(app, token, userTwo.id, {
+                  previousBlackList: 'notANumber',
+                });
+                expect(blackLists.length).toBe(2);
+                expect(blackLists[0].id).toBe(blackListId);
+              });
+              it('is less than 0', async () => {
+                const {
+                  body: {
+                    data: {
+                      blackLists,
+                    },
+                  },
+                } = await getUsersIdBlackLists(app, token, userTwo.id, {
+                  previousBlackList: '-1',
+                });
+                expect(blackLists.length).toBe(2);
+                expect(blackLists[0].id).toBe(blackListId);
+              });
+            });
           });
           describe('should return status 400 if', () => {
             it('request.params.userId is not a UUIDv4', async () => {

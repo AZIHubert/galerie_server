@@ -21,6 +21,7 @@ import {
   invitationExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -76,9 +77,9 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  if (previousInvitation) {
+  if (previousInvitation && isNormalInteger(previousInvitation.toString())) {
     where.autoIncrementId = {
-      [Op.lt]: previousInvitation,
+      [Op.lt]: previousInvitation.toString(),
     };
   }
 

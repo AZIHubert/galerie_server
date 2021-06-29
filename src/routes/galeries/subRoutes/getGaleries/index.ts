@@ -36,7 +36,7 @@ export default async (req: Request, res: Response) => {
   }
   if (previousGalerie) {
     whereGalerie.name = {
-      [Op.gt]: previousGalerie,
+      [Op.gt]: previousGalerie.toString(),
     };
   }
 

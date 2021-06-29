@@ -18,13 +18,6 @@ initSequelize(() => {
 });
 
 // TODO:
-// Check that typeof +req.params.previous === number
-// and > 1
-
-// TODO:
-// allow GET /galeries/ to filter by name
-
-// TODO:
 // change galerie.name => galerie.hiddenName (unique)
 // add galerie.name (non unique)
 // when create (put name of) a galerie
@@ -37,9 +30,15 @@ initSequelize(() => {
 // [['hiddenName', 'ASC']]
 
 // TODO:
+// allow GET /galeries/ to filter by name
+
+// TODO:
 // normalize migration and model
 // migration replace default by defaultValue
 // Model => use decorators everywhere
+
+// TODO:
+// delete @root/
 
 // TODO:
 // create Report model

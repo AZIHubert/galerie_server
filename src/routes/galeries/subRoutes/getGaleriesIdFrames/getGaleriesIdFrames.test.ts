@@ -400,6 +400,53 @@ describe('/galeries', () => {
             expect(galeriePictures.length).toBe(0);
             expect(images.length).toBe(0);
           });
+          describe('should return first frames if req.query.previousFrame', () => {
+            let frameId: string;
+
+            beforeEach(async (done) => {
+              try {
+                await createFrame({
+                  galerieId,
+                  userId: user.id,
+                });
+                const frame = await createFrame({
+                  galerieId,
+                  userId: user.id,
+                });
+                frameId = frame.id;
+              } catch (err) {
+                done(err);
+              }
+              done();
+            });
+
+            it('is not a number', async () => {
+              const {
+                body: {
+                  data: {
+                    frames,
+                  },
+                },
+              } = await getGaleriesIdFrames(app, token, galerieId, {
+                previousFrame: 'notANumber',
+              });
+              expect(frames.length).toBe(2);
+              expect(frames[0].id).toBe(frameId);
+            });
+            it('is less than 0', async () => {
+              const {
+                body: {
+                  data: {
+                    frames,
+                  },
+                },
+              } = await getGaleriesIdFrames(app, token, galerieId, {
+                previousFrame: '-1',
+              });
+              expect(frames.length).toBe(2);
+              expect(frames[0].id).toBe(frameId);
+            });
+          });
         });
         describe('should return status 400 if', () => {
           it('request.params.galerieId is not a UUID v4', async () => {

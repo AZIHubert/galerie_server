@@ -22,6 +22,7 @@ import {
   userExcluder,
 } from '@src/helpers/excluders';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {
@@ -81,9 +82,9 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  if (previousBlackList) {
+  if (previousBlackList && isNormalInteger(previousBlackList.toString())) {
     where.autoIncrementId = {
-      [Op.lt]: previousBlackList,
+      [Op.lt]: previousBlackList.toString(),
     };
   }
 

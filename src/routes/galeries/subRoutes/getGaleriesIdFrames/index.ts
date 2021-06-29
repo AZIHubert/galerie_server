@@ -28,7 +28,7 @@ import {
 import {
   fetchFrame,
 } from '@root/src/helpers/fetch';
-
+import isNormalInteger from '@src/helpers/isNormalInteger';
 import uuidValidatev4 from '@src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -79,11 +79,12 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  if (previousFrame) {
+  if (previousFrame && isNormalInteger(previousFrame.toString())) {
     whereFrame.autoIncrementId = {
-      [Op.lt]: previousFrame,
+      [Op.lt]: previousFrame.toString(),
     };
   }
+
   // Fetch all frames relative to this galerie.
   try {
     frames = await Frame.findAll({

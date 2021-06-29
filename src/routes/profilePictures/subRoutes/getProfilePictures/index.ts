@@ -18,6 +18,7 @@ import {
 import {
   fetchProfilePicture,
 } from '@root/src/helpers/fetch';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {
@@ -31,9 +32,9 @@ export default async (req: Request, res: Response) => {
   let profilePictures: ProfilePicture[];
   let returnedProfilePictures: Array<any>;
 
-  if (previousProfilePicture) {
+  if (previousProfilePicture && isNormalInteger(previousProfilePicture.toString())) {
     where.autoIncrementId = {
-      [Op.lt]: previousProfilePicture,
+      [Op.lt]: previousProfilePicture.toString(),
     };
   }
 

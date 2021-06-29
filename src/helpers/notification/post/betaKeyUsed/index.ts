@@ -158,7 +158,6 @@ export default async ({
         },
       });
     } catch (err) {
-      console.log(err);
       return {
         OK: false,
         errors: err,

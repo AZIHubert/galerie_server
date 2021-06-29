@@ -148,6 +148,53 @@ describe('/notifications', () => {
         expect(notifications[3].id).toBe(notificationTwo.id);
         expect(notifications[4].id).toBe(notificationOne.id);
       });
+      describe('should return first notifications if req.query.previousNotification', () => {
+        let notificationId: string;
+
+        beforeEach(async (done) => {
+          try {
+            await createNotificationRoleChange({
+              role: 'superAdmin',
+              userId: user.id,
+            });
+            const notification = await createNotificationRoleChange({
+              role: 'superAdmin',
+              userId: user.id,
+            });
+            notificationId = notification.id;
+          } catch (err) {
+            done(err);
+          }
+          done();
+        });
+
+        it('is not a number', async () => {
+          const {
+            body: {
+              data: {
+                notifications,
+              },
+            },
+          } = await getNotifications(app, token, {
+            previousNotification: 'notANumber',
+          });
+          expect(notifications.length).toBe(2);
+          expect(notifications[0].id).toBe(notificationId);
+        });
+        it('is less than 0', async () => {
+          const {
+            body: {
+              data: {
+                notifications,
+              },
+            },
+          } = await getNotifications(app, token, {
+            previousNotification: '-1',
+          });
+          expect(notifications.length).toBe(2);
+          expect(notifications[0].id).toBe(notificationId);
+        });
+      });
       describe('where type === \'BETA_KEY_USED\'', () => {
         it('normalize notification', async () => {
           const { user: userTwo } = await createUser({

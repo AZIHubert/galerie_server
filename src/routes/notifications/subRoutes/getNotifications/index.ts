@@ -18,6 +18,7 @@ import {
   roleChange,
   userSubscribe,
 } from '@src/helpers/notification/fetch';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {
@@ -31,9 +32,9 @@ export default async (req: Request, res: Response) => {
   let normalizedNotifications: any[];
   let notifications: Notification[];
 
-  if (previousNotification) {
+  if (previousNotification && isNormalInteger(previousNotification.toString())) {
     where.autoIncrementId = {
-      [Op.lt]: previousNotification,
+      [Op.lt]: previousNotification.toString(),
     };
   }
 

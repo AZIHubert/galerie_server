@@ -15,6 +15,7 @@ import {
   ticketExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {
@@ -26,9 +27,9 @@ export default async (req: Request, res: Response) => {
   } = {};
   let tickets: Ticket[];
 
-  if (previousTicket) {
+  if (previousTicket && isNormalInteger(previousTicket.toString())) {
     where.autoIncrementId = {
-      [Op.lt]: previousTicket,
+      [Op.lt]: previousTicket.toString(),
     };
   }
 

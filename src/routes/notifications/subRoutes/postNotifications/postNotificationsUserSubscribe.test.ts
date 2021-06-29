@@ -448,7 +448,6 @@ describe('/Notification', () => {
                   userId: admin.id,
                 },
               });
-              console.log(notifications.map((n) => n.toJSON()));
               const oldNotification = await Notification.findByPk(notificationId);
               expect(notificationUserSubscribeOne).not.toBeNull();
               expect(notificationUserSubscribeOne.notificationId).toBe(notifications[0].id);
@@ -494,7 +493,6 @@ describe('/Notification', () => {
                   userId: admin.id,
                 },
               });
-              console.log(notifications.map((n) => n.toJSON()));
               const oldNotification = await Notification.findByPk(notificationId);
               expect(notificationUserSubscribeOne).not.toBeNull();
               expect(notificationUserSubscribeOne.notificationId).toBe(notifications[0].id);

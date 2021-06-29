@@ -15,6 +15,7 @@ import {
   betaKeyExcluder,
   userExcluder,
 } from '@src/helpers/excluders';
+import isNormalInteger from '@src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
@@ -44,9 +45,9 @@ export default async (req: Request, res: Response) => {
       where.createdById = currentUser.id;
   }
 
-  if (previousBetaKey) {
+  if (previousBetaKey && isNormalInteger(previousBetaKey.toString())) {
     where.autoIncrementId = {
-      [Op.lt]: previousBetaKey,
+      [Op.lt]: previousBetaKey.toString(),
     };
   }
 

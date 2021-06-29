@@ -45,7 +45,7 @@ export default async (req: Request, res: Response) => {
     where.userName = {
       [Op.and]: [
         {
-          [Op.gt]: previousUser,
+          [Op.gt]: previousUser.toString(),
         },
         {
           [Op.iLike]: `%${userName.toString().toLowerCase()}%`,
@@ -54,7 +54,7 @@ export default async (req: Request, res: Response) => {
     };
   } else if (previousUser) {
     where.userName = {
-      [Op.gt]: previousUser,
+      [Op.gt]: previousUser.toString(),
     };
   } else if (userName) {
     where.userName = {
