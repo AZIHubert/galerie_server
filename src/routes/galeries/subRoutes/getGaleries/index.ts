@@ -23,7 +23,7 @@ export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   const limit = 20;
   const whereGalerie: {
-    name?: any;
+    hiddenName?: any;
   } = {};
   const whereUser: {
     id?: string;
@@ -35,7 +35,7 @@ export default async (req: Request, res: Response) => {
     whereUser.id = currentUser.id;
   }
   if (previousGalerie) {
-    whereGalerie.name = {
+    whereGalerie.hiddenName = {
       [Op.gt]: previousGalerie.toString(),
     };
   }
@@ -50,7 +50,7 @@ export default async (req: Request, res: Response) => {
         where: whereUser,
       }],
       limit,
-      order: [['name', 'ASC']],
+      order: [['hiddenName', 'ASC']],
       where: whereGalerie,
     });
   } catch (err) {

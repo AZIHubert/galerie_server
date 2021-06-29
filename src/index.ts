@@ -18,18 +18,6 @@ initSequelize(() => {
 });
 
 // TODO:
-// change galerie.name => galerie.hiddenName (unique)
-// add galerie.name (non unique)
-// when create (put name of) a galerie
-// generate a unique hiddenName = ${name}-${uniqueId}
-// =>
-// check (by last created) if a galerie with same name exist
-// hiddrenNamNumGen = existingGalerie.hiddenName.replace(`${name}-`, '');
-// set new (updated) galerie hidden Name ${name}-${existedGalerieHiddenNameNumGen + 1}
-// this hiddenName is used to order galerie by name.
-// [['hiddenName', 'ASC']]
-
-// TODO:
 // allow GET /galeries/ to filter by name
 
 // TODO:

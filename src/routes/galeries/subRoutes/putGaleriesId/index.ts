@@ -14,6 +14,7 @@ import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
 } from '@src/helpers/errorMessages';
+import generateGalerieHiddenName from '@src/helpers/generateGalerieHiddenName';
 import {
   validatePutGaleriesIdBody,
   normalizeJoiErrors,
@@ -24,6 +25,7 @@ export default async (req: Request, res: Response) => {
   const { galerieId } = req.params;
   const currentUser = req.user as User;
   let galerie: Galerie | null;
+  let hiddenName;
 
   // Check request.body is not an empty object.
   if (req.body.description === undefined && req.body.name === undefined) {
@@ -99,8 +101,19 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  if (value.name) {
+    try {
+      hiddenName = await generateGalerieHiddenName(value.name);
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+  }
+
   try {
-    await galerie.update(value);
+    await galerie.update({
+      ...value,
+      hiddenName,
+    });
   } catch (err) {
     return res.status(500).send(err);
   }

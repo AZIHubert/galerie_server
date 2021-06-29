@@ -186,7 +186,7 @@ describe('/galeries', () => {
             },
           },
         } = await getGaleries(app, token, {
-          previousGalerie: firstPack[firstPack.length - 1].name,
+          previousGalerie: firstPack[firstPack.length - 1].hiddenName,
         });
         expect(firstPack.length).toBe(20);
         expect(secondPack.length).toBe(1);
@@ -210,6 +210,41 @@ describe('/galeries', () => {
         });
         const galerieFive = await createGalerie({
           name: 'e',
+          userId: user.id,
+        });
+        const {
+          body: {
+            data: {
+              galeries,
+            },
+          },
+        } = await getGaleries(app, token);
+        expect(galeries.length).toBe(5);
+        expect(galeries[0].id).toBe(galerieOne.id);
+        expect(galeries[1].id).toBe(galerieTwo.id);
+        expect(galeries[2].id).toBe(galerieThree.id);
+        expect(galeries[3].id).toBe(galerieFour.id);
+        expect(galeries[4].id).toBe(galerieFive.id);
+      });
+      it('keep if multiple galeries have the same name', async () => {
+        const galerieOne = await createGalerie({
+          name: 'a',
+          userId: user.id,
+        });
+        const galerieTwo = await createGalerie({
+          name: 'b',
+          userId: user.id,
+        });
+        const galerieThree = await createGalerie({
+          name: 'b',
+          userId: user.id,
+        });
+        const galerieFour = await createGalerie({
+          name: 'b',
+          userId: user.id,
+        });
+        const galerieFive = await createGalerie({
+          name: 'c',
           userId: user.id,
         });
         const {

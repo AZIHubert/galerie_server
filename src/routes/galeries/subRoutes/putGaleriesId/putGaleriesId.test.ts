@@ -178,6 +178,35 @@ describe('/galeries', () => {
           });
           expect(status).toBe(200);
         });
+        it('regenerate hidden name if galerie\'s name is already used', async () => {
+          const { name } = await createGalerie({
+            userId: user.id,
+          });
+          const galerie = await createGalerie({
+            name: `${name}a`,
+            userId: user.id,
+          });
+          await putGaleriesId(app, token, galerie.id, {
+            body: {
+              name,
+            },
+          });
+          await galerie.reload();
+          expect(galerie.hiddenName).toBe(`${name}-1`);
+        });
+        it('do not regenerate hidden name if galerie\'s name not used', async () => {
+          const galerie = await createGalerie({
+            userId: user.id,
+          });
+          const name = `${galerie.name}1`;
+          await putGaleriesId(app, token, galerie.id, {
+            body: {
+              name,
+            },
+          });
+          await galerie.reload();
+          expect(galerie.hiddenName).toBe(`${name}-0`);
+        });
       });
       describe('should return error 400 if', () => {
         it('req.body is an empty object', async () => {

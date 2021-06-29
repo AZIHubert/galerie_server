@@ -12,11 +12,9 @@ import {
 } from '@src/db/models';
 
 import {
-  FIELD_IS_ALREADY_TAKEN,
-} from '@src/helpers/errorMessages';
-import {
   galerieExcluder,
 } from '@src/helpers/excluders';
+import generateGalerieHiddenName from '@src/helpers/generateGalerieHiddenName';
 import {
   normalizeJoiErrors,
   validatePostGaleriesBody,
@@ -93,7 +91,7 @@ export default async (req: Request, res: Response) => {
   const objectGalerieExcluder: { [key: string]: undefined } = {};
   const currentUser = req.user as User;
   let galerie: Galerie;
-  let nameAlreadyUse: Galerie | null;
+  let hiddenName: string;
 
   const {
     error,
@@ -102,24 +100,6 @@ export default async (req: Request, res: Response) => {
   if (error) {
     return res.status(400).send({
       errors: normalizeJoiErrors(error),
-    });
-  }
-
-  try {
-    nameAlreadyUse = await Galerie.findOne({
-      where: {
-        name: value.name,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  if (nameAlreadyUse) {
-    return res.status(400).send({
-      errors: {
-        name: FIELD_IS_ALREADY_TAKEN,
-      },
     });
   }
 
@@ -135,10 +115,17 @@ export default async (req: Request, res: Response) => {
     .map((randomColor, index) => `${randomColor} ${map(index, 0, numOfColor - 1, 0, 100)}%`)
     .join(', ')})`;
 
+  try {
+    hiddenName = await generateGalerieHiddenName(value.name);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+
   // Create galerie and GalerieUser.
   try {
     galerie = await Galerie.create({
       description: value.description || '',
+      hiddenName,
       name: value.name,
       defaultCoverPicture,
     });

@@ -20,7 +20,6 @@ import initApp from '@src/server';
 
 import {
   FIELD_CANNOT_BE_EMPTY,
-  FIELD_IS_ALREADY_TAKEN,
   FIELD_IS_REQUIRED,
   FIELD_MAX_LENGTH,
   FIELD_MIN_LENGTH,
@@ -87,8 +86,57 @@ describe('/galerie', () => {
         const galerie = await Galerie.findByPk(returnedGalerie.id);
         expect(action).toBe('POST');
         expect(galerie).not.toBeNull();
-        testGalerie(returnedGalerie);
+        expect(returnedGalerie.hiddenName).toBe(`${name}-0`);
         expect(status).toBe(200);
+        testGalerie(returnedGalerie);
+      });
+      it('create a galerie with a unque hiddenName', async () => {
+        const { name } = await createGalerie({
+          name: 'galerie',
+          userId: user.id,
+        });
+        const {
+          body: {
+            data: {
+              galerie: galerieOne,
+            },
+          },
+        } = await postGaleries(app, token, {
+          body: { name },
+        });
+        const {
+          body: {
+            data: {
+              galerie: galerieTwo,
+            },
+          },
+        } = await postGaleries(app, token, {
+          body: { name },
+        });
+        const {
+          body: {
+            data: {
+              galerie: galerieThree,
+            },
+          },
+        } = await postGaleries(app, token, {
+          body: { name },
+        });
+        const {
+          body: {
+            data: {
+              galerie: galerieFour,
+            },
+          },
+        } = await postGaleries(app, token, {
+          body: {
+            name: `${name}a`,
+          },
+        });
+        expect(galerieOne.hiddenName).toBe(`${name}-1`);
+        expect(galerieTwo.hiddenName).toBe(`${name}-2`);
+        expect(galerieThree.hiddenName).toBe(`${name}-3`);
+        expect(galerieFour.hiddenName).toBe(`${name}a-0`);
       });
       it('create galerie with descrition', async () => {
         const description = 'galerie\'s description';
@@ -238,25 +286,6 @@ describe('/galerie', () => {
           });
           expect(body.errors).toEqual({
             name: FIELD_MAX_LENGTH(30),
-          });
-          expect(status).toBe(400);
-        });
-        it('is already taken', async () => {
-          const name = 'Galerie\'s name';
-          await createGalerie({
-            name,
-            userId: user.id,
-          });
-          const {
-            body,
-            status,
-          } = await postGaleries(app, token, {
-            body: {
-              name,
-            },
-          });
-          expect(body.errors).toEqual({
-            name: FIELD_IS_ALREADY_TAKEN,
           });
           expect(status).toBe(400);
         });
