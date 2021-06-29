@@ -15,6 +15,7 @@ import {
   Like,
   Notification,
   NotificationFramePosted,
+  Report,
   User,
 } from '#src/db/models';
 
@@ -38,6 +39,7 @@ import {
   createNotificationFrameLiked,
   createNotificationFramePosted,
   createNotificationUserSubscribe,
+  createReport,
   createUser,
   deleteGaleriesId,
 } from '#src/helpers/test';
@@ -357,6 +359,23 @@ describe('/galeries', () => {
           });
           const notification = await Notification.findByPk(notificationId);
           expect(notification).toBeNull();
+        });
+        it('destroy reports', async () => {
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: user.id,
+          });
+          const { id: reportId } = await createReport({
+            frameId,
+          });
+          await deleteGaleriesId(app, token, galerieId, {
+            body: {
+              name,
+              password,
+            },
+          });
+          const report = await Report.findByPk(reportId);
+          expect(report).toBeNull();
         });
       });
       describe('should return status 400 if', () => {

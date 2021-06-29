@@ -25,7 +25,8 @@ initSequelize(() => {
 // report.classified become true
 // if another user report this frame
 // classified become true
-// allow to fetch report by classified 'all' 'true' 'false'
+// allow to fetch report by clased 'all' 'true' 'false'
+// decrement report.numOfReports and destroy ReportUser when delete userMe
 
 // TODO: for later
 // when the creator delete his account
