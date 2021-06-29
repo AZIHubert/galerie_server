@@ -27,12 +27,12 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('f
   },
   notificationHasBeenSend: {
     allowNull: false,
-    default: false,
+    defaultValue: false,
     type: DataTypes.BOOLEAN,
   },
   numOfLikes: {
     allowNull: false,
-    default: 0,
+    defaultValue: 0,
     type: DataTypes.INTEGER,
   },
   updatedAt: {

@@ -13,7 +13,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('g
   },
   current: {
     allowNull: false,
-    default: false,
+    defaultValue: false,
     type: DataTypes.BOOLEAN,
   },
   frameId: {

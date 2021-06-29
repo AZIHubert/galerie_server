@@ -30,7 +30,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('b
   },
   notificationHasBeenSend: {
     allowNull: false,
-    default: false,
+    defaultValue: false,
     type: DataTypes.BOOLEAN,
   },
   updatedAt: {

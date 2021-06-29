@@ -18,7 +18,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('p
   },
   current: {
     allowNull: false,
-    default: false,
+    defaultValue: false,
     type: DataTypes.BOOLEAN,
   },
   id: {

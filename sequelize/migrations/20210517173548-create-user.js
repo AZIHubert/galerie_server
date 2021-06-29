@@ -1,17 +1,17 @@
 module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('users', {
   authTokenVersion: {
     allowNull: false,
-    default: 0,
+    defaultValue: 0,
     type: DataTypes.INTEGER,
   },
   confirmed: {
     allowNull: false,
-    default: false,
+    defaultValue: false,
     type: DataTypes.BOOLEAN,
   },
   confirmTokenVersion: {
     allowNull: false,
-    default: 0,
+    defaultValue: 0,
     type: DataTypes.INTEGER,
   },
   createdAt: {
@@ -23,7 +23,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
   },
   emailTokenVersion: {
     allowNull: false,
-    default: 0,
+    defaultValue: 0,
     type: DataTypes.INTEGER,
   },
   email: {
@@ -63,12 +63,12 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
   },
   resetPasswordTokenVersion: {
     allowNull: false,
-    default: 0,
+    defaultValue: 0,
     type: DataTypes.INTEGER,
   },
   role: {
     allowNull: false,
-    default: 'user',
+    defaultValue: 'user',
     type: DataTypes.ENUM('admin', 'superAdmin', 'user'),
   },
   salt: {
@@ -79,7 +79,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('u
   },
   updatedEmailTokenVersion: {
     allowNull: false,
-    default: 0,
+    defaultValue: 0,
     type: DataTypes.INTEGER,
   },
   updatedAt: {
