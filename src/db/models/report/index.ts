@@ -11,13 +11,15 @@ import {
 
 import User from '../user';
 import Frame from '../frame';
+import ProfilePicture from '../profilePicture';
 import ReportUser from '../reportUser';
 
 interface ReportI {
   autoIncrementId: number;
   classed: boolean;
-  frameId: string;
+  frameId: string | null;
   id: string;
+  profilePictureId: string | null;
   numOfReports: number;
 }
 
@@ -41,11 +43,8 @@ export default class Report extends Model implements ReportI {
   })
   classed!: boolean;
 
-  // The superAdmin who create the betaKey.
-  // If null, the superAdmin has deleted his account.
   @ForeignKey(() => Frame)
   @Column({
-    allowNull: false,
     type: DataType.UUID,
     unique: true,
   })
@@ -66,12 +65,26 @@ export default class Report extends Model implements ReportI {
   })
   numOfReports!: number;
 
+  @ForeignKey(() => ProfilePicture)
+  @Column({
+    type: DataType.UUID,
+    unique: true,
+  })
+  profilePictureId!: string;
+
   @BelongsTo(() => Frame, {
     foreignKey: 'frameId',
     hooks: true,
     onDelete: 'CASCADE',
   })
   frame!: Frame;
+
+  @BelongsTo(() => ProfilePicture, {
+    foreignKey: 'profilePictureId',
+    hooks: true,
+    onDelete: 'CASCADE',
+  })
+  profilePicture!: ProfilePicture;
 
   @BelongsToMany(() => User, () => ReportUser)
   users!: Array<User & {GalerieUser: ReportUser}>;

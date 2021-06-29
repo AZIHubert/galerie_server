@@ -14,7 +14,6 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('r
     type: DataTypes.DATE,
   },
   frameId: {
-    allowNull: false,
     references: {
       key: 'id',
       model: 'frame',
@@ -31,6 +30,13 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('r
     allowNull: false,
     defaultValue: 1,
     type: DataTypes.INTEGER,
+  },
+  profilePictureId: {
+    references: {
+      key: 'id',
+      model: 'profilePicture',
+    },
+    type: DataTypes.UUID,
   },
   updatedAt: {
     allowNull: false,
