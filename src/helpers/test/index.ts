@@ -97,7 +97,7 @@ export { default as putBlackLists } from './putBlackLists';
 export { default as putGaleriesId } from './putGaleriesId';
 export { default as putGaleriesIdAllowNotification } from './putGaleriesIdAllowNotification';
 export { default as putFramesId } from './putFramesId';
-export { default as putGaleriesIdFramesIdGaleriePicturesId } from './putGaleriesIdFramesIdGaleriePicturesId';
+export { default as putFramesIdGaleriePicturesId } from './putFramesIdGaleriePicturesId';
 export { default as putGaleriesIdUsersId } from './putGaleriesIdUsersId';
 export { default as putNotificationsId } from './putNotificationsId';
 export { default as putProfilePicturesId } from './putProfilePicturesId';

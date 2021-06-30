@@ -31,7 +31,6 @@ import {
 
   putGaleriesId,
   putGaleriesIdAllowNotification,
-  putGaleriesIdFramesIdGaleriePicturesId,
   putGaleriesIdUsersId,
 } from './subRoutes';
 
@@ -63,7 +62,6 @@ const galeriesRoutes: () => Router = () => {
 
   router.put('/:galerieId/', shouldBeAuth, putGaleriesId);
   router.put('/:galerieId/allowNotification', shouldBeAuth, putGaleriesIdAllowNotification);
-  router.put('/:galerieId/frames/:frameId/galeriePictures/:galeriePictureId/', shouldBeAuth, putGaleriesIdFramesIdGaleriePicturesId);
   router.put('/:galerieId/users/:userId', shouldBeAuth, putGaleriesIdUsersId);
   return router;
 };

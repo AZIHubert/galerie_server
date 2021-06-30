@@ -23,5 +23,4 @@ export { default as postGaleriesSubscribe } from './postGaleriesSubscribe';
 
 export { default as putGaleriesId } from './putGaleriesId';
 export { default as putGaleriesIdAllowNotification } from './putGaleriesIdAllowNotification';
-export { default as putGaleriesIdFramesIdGaleriePicturesId } from './putGaleriesIdFramesIdGaleriePicturesId';
 export { default as putGaleriesIdUsersId } from './putGaleriesIdUsersId';

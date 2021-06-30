@@ -9,3 +9,4 @@ export { default as postFramesIdLikes } from './postFramesIdLikes';
 export { default as postFramesIdReports } from './postFramesIdReports';
 
 export { default as putFramesId } from './putFramesId';
+export { default as putFramesIdGaleriePicturesId } from './putFramesIdGaleriePicturesId';

@@ -15,6 +15,7 @@ import {
   postFramesIdReports,
 
   putFramesId,
+  putFramesIdGaleriePicturesId,
 } from './subRoutes';
 
 const router = Router();
@@ -30,6 +31,7 @@ const framesRoutes: () => Router = () => {
   router.post('/:frameId/reports/', shouldBeAuth, postFramesIdReports);
 
   router.put('/:frameId/', shouldBeAuth, putFramesId);
+  router.put('/:frameId/galeriePictures/:galeriePictureId/', shouldBeAuth, putFramesIdGaleriePicturesId);
 
   return router;
 };
