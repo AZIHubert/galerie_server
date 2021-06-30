@@ -6,15 +6,17 @@ import {
 
 import User from '#src/db/models/user';
 
-import { USER_SHOULD_BE_AN_ADMIN } from '#src/helpers/errorMessages';
+import {
+  USER_SHOULD_BE_AN_ADMIN,
+} from '#src/helpers/errorMessages';
 
-export default (
+export default async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   const { role } = req.user as User;
-  if (role !== 'admin' && role !== 'superAdmin') {
+  if (role !== 'admin') {
     return res.status(401).send({
       errors: USER_SHOULD_BE_AN_ADMIN,
     });

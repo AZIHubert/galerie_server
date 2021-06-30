@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import {
   shouldBeAuth,
-  shouldBeSuperAdmin,
+  shouldBeModerator,
 } from '#src/helpers/middlewares';
 
 import {
@@ -16,9 +16,9 @@ const router = Router();
 
 const ticketsRouter: () => Router = () => {
   router.post('/', shouldBeAuth, postTickets);
-  router.get('/', shouldBeAuth, shouldBeSuperAdmin, getTickets);
-  router.get('/:ticketId', shouldBeAuth, shouldBeSuperAdmin, getTicketsId);
-  router.delete('/:ticketId', shouldBeAuth, shouldBeSuperAdmin, deleteTicketsId);
+  router.get('/', shouldBeAuth, shouldBeModerator, getTickets);
+  router.get('/:ticketId', shouldBeAuth, shouldBeModerator, getTicketsId);
+  router.delete('/:ticketId', shouldBeAuth, shouldBeModerator, deleteTicketsId);
 
   return router;
 };

@@ -28,7 +28,7 @@ interface GalerieI {
   tableName: 'galerie',
 })
 export default class Galerie extends Model implements GalerieI {
-  // If the creator of this galerie has delete his account,
+  // If the admin of this galerie has delete his account,
   // and there are still subscriber users remaining,
   // this galerie become archived.
   // No frames/invitations can be created,
@@ -74,7 +74,7 @@ export default class Galerie extends Model implements GalerieI {
   id!: string;
 
   // Name of the galerie.
-  // Only the creator or the admins
+  // Only the admin or the moderator
   // of the galerie can changed it.
   @Column({
     allowNull: false,

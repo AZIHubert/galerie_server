@@ -18,10 +18,10 @@ initSequelize(() => {
 });
 
 // TODO: for later
-// when the creator delete his account
+// when the admin delete his account
 // create an election
 // If they're is only one admin
-// he become the steward for the admin (same right than the creator)
+// he become the steward for the admin (same right than the admin)
 // else all the admin became candidat to become the steward.
 // after one week, the admin who has the more vote become the intendant
 // if equality pink a random one.
@@ -38,8 +38,6 @@ initSequelize(() => {
 
 // Demain, absolument finir tout ca, pas de dodo avant.
 // Quand tout ca sera fini, on passe aux apps!!!!!!!
-// TODO:
-// when rename galerieUser.role/user.role to be 'admin' 'moderator' 'user'
 // TODO:
 // deleted galerie.archived
 // TODO:

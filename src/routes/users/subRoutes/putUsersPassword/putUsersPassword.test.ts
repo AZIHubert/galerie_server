@@ -55,7 +55,7 @@ describe('/users', () => {
         try {
           await sequelize.sync({ force: true });
           const { user: createdUser } = await createUser({
-            role: 'superAdmin',
+            role: 'admin',
           });
           user = createdUser;
         } catch (err) {
@@ -184,7 +184,7 @@ describe('/users', () => {
             },
           } = await createUser({
             email: 'user2@email.com',
-            role: 'superAdmin',
+            role: 'admin',
             userName: 'user2',
           });
           await createBlackList({

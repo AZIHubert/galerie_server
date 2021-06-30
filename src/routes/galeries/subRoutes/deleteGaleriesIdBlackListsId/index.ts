@@ -86,7 +86,7 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if currentUser
-  // is the creator or an admin
+  // is the admin or a moderator
   // of this galerie.
   const userFromGalerie = galerie.users
     .find((u) => u.id === currentUser.id);
@@ -97,16 +97,16 @@ export default async (req: Request, res: Response) => {
   }
 
   // If current user role for this
-  // galerie is not 'creator' and
+  // galerie is not 'admin' and
   // or if current user try to delete
   // a black list not posted by him,
   // Check if the creator of this
-  // black list is not the creator
+  // black list is not the admin
   // of this galerie.
   if (
     (
       !userFromGalerie
-      || userFromGalerie.GalerieUser.role !== 'creator'
+      || userFromGalerie.GalerieUser.role !== 'admin'
     )
     || (
       galerie.galerieBlackLists[0].createdById
@@ -125,9 +125,9 @@ export default async (req: Request, res: Response) => {
     } catch (err) {
       return res.status(500).send(err);
     }
-    if (galerieUser && galerieUser.role === 'creator') {
+    if (galerieUser && galerieUser.role === 'admin') {
       return res.status(400).send({
-        errors: 'you\'re not allow to delete a black list posted by the creator of this galerie',
+        errors: 'you\'re not allow to delete a black list posted by the admin of this galerie',
       });
     }
   }

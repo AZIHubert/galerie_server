@@ -57,7 +57,7 @@ describe('/galeries', () => {
                   const {
                     user: createdUser,
                   } = await createUser({
-                    role: 'superAdmin',
+                    role: 'admin',
                   });
                   user = createdUser;
                   const jwt = signAuthToken(user);
@@ -183,7 +183,7 @@ describe('/galeries', () => {
                   expect(coverPicture.current).toBe(true);
                   expect(galeriePicture.current).toBe(false);
                 });
-                it('put galeriePicture if user is an admin of this galerie', async () => {
+                it('put galeriePicture if user is an moderator of this galerie', async () => {
                   const { user: userTwo } = await createUser({
                     email: 'user2@email.com',
                     userName: 'user2',
@@ -191,7 +191,7 @@ describe('/galeries', () => {
                   const { token: tokenTwo } = signAuthToken(userTwo);
                   await createGalerieUser({
                     galerieId,
-                    role: 'admin',
+                    role: 'moderator',
                     userId: userTwo.id,
                   });
                   const { status } = await putGaleriesIdFramesIdGaleriePicturesId(

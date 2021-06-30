@@ -243,15 +243,15 @@ describe('/users', () => {
           expect(users.length).toBe(1);
           expect(users[0].id).toBe(userTwo.id);
         });
-        describe('if currentUser.role === \'admin\' | \'superAdmin\'', () => {
+        describe('if currentUser.role === \'admin\' | \'moderator\'', () => {
           let tokenTwo: string;
 
           beforeEach(async (done) => {
             try {
               const { user: createdUser } = await createUser({
-                email: 'admin@email.com',
-                role: 'admin',
-                userName: 'admin',
+                email: 'moderator@email.com',
+                role: 'moderator',
+                userName: 'moderator',
               });
               const jwt = signAuthToken(createdUser);
               tokenTwo = jwt.token;

@@ -46,7 +46,7 @@ describe('/users', () => {
             const {
               user: createdUser,
             } = await createUser({
-              role: 'admin',
+              role: 'moderator',
             });
             user = createdUser;
             const jwt = signAuthToken(user);
@@ -123,10 +123,10 @@ describe('/users', () => {
             } = await putUsersIdBlackListsId(app, token, userTwo.id);
             expect(status).toBe(200);
           });
-          it('set user.isBlackListed === false if currentUser.role \'admin\' and one of his non last created blackList was created by a \'superAdmin\', but not the last one', async () => {
+          it('set user.isBlackListed === false if currentUser.role \'moderator\' and one of his non last created blackList was created by a \'admin\', but not the last one', async () => {
             const { user: admin } = await createUser({
               email: 'user3@email.com',
-              role: 'superAdmin',
+              role: 'admin',
               userName: 'user3',
             });
             await createBlackList({
@@ -142,19 +142,19 @@ describe('/users', () => {
             expect(status).toBe(200);
           });
           it('set user.isBlackListed === false if the last created blackList.createdBy.role === \'superAdmin\' and currentUser.role === \'superAdmin\'', async () => {
-            const { user: superAdminOne } = await createUser({
-              email: 'superAdmin1@email.com',
-              role: 'superAdmin',
-              userName: 'superAdmin1',
+            const { user: adminOne } = await createUser({
+              email: 'admin@email.com',
+              role: 'admin',
+              userName: 'admin1',
             });
-            const { token: tokenTwo } = signAuthToken(superAdminOne);
-            const { user: superAdminTwo } = await createUser({
-              email: 'superAdmin2@email.com',
-              role: 'superAdmin',
-              userName: 'superAdmin2',
+            const { token: tokenTwo } = signAuthToken(adminOne);
+            const { user: adminTwo } = await createUser({
+              email: 'admin2@email.com',
+              role: 'admin',
+              userName: 'admin2',
             });
             await createBlackList({
-              createdById: superAdminTwo.id,
+              createdById: adminTwo.id,
               userId: userTwo.id,
             });
             const {
@@ -238,10 +238,10 @@ describe('/users', () => {
             expect(status).toBe(400);
             expect(userTwo.isBlackListed).toBe(false);
           });
-          it('the last created blackList was created by a superAdmin and currentUser.role === \'admin\'', async () => {
-            const { user: superAdmin } = await createUser({
+          it('the last created blackList was created by a admin and currentUser.role === \'admin\'', async () => {
+            const { user: admin } = await createUser({
               email: 'admin@email.com',
-              role: 'superAdmin',
+              role: 'admin',
               userName: 'admin',
             });
             const { user: userTwo } = await createUser({
@@ -249,7 +249,7 @@ describe('/users', () => {
               userName: 'user2',
             });
             await createBlackList({
-              createdById: superAdmin.id,
+              createdById: admin.id,
               userId: userTwo.id,
             });
             const {

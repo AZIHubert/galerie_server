@@ -50,7 +50,7 @@ describe('/galeries', () => {
               const {
                 user: createdUser,
               } = await createUser({
-                role: 'superAdmin',
+                role: 'admin',
               });
               user = createdUser;
               const jwt = signAuthToken(user);
@@ -118,7 +118,7 @@ describe('/galeries', () => {
               testUser(blackList.createdBy, user);
               testUser(blackList.user, userTwo);
             });
-            it('current user role for this galerie is \'admin\'', async () => {
+            it('current user role for this galerie is \'moderator\'', async () => {
               const { user: userThree } = await createUser({
                 email: 'user3@email.com',
                 userName: 'user3',
@@ -126,7 +126,7 @@ describe('/galeries', () => {
               const { token: tokenThree } = signAuthToken(userThree);
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userThree.id,
               });
               const {
@@ -159,7 +159,7 @@ describe('/galeries', () => {
               });
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userFour.id,
               });
               const { id: galerieBlackListId } = await createGalerieBlackList({

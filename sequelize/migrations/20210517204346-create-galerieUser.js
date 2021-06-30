@@ -28,7 +28,7 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('g
   },
   role: {
     allowNull: false,
-    type: DataTypes.ENUM('creator', 'admin', 'user'),
+    type: DataTypes.ENUM('admin', 'moderator', 'user'),
   },
   updatedAt: {
     allowNull: false,

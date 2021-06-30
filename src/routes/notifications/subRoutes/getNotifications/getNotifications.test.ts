@@ -46,7 +46,7 @@ describe('/notifications', () => {
         const {
           user: createdUser,
         } = await createUser({
-          role: 'superAdmin',
+          role: 'admin',
         });
         user = createdUser;
         const jwt = signAuthToken(user);
@@ -89,7 +89,7 @@ describe('/notifications', () => {
           numOfNotifications.map(
             async () => {
               await createNotificationRoleChange({
-                role: 'superAdmin',
+                role: 'admin',
                 userId: user.id,
               });
             },
@@ -116,23 +116,23 @@ describe('/notifications', () => {
       });
       it('order by updatedAt', async () => {
         const notificationOne = await createNotificationRoleChange({
-          role: 'superAdmin',
+          role: 'admin',
           userId: user.id,
         });
         const notificationTwo = await createNotificationRoleChange({
-          role: 'superAdmin',
+          role: 'admin',
           userId: user.id,
         });
         const notificationThree = await createNotificationRoleChange({
-          role: 'superAdmin',
+          role: 'admin',
           userId: user.id,
         });
         const notificationFour = await createNotificationRoleChange({
-          role: 'superAdmin',
+          role: 'admin',
           userId: user.id,
         });
         const notificationFive = await createNotificationRoleChange({
-          role: 'superAdmin',
+          role: 'admin',
           userId: user.id,
         });
         const {
@@ -154,11 +154,11 @@ describe('/notifications', () => {
         beforeEach(async (done) => {
           try {
             await createNotificationRoleChange({
-              role: 'superAdmin',
+              role: 'admin',
               userId: user.id,
             });
             const notification = await createNotificationRoleChange({
-              role: 'superAdmin',
+              role: 'admin',
               userId: user.id,
             });
             notificationId = notification.id;
@@ -462,7 +462,7 @@ describe('/notifications', () => {
       describe('where type === \'ROLE_CHANGE\'', () => {
         it('normalize notification', async () => {
           await createNotificationRoleChange({
-            role: 'superAdmin',
+            role: 'admin',
             userId: user.id,
           });
           const {

@@ -164,12 +164,12 @@ describe('/users', () => {
             });
             describe('should return status 400 if', () => {
               it('currentUser.Role !== \'user\'', async () => {
-                const { user: admin } = await createUser({
-                  email: 'admin@email.com',
-                  role: 'admin',
-                  userName: 'admin',
+                const { user: moderator } = await createUser({
+                  email: 'moderator@email.com',
+                  role: 'moderator',
+                  userName: 'moderator',
                 });
-                const { token: tokenTwo } = signAuthToken(admin);
+                const { token: tokenTwo } = signAuthToken(moderator);
                 const {
                   body,
                   status,

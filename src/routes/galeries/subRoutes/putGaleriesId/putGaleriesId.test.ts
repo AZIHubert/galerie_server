@@ -155,7 +155,7 @@ describe('/galeries', () => {
           expect(galerie.name).toBe(name);
           expect(status).toBe(200);
         });
-        it('update galerie if current user is an admin of this galerie', async () => {
+        it('update galerie if current user is an moderator of this galerie', async () => {
           const { id: galerieId } = await createGalerie({
             userId: user.id,
           });
@@ -166,7 +166,7 @@ describe('/galeries', () => {
           const { token: tokenTwo } = signAuthToken(userTwo);
           await createGalerieUser({
             galerieId,
-            role: 'admin',
+            role: 'moderator',
             userId: userTwo.id,
           });
           const {

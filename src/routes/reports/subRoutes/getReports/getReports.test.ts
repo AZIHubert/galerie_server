@@ -24,7 +24,7 @@ import initApp from '#src/server';
 let app: Server;
 let sequelize: Sequelize;
 let token: string;
-let admin: User;
+let moderator: User;
 
 describe('/reports', () => {
   describe('POST', () => {
@@ -39,10 +39,10 @@ describe('/reports', () => {
         const {
           user,
         } = await createUser({
-          role: 'admin',
+          role: 'moderator',
         });
-        admin = user;
-        const jwt = signAuthToken(admin);
+        moderator = user;
+        const jwt = signAuthToken(moderator);
         token = jwt.token;
       } catch (err) {
         done(err);
@@ -78,15 +78,15 @@ describe('/reports', () => {
       });
       it('return one report where type === \'FRAME\'', async () => {
         const { id: galerieId } = await createGalerie({
-          userId: admin.id,
+          userId: moderator.id,
         });
         const { id: frameId } = await createFrame({
           galerieId,
-          userId: admin.id,
+          userId: moderator.id,
         });
         await createReport({
           frameId,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const {
           body: {
@@ -111,11 +111,11 @@ describe('/reports', () => {
       });
       it('return one report where type === \'PROFILE_PICTURE\'', async () => {
         const { id: profilePictureId } = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         await createReport({
           profilePictureId,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const {
           body: {
@@ -145,11 +145,11 @@ describe('/reports', () => {
           numOfReports.map(
             async () => {
               const { id: profilePictureId } = await createProfilePicture({
-                userId: admin.id,
+                userId: moderator.id,
               });
               await createReport({
                 profilePictureId,
-                userId: admin.id,
+                userId: moderator.id,
               });
             },
           ),
@@ -175,39 +175,39 @@ describe('/reports', () => {
       });
       it('order reports by createdAt (ASC)', async () => {
         const profilePictureOne = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         const profilePictureTwo = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         const profilePictureThree = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         const profilePictureFour = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         const profilePictureFive = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         const reportOne = await createReport({
           profilePictureId: profilePictureOne.id,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const reportTwo = await createReport({
           profilePictureId: profilePictureTwo.id,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const reportThree = await createReport({
           profilePictureId: profilePictureThree.id,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const reportFour = await createReport({
           profilePictureId: profilePictureFour.id,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const reportFive = await createReport({
           profilePictureId: profilePictureFive.id,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const {
           body: {
@@ -224,19 +224,19 @@ describe('/reports', () => {
       });
       it('return all reports if request.query.classed is undefined', async () => {
         const profilePictureOne = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         await createReport({
           profilePictureId: profilePictureOne.id,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const profilePictureTwo = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         await createReport({
           profilePictureId: profilePictureTwo.id,
           classed: true,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const {
           body: {
@@ -249,19 +249,19 @@ describe('/reports', () => {
       });
       it('return classed reports if request.query.classed === \'true\'', async () => {
         const profilePictureOne = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         await createReport({
           profilePictureId: profilePictureOne.id,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const profilePictureTwo = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         const { id: reportId } = await createReport({
           profilePictureId: profilePictureTwo.id,
           classed: true,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const {
           body: {
@@ -277,19 +277,19 @@ describe('/reports', () => {
       });
       it('return not classed reports if request.query.classed === \'false\'', async () => {
         const profilePictureOne = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         const { id: reportId } = await createReport({
           profilePictureId: profilePictureOne.id,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const profilePictureTwo = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         await createReport({
           profilePictureId: profilePictureTwo.id,
           classed: true,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const {
           body: {
@@ -305,19 +305,19 @@ describe('/reports', () => {
       });
       it('return all reports if reques.query.classed !== \'true\' | \'false\'', async () => {
         const profilePictureOne = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         await createReport({
           profilePictureId: profilePictureOne.id,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const profilePictureTwo = await createProfilePicture({
-          userId: admin.id,
+          userId: moderator.id,
         });
         await createReport({
           profilePictureId: profilePictureTwo.id,
           classed: true,
-          userId: admin.id,
+          userId: moderator.id,
         });
         const {
           body: {
@@ -347,18 +347,18 @@ describe('/reports', () => {
         beforeEach(async (done) => {
           try {
             const profilePictureOne = await createProfilePicture({
-              userId: admin.id,
+              userId: moderator.id,
             });
             const report = await createReport({
               profilePictureId: profilePictureOne.id,
-              userId: admin.id,
+              userId: moderator.id,
             });
             const profilePictureTwo = await createProfilePicture({
-              userId: admin.id,
+              userId: moderator.id,
             });
             await createReport({
               profilePictureId: profilePictureTwo.id,
-              userId: admin.id,
+              userId: moderator.id,
             });
             reportId = report.id;
           } catch (err) {

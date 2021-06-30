@@ -72,12 +72,12 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if current user role for this galerie
-  // is 'creator' or 'admin'.
+  // is admin or moderator.
   const userFromGalerie = galerie.users
     .find((user) => user.id === currentUser.id);
   if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'user') {
     return res.status(400).send({
-      errors: 'you should be an admin or the creator to update the role of a user',
+      errors: 'you should be an admin or the moderator to update the role of a user',
     });
   }
 
@@ -100,31 +100,31 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // The creator's role cannot change.
-  if (galerieUser.role === 'creator') {
+  // The admin's role cannot change.
+  if (galerieUser.role === 'admin') {
     return res.status(400).send({
-      errors: 'you can\'t change the role of the creator of this galerie',
+      errors: 'you can\'t change the role of the admin of this galerie',
     });
   }
 
-  // Only the creator of this galerie
-  // can update the role of an admin.
+  // Only the admin of this galerie
+  // can update the role of an moderator.
   if (
-    galerieUser.role === 'admin'
-    && userFromGalerie.GalerieUser.role !== 'creator'
+    galerieUser.role === 'moderator'
+    && userFromGalerie.GalerieUser.role !== 'admin'
   ) {
     return res.status(400).send({
-      errors: 'you should be the creator of this galerie to update the role of an admin',
+      errors: 'you should be the admin of this galerie to update the role of a moderator',
     });
   }
 
-  // If user's role with :userId is 'admin',
+  // If user's role with :userId is 'moderator',
   // his new role become 'user'.
   // If user's role with :userId is 'user',
-  // his new role become 'admin'.
+  // his new role become 'moderator'.
   try {
     await galerieUser.update({
-      role: galerieUser.role === 'user' ? 'admin' : 'user',
+      role: galerieUser.role === 'user' ? 'moderator' : 'user',
     });
   } catch (err) {
     return res.status(500).send(err);

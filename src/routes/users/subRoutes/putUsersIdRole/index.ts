@@ -68,10 +68,10 @@ export default async (req: Request, res: Response) => {
   // Validate request.body.role.
   if (
     req.body.role !== 'admin'
-    && req.body.role !== 'superAdmin'
+    && req.body.role !== 'moderator'
     && req.body.role !== 'user'
   ) {
-    errors.role = 'role should be \'admin\', \'superAdmin\' or \'user\'';
+    errors.role = 'role should be \'admin\', \'moderator\' or \'user\'';
   }
 
   // send errors if object errors has key(s).
@@ -95,10 +95,10 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // User cannot be a superAdmin.
-  if (user.role === 'superAdmin') {
+  // User cannot be a admin.
+  if (user.role === 'admin') {
     return res.status(400).send({
-      errors: 'you cannot update the role of a superAdmin',
+      errors: 'you cannot update the role of a admin',
     });
   }
 

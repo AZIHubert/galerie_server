@@ -73,7 +73,7 @@ export default class BlackList extends Model implements BlackListI {
   })
   userId!: string;
 
-  // Id of the admin who un blackListed
+  // Id of the moderator who unblackListed
   // this user. updatedById is set only
   // if this blackList was the active one
   // when a user is unblacklisted.

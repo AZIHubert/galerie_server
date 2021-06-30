@@ -898,7 +898,7 @@ describe('/galeries', () => {
             expect(body.errors).toBe(INVALID_UUID('galerie'));
             expect(status).toBe(400);
           });
-          it('current user is the creator of this galerie', async () => {
+          it('current user is the admin of this galerie', async () => {
             const {
               body,
               status,

@@ -52,7 +52,7 @@ describe('/galeries', () => {
             const {
               user: createdUser,
             } = await createUser({
-              role: 'superAdmin',
+              role: 'admin',
             });
             user = createdUser;
             const jwt = signAuthToken(user);
@@ -254,7 +254,7 @@ describe('/galeries', () => {
             });
             await createGalerieUser({
               galerieId,
-              role: 'admin',
+              role: 'moderator',
               userId: userTwo.id,
             });
             await createInvitation({
@@ -290,7 +290,7 @@ describe('/galeries', () => {
             });
             await createGalerieUser({
               galerieId,
-              role: 'admin',
+              role: 'moderator',
               userId: userTwo.id,
             });
             await createInvitation({

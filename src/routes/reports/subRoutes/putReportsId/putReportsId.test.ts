@@ -28,7 +28,7 @@ import initApp from '#src/server';
 let app: Server;
 let sequelize: Sequelize;
 let token: string;
-let admin: User;
+let moderator: User;
 
 describe('/reports', () => {
   describe('/:reportId', () => {
@@ -44,10 +44,10 @@ describe('/reports', () => {
           const {
             user,
           } = await createUser({
-            role: 'admin',
+            role: 'moderator',
           });
-          admin = user;
-          const jwt = signAuthToken(admin);
+          moderator = user;
+          const jwt = signAuthToken(moderator);
           token = jwt.token;
         } catch (err) {
           done(err);
@@ -69,7 +69,7 @@ describe('/reports', () => {
       describe('should return status 200 and', () => {
         it('set classed to true', async () => {
           const { id: profilePictureId } = await createProfilePicture({
-            userId: admin.id,
+            userId: moderator.id,
           });
           const report = await createReport({
             profilePictureId,
@@ -103,7 +103,7 @@ describe('/reports', () => {
         });
         it('report.classed === true', async () => {
           const { id: profilePictureId } = await createProfilePicture({
-            userId: admin.id,
+            userId: moderator.id,
           });
           const { id: reportId } = await createReport({
             classed: true,

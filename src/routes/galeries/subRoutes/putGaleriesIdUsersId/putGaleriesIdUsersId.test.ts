@@ -43,7 +43,7 @@ describe('/galeries', () => {
               const {
                 user: createdUser,
               } = await createUser({
-                role: 'superAdmin',
+                role: 'admin',
               });
               user = createdUser;
               const jwt = signAuthToken(user);
@@ -91,7 +91,7 @@ describe('/galeries', () => {
               done();
             });
 
-            it('and update user\'s role to admin if previous role was user', async () => {
+            it('and update user\'s role to moderator if previous role was user', async () => {
               const {
                 body: {
                   action,
@@ -106,10 +106,10 @@ describe('/galeries', () => {
               expect(action).toBe('PUT');
               expect(returnedGalerieId).toBe(galerieId);
               expect(returnedUserId).toBe(userTwo.id);
-              expect(role).toBe('admin');
+              expect(role).toBe('moderator');
               expect(status).toBe(200);
             });
-            it('update user\'s role to user if previous role was admin', async () => {
+            it('update user\'s role to user if previous role was moderator', async () => {
               await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               const {
                 body: {
@@ -120,7 +120,7 @@ describe('/galeries', () => {
               } = await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
               expect(role).toBe('user');
             });
-            it('update user role if current user\'s role for this galerie is \'admin\'', async () => {
+            it('update user role if current user\'s role for this galerie is \'moderator\'', async () => {
               const { user: userThree } = await createUser({
                 email: 'user3@email.com',
                 userName: 'user3',
@@ -128,7 +128,7 @@ describe('/galeries', () => {
               const { token: tokenThree } = signAuthToken(userThree);
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userThree.id,
               });
               const { status } = await putGaleriesIdUsersId(app, tokenThree, galerieId, userTwo.id);
@@ -176,10 +176,10 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await putGaleriesIdUsersId(app, tokenTwo, galerieId, user.id);
-              expect(body.errors).toBe('you should be an admin or the creator to update the role of a user');
+              expect(body.errors).toBe('you should be an admin or the moderator to update the role of a user');
               expect(status).toBe(400);
             });
-            it('user\'s role is creator', async () => {
+            it('user\'s role is admin', async () => {
               const {
                 user: userTwo,
               } = await createUser({
@@ -196,10 +196,10 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await putGaleriesIdUsersId(app, tokenTwo, galerieId, user.id);
-              expect(body.errors).toBe('you can\'t change the role of the creator of this galerie');
+              expect(body.errors).toBe('you can\'t change the role of the admin of this galerie');
               expect(status).toBe(400);
             });
-            it('user\'s role is admin and current user role is admin', async () => {
+            it('user\'s role is moderator and current user role is moderator', async () => {
               const {
                 user: userTwo,
               } = await createUser({
@@ -215,7 +215,7 @@ describe('/galeries', () => {
               const { token: tokenTwo } = signAuthToken(userTwo);
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userTwo.id,
               });
               await createGalerieUser({
@@ -227,7 +227,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await putGaleriesIdUsersId(app, tokenTwo, galerieId, userThree.id);
-              expect(body.errors).toBe('you should be the creator of this galerie to update the role of an admin');
+              expect(body.errors).toBe('you should be the admin of this galerie to update the role of a moderator');
               expect(status).toBe(400);
             });
           });

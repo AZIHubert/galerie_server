@@ -94,14 +94,14 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // admin are not allow to
+  // moderator are not allow to
   // update blackList posted by
-  // superAdmin.
+  // admin.
   if (
     user.blackListsUser[0].createdBy
     && (
-      currentUser.role === 'admin'
-      && user.blackListsUser[0].createdBy.role === 'superAdmin'
+      currentUser.role === 'moderator'
+      && user.blackListsUser[0].createdBy.role === 'admin'
     )
   ) {
     return res.status(400).send({

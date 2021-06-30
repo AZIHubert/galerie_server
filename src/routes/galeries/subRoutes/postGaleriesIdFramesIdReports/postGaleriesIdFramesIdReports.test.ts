@@ -27,8 +27,8 @@ import {
 
 import initApp from '#src/server';
 
+let admin: User;
 let app: Server;
-let creator: User;
 let frameId: string;
 let galerieId: string;
 let sequelize: Sequelize;
@@ -59,13 +59,13 @@ describe('/galeries', () => {
                   email: 'user3@email.com',
                   userName: 'user3',
                 });
-                creator = userOne;
+                admin = userOne;
                 user = craetedUserOne;
                 userTwo = createdUserTwo;
                 const jwt = signAuthToken(user);
                 token = jwt.token;
                 const galerie = await createGalerie({
-                  userId: creator.id,
+                  userId: admin.id,
                 });
                 galerieId = galerie.id;
                 await createGalerieUser({
@@ -171,12 +171,12 @@ describe('/galeries', () => {
                 expect(status).toBe(400);
               });
               it('currentUser.role !== \'user\'', async () => {
-                const { user: admin } = await createUser({
-                  email: 'admin@email.com',
-                  role: 'admin',
-                  userName: 'admin',
+                const { user: moderator } = await createUser({
+                  email: 'moderator@email.com',
+                  role: 'moderator',
+                  userName: 'moderator',
                 });
-                const { token: tokenTwo } = signAuthToken(admin);
+                const { token: tokenTwo } = signAuthToken(moderator);
                 const {
                   body,
                   status,
@@ -200,8 +200,8 @@ describe('/galeries', () => {
                 expect(body.errors).toBe(INVALID_UUID('frame'));
                 expect(status).toBe(400);
               });
-              it('currentUser role for this galerie is \'creator\'', async () => {
-                const { token: tokenTwo } = signAuthToken(creator);
+              it('currentUser role for this galerie is \'admin\'', async () => {
+                const { token: tokenTwo } = signAuthToken(admin);
                 const {
                   body,
                   status,

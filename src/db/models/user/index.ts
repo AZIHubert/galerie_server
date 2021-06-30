@@ -40,7 +40,7 @@ interface UserI {
   hasNewNotifications: boolean;
   pseudonym: string;
   resetPasswordTokenVersion: number;
-  role: 'superAdmin' | 'admin' | 'user';
+  role: 'admin' | 'moderator' | 'user';
   salt: string | null;
   socialMediaUserName: string | null;
   updatedEmailTokenVersion: number;
@@ -175,9 +175,9 @@ export default class User extends Model implements UserI {
 
   @Default('user')
   @Column({
-    type: DataType.ENUM('admin', 'superAdmin', 'user'),
+    type: DataType.ENUM('admin', 'moderator', 'user'),
   })
-  role!: 'admin' | 'superAdmin' | 'user';
+  role!: 'admin' | 'moderator' | 'user';
 
   // Use for password.
   @Column({

@@ -87,7 +87,7 @@ describe('/users', () => {
             password: createdPassword,
             user: createdUser,
           } = await createUser({
-            role: 'superAdmin',
+            role: 'admin',
           });
           password = createdPassword;
           user = createdUser;
@@ -412,7 +412,7 @@ describe('/users', () => {
           });
           await createGalerieUser({
             galerieId,
-            role: 'admin',
+            role: 'moderator',
             userId: userTwo.id,
           });
           await createInvitation({
@@ -544,7 +544,7 @@ describe('/users', () => {
           });
           await createGalerieUser({
             galerieId,
-            role: 'admin',
+            role: 'moderator',
             userId: user.id,
           });
           const galerieBlackList = await createGalerieBlackList({
@@ -765,7 +765,7 @@ describe('/users', () => {
         it('destroy all notificationBetaKeyUsed where num <= 1 betaKeyUsed.userId === currentUser.id', async () => {
           const { user: userTwo } = await createUser({
             email: 'user2@email.com',
-            role: 'admin',
+            role: 'moderator',
             userName: 'user2',
           });
           const { id: notificationId } = await createNotificationBetaKeyUsed({
@@ -787,12 +787,12 @@ describe('/users', () => {
         it('decrement notification.num for notification where num > 1 && betaKeyUsed.userId === currentUser.id', async () => {
           const { user: userTwo } = await createUser({
             email: 'user2@email.com',
-            role: 'admin',
+            role: 'moderator',
             userName: 'user2',
           });
           const { user: userThree } = await createUser({
             email: 'user3@email.com',
-            role: 'admin',
+            role: 'moderator',
             userName: 'user3',
           });
           const notification = await createNotificationBetaKeyUsed({

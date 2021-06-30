@@ -68,14 +68,14 @@ export default async (req: Request, res: Response) => {
 
   // Check if the role of the user
   // you want to black list is valid.
-  if (user.role === 'superAdmin') {
+  if (user.role === 'admin') {
     return res.status(400).send({
-      errors: 'you can\'t black list a super admin',
+      errors: 'you can\'t black list a admin',
     });
   }
-  if (currentUser.role === 'admin' && user.role === 'admin') {
+  if (currentUser.role === 'moderator' && user.role === 'moderator') {
     return res.status(400).send({
-      errors: 'you can\'t black list an admin',
+      errors: 'you can\'t black list an moderator',
     });
   }
 

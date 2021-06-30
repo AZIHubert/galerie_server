@@ -42,8 +42,8 @@ export default class BetaKey extends Model implements BetaKeyI {
   })
   code!: string;
 
-  // The superAdmin who create the betaKey.
-  // If null, the superAdmin has deleted his account.
+  // The admin who create the betaKey.
+  // If null, the admin has deleted his account.
   @ForeignKey(() => User)
   @Column({
     type: DataType.UUID,
@@ -64,7 +64,7 @@ export default class BetaKey extends Model implements BetaKeyI {
   })
   id!: string;
 
-  // If true, the superAdmin
+  // If true, the admin
   // has receive a notification when
   // a user subscribe with this beta key.
   @Default(false)

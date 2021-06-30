@@ -42,7 +42,7 @@ describe('/tickets', () => {
           user: admin,
         } = await createUser({
           email: 'user2@email.com',
-          role: 'superAdmin',
+          role: 'admin',
           userName: 'user2',
         });
         user = createdUser;

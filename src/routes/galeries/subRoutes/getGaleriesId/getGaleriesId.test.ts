@@ -80,7 +80,7 @@ describe('/galeries', () => {
           done();
         });
 
-        it('return galerie if user is the creator', async () => {
+        it('return galerie if user is the admin', async () => {
           const {
             body: {
               action,
@@ -111,13 +111,13 @@ describe('/galeries', () => {
           } = await getGaleriesId(app, tokenTwo, galerie.id);
           expect(status).toBe(200);
         });
-        it('return galerie if currentUser is not subscribe to it but currentUser.role === \'admin\' | \'superAdmin\'', async () => {
-          const { user: admin } = await createUser({
-            email: 'admin@email.com',
-            role: 'admin',
-            userName: 'admin',
+        it('return galerie if currentUser is not subscribe to it but currentUser.role === \'admin\' | \'moderator\'', async () => {
+          const { user: moderator } = await createUser({
+            email: 'moderator@email.com',
+            role: 'moderator',
+            userName: 'moderator',
           });
-          const { token: tokenTwo } = signAuthToken(admin);
+          const { token: tokenTwo } = signAuthToken(moderator);
           const {
             body: {
               data: {

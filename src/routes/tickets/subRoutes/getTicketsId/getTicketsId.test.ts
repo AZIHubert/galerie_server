@@ -48,7 +48,7 @@ describe('/tickets', () => {
           } = await createUser({
             email: 'user2@email.com',
             userName: 'user2',
-            role: 'superAdmin',
+            role: 'admin',
           });
           user = createdUser;
           const jwt = signAuthToken(admin);

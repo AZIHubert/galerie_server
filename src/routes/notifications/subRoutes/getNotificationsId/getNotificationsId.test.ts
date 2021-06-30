@@ -52,7 +52,7 @@ describe('/notifications', () => {
           const {
             user: createdUser,
           } = await createUser({
-            role: 'superAdmin',
+            role: 'admin',
           });
           user = createdUser;
           const jwt = signAuthToken(user);
@@ -343,7 +343,7 @@ describe('/notifications', () => {
         describe('where type === \'ROLE_CHANGE\'', () => {
           it('normalize notification', async () => {
             const { id: notificationId } = await createNotificationRoleChange({
-              role: 'superAdmin',
+              role: 'admin',
               userId: user.id,
             });
             const {

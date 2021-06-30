@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import {
-  shouldBeAdmin,
+  shouldBeModerator,
   shouldBeAuth,
 } from '#src/helpers/middlewares';
 
@@ -10,7 +10,7 @@ import putBlackLists from './subRoutes';
 const router = Router();
 
 const profilePicturesRoutes: () => Router = () => {
-  router.put('/', shouldBeAuth, shouldBeAdmin, putBlackLists);
+  router.put('/', shouldBeAuth, shouldBeModerator, putBlackLists);
 
   return router;
 };

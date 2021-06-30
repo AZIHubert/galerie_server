@@ -15,7 +15,7 @@ interface GalerieUserI {
   galerieId: string;
   hasNewFrames: boolean;
   notificationHasBeenSend: boolean;
-  role: string;
+  role: 'admin' | 'moderator' | 'user';
   userId: string;
 }
 
@@ -55,9 +55,9 @@ export default class GalerieUser extends Model implements GalerieUserI {
   // the role of the user on this galerie.
   @Column({
     allowNull: false,
-    type: DataType.ENUM('creator', 'admin', 'user'),
+    type: DataType.ENUM('admin', 'moderator', 'user'),
   })
-  role!: 'creator' | 'admin' | 'user';
+  role!: 'admin' | 'moderator' | 'user';
 
   @ForeignKey(() => User)
   @Column({

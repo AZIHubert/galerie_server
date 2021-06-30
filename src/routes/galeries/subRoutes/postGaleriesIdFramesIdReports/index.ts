@@ -94,7 +94,7 @@ export default async (req: Request, res: Response) => {
   const userFromGalerie = galerie.users
     .find((user) => user.id === currentUser.id);
 
-  if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'creator') {
+  if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'admin') {
     return res.status(400).send({
       errors: 'you are not allow to report this frame',
     });

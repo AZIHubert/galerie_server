@@ -105,13 +105,13 @@ export default async (req: Request, res: Response) => {
 
   // If this invitation was not posted by
   // the current user but was posted by
-  // the creator of this galerie,
+  // the admin of this galerie,
   // return an error.
   if (
     galerie.invitations[0].userId !== currentUser.id
     && (
       galerieUser
-      && galerieUser.role === 'creator'
+      && galerieUser.role === 'admin'
     )
   ) {
     return res.status(400).send({

@@ -96,7 +96,7 @@ describe('/notifications', () => {
           it('if notification already exist && seen === false', async () => {
             const num = 1;
             const { user } = await createUser({
-              role: 'superAdmin',
+              role: 'admin',
             });
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
@@ -147,7 +147,7 @@ describe('/notifications', () => {
           it('if notification exist && seen === true && was created there is 4 days or less', async () => {
             const num = 1;
             const { user } = await createUser({
-              role: 'superAdmin',
+              role: 'admin',
             });
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
@@ -200,7 +200,7 @@ describe('/notifications', () => {
         describe('create notification', () => {
           it('if notification doen\'t exist', async () => {
             const { user } = await createUser({
-              role: 'superAdmin',
+              role: 'admin',
             });
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
@@ -234,7 +234,7 @@ describe('/notifications', () => {
             const timeStamp = 1434319925275;
             mockDate.set(timeStamp);
             const { user } = await createUser({
-              role: 'superAdmin',
+              role: 'admin',
             });
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
@@ -280,7 +280,7 @@ describe('/notifications', () => {
         });
         it('betaKey.notificationHasBeenSend === true', async () => {
           const { user } = await createUser({
-            role: 'superAdmin',
+            role: 'admin',
           });
           const { user: userTwo } = await createUser({
             email: 'user2@email.com',

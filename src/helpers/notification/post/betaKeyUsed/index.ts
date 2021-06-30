@@ -96,7 +96,7 @@ export default async ({
     } as Error;
   }
 
-  // If superAdmin doesn't exist
+  // If admin doesn't exist
   // stop request.
   if (!betaKey.createdById) {
     return { OK: true } as Success;
