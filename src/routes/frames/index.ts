@@ -6,12 +6,16 @@ import {
 
 import {
   deleteFrameId,
+
+  getFrames,
 } from './subRoutes';
 
 const router = Router();
 
 const framesRoutes: () => Router = () => {
   router.delete('/:frameId', shouldBeAuth, deleteFrameId);
+
+  router.get('/', shouldBeAuth, getFrames);
 
   return router;
 };

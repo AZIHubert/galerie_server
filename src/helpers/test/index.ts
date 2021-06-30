@@ -38,7 +38,7 @@ export { default as getBetaKeys } from './getBetaKeys';
 export { default as getBetaKeysEmailEmail } from './getBetaKeysEmailEmail';
 export { default as getBetaKeysId } from './getBetaKeysId';
 export { default as getGaleries } from './getGaleries';
-export { default as getGaleriesFrames } from './getGaleriesFrames';
+export { default as getFrames } from './getFrames';
 export { default as getGaleriesId } from './getGaleriesId';
 export { default as getGaleriesIdBlackLists } from './getGaleriesIdBlackLists';
 export { default as getGaleriesIdBlackListsId } from './getGaleriesIdBlackListsId';

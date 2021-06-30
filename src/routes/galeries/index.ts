@@ -14,7 +14,6 @@ import {
   deleteGaleriesIdUsersId,
 
   getGaleries,
-  getGaleriesFrames,
   getGaleriesId,
   getGaleriesIdBlackLists,
   getGaleriesIdBlackListsId,
@@ -52,7 +51,6 @@ const galeriesRoutes: () => Router = () => {
   router.delete('/:galerieId/users/:userId', shouldBeAuth, deleteGaleriesIdUsersId);
 
   router.get('/', shouldBeAuth, getGaleries);
-  router.get('/frames', shouldBeAuth, getGaleriesFrames);
   router.get('/:galerieId/', shouldBeAuth, getGaleriesId);
   router.get('/:galerieId/blackLists', shouldBeAuth, getGaleriesIdBlackLists);
   router.get('/:galerieId/blackLists/:blackListId', shouldBeAuth, getGaleriesIdBlackListsId);

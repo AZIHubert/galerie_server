@@ -22,7 +22,7 @@ import {
   createLike,
   createReport,
   createUser,
-  getGaleriesFrames,
+  getFrames,
   testFrame,
   testUser,
 } from '#src/helpers/test';
@@ -90,7 +90,7 @@ describe('/galeries', () => {
               },
             },
             status,
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(action).toBe('GET');
           expect(frames.length).toBe(0);
           expect(status).toBe(200);
@@ -109,7 +109,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(frames.length).toBe(1);
         });
         it('return frames with relevent attributes', async () => {
@@ -126,7 +126,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(frames[0].user.hasNewNotifications).toBeUndefined();
           testFrame(frames[0]);
           testUser(frames[0].user);
@@ -163,7 +163,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(frames.length).toBe(2);
         });
         it('return a pack of 20 frames', async () => {
@@ -205,14 +205,14 @@ describe('/galeries', () => {
                 frames: firstPack,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           const {
             body: {
               data: {
                 frames: secondPack,
               },
             },
-          } = await getGaleriesFrames(app, token, {
+          } = await getFrames(app, token, {
             previousFrame: firstPack[firstPack.length - 1].autoIncrementId,
           });
           expect(firstPack.length).toBe(20);
@@ -238,7 +238,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(frames.length).toBe(0);
         });
         it('return frames ordered by createdAt', async () => {
@@ -271,7 +271,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(frames[0].id).toBe(frameFive.id);
           expect(frames[1].id).toBe(frameFour.id);
           expect(frames[2].id).toBe(frameThree.id);
@@ -292,7 +292,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(frames[0].liked).toBe(false);
         });
         it('return with liked === true if user have like a frame', async () => {
@@ -313,7 +313,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(frames[0].liked).toBe(true);
         });
         it('return with liked === false if another user have like a frame', async () => {
@@ -342,7 +342,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(frames[0].liked).toBe(false);
         });
         it('return with reported === true if user have reported a frame', async () => {
@@ -359,7 +359,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(frames[0].reported).toBe(false);
         });
         it('return with reported === false if user do not have reported a frame', async () => {
@@ -380,7 +380,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(frames[0].reported).toBe(true);
         });
         it('return with reported === false if anotheer user have reported a frame', async () => {
@@ -405,7 +405,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(frames[0].reported).toBe(false);
         });
         it('return frame.user.isBlackListed === true if user is blackListed', async () => {
@@ -437,7 +437,7 @@ describe('/galeries', () => {
                 }],
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           expect(returnedUser.isBlackListed).toBe(true);
         });
         it('return frame.user.isBlackListed === false but his blackList is expired', async () => {
@@ -473,7 +473,7 @@ describe('/galeries', () => {
                 }],
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           await userTwo.reload();
           expect(userTwo.isBlackListed).toBe(false);
           expect(returnedUser.isBlackListed).toBe(false);
@@ -492,7 +492,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           const frame = await Frame.findByPk(frameId);
           expect(frame).toBeNull();
           expect(frames.length).toBe(1);
@@ -515,7 +515,7 @@ describe('/galeries', () => {
                 frames,
               },
             },
-          } = await getGaleriesFrames(app, token);
+          } = await getFrames(app, token);
           const frame = await Frame.findByPk(createdFrame.id);
           const galeriePictures = await GaleriePicture.findAll({
             where: {
@@ -565,7 +565,7 @@ describe('/galeries', () => {
                   frames,
                 },
               },
-            } = await getGaleriesFrames(app, token, {
+            } = await getFrames(app, token, {
               previousFrame: 'notANumber',
             });
             expect(frames.length).toBe(2);
@@ -578,7 +578,7 @@ describe('/galeries', () => {
                   frames,
                 },
               },
-            } = await getGaleriesFrames(app, token, {
+            } = await getFrames(app, token, {
               previousFrame: '-1',
             });
             expect(frames.length).toBe(2);

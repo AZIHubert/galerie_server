@@ -1,4 +1,4 @@
-// GET /galeries/frames/
+// GET /frames/
 
 import {
   Request,

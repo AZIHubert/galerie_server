@@ -11,7 +11,7 @@ export default async (
   let response: request.Response;
   if (option.previousFrame) {
     response = await request(app)
-      .get(`/galeries/frames?previousFrame=${option.previousFrame}`)
+      .get(`/frames?previousFrame=${option.previousFrame}`)
       .set('authorization', token);
   } else {
     response = await request(app)
