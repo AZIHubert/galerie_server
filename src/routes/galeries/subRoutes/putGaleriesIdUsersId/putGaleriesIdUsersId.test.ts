@@ -1,5 +1,8 @@
+import fs from 'fs';
 import { Server } from 'http';
+import { verify } from 'jsonwebtoken';
 import { Sequelize } from 'sequelize';
+import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 import '#src/helpers/initEnv';
@@ -132,6 +135,53 @@ describe('/galeries', () => {
                 userId: userThree.id,
               });
               const { status } = await putGaleriesIdUsersId(app, tokenThree, galerieId, userTwo.id);
+              expect(status).toBe(200);
+            });
+            it('return notificationToken if role === \'moderator\'', async () => {
+              const {
+                body: {
+                  data: {
+                    notificationToken,
+                  },
+                },
+                status,
+              } = await putGaleriesIdUsersId(app, token, galerieId, userTwo.id);
+              const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.notificationToken.pem'));
+              const splitToken = (<string>notificationToken).split(' ');
+              const verifyToken = verify(splitToken[1], PUB_KEY) as {
+                data: {
+                  galerieId: string;
+                  role: string;
+                  userId: string;
+                }
+                type: string;
+              };
+              expect(notificationToken).not.toBeUndefined();
+              expect(status).toBe(200);
+              expect(verifyToken.data.galerieId).toBe(galerieId);
+              expect(verifyToken.data.role).toBe('moderator');
+              expect(verifyToken.data.userId).toBe(userTwo.id);
+              expect(verifyToken.type).toBe('GALERIE_ROLE_CHANGE');
+            });
+            it('do not return notificationToken if role === \'user\'', async () => {
+              const { user: userThree } = await createUser({
+                email: 'user3@email.com',
+                userName: 'user3',
+              });
+              await createGalerieUser({
+                galerieId,
+                role: 'moderator',
+                userId: userThree.id,
+              });
+              const {
+                body: {
+                  data: {
+                    notificationToken,
+                  },
+                },
+                status,
+              } = await putGaleriesIdUsersId(app, token, galerieId, userThree.id);
+              expect(notificationToken).toBeUndefined();
               expect(status).toBe(200);
             });
           });

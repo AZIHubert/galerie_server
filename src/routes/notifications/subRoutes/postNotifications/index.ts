@@ -14,6 +14,7 @@ import {
   betaKeyUsed,
   frameLiked,
   framePosted,
+  galerieRoleChange,
   roleChange,
   userSubscribe,
 } from '#src/helpers/notification/post';
@@ -82,6 +83,9 @@ export default async (req: Request, res: Response) => {
         break;
       case 'FRAME_POSTED':
         response = await framePosted(data);
+        break;
+      case 'GALERIE_ROLE_CHANGE':
+        response = await galerieRoleChange(data);
         break;
       case 'ROLE_CHANGE':
         response = await roleChange(data);

@@ -6,6 +6,7 @@ export { default as createFrame } from './createFrame';
 export { default as createNotificationBetaKeyUsed } from './createNotificationBetaKeyUsed';
 export { default as createNotificationFrameLiked } from './createNotificationFrameLiked';
 export { default as createNotificationFramePosted } from './createNotificationFramePosted';
+export { default as createNotificationGalerieRoleChange } from './createNotificationGalerieRoleChange';
 export { default as createNotificationRoleChange } from './createNotificationRoleChange';
 export { default as createNotificationUserSubscribe } from './createNotificationUserSubscribe';
 export { default as createGalerie } from './createGalerie';
