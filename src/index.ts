@@ -39,7 +39,6 @@ initSequelize(() => {
 // Demain, absolument finir tout ca, pas de dodo avant.
 // Quand tout ca sera fini, on passe aux apps!!!!!!!
 // TODO:
-// GET /frames/:frameId/likes/
 // POST /frames/:frameId/reports/
 // PUT /frames/:frameId/
 // PUT /frames/:frameId/galeriesPictures/:galeriePicturesId/

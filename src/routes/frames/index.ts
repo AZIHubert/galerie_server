@@ -9,6 +9,7 @@ import {
 
   getFrames,
   getFramesId,
+  getFramesIdLikes,
 
   postFramesIdLikes,
 } from './subRoutes';
@@ -16,12 +17,13 @@ import {
 const router = Router();
 
 const framesRoutes: () => Router = () => {
-  router.delete('/:frameId', shouldBeAuth, deleteFrameId);
+  router.delete('/:frameId/', shouldBeAuth, deleteFrameId);
 
   router.get('/', shouldBeAuth, getFrames);
-  router.get('/:frameId', shouldBeAuth, getFramesId);
+  router.get('/:frameId/', shouldBeAuth, getFramesId);
+  router.get('/:frameId/likes/', shouldBeAuth, getFramesIdLikes);
 
-  router.post('/:frameId/likes', shouldBeAuth, postFramesIdLikes);
+  router.post('/:frameId/likes/', shouldBeAuth, postFramesIdLikes);
 
   return router;
 };

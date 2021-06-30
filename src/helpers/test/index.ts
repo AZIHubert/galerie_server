@@ -45,7 +45,7 @@ export { default as getGaleriesIdBlackListsId } from './getGaleriesIdBlackListsI
 export { default as getGaleriesIdCoverPicture } from './getGaleriesIdCoverPicture';
 export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';
 export { default as getFramesId } from './getFramesId';
-export { default as getGaleriesIdFramesIdLikes } from './getGaleriesIdFramesIdLikes';
+export { default as getFramesIdLikes } from './getFramesIdLikes';
 export { default as getGaleriesIdInvitations } from './getGaleriesIdInvitations';
 export { default as getGaleriesIdInvitationsId } from './getGaleriesIdInvitationsId';
 export { default as getGaleriesIdUsers } from './getGaleriesIdUsers';
