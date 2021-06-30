@@ -916,7 +916,7 @@ describe('/users', () => {
           expect(notification.num).toBe(1);
           expect(notificationFrameLiked).toBeNull();
         });
-        it.only('TODO: destroy reportUsers', async () => {
+        it('destroy reportUsers', async () => {
           const { id: galerieId } = await createGalerie({
             userId: user.id,
           });

@@ -7,21 +7,24 @@ export default async ({
   classed,
   frameId,
   numOfReports,
+  profilePictureId,
   userId,
 }: {
   classed?: boolean;
-  frameId: string;
+  frameId?: string;
   numOfReports?: number;
+  profilePictureId?: string;
   userId?: string;
 }) => {
   const report = await Report.create({
+    classed: classed || false,
     frameId,
+    numOfReports: numOfReports || 1,
+    profilePictureId,
   });
   if (userId) {
     await ReportUser.create({
-      classed: classed || false,
       reportId: report.id,
-      numOfReports: numOfReports || 1,
       userId,
     });
   }

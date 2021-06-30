@@ -155,6 +155,7 @@ describe('/galeries', () => {
                   expect(reports.length).toBe(1);
                   expect(reports[0].numOfReports).toBe(1);
                   expect(reports[0].frameId).toBe(frameId);
+                  expect(reports[0].profilePictureId).toBeNull();
                   expect(reports[0].users[0].id).toBe(user.id);
                 });
               });

@@ -39,7 +39,8 @@ initSequelize(() => {
 // Demain, absolument finir tout ca, pas de dodo avant.
 // Quand tout ca sera fini, on passe aux apps!!!!!!!
 // TODO:
-// allow currentProfilePicture to be reported
+// Check that report where profilePictureId are deleted when profilePictures are delete
+// and user is deleted.
 // TODO:
 // GET /reposts/ (query classed: 'true' | 'false' | undefined (all))
 // TODO:

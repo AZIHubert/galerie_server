@@ -80,6 +80,7 @@ export { default as postGaleriesIdFramesIdReports } from './postGaleriesIdFrames
 export { default as postTickets } from './postTickets';
 export { default as postUsersConfirmation } from './postUsersConfirmation';
 export { default as postUsersIdBlackLists } from './postUsersIdBlackLists';
+export { default as postUsersIdProfilePicturesIdReports } from './postUsersIdProfilePicturesIdReports';
 export { default as postUsersLogin } from './postUsersLogin';
 export { default as postUsersLoginSocialMedia } from './postUsersLoginSocialMedia';
 export { default as postUsersMeEmail } from './postUsersMeEmail';
