@@ -72,7 +72,7 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if currentUser
-  // is the creator or an admin
+  // is the admin or an moderator
   // of this galerie.
   const userFromGalerie = galerie.users
     .find((u) => u.id === currentUser.id);

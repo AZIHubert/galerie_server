@@ -64,7 +64,7 @@ describe('/galeries', () => {
               const {
                 user: createdUser,
               } = await createUser({
-                role: 'superAdmin',
+                role: 'admin',
               });
               user = createdUser;
               const jwt = signAuthToken(user);
@@ -116,13 +116,13 @@ describe('/galeries', () => {
               testFrame(returnedFrame, frame);
               testUser(returnedFrame.user);
             });
-            it('return frame if currentUser is not subscribe to the galerie and currentUser.role === \'admin\' | \'superAdmin\'', async () => {
-              const { user: admin } = await createUser({
-                email: 'admin@email.com',
-                role: 'admin',
-                userName: 'admin',
+            it('return frame if currentUser is not subscribe to the galerie and currentUser.role === \'admin\' | \'moderator\'', async () => {
+              const { user: moderator } = await createUser({
+                email: 'moderator@email.com',
+                role: 'moderator',
+                userName: 'moderator',
               });
-              const { token: tokenTwo } = signAuthToken(admin);
+              const { token: tokenTwo } = signAuthToken(moderator);
               const { id: frameId } = await createFrame({
                 galerieId,
                 userId: user.id,

@@ -146,7 +146,7 @@ describe('/galeries', () => {
               });
               expect(like).toBeNull();
             });
-            it('destroy frame if it\'s not posted by current user but his role fot this galerie is \'creator\'', async () => {
+            it('destroy frame if it\'s not posted by current user but his role fot this galerie is \'admin\'', async () => {
               const {
                 user: userTwo,
               } = await createUser({
@@ -165,7 +165,7 @@ describe('/galeries', () => {
               const frame = await Frame.findByPk(frameId);
               expect(frame).toBeNull();
             });
-            it('destroy frame if it\'s not posted by current user but his role for this galerie is \'admin\'', async () => {
+            it('destroy frame if it\'s not posted by current user but his role for this galerie is \'moderator\'', async () => {
               const {
                 user: userTwo,
               } = await createUser({
@@ -184,7 +184,7 @@ describe('/galeries', () => {
               });
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userThree.id,
               });
               const { token: tokenThree } = signAuthToken(userThree);
@@ -196,13 +196,13 @@ describe('/galeries', () => {
               const frame = await Frame.findByPk(frameId);
               expect(frame).toBeNull();
             });
-            it('destroy frame if it\'s not posted by current user but currentUser.role is \'admin\'', async () => {
-              const { user: admin } = await createUser({
-                email: 'admin@email.com',
-                role: 'admin',
-                userName: 'admin',
+            it('destroy frame if it\'s not posted by current user but currentUser.role is \'moderator\'', async () => {
+              const { user: moderator } = await createUser({
+                email: 'moderator@email.com',
+                role: 'moderator',
+                userName: 'moderator',
               });
-              const { token: tokenTwo } = signAuthToken(admin);
+              const { token: tokenTwo } = signAuthToken(moderator);
               const { id: frameId } = await createFrame({
                 galerieId,
                 userId: user.id,
@@ -364,14 +364,14 @@ describe('/galeries', () => {
               expect(body.errors).toBe('your not allow to delete this frame');
               expect(status).toBe(400);
             });
-            it('the user who post the frame is the creator og this galerie and the role of current user for this galerie is \'admin\'', async () => {
+            it('the user who post the frame is the admin of this galerie and the role of current user for this galerie is \'moderator\'', async () => {
               const { user: userTwo } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userTwo.id,
               });
               const { token: tokenTwo } = signAuthToken(userTwo);

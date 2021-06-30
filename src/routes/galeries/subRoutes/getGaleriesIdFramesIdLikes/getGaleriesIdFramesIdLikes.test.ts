@@ -52,7 +52,7 @@ describe('/galeries', () => {
                 const {
                   user: createdUser,
                 } = await createUser({
-                  role: 'superAdmin',
+                  role: 'admin',
                 });
                 user = createdUser;
                 const jwt = signAuthToken(user);

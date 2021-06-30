@@ -112,7 +112,7 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if user's role for this galerie
-  // is creator or admin.
+  // is admin or moderator.
   const userFromGalerie = galerie.users
     .find((user) => user.id === userId);
   if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'user') {

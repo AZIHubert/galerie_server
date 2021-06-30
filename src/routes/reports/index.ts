@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import {
-  shouldBeAdmin,
+  shouldBeModerator,
   shouldBeAuth,
 } from '#src/helpers/middlewares';
 
@@ -15,10 +15,10 @@ import {
 const router = Router();
 
 const reportsRoutes: () => Router = () => {
-  router.get('/', shouldBeAuth, shouldBeAdmin, getReports);
-  router.get('/:reportId/', shouldBeAuth, shouldBeAdmin, getReportsId);
+  router.get('/', shouldBeAuth, shouldBeModerator, getReports);
+  router.get('/:reportId/', shouldBeAuth, shouldBeModerator, getReportsId);
 
-  router.put('/:reportId/', shouldBeAuth, shouldBeAdmin, putReportsId);
+  router.put('/:reportId/', shouldBeAuth, shouldBeModerator, putReportsId);
 
   return router;
 };

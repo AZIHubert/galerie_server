@@ -120,7 +120,7 @@ describe('/galeries', () => {
           done();
         });
 
-        it('destroy galerie if user is the creator of this galerie', async () => {
+        it('destroy galerie if currentUser is the admin of this galerie', async () => {
           const {
             body: {
               action,
@@ -141,17 +141,17 @@ describe('/galeries', () => {
           expect(galerie).toBeNull();
           expect(status).toBe(200);
         });
-        it('destroy galerie if currentUser is not the creator of this galerie but currentUser.role === \'admin\' | \'superAdmin\'', async () => {
-          const { user: admin } = await createUser({
-            email: 'admin@email.com',
-            role: 'admin',
-            userName: 'admin',
+        it('destroy galerie if currentUser is not the admin of this galerie but currentUser.role === \'admin\' | \'moderator\'', async () => {
+          const { user: moderator } = await createUser({
+            email: 'moderator@email.com',
+            role: 'moderator',
+            userName: 'moderator',
           });
           await createGalerieUser({
             galerieId,
-            userId: admin.id,
+            userId: moderator.id,
           });
-          const { token: tokenTwo } = signAuthToken(admin);
+          const { token: tokenTwo } = signAuthToken(moderator);
           const {
             status,
           } = await deleteGaleriesId(app, tokenTwo, galerieId, {
@@ -164,13 +164,13 @@ describe('/galeries', () => {
           expect(galerie).toBeNull();
           expect(status).toBe(200);
         });
-        it('destroy galerie if currentUser is not subscribe to this galerie but currentUser.role === \'admin\' | \'superAdmin\'', async () => {
-          const { user: admin } = await createUser({
-            email: 'admin@email.com',
-            role: 'admin',
-            userName: 'admin',
+        it('destroy galerie if currentUser is not subscribe to this galerie but currentUser.role === \'admin\' | \'moderator\'', async () => {
+          const { user: moderator } = await createUser({
+            email: 'moderator@email.com',
+            role: 'moderator',
+            userName: 'moderator',
           });
-          const { token: tokenTwo } = signAuthToken(admin);
+          const { token: tokenTwo } = signAuthToken(moderator);
           const {
             status,
           } = await deleteGaleriesId(app, tokenTwo, galerieId, {
@@ -411,7 +411,7 @@ describe('/galeries', () => {
           const galerie = await createGalerie({
             userId: user.id,
             name,
-            role: 'admin',
+            role: 'moderator',
           });
           const {
             body,

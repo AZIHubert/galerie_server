@@ -75,7 +75,7 @@ describe('/galeries', () => {
               const {
                 user: createdUser,
               } = await createUser({
-                role: 'superAdmin',
+                role: 'admin',
               });
               user = createdUser;
               const jwt = signAuthToken(user);
@@ -485,7 +485,7 @@ describe('/galeries', () => {
               expect(notification.num).toBe(1);
               expect(notificationUserSubscribe).toBeNull();
             });
-            it('delete user if request.params.userId is an admin and current user is creator of this galerie', async () => {
+            it('delete user if request.params.userId is an moderator and current user is the admin of this galerie', async () => {
               const {
                 user: userThree,
               } = await createUser({
@@ -495,7 +495,7 @@ describe('/galeries', () => {
               const { token: tokenThree } = signAuthToken(userThree);
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userThree.id,
               });
               const {
@@ -766,10 +766,10 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await deleteGaleriesIdUsersId(app, tokenTwo, galerieId, user.id);
-              expect(body.errors).toBe('you should be an admin or the creator of this galerie to delete a user');
+              expect(body.errors).toBe('you should be an moderator or the admin of this galerie to delete a user');
               expect(status).toBe(400);
             });
-            it('user with :userId is the creator of this galerie', async () => {
+            it('user with :userId is the admin of this galerie', async () => {
               const {
                 user: userTwo,
               } = await createUser({
@@ -779,17 +779,17 @@ describe('/galeries', () => {
               const { token: tokenTwo } = signAuthToken(userTwo);
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userTwo.id,
               });
               const {
                 body,
                 status,
               } = await deleteGaleriesIdUsersId(app, tokenTwo, galerieId, user.id);
-              expect(body.errors).toBe('you can\'t delete the creator of this galerie');
+              expect(body.errors).toBe('you can\'t delete the admin of this galerie');
               expect(status).toBe(400);
             });
-            it('user with :userId is an admin and current user is an admin', async () => {
+            it('user with :userId is a moderator and current user is a moderator', async () => {
               const {
                 user: userTwo,
               } = await createUser({
@@ -805,19 +805,19 @@ describe('/galeries', () => {
               const { token: tokenTwo } = signAuthToken(userTwo);
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userTwo.id,
               });
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userThree.id,
               });
               const {
                 body,
                 status,
               } = await deleteGaleriesIdUsersId(app, tokenTwo, galerieId, userThree.id);
-              expect(body.errors).toBe('you should be the creator of this galerie to delete an admin');
+              expect(body.errors).toBe('you should be the admin of this galerie to delete an moderator');
               expect(status).toBe(400);
             });
           });

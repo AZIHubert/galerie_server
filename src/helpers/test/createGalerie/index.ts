@@ -11,14 +11,14 @@ export default async ({
   userId,
   description,
   name = 'galerie\'s name',
-  role = 'creator',
+  role = 'admin',
 }: {
   allowNotification?: boolean;
   archived?: boolean;
   userId: string;
   description?: string;
   name?: string;
-  role?: 'admin' | 'creator' | 'user';
+  role?: 'admin' | 'moderator' | 'user';
 }) => {
   const hiddenName = await generateGalerieHiddenName(name);
   const galerie = await Galerie.create({

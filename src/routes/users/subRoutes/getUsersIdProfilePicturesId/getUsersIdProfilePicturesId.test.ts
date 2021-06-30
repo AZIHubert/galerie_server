@@ -54,7 +54,7 @@ describe('/users', () => {
               const {
                 user: createdUser,
               } = await createUser({
-                role: 'admin',
+                role: 'moderator',
               });
               user = createdUser;
               const jwt = signAuthToken(user);

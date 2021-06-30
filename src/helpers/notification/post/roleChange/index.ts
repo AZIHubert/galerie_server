@@ -39,7 +39,7 @@ export default async ({
   // check is notificationtoken.data.role is valid.
   if (
     role !== 'admin'
-    && role !== 'superAdmin'
+    && role !== 'moderator'
     && role !== 'user'
   ) {
     return {

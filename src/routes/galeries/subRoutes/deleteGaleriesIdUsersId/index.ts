@@ -84,7 +84,7 @@ export default async (req: Request, res: Response) => {
     .find((u) => u.id === currentUser.id);
   if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'user') {
     return res.status(400).send({
-      errors: 'you should be an admin or the creator of this galerie to delete a user',
+      errors: 'you should be an moderator or the admin of this galerie to delete a user',
     });
   }
 
@@ -143,27 +143,27 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // The creator of this galerie cannot
+  // The admin of this galerie cannot
   // be deleted.
   const galerieFromUser = user.galeries
     .find((g) => g.id === galerieId);
-  if (!galerieFromUser || galerieFromUser.GalerieUser.role === 'creator') {
+  if (!galerieFromUser || galerieFromUser.GalerieUser.role === 'admin') {
     return res.status(400).send({
-      errors: 'you can\'t delete the creator of this galerie',
+      errors: 'you can\'t delete the admin of this galerie',
     });
   }
 
-  // An admin cannot delete
-  // another admin.
+  // An moderator cannot delete
+  // another moderator.
   if (
     (
       !galerieFromUser
-      || galerieFromUser.GalerieUser.role === 'admin'
+      || galerieFromUser.GalerieUser.role === 'moderator'
     )
-    && userFromGalerie.GalerieUser.role === 'admin'
+    && userFromGalerie.GalerieUser.role === 'moderator'
   ) {
     return res.status(400).send({
-      errors: 'you should be the creator of this galerie to delete an admin',
+      errors: 'you should be the admin of this galerie to delete an moderator',
     });
   }
 

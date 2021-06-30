@@ -61,7 +61,7 @@ describe('/notifications', () => {
             role: 'user',
           });
           const { token: notificationtoken } = signNotificationToken('ROLE_CHANGE', {
-            role: 'admin',
+            role: 'moderator',
             userId: user.id,
           });
           const {
@@ -76,7 +76,7 @@ describe('/notifications', () => {
           expect(user.hasNewNotifications).toBe(false);
         });
         it('create a notification with the new role of the user', async () => {
-          const role = 'admin';
+          const role = 'moderator';
           const { user } = await createUser({
             role,
           });
@@ -100,7 +100,7 @@ describe('/notifications', () => {
       describe('should return status 400 if', () => {
         it('notificationtoken.data.userId is not a UUIDv4', async () => {
           const { token: notificationtoken } = signNotificationToken('ROLE_CHANGE', {
-            role: 'admin',
+            role: 'moderator',
             userId: '100',
           });
           const {
@@ -112,7 +112,7 @@ describe('/notifications', () => {
           expect(body.errors).toBe(INVALID_UUID('user'));
           expect(status).toBe(400);
         });
-        it('role is not \'admin\' || \'superAdmin\' || \'user\'', async () => {
+        it('role is not \'admin\' || \'moderator\' || \'user\'', async () => {
           const { user } = await createUser({});
           const { token: notificationtoken } = signNotificationToken('ROLE_CHANGE', {
             role: 'wrongRole',
@@ -131,7 +131,7 @@ describe('/notifications', () => {
       describe('should return status 404 if', () => {
         it('user not found', async () => {
           const { token: notificationtoken } = signNotificationToken('ROLE_CHANGE', {
-            role: 'admin',
+            role: 'moderator',
             userId: uuidv4(),
           });
           const {

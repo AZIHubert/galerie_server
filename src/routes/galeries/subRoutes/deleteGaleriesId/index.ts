@@ -76,7 +76,7 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if user\'s role relative to
-  // this galerie is 'creator
+  // this galerie is 'admin'
   // or currentUser.role === 'user'
   const userFromGalerie = galerie.users
     .find((user) => user.id === currentUser.id);
@@ -84,7 +84,7 @@ export default async (req: Request, res: Response) => {
     currentUser.role === 'user'
     && (
       !userFromGalerie
-      || userFromGalerie.GalerieUser.role !== 'creator'
+      || userFromGalerie.GalerieUser.role !== 'admin'
     )
   ) {
     return res.status(400).send({

@@ -31,7 +31,7 @@ import initApp from '#src/server';
 let app: Server;
 let sequelize: Sequelize;
 let token: string;
-let admin: User;
+let moderator: User;
 
 describe('/reports', () => {
   describe('/:reportId', () => {
@@ -47,10 +47,10 @@ describe('/reports', () => {
           const {
             user,
           } = await createUser({
-            role: 'admin',
+            role: 'moderator',
           });
-          admin = user;
-          const jwt = signAuthToken(admin);
+          moderator = user;
+          const jwt = signAuthToken(moderator);
           token = jwt.token;
         } catch (err) {
           done(err);
@@ -72,11 +72,11 @@ describe('/reports', () => {
       describe('should return status 200 and', () => {
         it('return report with type === \'FRAME\'', async () => {
           const { id: galerieId } = await createGalerie({
-            userId: admin.id,
+            userId: moderator.id,
           });
           const { id: frameId } = await createFrame({
             galerieId,
-            userId: admin.id,
+            userId: moderator.id,
           });
           const report = await createReport({
             frameId,
@@ -107,7 +107,7 @@ describe('/reports', () => {
         });
         it('return report with type === \'PROFILE_PICTURE\'', async () => {
           const { id: profilePictureId } = await createProfilePicture({
-            userId: admin.id,
+            userId: moderator.id,
           });
           const report = await createReport({
             profilePictureId,

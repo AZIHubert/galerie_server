@@ -47,7 +47,7 @@ describe('/galeries', () => {
               const {
                 user: createdUser,
               } = await createUser({
-                role: 'superAdmin',
+                role: 'admin',
               });
               user = createdUser;
               const jwt = signAuthToken(user);
@@ -96,7 +96,7 @@ describe('/galeries', () => {
               expect(returnedInvitationId).toBe(invitationId);
               expect(status).toBe(200);
             });
-            it('destroy the invitation if current user role for this galerie is \'admin\'', async () => {
+            it('destroy the invitation if current user role for this galerie is \'moderator\'', async () => {
               const { user: userTwo } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
@@ -107,12 +107,12 @@ describe('/galeries', () => {
               });
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userTwo.id,
               });
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userThree.id,
               });
               const { id: invitationId } = await createInvitation({
@@ -169,14 +169,14 @@ describe('/galeries', () => {
               expect(body.errors).toBe('you\'re not allow to delete this invitation');
               expect(status).toBe(400);
             });
-            it('creator of this invitation is the creator of this galerie', async () => {
+            it('creator of this invitation is the admin of this galerie', async () => {
               const { user: userTwo } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userTwo.id,
               });
               const { token: tokenTwo } = signAuthToken(userTwo);

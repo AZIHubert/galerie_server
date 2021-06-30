@@ -44,7 +44,7 @@ describe('/galerie', () => {
         const {
           user: createdUser,
         } = await createUser({
-          role: 'superAdmin',
+          role: 'admin',
         });
 
         user = createdUser;

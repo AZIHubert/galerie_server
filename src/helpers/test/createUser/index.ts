@@ -25,7 +25,7 @@ export default async ({
   isBlackListed?: boolean;
   password?: string;
   pseudonym?: string;
-  role?: 'admin' | 'superAdmin' | 'user';
+  role?: 'admin' | 'moderator' | 'user';
   socialMediaUserName?: string;
   userName?: string;
 }) => {
@@ -37,7 +37,7 @@ export default async ({
     hasNewNotifications,
     isBlackListed,
     pseudonym: pseudonym || userName || 'pseudonym',
-    role: role || 'superAdmin',
+    role: role || 'admin',
     socialMediaUserName,
     userName: `@${userName}` || '@userName',
   };

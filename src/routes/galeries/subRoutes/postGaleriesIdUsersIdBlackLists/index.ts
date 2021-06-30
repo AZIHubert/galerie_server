@@ -86,7 +86,7 @@ export default async (req: Request, res: Response) => {
   }
 
   // Check if currentUser
-  // is the creator or an admin
+  // is the admin or an moderator
   // of this galerie.
   const userFromGalerie = galerie.users
     .find((u) => u.id === currentUser.id);
@@ -162,24 +162,24 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // The creator of this galerie can\'t be blackListed.
+  // The admin of this galerie can\'t be blackListed.
   const galerieFromUser = user.galeries
     .find((u) => u.id === galerieId);
-  if (!galerieFromUser || galerieFromUser.GalerieUser.role === 'creator') {
+  if (!galerieFromUser || galerieFromUser.GalerieUser.role === 'admin') {
     return res.status(400).send({
-      errors: 'the creator of this galerie can\'t be black listed',
+      errors: 'the admin of this galerie can\'t be black listed',
     });
   }
 
-  // Only the creator of this galerie
-  // is allow to blackList an admin
+  // Only the admin of this galerie
+  // is allow to blackList an moderator
   // of the galerie.
   if (
-    galerieFromUser.GalerieUser.role === 'admin'
-    && userFromGalerie.GalerieUser.role === 'admin'
+    galerieFromUser.GalerieUser.role === 'moderator'
+    && userFromGalerie.GalerieUser.role === 'moderator'
   ) {
     return res.status(400).send({
-      errors: 'you\re not allow to black list an admin',
+      errors: 'you\re not allow to black list an moderator',
     });
   }
 

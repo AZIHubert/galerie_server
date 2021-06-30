@@ -54,7 +54,7 @@ describe('/users', () => {
               password: createdPassword,
               user: createdUser,
             } = await createUser({
-              role: 'superAdmin',
+              role: 'admin',
             });
             password = createdPassword;
             user = createdUser;
@@ -80,8 +80,8 @@ describe('/users', () => {
         });
 
         describe('should return status 200 and', () => {
-          it('set role to \'admin\'', async () => {
-            const role = 'admin';
+          it('set role to \'moderator\'', async () => {
+            const role = 'moderator';
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
@@ -108,8 +108,8 @@ describe('/users', () => {
             expect(userId).toBe(userTwo.id);
             expect(userTwo.role).toBe(role);
           });
-          it('set role to \'superAdmin\'', async () => {
-            const role = 'superAdmin';
+          it('set role to \'admin\'', async () => {
+            const role = 'admin';
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
@@ -140,7 +140,7 @@ describe('/users', () => {
             const role = 'user';
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
-              role: 'admin',
+              role: 'moderator',
               userName: 'user2',
             });
             const {
@@ -179,7 +179,7 @@ describe('/users', () => {
             } = await putUsersIdRole(app, token, userTwo.id, {
               body: {
                 password,
-                role: 'admin',
+                role: 'moderator',
               },
             });
             const PUB_KEY = fs.readFileSync(path.join('./id_rsa_pub.notificationToken.pem'));
@@ -204,10 +204,10 @@ describe('/users', () => {
             expect(body.errors).toBe(INVALID_UUID('user'));
             expect(status).toBe(400);
           });
-          it('user.role === \'superAdmin\'', async () => {
+          it('user.role === \'admin\'', async () => {
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
-              role: 'superAdmin',
+              role: 'admin',
               userName: 'user2',
             });
             const {
@@ -219,7 +219,7 @@ describe('/users', () => {
                 role: 'user',
               },
             });
-            expect(body.errors).toBe('you cannot update the role of a superAdmin');
+            expect(body.errors).toBe('you cannot update the role of a admin');
             expect(status).toBe(400);
           });
           describe('req.body', () => {
@@ -245,7 +245,7 @@ describe('/users', () => {
                   status,
                 } = await putUsersIdRole(app, token, userTwo.id, {
                   body: {
-                    role: 'admin',
+                    role: 'moderator',
                   },
                 });
                 expect(body.errors).toEqual({
@@ -260,7 +260,7 @@ describe('/users', () => {
                 } = await putUsersIdRole(app, token, userTwo.id, {
                   body: {
                     password: 1234,
-                    role: 'admin',
+                    role: 'moderator',
                   },
                 });
                 expect(body.errors).toEqual({
@@ -275,7 +275,7 @@ describe('/users', () => {
                 } = await putUsersIdRole(app, token, userTwo.id, {
                   body: {
                     password: '',
-                    role: 'admin',
+                    role: 'moderator',
                   },
                 });
                 expect(body.errors).toEqual({
@@ -290,7 +290,7 @@ describe('/users', () => {
                 } = await putUsersIdRole(app, token, userTwo.id, {
                   body: {
                     password: `a${password}`,
-                    role: 'admin',
+                    role: 'moderator',
                   },
                 });
                 expect(body.errors).toEqual({
@@ -329,7 +329,7 @@ describe('/users', () => {
                 });
                 expect(status).toBe(400);
               });
-              it('is not \'admin\'/\'superAdmin\'/\'user\'', async () => {
+              it('is not \'admin\'/\'moderator\'/\'user\'', async () => {
                 const {
                   body,
                   status,
@@ -340,7 +340,7 @@ describe('/users', () => {
                   },
                 });
                 expect(body.errors).toEqual({
-                  role: 'role should be \'admin\', \'superAdmin\' or \'user\'',
+                  role: 'role should be \'admin\', \'moderator\' or \'user\'',
                 });
                 expect(status).toBe(400);
               });

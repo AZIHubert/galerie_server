@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import {
   shouldBeAuth,
-  shouldBeSuperAdmin,
+  shouldBeAdmin,
 } from '#src/helpers/middlewares';
 
 import {
@@ -21,16 +21,16 @@ import {
 const router = Router();
 
 const betaKeyRoutes: () => Router = () => {
-  router.delete('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, deleteBetaKeysId);
+  router.delete('/:betaKeyId', shouldBeAuth, shouldBeAdmin, deleteBetaKeysId);
 
-  router.get('/', shouldBeAuth, shouldBeSuperAdmin, getBetaKeys);
-  router.get('/email/:email', shouldBeAuth, shouldBeSuperAdmin, getBetaKeysEmailEmail);
-  router.get('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, getBetaKeysId);
+  router.get('/', shouldBeAuth, shouldBeAdmin, getBetaKeys);
+  router.get('/email/:email', shouldBeAuth, shouldBeAdmin, getBetaKeysEmailEmail);
+  router.get('/:betaKeyId', shouldBeAuth, shouldBeAdmin, getBetaKeysId);
 
-  router.post('/', shouldBeAuth, shouldBeSuperAdmin, postBetaKeys);
-  router.post('/:betaKeyId/send', shouldBeAuth, shouldBeSuperAdmin, postBetaKeysIdSend);
+  router.post('/', shouldBeAuth, shouldBeAdmin, postBetaKeys);
+  router.post('/:betaKeyId/send', shouldBeAuth, shouldBeAdmin, postBetaKeysIdSend);
 
-  router.put('/:betaKeyId', shouldBeAuth, shouldBeSuperAdmin, putBetaKeysId);
+  router.put('/:betaKeyId', shouldBeAuth, shouldBeAdmin, putBetaKeysId);
 
   return router;
 };

@@ -296,7 +296,7 @@ describe('/users', () => {
           it('user exist and is black listed', async () => {
             const facebookId = '1';
             const { user } = await createUser({
-              role: 'admin',
+              role: 'moderator',
             });
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',

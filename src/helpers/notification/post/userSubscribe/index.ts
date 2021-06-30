@@ -35,8 +35,8 @@ export default async ({
   userId: string;
 }) => {
   let galerieUser: GalerieUser | null;
-  let galerieUserCreator: GalerieUser | null;
   let galerieUserAdmin: GalerieUser | null;
+  let galerieUserModerator: GalerieUser | null;
   let notification: Notification | null;
 
   // Check if notificationToken.data.galerieId is a UUIDv4.
@@ -116,11 +116,11 @@ export default async ({
     } as Error;
   }
 
-  // Fetch galerieUser of the creator of the galerie.
+  // Fetch galerieUser of the admin of the galerie.
   try {
-    galerieUserCreator = await GalerieUser.findOne({
+    galerieUserAdmin = await GalerieUser.findOne({
       where: {
-        role: 'creator',
+        role: 'admin',
         galerieId,
       },
     });
@@ -132,17 +132,17 @@ export default async ({
     } as Error;
   }
 
-  // If the galerie have a creator.
-  if (galerieUserCreator && galerieUserCreator.allowNotification) {
-    let notificationCreator;
+  // If the galerie have a admin.
+  if (galerieUserAdmin && galerieUserAdmin.allowNotification) {
+    let notificationAdmin;
 
     // Fetch notification.
     try {
-      notificationCreator = await Notification.findOne({
+      notificationAdmin = await Notification.findOne({
         where: {
           galerieId,
           type: 'USER_SUBSCRIBE',
-          userId: galerieUserCreator.userId,
+          userId: galerieUserAdmin.userId,
           [Op.or]: [
             {
               seen: false,
@@ -167,26 +167,26 @@ export default async ({
     // If notification exist
     // increment notification.num
     // and set seen to true.
-    if (notificationCreator) {
+    if (notificationAdmin) {
       try {
         const newNotification = await Notification.create({
-          galerieId: notificationCreator.galerieId,
-          num: notificationCreator.num + 1,
-          type: notificationCreator.type,
-          userId: notificationCreator.userId,
+          galerieId: notificationAdmin.galerieId,
+          num: notificationAdmin.num + 1,
+          type: notificationAdmin.type,
+          userId: notificationAdmin.userId,
         });
         await NotificationUserSubscribe.create({
-          notificationId: notificationCreator.id,
+          notificationId: notificationAdmin.id,
           userId: subscribedUserId,
         });
         await NotificationUserSubscribe.update({
           notificationId: newNotification.id,
         }, {
           where: {
-            notificationId: notificationCreator.id,
+            notificationId: notificationAdmin.id,
           },
         });
-        await notificationCreator.destroy();
+        await notificationAdmin.destroy();
       } catch (err) {
         return {
           OK: false,
@@ -202,7 +202,7 @@ export default async ({
           galerieId,
           num: 1,
           type: 'USER_SUBSCRIBE',
-          userId: galerieUserCreator.userId,
+          userId: galerieUserAdmin.userId,
         });
         await NotificationUserSubscribe.create({
           notificationId,
@@ -223,7 +223,7 @@ export default async ({
         hasNewNotifications: true,
       }, {
         where: {
-          id: galerieUserCreator.userId,
+          id: galerieUserAdmin.userId,
         },
       });
     } catch (err) {
@@ -235,19 +235,19 @@ export default async ({
     }
 
     // Do not create two notification
-    // if the creator of the galerie
-    // and the creator of the invitation
+    // if the admin of the galerie
+    // and the admin of the invitation
     // are the same user.
-    if (galerieUserCreator.userId === userId) {
+    if (galerieUserAdmin.userId === userId) {
       return { OK: true } as Success;
     }
   }
 
   // Check if the creator of the invitation
   // is still subscribe to the galerie
-  // or is still the admin of the galerie.
+  // or is still the moderator of the galerie.
   try {
-    galerieUserAdmin = await GalerieUser.findOne({
+    galerieUserModerator = await GalerieUser.findOne({
       where: {
         galerieId,
         userId,
@@ -262,15 +262,15 @@ export default async ({
   }
 
   if (
-    !galerieUserAdmin
-    || galerieUserAdmin.role === 'user'
-    || !galerieUserAdmin.allowNotification
+    !galerieUserModerator
+    || galerieUserModerator.role === 'user'
+    || !galerieUserModerator.allowNotification
   ) {
     return { OK: true } as Success;
   }
 
   // Fetch notification of
-  // the admin who post the invitation.
+  // the moderator who post the invitation.
   try {
     notification = await Notification.findOne({
       where: {

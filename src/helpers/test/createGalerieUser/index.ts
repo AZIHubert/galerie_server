@@ -14,7 +14,7 @@ export default async ({
   galerieId: string;
   hasNewFrames?: boolean;
   notificationHasBeenSend?: boolean;
-  role?: 'admin' | 'creator' | 'user';
+  role?: 'admin' | 'moderator' | 'user';
   userId?: string;
 }) => {
   const galerieUser = await GalerieUser.create({

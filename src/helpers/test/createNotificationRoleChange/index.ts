@@ -6,7 +6,7 @@ export default async ({
   role,
   userId,
 }: {
-  role: 'admin' | 'superAdmin' | 'user';
+  role: 'admin' | 'moderator' | 'user';
   userId: string;
 }) => {
   const notification = await Notification.create({

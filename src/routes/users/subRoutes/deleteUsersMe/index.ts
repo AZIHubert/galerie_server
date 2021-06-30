@@ -220,7 +220,7 @@ export default async (req: Request, res: Response) => {
   // Galeries/GalerieUsers
   // .....................
   // Destroy all galerieUser related to this user.
-  // If user is the creator of the galerie
+  // If user is the admin of the galerie
   // and if it is the only one left on this galerie,
   // destroy this galerie.
   // Else, set this galerie as archived.
@@ -248,10 +248,10 @@ export default async (req: Request, res: Response) => {
           });
 
         // If there is still users subscribe to it
-        // and currentUser was the creator of this galerie.
+        // and currentUser was the admin of this galerie.
         // set galerie.archived to true
         // and destroy all invitations of this galerie.
-        } else if (galerieUser.role === 'creator') {
+        } else if (galerieUser.role === 'admin') {
           await Galerie.update({
             archived: true,
           }, {

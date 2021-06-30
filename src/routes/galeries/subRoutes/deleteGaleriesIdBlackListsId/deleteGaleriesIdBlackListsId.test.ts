@@ -47,7 +47,7 @@ describe('/galeries', () => {
               const {
                 user: createdUser,
               } = await createUser({
-                role: 'superAdmin',
+                role: 'admin',
               });
               user = createdUser;
               const jwt = signAuthToken(user);
@@ -112,7 +112,7 @@ describe('/galeries', () => {
               expect(returnedGalerieId).toBe(galerieId);
               expect(status).toBe(200);
             });
-            describe('current user\'s role for this galerie is \'admin\' but', () => {
+            describe('current user\'s role for this galerie is \'moderator\' but', () => {
               let userThree: User;
               let tokenThree: string;
 
@@ -125,7 +125,7 @@ describe('/galeries', () => {
                   userThree = createdUser;
                   await createGalerieUser({
                     galerieId,
-                    role: 'admin',
+                    role: 'moderator',
                     userId: userThree.id,
                   });
                   const jwt = signAuthToken(userThree);
@@ -136,7 +136,7 @@ describe('/galeries', () => {
                 done();
               });
 
-              it('current user\'s role for this galerie is \'admin\' but galerieBlackList.createdById === null', async () => {
+              it('current user\'s role for this galerie is \'moderator\' but galerieBlackList.createdById === null', async () => {
                 const { id: galerieBlackListId } = await createGalerieBlackList({
                   galerieId,
                   userId: userTwo.id,
@@ -171,14 +171,14 @@ describe('/galeries', () => {
                 expect(galerieBlackList).toBeNull();
                 expect(status).toBe(200);
               });
-              it('this galerieBlackList was posted by another admin', async () => {
+              it('this galerieBlackList was posted by another moderator', async () => {
                 const { user: userFour } = await createUser({
                   email: 'user4@email.com',
                   userName: 'user4',
                 });
                 await createGalerieUser({
                   galerieId,
-                  role: 'admin',
+                  role: 'moderator',
                   userId: userFour.id,
                 });
                 const { id: galerieBlackListId } = await createGalerieBlackList({
@@ -243,7 +243,7 @@ describe('/galeries', () => {
               expect(body.errors).toBe('you\'re not allow to delete a black list from this galerie');
               expect(status).toBe(400);
             });
-            it('current user\'s role for this galerie is \'admin\' and the galerieBlackList was post by the creator of this galerie', async () => {
+            it('current user\'s role for this galerie is \'moderator\' and the galerieBlackList was post by the admin of this galerie', async () => {
               const { user: userTwo } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
@@ -255,7 +255,7 @@ describe('/galeries', () => {
               const { token: tokenTwo } = signAuthToken(userTwo);
               await createGalerieUser({
                 galerieId,
-                role: 'admin',
+                role: 'moderator',
                 userId: userTwo.id,
               });
               const { id: galerieBlackListId } = await createGalerieBlackList({
@@ -267,7 +267,7 @@ describe('/galeries', () => {
                 body,
                 status,
               } = await deleteGaleriesIdBlackListsId(app, tokenTwo, galerieId, galerieBlackListId);
-              expect(body.errors).toBe('you\'re not allow to delete a black list posted by the creator of this galerie');
+              expect(body.errors).toBe('you\'re not allow to delete a black list posted by the admin of this galerie');
               expect(status).toBe(400);
             });
           });

@@ -70,7 +70,7 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Only creator or admin are allow to update galerie.
+  // Only admin or moderator are allow to update galerie.
   const userFromGalerie = galerie.users
     .find((user) => user.id === currentUser.id);
   if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'user') {

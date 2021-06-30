@@ -26,7 +26,7 @@ import {
 // and galerie.blackListsLimit !== null
 // check if user.galerieBlackLits.length <= galerie.blackListLimit
 // if true
-//  admins/creator need to validate his inscription
+//  admins/moderator need to validate his inscription
 // need to create model galerieRequest
 //  with fields
 //    galerieId
@@ -38,8 +38,8 @@ import {
 //    (get single request from this galerie)
 //  POST /galeries/:galerieId/request/:requestId
 //    (create GalerieUser for galerieRequest.userId and delete GalerieRequest)
-// an admin can accept the request or blackList the user
-// Only the creator can change this feature
+// an moderator can accept the request or blackList the user
+// Only the admin can change this feature
 
 const colors = [
   [
@@ -132,7 +132,7 @@ export default async (req: Request, res: Response) => {
     await GalerieUser.create({
       userId: currentUser.id,
       galerieId: galerie.id,
-      role: 'creator',
+      role: 'admin',
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -149,7 +149,7 @@ export default async (req: Request, res: Response) => {
     currentCoverPicture: null,
     frames: [],
     hasNewFrames: false,
-    role: 'creator',
+    role: 'admin',
     users: [],
   };
 

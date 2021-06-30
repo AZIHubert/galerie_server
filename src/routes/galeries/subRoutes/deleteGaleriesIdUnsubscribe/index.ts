@@ -62,11 +62,11 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // The creator of this galerie
+  // The admin of this galerie
   // cannot unsubscribe this one.
   const userFromGalerie = galerie.users
     .find((user) => user.id === currentUser.id);
-  if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'creator') {
+  if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'admin') {
     return res.status(400).send({
       errors: 'you cannot unsubscribe a galerie you\'ve created',
     });

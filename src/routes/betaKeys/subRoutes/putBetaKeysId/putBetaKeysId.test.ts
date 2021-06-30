@@ -46,7 +46,7 @@ describe('/betaKeys', () => {
           const {
             user: createdUser,
           } = await createUser({
-            role: 'superAdmin',
+            role: 'admin',
           });
           user = createdUser;
           const jwt = signAuthToken(user);
@@ -160,7 +160,7 @@ describe('/betaKeys', () => {
         it('betaKey was not created by this user', async () => {
           const { user: userTwo } = await createUser({
             email: 'user2@email.com',
-            role: 'superAdmin',
+            role: 'admin',
             userName: 'user2',
           });
           const { id: betaKeyId } = await createBetaKey({

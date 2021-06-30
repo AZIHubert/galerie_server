@@ -252,7 +252,7 @@ describe('/galeries', () => {
             });
             await createGalerieUser({
               galerieId,
-              role: 'admin',
+              role: 'moderator',
               userId: userTwo.id,
             });
             await createBlackList({

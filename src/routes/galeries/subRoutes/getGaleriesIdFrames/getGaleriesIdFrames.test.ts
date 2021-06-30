@@ -144,13 +144,13 @@ describe('/galeries', () => {
             } = await getGaleriesIdFrames(app, token, galerieId);
             expect(frames.length).toBe(0);
           });
-          it('return frame if currentUser is not subscribe to this galerie currentUser.role === \'admin\' or \'superAdmin\'', async () => {
-            const { user: admin } = await createUser({
-              email: 'admin@email.com',
-              role: 'admin',
-              userName: 'admin',
+          it('return frame if currentUser is not subscribe to this galerie currentUser.role === \'admin\' or \'moderator\'', async () => {
+            const { user: moderator } = await createUser({
+              email: 'moderator@email.com',
+              role: 'moderator',
+              userName: 'moderator',
             });
-            const { token: tokenTwo } = signAuthToken(admin);
+            const { token: tokenTwo } = signAuthToken(moderator);
             await createFrame({
               galerieId,
               userId: user.id,

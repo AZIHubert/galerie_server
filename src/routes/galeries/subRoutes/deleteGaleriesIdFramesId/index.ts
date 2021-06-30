@@ -128,9 +128,9 @@ export default async (req: Request, res: Response) => {
           || userFromGalerie.GalerieUser.role === 'user'
         ) || (
           // If the user who have posted this frame
-          // is the creator of the galerie.
+          // is the admin of the galerie.
           galerieUser
-          && galerieUser.role === 'creator'
+          && galerieUser.role === 'admin'
         )
       )
     )

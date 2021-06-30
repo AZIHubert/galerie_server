@@ -193,14 +193,14 @@ describe('/galeries', () => {
                 expect(galerieUserTwo).not.toBeNull();
                 expect(galerieUserThree).not.toBeNull();
               });
-              it('blackList an admin of this galerie if current user is the creator of this galerie', async () => {
+              it('blackList an moderator of this galerie if current user is the admin of this galerie', async () => {
                 const { user: userThree } = await createUser({
                   email: 'user3@email.com',
                   userName: 'user3',
                 });
                 await createGalerieUser({
                   galerieId,
-                  role: 'admin',
+                  role: 'moderator',
                   userId: userThree.id,
                 });
                 const {
@@ -888,14 +888,14 @@ describe('/galeries', () => {
                 expect(body.errors).toBe('you\'re not allow to black list a user from this galerie');
                 expect(status).toBe(400);
               });
-              it('user is the creator of this galerie', async () => {
+              it('user is the admin of this galerie', async () => {
                 const { user: userTwo } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
                 });
                 await createGalerieUser({
                   galerieId,
-                  role: 'admin',
+                  role: 'moderator',
                   userId: userTwo.id,
                 });
                 const { token: tokenTwo } = signAuthToken(userTwo);
@@ -903,10 +903,10 @@ describe('/galeries', () => {
                   body,
                   status,
                 } = await postGaleriesIdUserUserIdBlackLists(app, tokenTwo, galerieId, user.id);
-                expect(body.errors).toBe('the creator of this galerie can\'t be black listed');
+                expect(body.errors).toBe('the admin of this galerie can\'t be black listed');
                 expect(status).toBe(400);
               });
-              it('user and currentUser role for this galerie is \'admin\'', async () => {
+              it('user and currentUser role for this galerie is \'moderator\'', async () => {
                 const { user: userTwo } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
@@ -917,12 +917,12 @@ describe('/galeries', () => {
                 });
                 await createGalerieUser({
                   galerieId,
-                  role: 'admin',
+                  role: 'moderator',
                   userId: userTwo.id,
                 });
                 await createGalerieUser({
                   galerieId,
-                  role: 'admin',
+                  role: 'moderator',
                   userId: userThree.id,
                 });
                 const { token: tokenTwo } = signAuthToken(userTwo);
@@ -935,7 +935,7 @@ describe('/galeries', () => {
                   galerieId,
                   userThree.id,
                 );
-                expect(body.errors).toBe('you\re not allow to black list an admin');
+                expect(body.errors).toBe('you\re not allow to black list an moderator');
                 expect(status).toBe(400);
               });
               it('user is already blackListed', async () => {

@@ -54,7 +54,7 @@ describe('/users', () => {
             const {
               user: createdUser,
             } = await createUser({
-              role: 'superAdmin',
+              role: 'admin',
             });
             user = createdUser;
             const jwt = signAuthToken(user);
@@ -179,12 +179,12 @@ describe('/users', () => {
             await userTwo.reload();
             expect(userTwo.isBlackListed).toBe(true);
           });
-          it('black list an admin if current user role is superAdmin', async () => {
+          it('black list an moderator if current user role is admin', async () => {
             const {
               user: userThree,
             } = await createUser({
               email: 'user3@email.com',
-              role: 'admin',
+              role: 'moderator',
               userName: 'user3',
             });
             const {
@@ -214,30 +214,30 @@ describe('/users', () => {
             expect(body.errors).toBe('you can\'t put your own account on the black list');
             expect(status).toBe(400);
           });
-          it('user.role === \'superAdmin\'', async () => {
+          it('user.role === \'admin\'', async () => {
             const { user: userTwo } = await createUser({
               email: 'user2@email.com',
-              role: 'superAdmin',
+              role: 'admin',
               userName: 'user2',
             });
             const {
               body,
               status,
             } = await postUsersIdBlackLists(app, token, userTwo.id);
-            expect(body.errors).toBe('you can\'t black list a super admin');
+            expect(body.errors).toBe('you can\'t black list a admin');
             expect(status).toBe(400);
           });
-          it('current user.role === \'admin\' and user.role === \'admin\'', async () => {
+          it('current user.role === \'moderator\' and user.role === \'moderator\'', async () => {
             const {
               user: userTwo,
             } = await createUser({
               email: 'user2@email.com',
-              role: 'admin',
+              role: 'moderator',
               userName: 'user2',
             });
             const { user: userThree } = await createUser({
               email: 'user3@email.com',
-              role: 'admin',
+              role: 'moderator',
               userName: 'user3',
             });
             const { token: tokenTwo } = signAuthToken(userTwo);
@@ -245,7 +245,7 @@ describe('/users', () => {
               body,
               status,
             } = await postUsersIdBlackLists(app, tokenTwo, userThree.id);
-            expect(body.errors).toBe('you can\'t black list an admin');
+            expect(body.errors).toBe('you can\'t black list an moderator');
             expect(status).toBe(400);
           });
           describe('reason', () => {

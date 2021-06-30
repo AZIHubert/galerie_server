@@ -56,8 +56,8 @@ export const NOTIFICATION_ALREADY_SEND = (
   'subscription',
 ) => `notifications already send for this ${type}`;
 export const TOKEN_NOT_FOUND = 'token not found';
-export const USER_SHOULD_BE_A_SUPER_ADMIN = 'you need to be a super admin';
 export const USER_SHOULD_BE_AN_ADMIN = 'you need to be an admin';
+export const USER_SHOULD_BE_A_MODERATOR = 'you need to be a moderator';
 export const USER_SHOULD_BE_AUTHENTICATED = 'not authenticated';
 export const USER_SHOULD_BE_CONFIRMED = 'You\'re account need to be confimed';
 export const USER_SHOULD_NOT_BE_AUTHENTICATED = 'you are already authenticated';
