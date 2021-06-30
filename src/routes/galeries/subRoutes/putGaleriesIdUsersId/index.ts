@@ -15,6 +15,7 @@ import {
   INVALID_UUID,
   MODEL_NOT_FOUND,
 } from '#src/helpers/errorMessages';
+import { signNotificationToken } from '#src/helpers/issueJWT';
 import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
@@ -25,6 +26,7 @@ export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   let galerie: Galerie | null;
   let galerieUser: GalerieUser | null;
+  let notificationToken;
 
   // Check if request.params.galerieId
   // is a UUID v4.
@@ -130,10 +132,20 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  if (galerieUser.role !== 'user') {
+    const signToken = signNotificationToken('GALERIE_ROLE_CHANGE', {
+      galerieId,
+      role: galerieUser.role,
+      userId,
+    });
+    notificationToken = signToken.token;
+  }
+
   return res.status(200).send({
     action: 'PUT',
     data: {
       galerieId,
+      notificationToken,
       role: galerieUser.role,
       userId,
     },

@@ -39,8 +39,14 @@ initSequelize(() => {
 // Demain, absolument finir tout ca, pas de dodo avant.
 // Quand tout ca sera fini, on passe aux apps!!!!!!!
 // TODO:
-// when delete a galerie
-// Check that notification where type === 'GALERIE_ROLE_CHANGE' are destroy.
+// DELETE /frames/:frameId/
+// GET /frames/
+// GET /frames/:frameId/
+// GET /frames/:frameId/likes/
+// POST /frames/:frameId/likes/
+// POST /frames/:frameId/reports/
+// PUT /frames/:frameId/
+// PUT /frames/:frameId/galeriesPictures/:galeriePicturesId/
 // TODO:
 // deleted galerie.archived
 // TODO:
@@ -50,6 +56,3 @@ initSequelize(() => {
 // if true, pick a random one to be the new admin of this galerie.
 // else, pick a random user to be the new admin of this galerie
 // Send a notification to this user.
-// TODO:
-// GET /frames/
-// GET /frames/:frameId/
