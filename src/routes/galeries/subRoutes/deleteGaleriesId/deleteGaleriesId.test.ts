@@ -38,6 +38,7 @@ import {
   createLike,
   createNotificationFrameLiked,
   createNotificationFramePosted,
+  createNotificationGalerieRoleChange,
   createNotificationUserSubscribe,
   createReport,
   createUser,
@@ -326,6 +327,30 @@ describe('/galeries', () => {
           await createNotificationFramePosted({
             frameId,
             galerieId,
+            userId: user.id,
+          });
+          await deleteGaleriesId(app, token, galerieId, {
+            body: {
+              name,
+              password,
+            },
+          });
+          const notificationFramePosted = await NotificationFramePosted.findAll();
+          expect(notificationFramePosted.length).toBe(0);
+        });
+        it('destroy all Notifications where type === \'GALERIE_ROLE_CHANGE\' && galerieId === request.params.id', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          await createGalerieUser({
+            galerieId,
+            role: 'moderator',
+            userId: userTwo.id,
+          });
+          await createNotificationGalerieRoleChange({
+            galerieId,
+            role: 'moderator',
             userId: user.id,
           });
           await deleteGaleriesId(app, token, galerieId, {
