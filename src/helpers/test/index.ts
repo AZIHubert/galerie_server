@@ -100,6 +100,7 @@ export { default as putGaleriesIdFramesIdGaleriePicturesId } from './putGaleries
 export { default as putGaleriesIdUsersId } from './putGaleriesIdUsersId';
 export { default as putNotificationsId } from './putNotificationsId';
 export { default as putProfilePicturesId } from './putProfilePicturesId';
+export { default as putReportsId } from './putReportsId';
 export { default as putUsersConfirmation } from './putUsersConfirmation';
 export { default as putUsersIdBlackListsId } from './putUsersIdBlackListsId';
 export { default as putUsersIdRole } from './putUsersIdRole';

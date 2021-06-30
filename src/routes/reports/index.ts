@@ -8,6 +8,8 @@ import {
 import {
   getReports,
   getReportsId,
+
+  putReportsId,
 } from './subRoutes';
 
 const router = Router();
@@ -16,7 +18,7 @@ const reportsRoutes: () => Router = () => {
   router.get('/', shouldBeAuth, shouldBeAdmin, getReports);
   router.get('/:reportId/', shouldBeAuth, shouldBeAdmin, getReportsId);
 
-  router.put('/:reportId/', shouldBeAuth, shouldBeAdmin, () => {});
+  router.put('/:reportId/', shouldBeAuth, shouldBeAdmin, putReportsId);
 
   return router;
 };
