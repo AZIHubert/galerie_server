@@ -341,27 +341,6 @@ describe('/galeries', () => {
           expect(body.errors).toBe('you are already subscribe to this galerie');
           expect(status).toBe(400);
         });
-        it('galerie is archived', async () => {
-          const galerieTwo = await createGalerie({
-            archived: true,
-            name: 'galerie2',
-            userId: userTwo.id,
-          });
-          const { code } = await createInvitation({
-            galerieId: galerieTwo.id,
-            userId: userTwo.id,
-          });
-          const {
-            body,
-            status,
-          } = await postGaleriesSubscribe(app, token, {
-            body: {
-              code,
-            },
-          });
-          expect(body.errors).toBe('this invitation is not valid');
-          expect(status).toBe(400);
-        });
         describe('code', () => {
           it('is not a send', async () => {
             const {

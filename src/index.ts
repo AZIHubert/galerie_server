@@ -39,8 +39,6 @@ initSequelize(() => {
 // Demain, absolument finir tout ca, pas de dodo avant.
 // Quand tout ca sera fini, on passe aux apps!!!!!!!
 // TODO:
-// deleted galerie.archived
-// TODO:
 // if a user where galerieUser.role === 'admin' delete his account
 // and this galerie still have users.
 // Check if at least one moderator exist.

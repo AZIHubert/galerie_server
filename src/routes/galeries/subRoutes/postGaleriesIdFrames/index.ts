@@ -103,13 +103,6 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if galerie is not archived.
-  if (galerie.archived) {
-    return res.status(400).send({
-      errors: 'you cannot post on an archived galerie',
-    });
-  }
-
   // Check if at least one file is send.
   if (!convertToArray().length) {
     return res.status(400).send({

@@ -402,105 +402,6 @@ describe('/users', () => {
           expect(galerieUsers.length).toBe(0);
           expect(status).toBe(200);
         });
-        it('destoy all invitations from the galerie even posted by other user if the creator was the last user subscribe to it', async () => {
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          const { id: galerieId } = await createGalerie({
-            userId: user.id,
-          });
-          await createGalerieUser({
-            galerieId,
-            role: 'moderator',
-            userId: userTwo.id,
-          });
-          await createInvitation({
-            galerieId,
-            userId: user.id,
-          });
-          await createInvitation({
-            galerieId,
-            userId: userTwo.id,
-          });
-          const {
-            status,
-          } = await deleteUsersMe(app, token, {
-            body: {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: user.email,
-            },
-          });
-          const invitations = await Invitation.findAll();
-          expect(invitations.length).toBe(0);
-          expect(status).toBe(200);
-        });
-        it('set galerie.archived === true if he was the creator of this galerie and it was still other users subscribe to it', async () => {
-          const galerie = await createGalerie({
-            userId: user.id,
-          });
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          await createGalerieUser({
-            galerieId: galerie.id,
-            userId: userTwo.id,
-          });
-          const {
-            status,
-          } = await deleteUsersMe(app, token, {
-            body: {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: user.email,
-            },
-          });
-          const galerieUser = await GalerieUser.findOne({
-            where: {
-              galerieId: galerie.id,
-              userId: userTwo.id,
-            },
-          });
-          await galerie.reload();
-          expect(galerie.archived).toBe(true);
-          expect(galerieUser).not.toBeNull();
-          expect(status).toBe(200);
-        });
-        it('destroy all invitation to the galeries where user was the creator and there is still users subscribe to it', async () => {
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2',
-          });
-          const { id: galerieId } = await createGalerie({
-            userId: user.id,
-          });
-          await createGalerieUser({
-            galerieId,
-            userId: userTwo.id,
-          });
-          await createInvitation({
-            galerieId,
-            userId: user.id,
-          });
-          await createInvitation({
-            galerieId,
-            userId: userTwo.id,
-          });
-          const {
-            status,
-          } = await deleteUsersMe(app, token, {
-            body: {
-              deleteAccountSentence: 'delete my account',
-              password,
-              userNameOrEmail: user.email,
-            },
-          });
-          const invitations = await Invitation.findAll();
-          expect(invitations.length).toBe(0);
-          expect(status).toBe(200);
-        });
         it('destroy all invitations posted by the currentUser', async () => {
           const { user: userTwo } = await createUser({
             email: 'user2@email.com',
@@ -1188,27 +1089,6 @@ describe('/users', () => {
             });
             const galerie = await Galerie.findByPk(galerieId);
             expect(galerie).not.toBeNull();
-            expect(status).toBe(200);
-          });
-          it('set galerie.archived === true if he wasn\'t the creator og this galerie and it was still other users subscribe to it', async () => {
-            const galerie = await createGalerie({
-              userId: userTwo.id,
-            });
-            await createGalerieUser({
-              galerieId: galerie.id,
-              userId: user.id,
-            });
-            const {
-              status,
-            } = await deleteUsersMe(app, token, {
-              body: {
-                deleteAccountSentence: 'delete my account',
-                password,
-                userNameOrEmail: user.email,
-              },
-            });
-            await galerie.reload();
-            expect(galerie.archived).toBe(false);
             expect(status).toBe(200);
           });
           it('destroy invitation posted by other users', async () => {

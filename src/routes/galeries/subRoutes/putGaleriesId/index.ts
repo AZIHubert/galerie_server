@@ -63,13 +63,6 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Archived galerie can't by updated.
-  if (galerie.archived) {
-    return res.status(400).send({
-      errors: 'you cannot update an archived galerie',
-    });
-  }
-
   // Only admin or moderator are allow to update galerie.
   const userFromGalerie = galerie.users
     .find((user) => user.id === currentUser.id);

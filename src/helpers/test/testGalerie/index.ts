@@ -8,7 +8,6 @@ export default (
   expect(galerie.role).not.toBeUndefined();
   expect(galerie.updatedAt).toBeUndefined();
   if (refGalerie) {
-    expect(galerie.archived).toBe(refGalerie.archived);
     expect(new Date(galerie.createdAt)).toEqual(new Date(refGalerie.createdAt));
     expect(galerie.defaultCoverPicture).toBe(refGalerie.defaultCoverPicture);
     expect(galerie.description).toBe(refGalerie.description);
@@ -18,7 +17,6 @@ export default (
     expect(galerie.name).toBe(refGalerie.name);
     expect(galerie.users.length).toBe(0);
   } else {
-    expect(galerie.archived).not.toBeUndefined();
     expect(galerie.createdAt).not.toBeUndefined();
     expect(galerie.defaultCoverPicture).not.toBeUndefined();
     expect(galerie.description).not.toBeUndefined();

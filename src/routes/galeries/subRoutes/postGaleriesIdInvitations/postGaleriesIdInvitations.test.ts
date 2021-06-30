@@ -180,19 +180,6 @@ describe('/galeries', () => {
             expect(body.errors).toBe('you\'re not allow to create an invitation');
             expect(status).toBe(400);
           });
-          it('galerie is archived', async () => {
-            const galerieTwo = await createGalerie({
-              archived: true,
-              name: 'galerie2',
-              userId: user.id,
-            });
-            const {
-              body,
-              status,
-            } = await postGaleriesIdInvitations(app, token, galerieTwo.id);
-            expect(body.errors).toBe('you cannot post invitation on an archived galerie');
-            expect(status).toBe(400);
-          });
           describe('numOfInvits', () => {
             it('is not a number', async () => {
               const {
