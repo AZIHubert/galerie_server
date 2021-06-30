@@ -111,22 +111,6 @@ describe('/galeries', () => {
             },
           } = await getFrames(app, token);
           expect(frames.length).toBe(1);
-        });
-        it('return frames with relevent attributes', async () => {
-          const { id: galerieId } = await createGalerie({
-            userId: user.id,
-          });
-          await createFrame({
-            galerieId,
-            userId: user.id,
-          });
-          const {
-            body: {
-              data: {
-                frames,
-              },
-            },
-          } = await getFrames(app, token);
           expect(frames[0].user.hasNewNotifications).toBeUndefined();
           testFrame(frames[0]);
           testUser(frames[0].user);

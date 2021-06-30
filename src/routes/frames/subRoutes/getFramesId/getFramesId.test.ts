@@ -27,7 +27,7 @@ import {
   createLike,
   createReport,
   createUser,
-  getGaleriesIdFramesId,
+  getFramesId,
   testFrame,
   testUser,
 } from '#src/helpers/test';
@@ -63,9 +63,7 @@ describe('/galeries', () => {
               await sequelize.sync({ force: true });
               const {
                 user: createdUser,
-              } = await createUser({
-                role: 'admin',
-              });
+              } = await createUser({});
               user = createdUser;
               const jwt = signAuthToken(user);
               token = jwt.token;
@@ -108,7 +106,7 @@ describe('/galeries', () => {
                   },
                 },
                 status,
-              } = await getGaleriesIdFramesId(app, token, galerieId, frame.id);
+              } = await getFramesId(app, token, frame.id);
               expect(action).toBe('GET');
               expect(returnedGalerieId).toBe(galerieId);
               expect(status).toBe(200);
@@ -129,7 +127,7 @@ describe('/galeries', () => {
               });
               const {
                 status,
-              } = await getGaleriesIdFramesId(app, tokenTwo, galerieId, frameId);
+              } = await getFramesId(app, tokenTwo, frameId);
               expect(status).toBe(200);
             });
             it('return liked === false if user don\'t have liked this frame', async () => {
@@ -143,7 +141,7 @@ describe('/galeries', () => {
                     frame: returnedFrame,
                   },
                 },
-              } = await getGaleriesIdFramesId(app, token, galerieId, frame.id);
+              } = await getFramesId(app, token, frame.id);
               expect(returnedFrame.liked).toBe(false);
             });
             it('return liked === true if user have liked this frame', async () => {
@@ -161,7 +159,7 @@ describe('/galeries', () => {
                     frame: returnedFrame,
                   },
                 },
-              } = await getGaleriesIdFramesId(app, token, galerieId, frame.id);
+              } = await getFramesId(app, token, frame.id);
               expect(returnedFrame.liked).toBe(true);
             });
             it('return liked === false if another user have liked this frame', async () => {
@@ -187,7 +185,7 @@ describe('/galeries', () => {
                     frame: returnedFrame,
                   },
                 },
-              } = await getGaleriesIdFramesId(app, token, galerieId, frame.id);
+              } = await getFramesId(app, token, frame.id);
               expect(returnedFrame.liked).toBe(false);
             });
             it('return with reported === true if user have reported a frame', async () => {
@@ -201,7 +199,7 @@ describe('/galeries', () => {
                     frame,
                   },
                 },
-              } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
+              } = await getFramesId(app, token, frameId);
               expect(frame.reported).toBe(false);
             });
             it('return with reported === false if user do not have reported a frame', async () => {
@@ -219,7 +217,7 @@ describe('/galeries', () => {
                     frame,
                   },
                 },
-              } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
+              } = await getFramesId(app, token, frameId);
               expect(frame.reported).toBe(true);
             });
             it('return with reported === false if anotheer user have reported a frame', async () => {
@@ -241,7 +239,7 @@ describe('/galeries', () => {
                     frame,
                   },
                 },
-              } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
+              } = await getFramesId(app, token, frameId);
               expect(frame.reported).toBe(false);
             });
             it('return frame.user.isBlackListed === true if he\'s black listed', async () => {
@@ -273,7 +271,7 @@ describe('/galeries', () => {
                     },
                   },
                 },
-              } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
+              } = await getFramesId(app, token, frameId);
               expect(isBlackListed).toBe(true);
             });
             it('return frame.user.isBlackListed === false if his blackList is expired', async () => {
@@ -310,75 +308,48 @@ describe('/galeries', () => {
                     },
                   },
                 },
-              } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
+              } = await getFramesId(app, token, frameId);
               await userTwo.reload();
               expect(isBlackListed).toBe(false);
               expect(userTwo.isBlackListed).toBe(false);
             });
           });
           describe('should return status 400 if', () => {
-            it('request.params.galerieId is not a UUID v4', async () => {
-              const {
-                body,
-                status,
-              } = await getGaleriesIdFramesId(app, token, '100', uuidv4());
-              expect(body.errors).toBe(INVALID_UUID('galerie'));
-              expect(status).toBe(400);
-            });
             it('request.params.frameId is not a UUID v4', async () => {
               const {
                 body,
                 status,
-              } = await getGaleriesIdFramesId(app, token, uuidv4(), '100');
+              } = await getFramesId(app, token, '100');
               expect(body.errors).toBe(INVALID_UUID('frame'));
               expect(status).toBe(400);
             });
           });
           describe('should return status 404 if', () => {
-            it('galerie not found', async () => {
-              const {
-                body,
-                status,
-              } = await getGaleriesIdFramesId(app, token, uuidv4(), uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
-              expect(status).toBe(404);
-            });
             it('frame not found', async () => {
               const {
                 body,
                 status,
-              } = await getGaleriesIdFramesId(app, token, galerieId, uuidv4());
+              } = await getFramesId(app, token, uuidv4());
               expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
               expect(status).toBe(404);
             });
-            it('galerie exist but user is not subscribe to it and currentUser.role === \'user\'', async () => {
-              const {
-                user: userTwo,
-              } = await createUser({
+            it('frame exist but user is not subscribe to the galerie where it is posted', async () => {
+              const { user: userTwo } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
               });
-              const { token: tokenTwo } = signAuthToken(userTwo);
-              const {
-                body,
-                status,
-              } = await getGaleriesIdFramesId(app, tokenTwo, uuidv4(), uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
-              expect(status).toBe(404);
-            });
-            it('frame with :frameId does not belong to galerie with :galerieId', async () => {
               const galerie = await createGalerie({
                 name: 'galerie2',
-                userId: user.id,
+                userId: userTwo.id,
               });
               const { id: frameId } = await createFrame({
                 galerieId: galerie.id,
-                userId: user.id,
+                userId: userTwo.id,
               });
               const {
                 body,
                 status,
-              } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
+              } = await getFramesId(app, token, frameId);
               expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
               expect(status).toBe(404);
             });
@@ -390,7 +361,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
+              } = await getFramesId(app, token, frameId);
               const frame = await Frame.findByPk(frameId);
               expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
               expect(frame).toBeNull();
@@ -407,7 +378,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await getGaleriesIdFramesId(app, token, galerieId, createdFrame.id);
+              } = await getFramesId(app, token, createdFrame.id);
               const frame = await Frame.findByPk(createdFrame.id);
               const galeriePictures = await GaleriePicture.findAll({
                 where: {

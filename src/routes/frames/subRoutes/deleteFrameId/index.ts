@@ -67,6 +67,7 @@ export default async (req: Request, res: Response) => {
               },
             },
           ],
+          required: true,
           model: Galerie,
         },
       ],

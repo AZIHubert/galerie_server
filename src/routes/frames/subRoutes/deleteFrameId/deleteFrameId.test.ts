@@ -388,6 +388,25 @@ describe('/galeries', () => {
               expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
               expect(status).toBe(404);
             });
+            it('frame exist but currentUser is not susbcribe to the galerie it was posted', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              const galerieTwo = await createGalerie({
+                userId: userTwo.id,
+              });
+              const { id: frameId } = await createFrame({
+                galerieId: galerieTwo.id,
+                userId: userTwo.id,
+              });
+              const {
+                body,
+                status,
+              } = await deleteFramesId(app, token, frameId);
+              expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
+              expect(status).toBe(404);
+            });
           });
         });
       });

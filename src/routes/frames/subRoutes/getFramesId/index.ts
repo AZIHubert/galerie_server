@@ -20,9 +20,9 @@ import {
   MODEL_NOT_FOUND,
 } from '#src/helpers/errorMessages';
 import {
+  userExcluder,
   frameExcluder,
   galeriePictureExcluder,
-  userExcluder,
 } from '#src/helpers/excluders';
 import {
   fetchFrame,
@@ -33,22 +33,14 @@ import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 export default async (req: Request, res: Response) => {
   const {
     frameId,
-    galerieId,
   } = req.params;
   const currentUser = req.user as User;
   const where: {
     id?: string
   } = {};
-  let galerie: Galerie | null;
+  let frame: Frame | null;
   let returnedFrame;
 
-  // Check if request.params.galerieId
-  // is a UUID v4.
-  if (!uuidValidatev4(galerieId)) {
-    return res.status(400).send({
-      errors: INVALID_UUID('galerie'),
-    });
-  }
   // Check if request.params.frameId
   // is a UUID v4.
   if (!uuidValidatev4(frameId)) {
@@ -63,65 +55,64 @@ export default async (req: Request, res: Response) => {
 
   // Fetch galerie.
   try {
-    galerie = await Galerie.findByPk(galerieId, {
+    frame = await Frame.findByPk(frameId, {
+      attributes: {
+        exclude: frameExcluder,
+      },
       include: [
         {
           attributes: {
-            exclude: frameExcluder,
+            exclude: galeriePictureExcluder,
           },
           include: [
             {
-              attributes: {
-                exclude: galeriePictureExcluder,
-              },
-              include: [
-                {
-                  all: true,
-                },
-              ],
-              model: GaleriePicture,
-            },
-            {
-              limit: 1,
-              model: Like,
-              required: false,
-              where: {
-                userId: currentUser.id,
-              },
-            },
-            {
-              include: [
-                {
-                  model: User,
-                  required: false,
-                  where: {
-                    id: currentUser.id,
-                  },
-                },
-              ],
-              model: Report,
-            },
-            {
-              as: 'user',
-              attributes: {
-                exclude: [
-                  ...userExcluder,
-                  'hasNewNotifications',
-                ],
-              },
-              model: User,
+              all: true,
             },
           ],
+          model: GaleriePicture,
+        },
+        {
+          model: Like,
           limit: 1,
-          model: Frame,
           required: false,
           where: {
-            id: frameId,
+            userId: currentUser.id,
           },
         },
         {
+          include: [
+            {
+
+              model: User,
+              required: false,
+              where: {
+                id: currentUser.id,
+              },
+            },
+          ],
+          model: Report,
+        },
+        {
+          include: [
+            {
+              model: User,
+              required: currentUser.role === 'user',
+              where: {
+                id: currentUser.id,
+              },
+            },
+          ],
+          required: true,
+          model: Galerie,
+        },
+        {
+          attributes: {
+            exclude: [
+              ...userExcluder,
+              'hasNewNotifications',
+            ],
+          },
           model: User,
-          where,
         },
       ],
     });
@@ -129,39 +120,33 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Check if galerie exist.
-  if (!galerie) {
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('galerie'),
-    });
-  }
-
   // Check if frame exist.
-  if (!galerie.frames[0]) {
+  if (!frame) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('frame'),
     });
   }
 
   try {
-    const normalizedFrame = await fetchFrame(galerie.frames[0]);
+    const normalizedFrame = await fetchFrame(frame);
 
     if (normalizedFrame) {
-      const isBlackListed = await checkBlackList(galerie.frames[0].user);
+      const isBlackListed = await checkBlackList(frame.user);
       returnedFrame = {
         ...normalizedFrame,
-        liked: !!galerie.frames[0].likes.length,
+        galerie: undefined,
+        liked: !!frame.likes.length,
         likes: undefined,
         report: undefined,
-        reported: !!(galerie.frames[0].report && galerie.frames[0].report.users.length),
+        reported: !!(frame.report && frame.report.users.length),
         user: {
-          ...galerie.frames[0].user.toJSON(),
+          ...frame.user.toJSON(),
           isBlackListed,
           currentProfilePicture: null,
         },
       };
     } else {
-      await galerie.frames[0].destroy();
+      await frame.destroy();
       return res.status(404).send({
         errors: MODEL_NOT_FOUND('frame'),
       });
@@ -174,7 +159,7 @@ export default async (req: Request, res: Response) => {
     action: 'GET',
     data: {
       frame: returnedFrame,
-      galerieId,
+      galerieId: frame.galerie.id,
     },
   });
 };

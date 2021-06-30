@@ -15,7 +15,7 @@ export default async (
       .set('authorization', token);
   } else {
     response = await request(app)
-      .get('/galeries/frames/')
+      .get('/frames/')
       .set('authorization', token);
   }
   return response;

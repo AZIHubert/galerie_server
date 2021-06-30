@@ -2,3 +2,4 @@
 export { default as deleteFrameId } from './deleteFrameId';
 
 export { default as getFrames } from './getFrames';
+export { default as getFramesId } from './getFramesId';
