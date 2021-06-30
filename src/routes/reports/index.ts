@@ -7,13 +7,14 @@ import {
 
 import {
   getReports,
+  getReportsId,
 } from './subRoutes';
 
 const router = Router();
 
 const reportsRoutes: () => Router = () => {
   router.get('/', shouldBeAuth, shouldBeAdmin, getReports);
-  router.get('/:reportId/', shouldBeAuth, shouldBeAdmin, () => {});
+  router.get('/:reportId/', shouldBeAuth, shouldBeAdmin, getReportsId);
 
   router.put('/:reportId/', shouldBeAuth, shouldBeAdmin, () => {});
 

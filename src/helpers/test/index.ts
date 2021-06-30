@@ -53,6 +53,7 @@ export { default as getNotificationsId } from './getNotificationsId';
 export { default as getProfilePictures } from './getProfilePictures';
 export { default as getProfilePicturesId } from './getProfilePicturesId';
 export { default as getReports } from './getReports';
+export { default as getReportsId } from './getReportsId';
 export { default as getTickets } from './getTickets';
 export { default as getTicketsId } from './getTicketsId';
 export { default as getUsers } from './getUsers';
