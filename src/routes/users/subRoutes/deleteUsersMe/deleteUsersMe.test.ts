@@ -19,6 +19,7 @@ import {
   NotificationFrameLiked,
   NotificationFramePosted,
   ProfilePicture,
+  Report,
   ReportUser,
   User,
 } from '#src/db/models';
@@ -916,7 +917,27 @@ describe('/users', () => {
           expect(notification.num).toBe(1);
           expect(notificationFrameLiked).toBeNull();
         });
-        it('destroy reportUsers', async () => {
+        it('destroy report where report.profilePictureId was posted by currentUser', async () => {
+          const { id: profilePictureId } = await createProfilePicture({
+            userId: user.id,
+          });
+          const { id: reportId } = await createReport({
+            profilePictureId,
+          });
+          const {
+            status,
+          } = await deleteUsersMe(app, token, {
+            body: {
+              deleteAccountSentence: 'delete my account',
+              password,
+              userNameOrEmail: user.email,
+            },
+          });
+          const report = await Report.findByPk(reportId);
+          expect(report).toBeNull();
+          expect(status).toBe(200);
+        });
+        it('destroy reportUsers where', async () => {
           const { id: galerieId } = await createGalerie({
             userId: user.id,
           });
