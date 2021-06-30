@@ -39,8 +39,6 @@ initSequelize(() => {
 // Demain, absolument finir tout ca, pas de dodo avant.
 // Quand tout ca sera fini, on passe aux apps!!!!!!!
 // TODO:
-// GET /reposts/ (query classed: 'true' | 'false' | undefined (all))
-// TODO:
 // GET /reposts/:id
 // TODO:
 // PUT /reposts/:id (classed => true)

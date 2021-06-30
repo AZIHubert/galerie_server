@@ -7,5 +7,6 @@ export { default as galeriePictureExcluder } from './galeriePictureExcluder';
 export { default as imageExcluder } from './imageExcluder';
 export { default as invitationExcluder } from './invitationExcluder';
 export { default as profilePictureExcluder } from './profilePictureExcluder';
+export { default as reportExcluder } from './reportExcluder';
 export { default as ticketExcluder } from './ticketExcluder';
 export { default as userExcluder } from './userExcluder';
