@@ -22,7 +22,7 @@ import {
   createGalerieUser,
   createReport,
   createUser,
-  postGaleriesIdFramesIdReports,
+  postFramesIdReports,
 } from '#src/helpers/test';
 
 import initApp from '#src/server';
@@ -112,7 +112,7 @@ describe('/galeries', () => {
                       data,
                     },
                     status,
-                  } = await postGaleriesIdFramesIdReports(app, token, galerieId, frameId);
+                  } = await postFramesIdReports(app, token, frameId);
                   await report.reload();
                   const reportUser = await ReportUser.findOne({
                     where: {
@@ -136,7 +136,7 @@ describe('/galeries', () => {
                   });
                   const {
                     status,
-                  } = await postGaleriesIdFramesIdReports(app, token, galerieId, frameId);
+                  } = await postFramesIdReports(app, token, frameId);
                   await report.reload();
                   expect(report.classed).toBe(false);
                   expect(status).toBe(200);
@@ -144,7 +144,7 @@ describe('/galeries', () => {
               });
               describe('if report for this frame doesn\'t exist', () => {
                 it('create a Report and a ReportUser', async () => {
-                  await postGaleriesIdFramesIdReports(app, token, galerieId, frameId);
+                  await postFramesIdReports(app, token, frameId);
                   const reports = await Report.findAll({
                     include: [
                       {
@@ -166,7 +166,7 @@ describe('/galeries', () => {
                 const {
                   body,
                   status,
-                } = await postGaleriesIdFramesIdReports(app, tokenTwo, galerieId, frameId);
+                } = await postFramesIdReports(app, tokenTwo, frameId);
                 expect(body.errors).toBe('you are not allow to report your own frame');
                 expect(status).toBe(400);
               });
@@ -180,23 +180,15 @@ describe('/galeries', () => {
                 const {
                   body,
                   status,
-                } = await postGaleriesIdFramesIdReports(app, tokenTwo, galerieId, frameId);
+                } = await postFramesIdReports(app, tokenTwo, frameId);
                 expect(body.errors).toBe('you are not allow to report this frame');
-                expect(status).toBe(400);
-              });
-              it('request.params.galerieId is not a UUIDv4', async () => {
-                const {
-                  body,
-                  status,
-                } = await postGaleriesIdFramesIdReports(app, token, '100', '100');
-                expect(body.errors).toBe(INVALID_UUID('galerie'));
                 expect(status).toBe(400);
               });
               it('request.params.frameId is not a UUIDv4', async () => {
                 const {
                   body,
                   status,
-                } = await postGaleriesIdFramesIdReports(app, token, galerieId, '100');
+                } = await postFramesIdReports(app, token, '100');
                 expect(body.errors).toBe(INVALID_UUID('frame'));
                 expect(status).toBe(400);
               });
@@ -205,7 +197,7 @@ describe('/galeries', () => {
                 const {
                   body,
                   status,
-                } = await postGaleriesIdFramesIdReports(app, tokenTwo, galerieId, frameId);
+                } = await postFramesIdReports(app, tokenTwo, frameId);
                 expect(body.errors).toBe('you are not allow to report this frame');
                 expect(status).toBe(400);
               });
@@ -217,59 +209,32 @@ describe('/galeries', () => {
                 const {
                   body,
                   status,
-                } = await postGaleriesIdFramesIdReports(app, token, galerieId, frameId);
+                } = await postFramesIdReports(app, token, frameId);
                 expect(body.errors).toBe('you have already report this frame');
                 expect(status).toBe(400);
               });
             });
             describe('should return status 404 if', () => {
-              it('galerie not found', async () => {
-                const {
-                  body,
-                  status,
-                } = await postGaleriesIdFramesIdReports(app, token, uuidv4(), uuidv4());
-                expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
-                expect(status).toBe(404);
-              });
-              it('galerie exist but user is not subscribe to it and user.role === \'user\'', async () => {
-                const { user: userThree } = await createUser({
-                  email: 'user4',
-                  userName: 'user4',
-                });
-                const galerieTwo = await createGalerie({
-                  userId: userThree.id,
-                });
-                const {
-                  body,
-                  status,
-                } = await postGaleriesIdFramesIdReports(app, token, galerieTwo.id, uuidv4());
-                expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
-                expect(status).toBe(404);
-              });
               it('frame not found', async () => {
                 const {
                   body,
                   status,
-                } = await postGaleriesIdFramesIdReports(app, token, galerieId, uuidv4());
+                } = await postFramesIdReports(app, token, uuidv4());
                 expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
                 expect(status).toBe(404);
               });
-              it('frame exist but was not post on this galerie', async () => {
-                const { user: userThree } = await createUser({
-                  email: 'user4',
-                  userName: 'user4',
-                });
+              it('frame exist but user is not subscribe to the galerie it was posted', async () => {
                 const galerieTwo = await createGalerie({
-                  userId: userThree.id,
+                  userId: userTwo.id,
                 });
                 const frameTwo = await createFrame({
                   galerieId: galerieTwo.id,
-                  userId: userThree.id,
+                  userId: userTwo.id,
                 });
                 const {
                   body,
                   status,
-                } = await postGaleriesIdFramesIdReports(app, token, galerieId, frameTwo.id);
+                } = await postFramesIdReports(app, token, frameTwo.id);
                 expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
                 expect(status).toBe(404);
               });

@@ -2,7 +2,6 @@ export default (
   frame: any,
   refFrame?: any,
 ) => {
-  expect(frame.galerieId).toBeUndefined();
   expect(frame.galeriePictures[0].current).not.toBeUndefined();
   expect(frame.galeriePictures[0].createdAt).toBeUndefined();
   expect(frame.galeriePictures[0].cropedImage.createdAt).toBeUndefined();
@@ -41,12 +40,14 @@ export default (
   expect(frame.updatedAt).toBeUndefined();
   expect(frame.userId).toBeUndefined();
   if (refFrame) {
+    expect(frame.galerieId).toBe(refFrame.galerieId);
     expect(frame.autoIncrementId).toBe(refFrame.autoIncrementId);
     expect(new Date(frame.createdAt)).toEqual(new Date(refFrame.createdAt));
     expect(frame.description).toBe(refFrame.description);
     expect(frame.id).toBe(refFrame.id);
     expect(frame.numOfLikes).toBe(refFrame.numOfLikes);
   } else {
+    expect(frame.galerieId).not.toBeUndefined();
     expect(frame.autoIncrementId).not.toBeUndefined();
     expect(frame.createdAt).not.toBeUndefined();
     expect(frame.description).not.toBeUndefined();

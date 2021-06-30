@@ -23,8 +23,8 @@ import {
   createUser,
   createFrame,
   createGalerie,
-  putGaleriesIdFramesId,
   createGalerieUser,
+  putFramesId,
 } from '#src/helpers/test';
 
 import initApp from '#src/server';
@@ -111,7 +111,7 @@ describe('/galeries', () => {
                   },
                 },
                 status,
-              } = await putGaleriesIdFramesId(app, token, galerieId, frameId, {
+              } = await putFramesId(app, token, frameId, {
                 body: {
                   description,
                 },
@@ -133,7 +133,7 @@ describe('/galeries', () => {
                     frameId: returnedFrameId,
                   },
                 },
-              } = await putGaleriesIdFramesId(app, token, galerieId, frameId, {
+              } = await putFramesId(app, token, frameId, {
                 body: {
                   description: ` ${description} `,
                 },
@@ -144,19 +144,11 @@ describe('/galeries', () => {
             });
           });
           describe('should return status 400 if', () => {
-            it('request.body.galerieId is not a UUID v4', async () => {
-              const {
-                body,
-                status,
-              } = await putGaleriesIdFramesId(app, token, '100', uuidv4());
-              expect(body.errors).toBe(INVALID_UUID('galerie'));
-              expect(status).toBe(400);
-            });
             it('request.body.frameId is not a UUID v4', async () => {
               const {
                 body,
                 status,
-              } = await putGaleriesIdFramesId(app, token, uuidv4(), '100');
+              } = await putFramesId(app, token, '100');
               expect(body.errors).toBe(INVALID_UUID('frame'));
               expect(status).toBe(400);
             });
@@ -181,7 +173,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await putGaleriesIdFramesId(app, token, galerieId, frameId, {
+              } = await putFramesId(app, token, frameId, {
                 body: {
                   description: 'new galerie\'s description',
                 },
@@ -202,7 +194,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await putGaleriesIdFramesId(app, token, galerieId, frameId, {
+              } = await putFramesId(app, token, frameId, {
                 body: {
                   description,
                 },
@@ -212,7 +204,6 @@ describe('/galeries', () => {
             });
             describe('description', () => {
               let frameId: string;
-              let galerieId: string;
 
               beforeEach(async (done) => {
                 try {
@@ -224,7 +215,6 @@ describe('/galeries', () => {
                     userId: user.id,
                   });
                   frameId = frame.id;
-                  galerieId = galerie.id;
                 } catch (err) {
                   done(err);
                 }
@@ -235,7 +225,7 @@ describe('/galeries', () => {
                 const {
                   body,
                   status,
-                } = await putGaleriesIdFramesId(app, token, galerieId, frameId);
+                } = await putFramesId(app, token, frameId);
                 expect(body.errors).toEqual({
                   description: FIELD_IS_REQUIRED,
                 });
@@ -245,7 +235,7 @@ describe('/galeries', () => {
                 const {
                   body,
                   status,
-                } = await putGaleriesIdFramesId(app, token, galerieId, frameId, {
+                } = await putFramesId(app, token, frameId, {
                   body: {
                     description: 1234,
                   },
@@ -259,7 +249,7 @@ describe('/galeries', () => {
                 const {
                   body,
                   status,
-                } = await putGaleriesIdFramesId(app, token, galerieId, frameId, {
+                } = await putFramesId(app, token, frameId, {
                   body: {
                     description: 'a'.repeat(201),
                   },
@@ -272,58 +262,14 @@ describe('/galeries', () => {
             });
           });
           describe('should return status 404 if', () => {
-            it('galerie does not exist', async () => {
-              const {
-                body,
-                status,
-              } = await putGaleriesIdFramesId(app, token, uuidv4(), uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
-              expect(status).toBe(404);
-            });
-            it('galerie exist but user is not subscribe to it', async () => {
-              const {
-                user: userTwo,
-              } = await createUser({
-                email: 'user2@email.com',
-                userName: 'user2',
-              });
-              const { id: galerieId } = await createGalerie({
-                userId: userTwo.id,
-              });
-              const {
-                body,
-                status,
-              } = await putGaleriesIdFramesId(app, token, galerieId, uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
-              expect(status).toBe(404);
-            });
             it('frame does not exist', async () => {
-              const { id: galerieId } = await createGalerie({
+              await createGalerie({
                 userId: user.id,
               });
               const {
                 body,
                 status,
-              } = await putGaleriesIdFramesId(app, token, galerieId, uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
-              expect(status).toBe(404);
-            });
-            it('frame exist but was not post on this galerie', async () => {
-              const galerieOne = await createGalerie({
-                userId: user.id,
-              });
-              const galerieTwo = await createGalerie({
-                name: 'galerie2',
-                userId: user.id,
-              });
-              const { id: frameId } = await createFrame({
-                galerieId: galerieOne.id,
-                userId: user.id,
-              });
-              const {
-                body,
-                status,
-              } = await putGaleriesIdFramesId(app, token, galerieTwo.id, frameId);
+              } = await putFramesId(app, token, uuidv4());
               expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
               expect(status).toBe(404);
             });

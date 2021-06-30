@@ -7,7 +7,6 @@ import {
 
 import {
   Frame,
-  Galerie,
   User,
 } from '#src/db/models';
 
@@ -24,18 +23,10 @@ import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 export default async (req: Request, res: Response) => {
   const {
     frameId,
-    galerieId,
   } = req.params;
   const currentUser = req.user as User;
-  let galerie: Galerie | null;
+  let frame: Frame | null;
 
-  // Check if request.params.galerieId
-  // is a UUID v4.
-  if (!uuidValidatev4(galerieId)) {
-    return res.status(400).send({
-      errors: INVALID_UUID('galerie'),
-    });
-  }
   // Check if request.params.frameId
   // is a UUID v4.
   if (!uuidValidatev4(frameId)) {
@@ -46,37 +37,12 @@ export default async (req: Request, res: Response) => {
 
   // Fetch galerie.
   try {
-    galerie = await Galerie.findByPk(galerieId, {
-      include: [
-        {
-          limit: 1,
-          model: Frame,
-          required: false,
-          where: {
-            id: frameId,
-          },
-        },
-        {
-          model: User,
-          where: {
-            id: currentUser.id,
-          },
-        },
-      ],
-    });
+    frame = await Frame.findByPk(frameId, {});
   } catch (err) {
     return res.status(500).send(err);
   }
-
-  // Check if galerie exist.
-  if (!galerie) {
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('galerie'),
-    });
-  }
-
   // Check if frame exist
-  if (!galerie.frames[0]) {
+  if (!frame) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('frame'),
     });
@@ -84,7 +50,7 @@ export default async (req: Request, res: Response) => {
 
   // Check if current user have posted
   // this frame.
-  if (galerie.frames[0].userId !== currentUser.id) {
+  if (frame.userId !== currentUser.id) {
     return res.status(400).send({
       errors: 'you can\'t modify this frame',
     });
@@ -103,7 +69,7 @@ export default async (req: Request, res: Response) => {
 
   // Check if requested changes are not the same
   // has actual galerie's fields.
-  if (value.description === galerie.frames[0].description) {
+  if (value.description === frame.description) {
     return res.status(400).send({
       errors: 'no change submited',
     });
@@ -111,7 +77,7 @@ export default async (req: Request, res: Response) => {
 
   // update frame.description.
   try {
-    await galerie.frames[0].update(value);
+    await frame.update(value);
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -121,7 +87,7 @@ export default async (req: Request, res: Response) => {
     data: {
       description: value.description,
       frameId,
-      galerieId,
+      galerieId: frame.galerieId,
     },
   });
 };

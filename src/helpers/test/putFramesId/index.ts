@@ -4,11 +4,18 @@ import request from 'supertest';
 export default async (
   app: Server,
   token: string,
-  galerieId: string,
   frameId: string,
+  option: {
+    body?: {
+      description?: any;
+    }
+  } = {
+    body: {},
+  },
 ) => {
   const response = await request(app)
-    .post(`/galeries/${galerieId}/frames/${frameId}/reports/`)
-    .set('authorization', token);
+    .put(`/frames/${frameId}/`)
+    .set('authorization', token)
+    .send(option.body);
   return response;
 };

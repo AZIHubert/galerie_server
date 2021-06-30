@@ -19,11 +19,10 @@ import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {
-    galerieId,
     frameId,
   } = req.params;
   const currentUser = req.user as User;
-  let galerie: Galerie | null;
+  let frame: Frame | null;
   let report: Report | null;
 
   if (currentUser.role !== 'user') {
@@ -32,13 +31,6 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if request.params.galerieId
-  // is a UUID v4.
-  if (!uuidValidatev4(galerieId)) {
-    return res.status(400).send({
-      errors: INVALID_UUID('galerie'),
-    });
-  }
   // Check if request.params.frameId
   // is a UUID v4.
   if (!uuidValidatev4(frameId)) {
@@ -49,21 +41,20 @@ export default async (req: Request, res: Response) => {
 
   // Fetch galerie.
   try {
-    galerie = await Galerie.findByPk(galerieId, {
+    frame = await Frame.findByPk(frameId, {
       include: [
         {
-          limit: 1,
-          model: Frame,
-          required: false,
-          where: {
-            id: frameId,
-          },
-        },
-        {
-          model: User,
-          where: {
-            id: currentUser.id,
-          },
+          include: [
+            {
+              model: User,
+              required: true,
+              where: {
+                id: currentUser.id,
+              },
+            },
+          ],
+          required: true,
+          model: Galerie,
         },
       ],
     });
@@ -71,30 +62,20 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Check if galerie exist.
-  if (!galerie) {
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('galerie'),
-    });
-  }
-
   // Check if frame exist.
-  if (!galerie.frames[0]) {
+  if (!frame) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('frame'),
     });
   }
 
-  if (currentUser.id === galerie.frames[0].userId) {
+  if (currentUser.id === frame.userId) {
     return res.status(400).send({
       errors: 'you are not allow to report your own frame',
     });
   }
 
-  const userFromGalerie = galerie.users
-    .find((user) => user.id === currentUser.id);
-
-  if (!userFromGalerie || userFromGalerie.GalerieUser.role === 'admin') {
+  if (frame.galerie.users[0].GalerieUser.role === 'admin') {
     return res.status(400).send({
       errors: 'you are not allow to report this frame',
     });
@@ -163,7 +144,7 @@ export default async (req: Request, res: Response) => {
     action: 'POST',
     data: {
       frameId,
-      galerieId,
+      galerieId: frame.galerieId,
     },
   });
 };

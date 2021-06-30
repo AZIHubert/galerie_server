@@ -79,7 +79,7 @@ export { default as postGaleriesIdUserUserIdBlackLists } from './postGaleriesIdU
 export { default as postGaleriesSubscribe } from './postGaleriesSubscribe';
 export { default as postProfilePictures } from './postProfilePictures';
 export { default as postNotifications } from './postNotifications';
-export { default as postGaleriesIdFramesIdReports } from './postGaleriesIdFramesIdReports';
+export { default as postFramesIdReports } from './postFramesIdReports';
 export { default as postTickets } from './postTickets';
 export { default as postUsersConfirmation } from './postUsersConfirmation';
 export { default as postUsersIdBlackLists } from './postUsersIdBlackLists';
@@ -96,7 +96,7 @@ export { default as putBetaKeysId } from './putBetaKeysId';
 export { default as putBlackLists } from './putBlackLists';
 export { default as putGaleriesId } from './putGaleriesId';
 export { default as putGaleriesIdAllowNotification } from './putGaleriesIdAllowNotification';
-export { default as putGaleriesIdFramesId } from './putGaleriesIdFramesId';
+export { default as putFramesId } from './putFramesId';
 export { default as putGaleriesIdFramesIdGaleriePicturesId } from './putGaleriesIdFramesIdGaleriePicturesId';
 export { default as putGaleriesIdUsersId } from './putGaleriesIdUsersId';
 export { default as putNotificationsId } from './putNotificationsId';
