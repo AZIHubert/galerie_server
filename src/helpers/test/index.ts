@@ -23,7 +23,7 @@ export { default as createUser } from './createUser';
 export { default as deleteBetaKeysId } from './deleteBetaKeysId';
 export { default as deleteGaleriesId } from './deleteGaleriesId';
 export { default as deleteGaleriesIdBlackListsId } from './deleteGaleriesIdBlackListsId';
-export { default as deleteGaleriesIdFramesId } from './deleteGaleriesIdFramesId';
+export { default as deleteFramesId } from './deleteFramesId';
 export { default as deleteGaleriesIdInvitations } from './deleteGaleriesIdInvitations';
 export { default as deleteGaleriesIdInvitationId } from './deleteGaleriesIdInvitationId';
 export { default as deleteGaleriesIdUsersId } from './deleteGaleriesIdUsersId';

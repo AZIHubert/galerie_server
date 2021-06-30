@@ -31,7 +31,7 @@ import {
   createNotificationFramePosted,
   createReport,
   createUser,
-  deleteGaleriesIdFramesId,
+  deleteFramesId,
 } from '#src/helpers/test';
 
 import initApp from '#src/server';
@@ -107,7 +107,7 @@ describe('/galeries', () => {
                   data,
                 },
                 status,
-              } = await deleteGaleriesIdFramesId(app, token, galerieId, createdFrame.id);
+              } = await deleteFramesId(app, token, createdFrame.id);
               const frame = await Frame.findByPk(createdFrame.id);
               const galeriePictures = await GaleriePicture.findAll({
                 where: {
@@ -138,7 +138,7 @@ describe('/galeries', () => {
                 frameId,
                 userId: user.id,
               });
-              await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
+              await deleteFramesId(app, token, frameId);
               const like = await Like.findOne({
                 where: {
                   id: likeId,
@@ -161,7 +161,7 @@ describe('/galeries', () => {
                 galerieId,
                 userId: userTwo.id,
               });
-              await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
+              await deleteFramesId(app, token, frameId);
               const frame = await Frame.findByPk(frameId);
               expect(frame).toBeNull();
             });
@@ -192,7 +192,7 @@ describe('/galeries', () => {
                 galerieId,
                 userId: userTwo.id,
               });
-              await deleteGaleriesIdFramesId(app, tokenThree, galerieId, frameId);
+              await deleteFramesId(app, tokenThree, frameId);
               const frame = await Frame.findByPk(frameId);
               expect(frame).toBeNull();
             });
@@ -207,7 +207,7 @@ describe('/galeries', () => {
                 galerieId,
                 userId: user.id,
               });
-              await deleteGaleriesIdFramesId(app, tokenTwo, galerieId, frameId);
+              await deleteFramesId(app, tokenTwo, frameId);
               const frame = await Frame.findByPk(frameId);
               expect(frame).toBeNull();
             });
@@ -238,7 +238,7 @@ describe('/galeries', () => {
                 notificationId: notification.id,
               });
               await notification.increment({ num: 1 });
-              await deleteGaleriesIdFramesId(app, token, galerieId, frameOne.id);
+              await deleteFramesId(app, token, frameOne.id);
               await notification.reload();
               const notificationFramePosted = await NotificationFramePosted.findOne({
                 where: {
@@ -267,7 +267,7 @@ describe('/galeries', () => {
                 galerieId,
                 userId: userTwo.id,
               });
-              await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
+              await deleteFramesId(app, token, frameId);
               const notification = await Notification.findByPk(notificationId);
               expect(notification).toBeNull();
             });
@@ -293,7 +293,7 @@ describe('/galeries', () => {
                 likedById: userTwo.id,
                 userId: user.id,
               });
-              await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
+              await deleteFramesId(app, token, frameId);
               const notification = await Notification.findByPk(notificationId);
               expect(notification).toBeNull();
             });
@@ -306,7 +306,7 @@ describe('/galeries', () => {
                 frameId,
                 userId: user.id,
               });
-              await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
+              await deleteFramesId(app, token, frameId);
               const report = await Report.findByPk(reportId);
               const reportUser = await ReportUser.findOne({
                 where: {
@@ -319,19 +319,11 @@ describe('/galeries', () => {
             });
           });
           describe('it should return status 400', () => {
-            it('req.params.galerieId is not a UUID v4', async () => {
-              const {
-                body,
-                status,
-              } = await deleteGaleriesIdFramesId(app, token, '100', uuidv4());
-              expect(body.errors).toBe(INVALID_UUID('galerie'));
-              expect(status).toBe(400);
-            });
             it('req.params.frameId is not a UUID v4', async () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdFramesId(app, token, uuidv4(), '100');
+              } = await deleteFramesId(app, token, '100');
               expect(body.errors).toBe(INVALID_UUID('frame'));
               expect(status).toBe(400);
             });
@@ -360,7 +352,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdFramesId(app, tokenThree, galerieId, frameId);
+              } = await deleteFramesId(app, tokenThree, frameId);
               expect(body.errors).toBe('your not allow to delete this frame');
               expect(status).toBe(400);
             });
@@ -382,59 +374,17 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdFramesId(app, tokenTwo, galerieId, frameId);
+              } = await deleteFramesId(app, tokenTwo, frameId);
               expect(body.errors).toBe('your not allow to delete this frame');
               expect(status).toBe(400);
             });
           });
           describe('it should return status 404', () => {
-            it('galerie not found', async () => {
-              const {
-                body,
-                status,
-              } = await deleteGaleriesIdFramesId(app, token, uuidv4(), uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
-              expect(status).toBe(404);
-            });
             it('frame not found', async () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdFramesId(app, token, galerieId, uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
-              expect(status).toBe(404);
-            });
-            it('galerie exist but user is not subscribe to it', async () => {
-              const {
-                user: userTwo,
-              } = await createUser({
-                email: 'user2@email.com',
-                userName: 'user2',
-              });
-              const galerie = await createGalerie({
-                name: 'galerie2',
-                userId: userTwo.id,
-              });
-              const {
-                body,
-                status,
-              } = await deleteGaleriesIdFramesId(app, token, galerie.id, uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
-              expect(status).toBe(404);
-            });
-            it('frame exist but not belong to the galerie', async () => {
-              const galerie = await createGalerie({
-                name: 'galerie2',
-                userId: user.id,
-              });
-              const { id: frameId } = await createFrame({
-                galerieId: galerie.id,
-                userId: user.id,
-              });
-              const {
-                body,
-                status,
-              } = await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
+              } = await deleteFramesId(app, token, uuidv4());
               expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
               expect(status).toBe(404);
             });

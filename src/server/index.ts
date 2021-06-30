@@ -12,6 +12,7 @@ import initSequelize from '#src/helpers/initSequelize.js';
 
 import betaKeysRouter from '#src/routes/betaKeys';
 import blackListsRouter from '#src/routes/blackLists';
+import framesRouter from '#src/routes/frames';
 import galeriesRouter from '#src/routes/galeries';
 import notificationsRouter from '#src/routes/notifications';
 import profilePicturesRouter from '#src/routes/profilePictures';
@@ -73,6 +74,7 @@ const initApp: () => http.Server = () => {
 
   app.use('/betaKeys', betaKeysRouter());
   app.use('/blackLists', blackListsRouter());
+  app.use('/frames', framesRouter());
   app.use('/galeries', galeriesRouter());
   app.use('/notifications', notificationsRouter());
   app.use('/profilePictures', profilePicturesRouter());

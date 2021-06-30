@@ -8,7 +8,6 @@ import {
 import {
   deleteGaleriesId,
   deleteGaleriesIdBlackListsId,
-  deleteGaleriesIdFramesId,
   deleteGaleriesIdInvitations,
   deleteGaleriesIdInvitationsId,
   deleteGaleriesIdUnsubscribe,
@@ -47,7 +46,6 @@ const router = Router();
 const galeriesRoutes: () => Router = () => {
   router.delete('/:galerieId/', shouldBeAuth, deleteGaleriesId);
   router.delete('/:galerieId/blackLists/:blackListId', shouldBeAuth, deleteGaleriesIdBlackListsId);
-  router.delete('/:galerieId/frames/:frameId/', shouldBeAuth, deleteGaleriesIdFramesId);
   router.delete('/:galerieId/invitations', shouldBeAuth, deleteGaleriesIdInvitations);
   router.delete('/:galerieId/invitations/:invitationId', shouldBeAuth, deleteGaleriesIdInvitationsId);
   router.delete('/:galerieId/unsubscribe/', shouldBeAuth, deleteGaleriesIdUnsubscribe);

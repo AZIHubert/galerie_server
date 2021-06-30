@@ -1,4 +1,4 @@
-// DELETE /galeries/:galerieId/frames/:frameId/
+// DELETE /frames/:frameId/
 
 import {
   Request,
@@ -23,27 +23,18 @@ import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
   const {
-    galerieId,
     frameId,
   } = req.params;
   const currentUser = req.user as User;
   const where: {
     id?: string;
   } = {};
-  let galerie: Galerie | null;
-  let galerieUser: GalerieUser | null;
+  let frame: Frame | null;
+  let galerieUser;
   let notificationsFramePosted: Notification[];
 
   if (currentUser.role === 'user') {
     where.id = currentUser.id;
-  }
-
-  // Check if request.params.galerieId
-  // is a UUID v4.
-  if (!uuidValidatev4(galerieId)) {
-    return res.status(400).send({
-      errors: INVALID_UUID('galerie'),
-    });
   }
 
   // Check if request.params.galerieId
@@ -56,28 +47,27 @@ export default async (req: Request, res: Response) => {
 
   // Fetch galerie.
   try {
-    galerie = await Galerie.findByPk(galerieId, {
+    frame = await Frame.findByPk(frameId, {
       include: [
+        {
+          model: GaleriePicture,
+          include: [
+            {
+              all: true,
+            },
+          ],
+        },
         {
           include: [
             {
-              model: GaleriePicture,
-              include: [
-                {
-                  all: true,
-                },
-              ],
+              model: User,
+              required: currentUser.role === 'user',
+              where: {
+                id: currentUser.id,
+              },
             },
           ],
-          model: Frame,
-          required: false,
-          where: {
-            id: frameId,
-          },
-        },
-        {
-          model: User,
-          where,
+          model: Galerie,
         },
       ],
     });
@@ -85,48 +75,36 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Check if galerie exist.
-  if (!galerie) {
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('galerie'),
-    });
-  }
-
   // Check if frame exist.
-  if (!galerie.frames[0]) {
+  if (!frame) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('frame'),
     });
   }
 
-  // Fetch galerieUser
-  // to know the role of the user
-  // who post this frame.
-  try {
-    galerieUser = await GalerieUser.findOne({
-      where: {
-        galerieId,
-        userId: galerie.frames[0].userId,
-      },
-    });
-  } catch (err) {
-    return res.status(500).send(err);
+  if (currentUser.id !== frame.userId) {
+    try {
+      galerieUser = await GalerieUser.findOne({
+        where: {
+          galerieId: frame.galerieId,
+          userId: frame.userId,
+        },
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
   }
 
-  const userFromGalerie = galerie.users
-    .find((user) => user.id === currentUser.id);
   if (
     // If currentUser.role === user.
     currentUser.role === 'user'
     && (
       // If currentUser do not have posted this frame.
-      currentUser.id !== galerie.frames[0].userId
+      currentUser.id !== frame.userId
       && (
-        (
-          // If currentUser role for this galerie is user.
-          !userFromGalerie
-          || userFromGalerie.GalerieUser.role === 'user'
-        ) || (
+        // If currentUser role for this galerie is user.
+        frame.galerie.users[0].GalerieUser.role === 'user'
+        || (
           // If the user who have posted this frame
           // is the admin of the galerie.
           galerieUser
@@ -179,9 +157,9 @@ export default async (req: Request, res: Response) => {
 
   // Destoy frame and Google Bucket Images.
   try {
-    await galerie.frames[0].destroy();
+    await frame.destroy();
     await Promise.all(
-      galerie.frames[0].galeriePictures.map(
+      frame.galeriePictures.map(
         async (galeriePicture) => {
           const {
             originalImage,
@@ -212,7 +190,7 @@ export default async (req: Request, res: Response) => {
     action: 'DELETE',
     data: {
       frameId,
-      galerieId,
+      galerieId: frame.galerieId,
     },
   });
 };
