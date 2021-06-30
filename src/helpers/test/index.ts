@@ -73,7 +73,7 @@ export { default as postBetaKey } from './postBetaKey';
 export { default as postBetaKeysIdSend } from './postBetaKeysIdSend';
 export { default as postGaleries } from './postGaleries';
 export { default as postGaleriesIdFrames } from './postGaleriesIdFrames';
-export { default as postGaleriesIdFramesIdLikes } from './postGaleriesIdFramesIdLikes';
+export { default as postFramesIdLikes } from './postFramesIdLikes';
 export { default as postGaleriesIdInvitations } from './postGaleriesIdInvitations';
 export { default as postGaleriesIdUserUserIdBlackLists } from './postGaleriesIdUserUserIdBlackLists';
 export { default as postGaleriesSubscribe } from './postGaleriesSubscribe';

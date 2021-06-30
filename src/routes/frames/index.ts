@@ -9,6 +9,8 @@ import {
 
   getFrames,
   getFramesId,
+
+  postFramesIdLikes,
 } from './subRoutes';
 
 const router = Router();
@@ -18,6 +20,8 @@ const framesRoutes: () => Router = () => {
 
   router.get('/', shouldBeAuth, getFrames);
   router.get('/:frameId', shouldBeAuth, getFramesId);
+
+  router.post('/:frameId/likes', shouldBeAuth, postFramesIdLikes);
 
   return router;
 };

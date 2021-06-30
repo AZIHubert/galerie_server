@@ -29,7 +29,7 @@ import {
   createLike,
   createNotificationFrameLiked,
   createUser,
-  postGaleriesIdFramesIdLikes,
+  postFramesIdLikes,
 } from '#src/helpers/test';
 
 import initApp from '#src/server';
@@ -129,7 +129,7 @@ describe('/galerie', () => {
                     },
                   },
                   status,
-                } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                } = await postFramesIdLikes(app, token, frame.id);
                 const like = await Like.findOne({
                   where: {
                     frameId: frame.id,
@@ -161,7 +161,7 @@ describe('/galerie', () => {
                       numOfLikes,
                     },
                   },
-                } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                } = await postFramesIdLikes(app, token, frame.id);
                 const updatedFrame = await Frame.findByPk(frame.id) as Frame;
                 expect(updatedFrame.numOfLikes).toBe(numOfLikes);
               });
@@ -172,7 +172,7 @@ describe('/galerie', () => {
                       liked,
                     },
                   },
-                } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                } = await postFramesIdLikes(app, token, frame.id);
                 expect(liked).toBe(true);
               });
               it('destroy Like and do not return notificationToken if this frame was like by current user', async () => {
@@ -182,7 +182,7 @@ describe('/galerie', () => {
                       numOfLikes: numOfLikesAfterLike,
                     },
                   },
-                } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                } = await postFramesIdLikes(app, token, frame.id);
                 const {
                   body: {
                     data: {
@@ -190,7 +190,7 @@ describe('/galerie', () => {
                       notificationToken,
                     },
                   },
-                } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                } = await postFramesIdLikes(app, token, frame.id);
                 const like = await Like.findOne({
                   where: {
                     frameId: frame.id,
@@ -212,7 +212,7 @@ describe('/galerie', () => {
                       numOfLikes,
                     },
                   },
-                } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                } = await postFramesIdLikes(app, token, frame.id);
                 const updatedFrame = await Frame.findByPk(frame.id) as Frame;
                 expect(updatedFrame.numOfLikes).toBe(numOfLikes);
               });
@@ -227,7 +227,7 @@ describe('/galerie', () => {
                       liked,
                     },
                   },
-                } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                } = await postFramesIdLikes(app, token, frame.id);
                 expect(liked).toBe(false);
               });
               it('do not return notificationToken if user like his own frame', async () => {
@@ -241,7 +241,7 @@ describe('/galerie', () => {
                       notificationToken,
                     },
                   },
-                } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+                } = await postFramesIdLikes(app, token, frameId);
                 expect(notificationToken).toBeUndefined();
               });
               it('destoy notification where type === \'FRAME_LIKED\', frameLiked.userId === currentUser.id && num <= 1 if currentUser dislike a frame', async () => {
@@ -254,7 +254,7 @@ describe('/galerie', () => {
                   likedById: user.id,
                   userId: userTwo.id,
                 });
-                await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                await postFramesIdLikes(app, token, frame.id);
                 const notification = await Notification.findByPk(notificationId);
                 expect(notification).toBeNull();
               });
@@ -285,7 +285,7 @@ describe('/galerie', () => {
                   userId: userThree.id,
                 });
                 await notification.increment({ num: 1 });
-                await postGaleriesIdFramesIdLikes(app, token, galerieId, frame.id);
+                await postFramesIdLikes(app, token, frame.id);
                 await notification.reload();
                 const notificationFrameLiked = await NotificationFrameLiked.findOne({
                   where: {
@@ -302,67 +302,36 @@ describe('/galerie', () => {
                 const {
                   body,
                   status,
-                } = await postGaleriesIdFramesIdLikes(app, token, '100', uuidv4());
-                expect(body.errors).toBe(INVALID_UUID('galerie'));
-                expect(status).toBe(400);
-              });
-              it('request.parmas.galerieId is not a UUID v4', async () => {
-                const {
-                  body,
-                  status,
-                } = await postGaleriesIdFramesIdLikes(app, token, uuidv4(), '100');
+                } = await postFramesIdLikes(app, token, '100');
                 expect(body.errors).toBe(INVALID_UUID('frame'));
                 expect(status).toBe(400);
               });
             });
             describe('should return status 404 if', () => {
-              it('galerie not found', async () => {
+              it('frame not found', async () => {
                 const {
                   body,
                   status,
-                } = await postGaleriesIdFramesIdLikes(app, token, uuidv4(), uuidv4());
-                expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
+                } = await postFramesIdLikes(app, token, uuidv4());
+                expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
                 expect(status).toBe(404);
               });
-              it('galerie exist by current user is not subscribe to it', async () => {
-                const {
-                  user: userTwo,
-                } = await createUser({
+              it('frame exist but user is not subscribe to the galerie', async () => {
+                const { user: userTwo } = await createUser({
                   email: 'user2@email.com',
                   userName: 'user2',
                 });
                 const galerieTwo = await createGalerie({
-                  name: 'galerie2',
+                  userId: userTwo.id,
+                });
+                const { id: frameId } = await createFrame({
+                  galerieId: galerieTwo.id,
                   userId: userTwo.id,
                 });
                 const {
                   body,
                   status,
-                } = await postGaleriesIdFramesIdLikes(app, token, galerieTwo.id, uuidv4());
-                expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
-                expect(status).toBe(404);
-              });
-              it('frame not found', async () => {
-                const {
-                  body,
-                  status,
-                } = await postGaleriesIdFramesIdLikes(app, token, galerieId, uuidv4());
-                expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
-                expect(status).toBe(404);
-              });
-              it('frame exist but it not post on this galerie', async () => {
-                const galerieTwo = await createGalerie({
-                  name: 'galerie2',
-                  userId: user.id,
-                });
-                const { id: frameId } = await createFrame({
-                  galerieId: galerieTwo.id,
-                  userId: user.id,
-                });
-                const {
-                  body,
-                  status,
-                } = await postGaleriesIdFramesIdLikes(app, token, galerieId, frameId);
+                } = await postFramesIdLikes(app, token, frameId);
                 expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
                 expect(status).toBe(404);
               });

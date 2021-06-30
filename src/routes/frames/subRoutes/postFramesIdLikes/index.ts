@@ -23,21 +23,13 @@ import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 export default async (req: Request, res: Response) => {
   const {
     frameId,
-    galerieId,
   } = req.params;
   const currentUser = req.user as User;
-  let galerie: Galerie | null;
   let like: Like | null;
   let liked: boolean;
   let notificationToken;
+  let frame: Frame | null;
 
-  // Check if request.params.galerieId
-  // is a UUID v4.
-  if (!uuidValidatev4(galerieId)) {
-    return res.status(400).send({
-      errors: INVALID_UUID('galerie'),
-    });
-  }
   // Check if request.params.galerieId
   // is a UUID v4.
   if (!uuidValidatev4(frameId)) {
@@ -48,21 +40,20 @@ export default async (req: Request, res: Response) => {
 
   // Fetch galerie.
   try {
-    galerie = await Galerie.findByPk(galerieId, {
+    frame = await Frame.findByPk(frameId, {
       include: [
         {
-          limit: 1,
-          model: Frame,
-          required: false,
-          where: {
-            id: frameId,
-          },
-        },
-        {
-          model: User,
-          where: {
-            id: currentUser.id,
-          },
+          include: [
+            {
+              model: User,
+              required: true,
+              where: {
+                id: currentUser.id,
+              },
+            },
+          ],
+          required: true,
+          model: Galerie,
         },
       ],
     });
@@ -70,15 +61,8 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Check if galerie exist.
-  if (!galerie) {
-    return res.status(404).send({
-      errors: MODEL_NOT_FOUND('galerie'),
-    });
-  }
-
   // Check if frame exist
-  if (!galerie.frames[0]) {
+  if (!frame) {
     return res.status(404).send({
       errors: MODEL_NOT_FOUND('frame'),
     });
@@ -107,7 +91,7 @@ export default async (req: Request, res: Response) => {
 
     // Decrement frame.numOfLikes.
     try {
-      await galerie.frames[0].decrement({ numOfLikes: 1 });
+      await frame.decrement({ numOfLikes: 1 });
     } catch (err) {
       return res.status(500).send(err);
     }
@@ -168,12 +152,12 @@ export default async (req: Request, res: Response) => {
         userId: currentUser.id,
       });
       likeId = createdLike.id;
-      await galerie.frames[0].increment({ numOfLikes: 1 });
+      await frame.increment({ numOfLikes: 1 });
     } catch (err) {
       return res.status(500).send(err);
     }
     liked = true;
-    if (galerie.frames[0].userId !== currentUser.id) {
+    if (frame.userId !== currentUser.id) {
       const signToken = signNotificationToken('FRAME_LIKED', {
         likeId,
       });
@@ -185,10 +169,10 @@ export default async (req: Request, res: Response) => {
     action: 'POST',
     data: {
       frameId,
-      galerieId,
+      galerieId: frame.galerieId,
       liked,
       notificationToken,
-      numOfLikes: galerie.frames[0].numOfLikes,
+      numOfLikes: frame.numOfLikes,
     },
   });
 };

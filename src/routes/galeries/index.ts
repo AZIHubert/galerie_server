@@ -26,7 +26,6 @@ import {
 
   postGaleries,
   postGaleriesIdFrames,
-  postGaleriesIdFramesIdLikes,
   postGaleriesIdFramesIdReports,
   postGaleriesIdInvitations,
   postGaleriesIdUsersIdBlackLists,
@@ -64,7 +63,6 @@ const galeriesRoutes: () => Router = () => {
   router.post('/subscribe/', shouldBeAuth, postGaleriesSubscribe);
   router.post('/:galerieId/users/:userId/blackLists/', shouldBeAuth, postGaleriesIdUsersIdBlackLists);
   router.post('/:galerieId/frames/', shouldBeAuth, uploadFiles, postGaleriesIdFrames);
-  router.post('/:galerieId/frames/:frameId/likes/', shouldBeAuth, postGaleriesIdFramesIdLikes);
   router.post('/:galerieId/frames/:frameId/reports/', shouldBeAuth, postGaleriesIdFramesIdReports);
   router.post('/:galerieId/invitations/', shouldBeAuth, postGaleriesIdInvitations);
 
