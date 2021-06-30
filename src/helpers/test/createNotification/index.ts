@@ -18,6 +18,8 @@ export default async ({
   'BETA_KEY_USED' |
   'FRAME_LIKED' |
   'FRAME_POSTED' |
+  'GALERIE_ROLE_CHANGE' |
+  'ROLE_CHANGE' |
   'USER_SUBSCRIBE';
   userId: string;
 }) => {
