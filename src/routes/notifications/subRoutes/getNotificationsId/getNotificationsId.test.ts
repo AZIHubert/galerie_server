@@ -24,6 +24,7 @@ import {
   createNotificationBetaKeyUsed,
   createNotificationFrameLiked,
   createNotificationFramePosted,
+  createNotificationGalerieRoleChange,
   createNotificationRoleChange,
   createNotificationUserSubscribe,
   createUser,
@@ -338,6 +339,44 @@ describe('/notifications', () => {
               },
             } = await getNotificationsId(app, token, notificationId);
             expect(frames.length).toBe(4);
+          });
+        });
+        describe('where type === \'GALERIE_ROLE_CHANGE\'', () => {
+          it('normalize notification', async () => {
+            const { id: galerieId } = await createGalerie({
+              userId: user.id,
+            });
+            const { id: notificationId } = await createNotificationGalerieRoleChange({
+              galerieId,
+              role: 'admin',
+              userId: user.id,
+            });
+            const {
+              body: {
+                data: {
+                  notification,
+                },
+              },
+            } = await getNotificationsId(app, token, notificationId);
+            expect(notification.autoIncrementId).not.toBeUndefined();
+            expect(notification.createdAt).not.toBeUndefined();
+            expect(notification.frameId).toBeUndefined();
+            expect(notification.frame).toBeUndefined();
+            expect(notification.galerie.archived).toBeUndefined();
+            expect(notification.galerie.createdAt).toBeUndefined();
+            expect(notification.galerie.defaultCoverPicture).not.toBeUndefined();
+            expect(notification.galerie.description).toBeUndefined();
+            expect(notification.galerie.id).not.toBeUndefined();
+            expect(notification.galerie.name).not.toBeUndefined();
+            expect(notification.galerie.updatedAt).toBeUndefined();
+            expect(notification.galerieId).toBeUndefined();
+            expect(notification.id).not.toBeUndefined();
+            expect(notification.num).toBeUndefined();
+            expect(notification.role).not.toBeUndefined();
+            expect(notification.type).not.toBeUndefined();
+            expect(notification.updatedAt).not.toBeUndefined();
+            expect(notification.userId).toBeUndefined();
+            expect(notification.users).toBeUndefined();
           });
         });
         describe('where type === \'ROLE_CHANGE\'', () => {

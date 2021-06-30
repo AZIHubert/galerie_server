@@ -39,8 +39,8 @@ initSequelize(() => {
 // Demain, absolument finir tout ca, pas de dodo avant.
 // Quand tout ca sera fini, on passe aux apps!!!!!!!
 // TODO:
-// add notification.type === 'GALERIE_ROLE'
-// and notification.galerieId === galerie where the user became an admin
+// when delete a galerie
+// Check that notification where type === 'GALERIE_ROLE_CHANGE' are destroy.
 // TODO:
 // deleted galerie.archived
 // TODO:
@@ -51,5 +51,5 @@ initSequelize(() => {
 // else, pick a random user to be the new admin of this galerie
 // Send a notification to this user.
 // TODO:
-// when delete a galerie
-// Check that notification where type === 'GALERIE_ADMIN' are destroy.
+// GET /frames/
+// GET /frames/:frameId/
