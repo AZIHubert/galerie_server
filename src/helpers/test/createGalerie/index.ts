@@ -7,14 +7,12 @@ import generateGalerieHiddenName from '#src/helpers/generateGalerieHiddenName';
 
 export default async ({
   allowNotification,
-  archived = false,
   userId,
   description,
   name = 'galerie\'s name',
   role = 'admin',
 }: {
   allowNotification?: boolean;
-  archived?: boolean;
   userId: string;
   description?: string;
   name?: string;
@@ -22,7 +20,6 @@ export default async ({
 }) => {
   const hiddenName = await generateGalerieHiddenName(name);
   const galerie = await Galerie.create({
-    archived,
     defaultCoverPicture: 'defaultCoverPicture',
     description,
     hiddenName,

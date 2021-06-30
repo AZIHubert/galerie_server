@@ -631,19 +631,6 @@ describe('/galeries', () => {
             expect(body.errors).toBe(FILE_SHOULD_BE_AN_IMAGE);
             expect(status).toBe(400);
           });
-          it('galerie is archived', async () => {
-            const galerieTwo = await createGalerie({
-              archived: true,
-              name: 'galerie2',
-              userId: user.id,
-            });
-            const {
-              body,
-              status,
-            } = await postGaleriesIdFrames(app, token, galerieTwo.id);
-            expect(body.errors).toBe('you cannot post on an archived galerie');
-            expect(status).toBe(400);
-          });
           describe('description', () => {
             it('has more than 200 characters', async () => {
               const {

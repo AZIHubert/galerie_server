@@ -281,7 +281,6 @@ describe('/notifications', () => {
             expect(notification.frames[0].numOfLikes).toBeUndefined();
             expect(notification.frames[0].updatedAt).toBeUndefined();
             expect(notification.frames[0].userId).toBeUndefined();
-            expect(notification.galerie.archived).toBeUndefined();
             expect(notification.galerie.createdAt).toBeUndefined();
             expect(notification.galerie.defaultCoverPicture).not.toBeUndefined();
             expect(notification.galerie.description).toBeUndefined();
@@ -362,7 +361,6 @@ describe('/notifications', () => {
             expect(notification.createdAt).not.toBeUndefined();
             expect(notification.frameId).toBeUndefined();
             expect(notification.frame).toBeUndefined();
-            expect(notification.galerie.archived).toBeUndefined();
             expect(notification.galerie.createdAt).toBeUndefined();
             expect(notification.galerie.defaultCoverPicture).not.toBeUndefined();
             expect(notification.galerie.description).toBeUndefined();
@@ -432,7 +430,6 @@ describe('/notifications', () => {
             expect(notification.frameId).toBeUndefined();
             expect(notification.frame).toBeUndefined();
             expect(notification.frames).toBeUndefined();
-            expect(notification.galerie.archived).toBeUndefined();
             expect(notification.galerie.createdAt).toBeUndefined();
             expect(notification.galerie.defaultCoverPicture).not.toBeUndefined();
             expect(notification.galerie.description).toBeUndefined();

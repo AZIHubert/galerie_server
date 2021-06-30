@@ -66,7 +66,6 @@ export default async (req: Request, res: Response) => {
         {
           attributes: {
             exclude: [
-              'archived',
               'createdAt',
               'description',
               'updatedAt',

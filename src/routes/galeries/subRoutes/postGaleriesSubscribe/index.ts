@@ -85,8 +85,8 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  // Check if galerie exist and it's not archived.
-  if (!galerie || galerie.archived) {
+  // Check if galerie exist.
+  if (!galerie) {
     await invitation.destroy();
     return res.status(400).send({
       errors: 'this invitation is not valid',

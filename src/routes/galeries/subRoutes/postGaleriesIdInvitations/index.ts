@@ -82,13 +82,6 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if galerie is not archived.
-  if (galerie.archived) {
-    return res.status(400).send({
-      errors: 'you cannot post invitation on an archived galerie',
-    });
-  }
-
   // Check if current user's role is
   // admin or moderator.
   const userFromGalerie = galerie.users

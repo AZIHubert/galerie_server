@@ -276,23 +276,6 @@ describe('/galeries', () => {
           expect(body.errors).toBe('you\'re not allow to update this galerie');
           expect(status).toBe(400);
         });
-        it('galerie is archived', async () => {
-          const { id: galerieId } = await createGalerie({
-            archived: true,
-            userId: user.id,
-          });
-          const {
-            body,
-            status,
-          } = await putGaleriesId(app, token, galerieId, {
-            body: {
-              name: 'new galerie\'s name',
-            },
-          });
-
-          expect(body.errors).toBe('you cannot update an archived galerie');
-          expect(status).toBe(400);
-        });
         describe('description', () => {
           let galerieId: string;
 

@@ -16,7 +16,6 @@ import Notification from '../notification';
 import User from '../user';
 
 interface GalerieI {
-  archived: boolean;
   defaultCoverPicture: string;
   description: string | null;
   hiddenName: string;
@@ -28,19 +27,6 @@ interface GalerieI {
   tableName: 'galerie',
 })
 export default class Galerie extends Model implements GalerieI {
-  // If the admin of this galerie has delete his account,
-  // and there are still subscriber users remaining,
-  // this galerie become archived.
-  // No frames/invitations can be created,
-  // all users's become 'user'
-  // and his name/cover picture can't be changed.
-  @Default(false)
-  @Column({
-    allowNull: false,
-    type: DataType.BOOLEAN,
-  })
-  archived!: boolean;
-
   // A CSS gradiant background
   // randomly generated when the galerie is create.
   @Column({

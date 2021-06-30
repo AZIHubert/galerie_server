@@ -13,7 +13,6 @@ import {
   Galerie,
   GalerieBlackList,
   GalerieUser,
-  Invitation,
   Like,
   Notification,
   ProfilePicture,
@@ -223,7 +222,6 @@ export default async (req: Request, res: Response) => {
   // If user is the admin of the galerie
   // and if it is the only one left on this galerie,
   // destroy this galerie.
-  // Else, set this galerie as archived.
   try {
     const galerieUsers = await GalerieUser.findAll({
       where: {
@@ -244,24 +242,6 @@ export default async (req: Request, res: Response) => {
           await Galerie.destroy({
             where: {
               id: galerieUser.galerieId,
-            },
-          });
-
-        // If there is still users subscribe to it
-        // and currentUser was the admin of this galerie.
-        // set galerie.archived to true
-        // and destroy all invitations of this galerie.
-        } else if (galerieUser.role === 'admin') {
-          await Galerie.update({
-            archived: true,
-          }, {
-            where: {
-              id: galerieUser.galerieId,
-            },
-          });
-          await Invitation.destroy({
-            where: {
-              galerieId: galerieUser.galerieId,
             },
           });
         }
