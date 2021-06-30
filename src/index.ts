@@ -39,15 +39,6 @@ initSequelize(() => {
 // Demain, absolument finir tout ca, pas de dodo avant.
 // Quand tout ca sera fini, on passe aux apps!!!!!!!
 // TODO:
-// DELETE /frames/:frameId/
-// GET /frames/
-// GET /frames/:frameId/
-// GET /frames/:frameId/likes/
-// POST /frames/:frameId/likes/
-// POST /frames/:frameId/reports/
-// PUT /frames/:frameId/
-// PUT /frames/:frameId/galeriesPictures/:galeriePicturesId/
-// TODO:
 // deleted galerie.archived
 // TODO:
 // if a user where galerieUser.role === 'admin' delete his account
