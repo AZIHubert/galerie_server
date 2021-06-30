@@ -15,6 +15,7 @@ import blackListsRouter from '#src/routes/blackLists';
 import galeriesRouter from '#src/routes/galeries';
 import notificationsRouter from '#src/routes/notifications';
 import profilePicturesRouter from '#src/routes/profilePictures';
+import reports from '#src/routes/reports';
 import ticketsRouter from '#src/routes/tickets';
 import usersRouter from '#src/routes/users';
 
@@ -75,6 +76,7 @@ const initApp: () => http.Server = () => {
   app.use('/galeries', galeriesRouter());
   app.use('/notifications', notificationsRouter());
   app.use('/profilePictures', profilePicturesRouter());
+  app.use('/reports', reports());
   app.use('/tickets', ticketsRouter());
   app.use('/users', usersRouter());
 

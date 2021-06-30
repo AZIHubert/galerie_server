@@ -4,11 +4,13 @@ import {
   DataType,
   Default,
   ForeignKey,
+  HasOne,
   Model,
   Table,
 } from 'sequelize-typescript';
 
 import Image from '../image';
+import Report from '../report';
 import User from '../user';
 
 interface ProfilePictureI {
@@ -100,4 +102,7 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
 
   @BelongsTo(() => User)
   user!: User;
+
+  @HasOne(() => Report)
+  report!: Report;
 }

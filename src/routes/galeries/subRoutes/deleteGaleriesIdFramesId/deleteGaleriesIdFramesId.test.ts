@@ -11,6 +11,8 @@ import {
   Like,
   Notification,
   NotificationFramePosted,
+  Report,
+  ReportUser,
   User,
 } from '#src/db/models';
 
@@ -27,6 +29,7 @@ import {
   createLike,
   createNotificationFrameLiked,
   createNotificationFramePosted,
+  createReport,
   createUser,
   deleteGaleriesIdFramesId,
 } from '#src/helpers/test';
@@ -126,7 +129,7 @@ describe('/galeries', () => {
               expect(images.length).toBe(0);
               expect(status).toBe(200);
             });
-            it('should destroy all likes', async () => {
+            it('destroy all likes', async () => {
               const { id: frameId } = await createFrame({
                 galerieId,
                 userId: user.id,
@@ -293,6 +296,26 @@ describe('/galeries', () => {
               await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
               const notification = await Notification.findByPk(notificationId);
               expect(notification).toBeNull();
+            });
+            it('destoy reports', async () => {
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              const { id: reportId } = await createReport({
+                frameId,
+                userId: user.id,
+              });
+              await deleteGaleriesIdFramesId(app, token, galerieId, frameId);
+              const report = await Report.findByPk(reportId);
+              const reportUser = await ReportUser.findOne({
+                where: {
+                  reportId,
+                  userId: user.id,
+                },
+              });
+              expect(report).toBeNull();
+              expect(reportUser).toBeNull();
             });
           });
           describe('it should return status 400', () => {

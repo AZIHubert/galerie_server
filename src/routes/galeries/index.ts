@@ -30,6 +30,7 @@ import {
   postGaleries,
   postGaleriesIdFrames,
   postGaleriesIdFramesIdLikes,
+  postGaleriesIdFramesIdReports,
   postGaleriesIdInvitations,
   postGaleriesIdUsersIdBlackLists,
   postGaleriesSubscribe,
@@ -70,6 +71,7 @@ const galeriesRoutes: () => Router = () => {
   router.post('/:galerieId/users/:userId/blackLists/', shouldBeAuth, postGaleriesIdUsersIdBlackLists);
   router.post('/:galerieId/frames/', shouldBeAuth, uploadFiles, postGaleriesIdFrames);
   router.post('/:galerieId/frames/:frameId/likes/', shouldBeAuth, postGaleriesIdFramesIdLikes);
+  router.post('/:galerieId/frames/:frameId/reports/', shouldBeAuth, postGaleriesIdFramesIdReports);
   router.post('/:galerieId/invitations/', shouldBeAuth, postGaleriesIdInvitations);
 
   router.put('/:galerieId/', shouldBeAuth, putGaleriesId);

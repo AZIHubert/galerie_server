@@ -16,6 +16,7 @@ import GaleriePicture from '../galeriePicture';
 import Like from '../like';
 import Notification from '../notification';
 import NotificationFramePosted from '../notificationFramePosted';
+import Report from '../report';
 import User from '../user';
 
 interface FrameI {
@@ -94,7 +95,9 @@ export default class Frame extends Model implements FrameI {
   })
   userId!: string;
 
-  @BelongsTo(() => Galerie)
+  @BelongsTo(() => Galerie, {
+    onDelete: 'CASCADE',
+  })
   galerie!: Galerie;
 
   @BelongsTo(() => User)
@@ -114,6 +117,9 @@ export default class Frame extends Model implements FrameI {
 
   @HasOne(() => Notification)
   notification!: Notification;
+
+  @HasOne(() => Report)
+  report!: Report;
 
   @HasMany(() => Like)
   likes!: Like[];

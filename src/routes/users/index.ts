@@ -26,6 +26,7 @@ import {
 
   postUsersConfirmation,
   postUsersIdBlackLists,
+  postUsersIdProfilePicturesIdReports,
   postUsersLogin,
   postUsersLoginSocialMedia,
   postUsersMeEmail,
@@ -71,6 +72,7 @@ const usersRoutes: () => Router = () => {
   router.post('/signin/', shouldNotBeAuth, postUsersSignin);
   router.post('/signin/beta', shouldNotBeAuth, postUsersSigninBeta);
   router.post('/:userId/blackLists', shouldBeAuth, shouldBeAdmin, postUsersIdBlackLists);
+  router.post('/:userId/profilePictures/:profilePictureId/reports/', shouldBeAuth, postUsersIdProfilePicturesIdReports);
 
   router.put('/confirmation/', shouldNotBeAuth, putUsersConfirmation);
   router.put('/me/email/', shouldBeAuth, shouldNotBeGoogleOrFacebookUser, putUsersMeEmail);

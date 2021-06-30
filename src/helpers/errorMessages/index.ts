@@ -28,6 +28,7 @@ export const INVALID_UUID = (
   'like' |
   'notification' |
   'profile picture' |
+  'report' |
   'ticket' |
   'user',
 ) => `${type} id is not valide`;
@@ -43,6 +44,7 @@ export const MODEL_NOT_FOUND = (
   'like' |
   'notification' |
   'profile picture' |
+  'report' |
   'ticket' |
   'user',
 ) => `${type} not found`;

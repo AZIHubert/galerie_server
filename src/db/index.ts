@@ -19,6 +19,8 @@ import {
   NotificationFramePosted,
   NotificationUserSubscribe,
   ProfilePicture,
+  Report,
+  ReportUser,
   Ticket,
   User,
 } from './models';
@@ -51,6 +53,8 @@ const sequelize = new Sequelize({
     NotificationFramePosted,
     NotificationUserSubscribe,
     ProfilePicture,
+    Report,
+    ReportUser,
     Ticket,
     User,
   ],

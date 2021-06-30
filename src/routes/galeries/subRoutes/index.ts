@@ -22,6 +22,7 @@ export { default as getGaleriesIdUsers } from './getGaleriesIdUsers';
 export { default as postGaleries } from './postGaleries';
 export { default as postGaleriesIdFrames } from './postGaleriesIdFrames';
 export { default as postGaleriesIdFramesIdLikes } from './postGaleriesIdFramesIdLikes';
+export { default as postGaleriesIdFramesIdReports } from './postGaleriesIdFramesIdReports';
 export { default as postGaleriesIdInvitations } from './postGaleriesIdInvitations';
 export { default as postGaleriesIdUsersIdBlackLists } from './postGaleriesIdUsersIdBlackLists';
 export { default as postGaleriesSubscribe } from './postGaleriesSubscribe';

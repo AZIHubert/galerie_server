@@ -25,6 +25,7 @@ import {
   createGalerie,
   createGalerieUser,
   createLike,
+  createReport,
   createUser,
   getGaleriesIdFramesId,
   testFrame,
@@ -188,6 +189,60 @@ describe('/galeries', () => {
                 },
               } = await getGaleriesIdFramesId(app, token, galerieId, frame.id);
               expect(returnedFrame.liked).toBe(false);
+            });
+            it('return with reported === true if user have reported a frame', async () => {
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              const {
+                body: {
+                  data: {
+                    frame,
+                  },
+                },
+              } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
+              expect(frame.reported).toBe(false);
+            });
+            it('return with reported === false if user do not have reported a frame', async () => {
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              await createReport({
+                frameId,
+                userId: user.id,
+              });
+              const {
+                body: {
+                  data: {
+                    frame,
+                  },
+                },
+              } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
+              expect(frame.reported).toBe(true);
+            });
+            it('return with reported === false if anotheer user have reported a frame', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2@email.com',
+              });
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              await createReport({
+                frameId,
+                userId: userTwo.id,
+              });
+              const {
+                body: {
+                  data: {
+                    frame,
+                  },
+                },
+              } = await getGaleriesIdFramesId(app, token, galerieId, frameId);
+              expect(frame.reported).toBe(false);
             });
             it('return frame.user.isBlackListed === true if he\'s black listed', async () => {
               const {

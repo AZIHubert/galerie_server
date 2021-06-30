@@ -7,6 +7,7 @@ import '#src/helpers/initEnv';
 import {
   Image,
   ProfilePicture,
+  Report,
   User,
 } from '#src/db/models';
 
@@ -18,6 +19,7 @@ import initSequelize from '#src/helpers/initSequelize.js';
 import { signAuthToken } from '#src/helpers/issueJWT';
 import {
   createProfilePicture,
+  createReport,
   createUser,
   deleteUsersIdProfilePicturesId,
 } from '#src/helpers/test';
@@ -145,6 +147,17 @@ describe('/users', () => {
               const image = await Image.findByPk(profilePicture.cropedImageId);
               expect(image).not.toBeNull();
               expect(profilePicture).not.toBeNull();
+            });
+            it('delete report', async () => {
+              const { id: reportId } = await createReport({
+                profilePictureId,
+              });
+              const {
+                status,
+              } = await deleteUsersIdProfilePicturesId(app, token, userTwo.id, profilePictureId);
+              const report = await Report.findByPk(reportId);
+              expect(report).toBeNull();
+              expect(status).toBe(200);
             });
           });
           describe('should return status 400 if', () => {
