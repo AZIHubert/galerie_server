@@ -24,6 +24,7 @@ import {
   WRONG_PASSWORD,
 } from '#src/helpers/errorMessages';
 import gc from '#src/helpers/gc';
+import { signNotificationToken } from '#src/helpers/issueJWT';
 import {
   normalizeJoiErrors,
   validateDeleteUserMeBody,
@@ -34,6 +35,7 @@ export default async (req: Request, res: Response) => {
   const user = req.user as User;
   let notificationsUserSubscribe: Notification[];
   let notificationBetaKeyUsed: Notification | null;
+  let notificationToken;
 
   // Check if user is created with Google or Facebook.
   // If true, the user can't delete his account.
@@ -232,18 +234,54 @@ export default async (req: Request, res: Response) => {
       galerieUsers.map(async (galerieUser) => {
         const allUsers = await GalerieUser.findAll({
           where: {
+            userId: {
+              [Op.not]: user.id,
+            },
             galerieId: galerieUser.galerieId,
           },
         });
         // If a user is the last
         // user subscribe to a galerie
         // destroy the galerie.
-        if (allUsers.length <= 1) {
+        if (allUsers.length <= 0) {
           await Galerie.destroy({
             where: {
               id: galerieUser.galerieId,
             },
           });
+        // Else pick a random moderator
+        // (or a random user if no moderator)
+        // to be the new admin,
+        // and create a notificationToken.
+        } else if (galerieUser.role === 'admin') {
+          const allModerators = allUsers.filter((u) => u.role === 'moderator');
+          if (allModerators.length) {
+            const randomModerator = allModerators[
+              Math.floor(Math.random() * allModerators.length)
+            ];
+            await randomModerator.update({
+              role: 'admin',
+            });
+            const signToken = signNotificationToken('GALERIE_ROLE_CHANGE', {
+              galerieId: randomModerator.galerieId,
+              role: 'admin',
+              userId: randomModerator.userId,
+            });
+            notificationToken = signToken.token;
+          } else {
+            const randomUser = allUsers[
+              Math.floor(Math.random() * allUsers.length)
+            ];
+            await randomUser.update({
+              role: 'admin',
+            });
+            const signToken = signNotificationToken('GALERIE_ROLE_CHANGE', {
+              galerieId: randomUser.galerieId,
+              role: 'admin',
+              userId: randomUser.userId,
+            });
+            notificationToken = signToken.token;
+          }
         }
       }),
     );
@@ -490,5 +528,8 @@ export default async (req: Request, res: Response) => {
 
   return res.status(200).send({
     action: 'DELETE',
+    data: {
+      notificationToken,
+    },
   });
 };

@@ -35,13 +35,3 @@ initSequelize(() => {
 // check if another user exist with the same userName
 // if true, create a user with increment + 1
 // same logic as Galerie.hiddenName.
-
-// Demain, absolument finir tout ca, pas de dodo avant.
-// Quand tout ca sera fini, on passe aux apps!!!!!!!
-// TODO:
-// if a user where galerieUser.role === 'admin' delete his account
-// and this galerie still have users.
-// Check if at least one moderator exist.
-// if true, pick a random one to be the new admin of this galerie.
-// else, pick a random user to be the new admin of this galerie
-// Send a notification to this user.

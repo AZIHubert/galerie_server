@@ -102,6 +102,11 @@ export default async (req: Request, res: Response) => {
   // If there is no more user
   // subscribe to this galerie...
   // .....................
+  // If this is reach, this is suppose
+  // to be a bug  if there is no more user left
+  // the last user is suppose to be the admin
+  // and this route is not suppose to be accessible
+  // to it.
   if (galerieUsers.length - 1 < 1) {
     let frames: Frame[];
 
