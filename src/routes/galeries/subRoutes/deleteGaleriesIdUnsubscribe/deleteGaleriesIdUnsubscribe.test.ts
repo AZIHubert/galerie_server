@@ -38,7 +38,6 @@ import {
   createNotificationUserSubscribe,
   createUser,
   deleteGaleriesUnsubscribe,
-  deleteUsersMe,
 } from '#src/helpers/test';
 
 import initApp from '#src/server';
@@ -56,7 +55,6 @@ jest.mock('#src/helpers/gc', () => ({
 
 let app: Server;
 let galerieId: string;
-let passwordTwo: string;
 let sequelize: Sequelize;
 let token: string;
 let tokenTwo: string;
@@ -81,14 +79,12 @@ describe('/galeries', () => {
               user: createdUser,
             } = await createUser({});
             const {
-              password: createdPasswordTwo,
               user: createdUserTwo,
             } = await createUser({
               email: 'user2@email.com',
               userName: 'user2',
             });
 
-            passwordTwo = createdPasswordTwo;
             user = createdUser;
             userTwo = createdUserTwo;
 
@@ -812,11 +808,10 @@ describe('/galeries', () => {
           describe('if there is no user left', () => {
             beforeEach(async (done) => {
               try {
-                await deleteUsersMe(app, tokenTwo, {
-                  body: {
-                    deleteAccountSentence: 'delete my account',
-                    password: passwordTwo,
-                    userNameOrEmail: userTwo.email,
+                await GalerieUser.destroy({
+                  where: {
+                    galerieId,
+                    userId: userTwo.id,
                   },
                 });
               } catch (err) {
