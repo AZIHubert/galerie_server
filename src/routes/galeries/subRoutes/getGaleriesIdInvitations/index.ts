@@ -143,9 +143,6 @@ export default async (req: Request, res: Response) => {
       invitations.map(async (invitation) => {
         const isBlackListed = await checkBlackList(invitation.user);
 
-        // TODO:
-        // include invitationToken.
-        // { id: invitation.id }
         return {
           ...invitation.toJSON(),
           user: {

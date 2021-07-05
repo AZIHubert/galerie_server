@@ -28,7 +28,8 @@ export default async (req: Request, res: Response) => {
   } = req.params;
   const currentUser = req.user as User;
   let invitation: Invitation | null;
-  let isBlackListed: boolean;
+  let isBlackListed;
+  let invitationUser;
 
   // Check if request.params.invitationId is a UUIDv4.
   if (!uuidValidatev4(invitationId)) {
@@ -48,12 +49,12 @@ export default async (req: Request, res: Response) => {
           include: [
             {
               model: User,
+              required: false,
               where: {
                 id: currentUser.id,
               },
             },
           ],
-          required: true,
           model: Galerie,
         },
         {
@@ -68,7 +69,6 @@ export default async (req: Request, res: Response) => {
       ],
     });
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
 
@@ -84,8 +84,7 @@ export default async (req: Request, res: Response) => {
     (
       invitation.time
       && invitation.time < new Date(Date.now())
-    )
-    || (
+    ) || (
       invitation.numOfInvits !== null
       && invitation.numOfInvits < 1
     )
@@ -100,32 +99,29 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // Check if current user is the admin or a moderator of this galerie.
-  if (invitation.galerie.users[0].GalerieUser.role === 'user') {
-    return res.status(400).send({
-      errors: 'you\'re not allow to fetch the invitation',
-    });
+  // Create normalize galerie.user
+  // only if user is subscribe to this galerie
+  // and his role for this galerie is 'admin' or 'moderator'.
+  if (
+    invitation.galerie.users[0]
+    && invitation.galerie.users[0].GalerieUser.role !== 'user'
+  ) {
+    try {
+      isBlackListed = await checkBlackList(invitation.user);
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+    invitationUser = {
+      ...invitation.user.toJSON(),
+      currentProfilePicture: null,
+      isBlackListed,
+    };
   }
-
-  // Check if user is black listed.
-  try {
-    isBlackListed = await checkBlackList(invitation.user);
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-
-  // TODO:
-  // include invitationToken.
-  // { id: invitation.id }
 
   const returnedInvitation = {
     ...invitation.toJSON(),
     galerie: undefined,
-    user: {
-      ...invitation.user.toJSON(),
-      currentProfilePicture: null,
-      isBlackListed,
-    },
+    user: invitationUser,
   };
 
   return res.status(200).send({
