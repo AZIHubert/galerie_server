@@ -4,11 +4,10 @@ import request from 'supertest';
 export default async (
   app: Server,
   token: string,
-  galerieId: string,
   invitationId: string,
 ) => {
   const response = await request(app)
-    .get(`/galeries/${galerieId}/invitations/${invitationId}`)
+    .get(`/invitations/${invitationId}`)
     .set('authorization', token);
   return response;
 };
