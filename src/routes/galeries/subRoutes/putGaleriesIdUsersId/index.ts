@@ -8,6 +8,7 @@ import {
 import {
   Galerie,
   GalerieUser,
+  Invitation,
   User,
 } from '#src/db/models';
 
@@ -132,7 +133,23 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
-  if (galerieUser.role !== 'user') {
+  // If the new role is 'user'
+  // destroy all invitation create by
+  // the user.
+  if (galerieUser.role === 'user') {
+    try {
+      await Invitation.destroy({
+        where: {
+          userId,
+          galerieId,
+        },
+      });
+    } catch (err) {
+      return res.status(500).send(err);
+    }
+  // If the new role is 'moderator'
+  // send a notificationToken.
+  } else {
     const signToken = signNotificationToken('GALERIE_ROLE_CHANGE', {
       galerieId,
       role: galerieUser.role,

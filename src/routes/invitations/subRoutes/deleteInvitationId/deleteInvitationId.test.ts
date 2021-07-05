@@ -20,7 +20,7 @@ import {
   createGalerieUser,
   createInvitation,
   createUser,
-  deleteGaleriesIdInvitationId,
+  deleteInvitationId,
 } from '#src/helpers/test';
 
 import initApp from '#src/server';
@@ -74,7 +74,7 @@ describe('/galeries', () => {
           });
 
           describe('should return status 200 and', () => {
-            it('destroy invitation', async () => {
+            it('destroy invitation if currentUser is the creator of this invitation', async () => {
               const { id: invitationId } = await createInvitation({
                 galerieId,
                 userId: user.id,
@@ -88,7 +88,7 @@ describe('/galeries', () => {
                   },
                 },
                 status,
-              } = await deleteGaleriesIdInvitationId(app, token, galerieId, invitationId);
+              } = await deleteInvitationId(app, token, invitationId);
               const invitation = await Invitation.findByPk(invitationId);
               expect(action).toBe('DELETE');
               expect(invitation).toBeNull();
@@ -96,24 +96,10 @@ describe('/galeries', () => {
               expect(returnedInvitationId).toBe(invitationId);
               expect(status).toBe(200);
             });
-            it('destroy the invitation if current user role for this galerie is \'moderator\'', async () => {
+            it('destroy invitation if currentUser\'s role for this galerie is admin', async () => {
               const { user: userTwo } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
-              });
-              const { user: userThree } = await createUser({
-                email: 'user3@email.com',
-                userName: 'user3',
-              });
-              await createGalerieUser({
-                galerieId,
-                role: 'moderator',
-                userId: userTwo.id,
-              });
-              await createGalerieUser({
-                galerieId,
-                role: 'moderator',
-                userId: userThree.id,
               });
               const { id: invitationId } = await createInvitation({
                 galerieId,
@@ -121,55 +107,43 @@ describe('/galeries', () => {
               });
               const {
                 status,
-              } = await deleteGaleriesIdInvitationId(app, token, galerieId, invitationId);
+              } = await deleteInvitationId(app, token, invitationId);
+              expect(status).toBe(200);
               const invitation = await Invitation.findByPk(invitationId);
               expect(invitation).toBeNull();
-              expect(status).toBe(200);
             });
           });
           describe('should return status 400 if', () => {
-            it('req.params.galerieId is not a UUID v4', async () => {
-              const {
-                body,
-                status,
-              } = await deleteGaleriesIdInvitationId(app, token, '100', uuidv4());
-              expect(body.errors).toBe(INVALID_UUID('galerie'));
-              expect(status).toBe(400);
-            });
             it('req.params.invitationId is not a UUID v4', async () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdInvitationId(app, token, uuidv4(), '100');
+              } = await deleteInvitationId(app, token, '100');
               expect(body.errors).toBe(INVALID_UUID('invitation'));
               expect(status).toBe(400);
             });
-            it('user\'s role is \'user\' for this galerie', async () => {
-              const {
-                user: userTwo,
-              } = await createUser({
+            it('currentUser\'s role for this galerie is \'user\'', async () => {
+              const { user: userTwo } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
-              });
-              const { token: tokenTwo } = signAuthToken(userTwo);
-              const {
-                id: invitationId,
-              } = await createInvitation({
-                galerieId,
-                userId: user.id,
               });
               await createGalerieUser({
                 galerieId,
                 userId: userTwo.id,
               });
+              const { token: tokenTwo } = signAuthToken(userTwo);
+              const { id: invitationId } = await createInvitation({
+                galerieId,
+                userId: user.id,
+              });
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdInvitationId(app, tokenTwo, galerieId, invitationId);
+              } = await deleteInvitationId(app, tokenTwo, invitationId);
               expect(body.errors).toBe('you\'re not allow to delete this invitation');
               expect(status).toBe(400);
             });
-            it('creator of this invitation is the admin of this galerie', async () => {
+            it('currentUser\'s role for this galerie is \'moderator\'', async () => {
               const { user: userTwo } = await createUser({
                 email: 'user2@email.com',
                 userName: 'user2',
@@ -187,59 +161,36 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdInvitationId(app, tokenTwo, galerieId, invitationId);
+              } = await deleteInvitationId(app, tokenTwo, invitationId);
               expect(body.errors).toBe('you\'re not allow to delete this invitation');
               expect(status).toBe(400);
             });
           });
           describe('should return status 404 if', () => {
-            it('galerie not found', async () => {
-              const {
-                body,
-                status,
-              } = await deleteGaleriesIdInvitationId(app, token, uuidv4(), uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
-              expect(status).toBe(404);
-            });
-            it('galerie exist but user is not subscribe to it', async () => {
-              const {
-                user: userTwo,
-              } = await createUser({
-                email: 'user2@email.com',
-                userName: 'user2',
-              });
-              const galerie = await createGalerie({
-                name: 'galerie2',
-                userId: userTwo.id,
-              });
-              const {
-                body,
-                status,
-              } = await deleteGaleriesIdInvitationId(app, token, galerie.id, uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
-              expect(status).toBe(404);
-            });
             it('invitation not found', async () => {
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdInvitationId(app, token, galerieId, uuidv4());
+              } = await deleteInvitationId(app, token, uuidv4());
               expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
               expect(status).toBe(404);
             });
-            it('invitation exist but does not belong to this galerie', async () => {
-              const galerie = await createGalerie({
-                name: 'galerie2',
-                userId: user.id,
+            it('currentUser is not subscribe to the galerie where the invitation was posted', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              const galerieTwo = await createGalerie({
+                userId: userTwo.id,
               });
               const { id: invitationId } = await createInvitation({
-                galerieId: galerie.id,
+                galerieId: galerieTwo.id,
                 userId: user.id,
               });
               const {
                 body,
                 status,
-              } = await deleteGaleriesIdInvitationId(app, token, galerieId, invitationId);
+              } = await deleteInvitationId(app, token, invitationId);
               expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
               expect(status).toBe(404);
             });

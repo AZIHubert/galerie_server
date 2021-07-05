@@ -7,7 +7,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import '#src/helpers/initEnv';
 
-import { User } from '#src/db/models';
+import {
+  Invitation,
+  User,
+} from '#src/db/models';
 
 import {
   INVALID_UUID,
@@ -18,6 +21,7 @@ import { signAuthToken } from '#src/helpers/issueJWT';
 import {
   createGalerie,
   createGalerieUser,
+  createInvitation,
   createUser,
   putGaleriesIdUsersId,
 } from '#src/helpers/test';
@@ -183,6 +187,67 @@ describe('/galeries', () => {
               } = await putGaleriesIdUsersId(app, token, galerieId, userThree.id);
               expect(notificationToken).toBeUndefined();
               expect(status).toBe(200);
+            });
+            describe('if the new role for this galerie for the user is \'user\'', () => {
+              let userThreeId: string;
+
+              beforeEach(async (done) => {
+                try {
+                  const { user: userThree } = await createUser({
+                    email: 'user3@email.com',
+                    userName: 'user3',
+                  });
+                  userThreeId = userThree.id;
+                  await createGalerieUser({
+                    galerieId,
+                    role: 'moderator',
+                    userId: userThree.id,
+                  });
+                } catch (err) {
+                  done(err);
+                }
+                done();
+              });
+
+              it('destroy all invitations created by this user', async () => {
+                const { id: invitationId } = await createInvitation({
+                  galerieId,
+                  userId: userThreeId,
+                });
+                const {
+                  status,
+                } = await putGaleriesIdUsersId(app, token, galerieId, userThreeId);
+                const invitation = await Invitation.findByPk(invitationId);
+                expect(invitation).toBeNull();
+                expect(status).toBe(200);
+              });
+              it('do not destroy invitations posted by other users', async () => {
+                const { id: invitationId } = await createInvitation({
+                  galerieId,
+                  userId: user.id,
+                });
+                const {
+                  status,
+                } = await putGaleriesIdUsersId(app, token, galerieId, userThreeId);
+                const invitation = await Invitation.findByPk(invitationId);
+                expect(invitation).not.toBeNull();
+                expect(status).toBe(200);
+              });
+              it('do not destroy invitations created by this user on other galerie', async () => {
+                const galerieTwo = await createGalerie({
+                  userId: userThreeId,
+                });
+                const { id: invitationId } = await createInvitation({
+                  galerieId: galerieTwo.id,
+                  userId: userThreeId,
+                });
+                const {
+                  status,
+                } = await putGaleriesIdUsersId(app, token, galerieId, userThreeId);
+                const invitation = await Invitation.findByPk(invitationId);
+                expect(invitation).not.toBeNull();
+                expect(status).toBe(200);
+              });
             });
           });
           describe('should return status 400 if', () => {

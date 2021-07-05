@@ -5,16 +5,16 @@ import {
 } from '#src/helpers/middlewares';
 
 import {
+  deleteInvitationId,
+
   getInvitationsId,
 } from './subRoutes';
 
 const router = Router();
 
 const invitationsRoute: () => Router = () => {
-  router.delete('/:invitationId', shouldBeAuth, () => {});
+  router.delete('/:invitationId', shouldBeAuth, deleteInvitationId);
 
-  // should be admin/moderator of the galerie.
-  // private
   router.get('/:invitationId/', shouldBeAuth, getInvitationsId);
 
   // use invitationToken

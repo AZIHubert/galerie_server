@@ -1,2 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
+export { default as deleteInvitationId } from './deleteInvitationId';
+
 export { default as getInvitationsId } from './getInvitationsId';
