@@ -114,6 +114,10 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  // TODO:
+  // include invitationToken.
+  // { id: invitation.id }
+
   const returnedInvitation = {
     ...invitation.toJSON(),
     galerie: undefined,

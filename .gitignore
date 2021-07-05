@@ -8,3 +8,4 @@ googleApi.json
 id_rsa_priv.authToken.pem
 id_rsa_priv.refreshToken.pem
 id_rsa_priv.notificationToken.pem
+id_rsa_priv.invitationToken.pem

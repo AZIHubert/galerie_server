@@ -130,6 +130,10 @@ export default async (req: Request, res: Response) => {
     objectUserExcluder[e] = undefined;
   });
 
+  // TODO:
+  // include invitationToken.
+  // { id: invitation.id }
+
   const returnedInvitation = {
     ...invitation.toJSON(),
     ...objectInvitationExcluder,
