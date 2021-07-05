@@ -1,7 +1,6 @@
 export { default as deleteGaleriesId } from './deleteGaleriesId';
 export { default as deleteGaleriesIdBlackListsId } from './deleteGaleriesIdBlackListsId';
 export { default as deleteGaleriesIdInvitations } from './deleteGaleriesIdInvitations';
-export { default as deleteGaleriesIdInvitationsId } from './deleteGaleriesIdInvitationsId';
 export { default as deleteGaleriesIdUnsubscribe } from './deleteGaleriesIdUnsubscribe';
 export { default as deleteGaleriesIdUsersId } from './deleteGaleriesIdUsersId';
 
@@ -12,7 +11,6 @@ export { default as getGaleriesIdBlackListsId } from './getGaleriesIdBlackListsI
 export { default as getGaleriesIdCoverPicture } from './getGaleriesIdCoverPicture';
 export { default as getGaleriesIdFrames } from './getGaleriesIdFrames';
 export { default as getGaleriesIdInvitations } from './getGaleriesIdInvitations';
-export { default as getGaleriesIdInvitationsId } from './getGaleriesIdInvitationsId';
 export { default as getGaleriesIdUsers } from './getGaleriesIdUsers';
 
 export { default as postGaleries } from './postGaleries';

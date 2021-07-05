@@ -22,7 +22,7 @@ import {
   createGalerieUser,
   createInvitation,
   createUser,
-  getGaleriesIdInvitationsId,
+  getInvitationsId,
   testInvitation,
   testUser,
 } from '#src/helpers/test';
@@ -96,7 +96,7 @@ describe('/galeries', () => {
                   },
                 },
                 status,
-              } = await getGaleriesIdInvitationsId(app, token, galerieId, invitation.id);
+              } = await getInvitationsId(app, token, invitation.id);
               expect(action).toBe('GET');
               expect(returnedGalerieId).toBe(galerieId);
               expect(returnedInvitation.user.hasNewNotifications).toBeUndefined();
@@ -119,7 +119,7 @@ describe('/galeries', () => {
                     invitation,
                   },
                 },
-              } = await getGaleriesIdInvitationsId(app, token, galerieId, invitationId);
+              } = await getInvitationsId(app, token, invitationId);
               expect(invitation).not.toBeNull();
             });
             it('return invitation if numOfInvits > 0', async () => {
@@ -134,10 +134,66 @@ describe('/galeries', () => {
                     invitation,
                   },
                 },
-              } = await getGaleriesIdInvitationsId(app, token, galerieId, invitationId);
+              } = await getInvitationsId(app, token, invitationId);
               expect(invitation).not.toBeNull();
             });
-            it('does invitation.user.isBlackListed === true if he\'s black listed', async () => {
+            it('return invitation.user if currentUser\'s role for this galerie is \'admin\' or moderator', async () => {
+              const { id: invitationId } = await createInvitation({
+                galerieId,
+                userId: user.id,
+              });
+              const {
+                body: {
+                  data: {
+                    invitation,
+                  },
+                },
+              } = await getInvitationsId(app, token, invitationId);
+              testUser(invitation.user);
+            });
+            it('do not return invitation.user if currentUser\'s role for this galerie is \'user\'', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              await createGalerieUser({
+                galerieId,
+                userId: userTwo.id,
+              });
+              const { token: tokenTwo } = signAuthToken(userTwo);
+              const { id: invitationId } = await createInvitation({
+                galerieId,
+                userId: user.id,
+              });
+              const {
+                body: {
+                  data: {
+                    invitation,
+                  },
+                },
+              } = await getInvitationsId(app, tokenTwo, invitationId);
+              expect(invitation.user).toBeUndefined();
+            });
+            it('do not return invitation.user if currentUser is not subscribe to the galerie', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              const { token: tokenTwo } = signAuthToken(userTwo);
+              const { id: invitationId } = await createInvitation({
+                galerieId,
+                userId: user.id,
+              });
+              const {
+                body: {
+                  data: {
+                    invitation,
+                  },
+                },
+              } = await getInvitationsId(app, tokenTwo, invitationId);
+              expect(invitation.user).toBeUndefined();
+            });
+            it('return invitation.user.isBlackListed === true if he\'s black listed', async () => {
               const {
                 user: userTwo,
               } = await createUser({
@@ -167,7 +223,7 @@ describe('/galeries', () => {
                     },
                   },
                 },
-              } = await getGaleriesIdInvitationsId(app, token, galerieId, invitationId);
+              } = await getInvitationsId(app, token, invitationId);
               expect(isBlackListed).toBe(true);
             });
             it('return invitation.user.isBlackListed === false if his blackList is expired', async () => {
@@ -205,51 +261,18 @@ describe('/galeries', () => {
                     },
                   },
                 },
-              } = await getGaleriesIdInvitationsId(app, token, galerieId, invitationId);
+              } = await getInvitationsId(app, token, invitationId);
               await userTwo.reload();
               expect(isBlackListed).toBe(false);
               expect(userTwo.isBlackListed).toBe(false);
             });
           });
-          describe('should return error 400 if', () => {
-            it('user\'s role of this galerie is \'user\'', async () => {
-              const {
-                user: userTwo,
-              } = await createUser({
-                email: 'user2@email.com',
-                userName: 'user2',
-              });
-              const { token: tokenTwo } = signAuthToken(userTwo);
-              const { id: invitationId } = await createInvitation({
-                galerieId,
-                userId: user.id,
-              });
-              await createGalerieUser({
-                galerieId,
-                userId: userTwo.id,
-              });
-              const {
-                body,
-                status,
-              } = await getGaleriesIdInvitationsId(app, tokenTwo, galerieId, invitationId);
-              expect(body.errors).toBe('you\'re not allow to fetch the invitation');
-              expect(status).toBe(400);
-            });
-          });
           describe('should return status 400', () => {
-            it('request.params.galerieId is not a UUID v4', async () => {
-              const {
-                body,
-                status,
-              } = await getGaleriesIdInvitationsId(app, token, '100', uuidv4());
-              expect(body.errors).toBe(INVALID_UUID('galerie'));
-              expect(status).toBe(400);
-            });
             it('request.params.invitationId is not a UUID v4', async () => {
               const {
                 body,
                 status,
-              } = await getGaleriesIdInvitationsId(app, token, uuidv4(), '100');
+              } = await getInvitationsId(app, token, '100');
               expect(body.errors).toBe(INVALID_UUID('invitation'));
               expect(status).toBe(400);
             });
@@ -268,7 +291,7 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await getGaleriesIdInvitationsId(app, token, galerieId, invitationId);
+              } = await getInvitationsId(app, token, invitationId);
               const invitation = await Invitation.findByPk(invitationId);
               expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
               expect(invitation).toBeNull();
@@ -283,59 +306,17 @@ describe('/galeries', () => {
               const {
                 body,
                 status,
-              } = await getGaleriesIdInvitationsId(app, token, galerieId, invitationId);
+              } = await getInvitationsId(app, token, invitationId);
               const invitation = await Invitation.findByPk(invitationId);
               expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
               expect(invitation).toBeNull();
-              expect(status).toBe(404);
-            });
-            it('galerie doesn\'t exist', async () => {
-              const {
-                body,
-                status,
-              } = await getGaleriesIdInvitationsId(app, token, uuidv4(), uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
-              expect(status).toBe(404);
-            });
-            it('galerie exist but user is not subscribe to it', async () => {
-              const {
-                user: userTwo,
-              } = await createUser({
-                email: 'user2@email.com',
-                userName: 'user2',
-              });
-              const galerieTwo = await createGalerie({
-                name: 'galerie2',
-                userId: userTwo.id,
-              });
-              const {
-                body,
-                status,
-              } = await getGaleriesIdInvitationsId(app, token, galerieTwo.id, uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('galerie'));
               expect(status).toBe(404);
             });
             it('invitation doesn\'t exist', async () => {
               const {
                 body,
                 status,
-              } = await getGaleriesIdInvitationsId(app, token, galerieId, uuidv4());
-              expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
-              expect(status).toBe(404);
-            });
-            it('invitation exist but does not belong to galerie', async () => {
-              const galerieTwo = await createGalerie({
-                name: 'galerie2',
-                userId: user.id,
-              });
-              const { id: invitationId } = await createInvitation({
-                galerieId: galerieTwo.id,
-                userId: user.id,
-              });
-              const {
-                body,
-                status,
-              } = await getGaleriesIdInvitationsId(app, token, galerieId, invitationId);
+              } = await getInvitationsId(app, token, uuidv4());
               expect(body.errors).toBe(MODEL_NOT_FOUND('invitation'));
               expect(status).toBe(404);
             });

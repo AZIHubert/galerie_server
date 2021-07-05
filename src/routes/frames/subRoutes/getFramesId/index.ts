@@ -1,4 +1,4 @@
-// GET /galeries/:galerieId/frames/:frameId/
+// GET /frames/:frameId/
 
 import {
   Request,
