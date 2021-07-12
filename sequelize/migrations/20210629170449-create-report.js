@@ -38,6 +38,36 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('r
     },
     type: DataTypes.UUID,
   },
+  reasonDisinformation: {
+    allowNull: false,
+    defaultValue: 0,
+    type: DataTypes.INTEGER,
+  },
+  reasonHarassment: {
+    allowNull: false,
+    defaultValue: 0,
+    type: DataTypes.INTEGER,
+  },
+  reasonHate: {
+    allowNull: false,
+    defaultValue: 0,
+    type: DataTypes.INTEGER,
+  },
+  reasonIntellectualPropery: {
+    allowNull: false,
+    defaultValue: 0,
+    type: DataTypes.INTEGER,
+  },
+  reasonNudity: {
+    allowNull: false,
+    defaultValue: 0,
+    type: DataTypes.INTEGER,
+  },
+  reasonScam: {
+    allowNull: false,
+    defaultValue: 0,
+    type: DataTypes.INTEGER,
+  },
   updatedAt: {
     allowNull: false,
     type: DataTypes.DATE,

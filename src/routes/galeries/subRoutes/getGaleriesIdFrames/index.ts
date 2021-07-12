@@ -86,6 +86,9 @@ export default async (req: Request, res: Response) => {
     };
   }
 
+  // TODO:
+  // check if frame is not reported by currentUser
+
   // Fetch all frames relative to this galerie.
   try {
     frames = await Frame.findAll({

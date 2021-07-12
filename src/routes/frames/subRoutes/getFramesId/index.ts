@@ -53,6 +53,9 @@ export default async (req: Request, res: Response) => {
     where.id = currentUser.id;
   }
 
+  // TODO:
+  // check if frame is not reported by currentUser
+
   // Fetch galerie.
   try {
     frame = await Frame.findByPk(frameId, {

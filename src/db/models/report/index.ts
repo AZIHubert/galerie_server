@@ -20,6 +20,12 @@ interface ReportI {
   frameId: string | null;
   id: string;
   profilePictureId: string | null;
+  reasonDisinformation: number;
+  reasonHarassment: number;
+  reasonHate: number;
+  reasonIntellectualPropery: number;
+  reasonNudity: number;
+  reasonScam: number;
   numOfReports: number;
 }
 
@@ -72,6 +78,48 @@ export default class Report extends Model implements ReportI {
   })
   profilePictureId!: string;
 
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  reasonDisinformation!: number;
+
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  reasonHarassment!: number;
+
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  reasonHate!: number;
+
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  reasonIntellectualPropery!: number;
+
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  reasonNudity!: number;
+
+  @Default(0)
+  @Column({
+    allowNull: false,
+    type: DataType.INTEGER,
+  })
+  reasonScam!: number;
+
   @BelongsTo(() => Frame, {
     foreignKey: 'frameId',
     hooks: true,
@@ -87,5 +135,5 @@ export default class Report extends Model implements ReportI {
   profilePicture!: ProfilePicture;
 
   @BelongsToMany(() => User, () => ReportUser)
-  users!: Array<User & {GalerieUser: ReportUser}>;
+  users!: Array<User & {ReportUser: ReportUser}>;
 }

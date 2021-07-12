@@ -112,7 +112,11 @@ describe('/galeries', () => {
                       data,
                     },
                     status,
-                  } = await postFramesIdReports(app, token, frameId);
+                  } = await postFramesIdReports(app, token, frameId, {
+                    body: {
+                      reason: 'scam',
+                    },
+                  });
                   await report.reload();
                   const reportUser = await ReportUser.findOne({
                     where: {
@@ -129,6 +133,23 @@ describe('/galeries', () => {
                   expect(reports.length).toBe(1);
                   expect(status).toBe(200);
                 });
+                it('increment correct reason', async () => {
+                  const report = await createReport({
+                    frameId,
+                  });
+                  await postFramesIdReports(app, token, frameId, {
+                    body: {
+                      reason: 'scam',
+                    },
+                  });
+                  await report.reload();
+                  expect(report.reasonDisinformation).toBe(0);
+                  expect(report.reasonHarassment).toBe(0);
+                  expect(report.reasonHate).toBe(0);
+                  expect(report.reasonIntellectualPropery).toBe(0);
+                  expect(report.reasonNudity).toBe(0);
+                  expect(report.reasonScam).toBe(1);
+                });
                 it('set classed to false', async () => {
                   const report = await createReport({
                     classed: true,
@@ -136,7 +157,11 @@ describe('/galeries', () => {
                   });
                   const {
                     status,
-                  } = await postFramesIdReports(app, token, frameId);
+                  } = await postFramesIdReports(app, token, frameId, {
+                    body: {
+                      reason: 'scam',
+                    },
+                  });
                   await report.reload();
                   expect(report.classed).toBe(false);
                   expect(status).toBe(200);
@@ -144,7 +169,11 @@ describe('/galeries', () => {
               });
               describe('if report for this frame doesn\'t exist', () => {
                 it('create a Report and a ReportUser', async () => {
-                  await postFramesIdReports(app, token, frameId);
+                  await postFramesIdReports(app, token, frameId, {
+                    body: {
+                      reason: 'scam',
+                    },
+                  });
                   const reports = await Report.findAll({
                     include: [
                       {
@@ -157,6 +186,26 @@ describe('/galeries', () => {
                   expect(reports[0].frameId).toBe(frameId);
                   expect(reports[0].profilePictureId).toBeNull();
                   expect(reports[0].users[0].id).toBe(user.id);
+                });
+                it('increment correct reason', async () => {
+                  await postFramesIdReports(app, token, frameId, {
+                    body: {
+                      reason: 'scam',
+                    },
+                  });
+                  const reports = await Report.findAll({
+                    include: [
+                      {
+                        model: User,
+                      },
+                    ],
+                  });
+                  expect(reports[0].reasonDisinformation).toBe(0);
+                  expect(reports[0].reasonHarassment).toBe(0);
+                  expect(reports[0].reasonHate).toBe(0);
+                  expect(reports[0].reasonIntellectualPropery).toBe(0);
+                  expect(reports[0].reasonNudity).toBe(0);
+                  expect(reports[0].reasonScam).toBe(1);
                 });
               });
             });
@@ -209,8 +258,26 @@ describe('/galeries', () => {
                 const {
                   body,
                   status,
-                } = await postFramesIdReports(app, token, frameId);
+                } = await postFramesIdReports(app, token, frameId, {
+                  body: {
+                    reason: 'scam',
+                  },
+                });
                 expect(body.errors).toBe('you have already report this frame');
+                expect(status).toBe(400);
+              });
+              it('request.body.reason is invalid', async () => {
+                const {
+                  body,
+                  status,
+                } = await postFramesIdReports(app, token, frameId, {
+                  body: {
+                    reason: 'wrongReason',
+                  },
+                });
+                expect(body.errors).toEqual({
+                  reason: 'invalid reason',
+                });
                 expect(status).toBe(400);
               });
             });

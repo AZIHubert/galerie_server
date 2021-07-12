@@ -18,6 +18,7 @@ import {
 import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 export default async (req: Request, res: Response) => {
+  const { reason } = req.body;
   const {
     frameId,
   } = req.params;
@@ -101,6 +102,22 @@ export default async (req: Request, res: Response) => {
     return res.status(500).send(err);
   }
 
+  // Check if request.body.reason is valid.
+  if (
+    reason !== 'disinformation'
+    && reason !== 'harassment'
+    && reason !== 'hate'
+    && reason !== 'intellectual property'
+    && reason !== 'nudity'
+    && reason !== 'scam'
+  ) {
+    return res.status(400).send({
+      errors: {
+        reason: 'invalid reason',
+      },
+    });
+  }
+
   // If report exist...
   if (report) {
     // ...and user already report this frame
@@ -117,9 +134,29 @@ export default async (req: Request, res: Response) => {
         reportId: report.id,
         userId: currentUser.id,
       });
+      // TODO:
+      // create a reportedFrameUser
       await report.update({
         classed: false,
         numOfReports: report.numOfReports + 1,
+        reasonDisinformation: reason === 'disinformation'
+          ? report.reasonDisinformation + 1
+          : report.reasonDisinformation,
+        reasonHarassment: reason === 'harassment'
+          ? report.reasonHarassment + 1
+          : report.reasonHarassment,
+        reasonHate: reason === 'hate'
+          ? report.reasonHate + 1
+          : report.reasonHate,
+        reasonIntellectualPropery: reason === 'intellectual property'
+          ? report.reasonIntellectualPropery + 1
+          : report.reasonIntellectualPropery,
+        reasonNudity: reason === 'nudity'
+          ? report.reasonNudity + 1
+          : report.reasonNudity,
+        reasonScam: reason === 'scam'
+          ? report.reasonScam + 1
+          : report.reasonScam,
       });
     } catch (err) {
       return res.status(500).send(err);
@@ -130,7 +167,15 @@ export default async (req: Request, res: Response) => {
     try {
       const { id: reportId } = await Report.create({
         frameId,
+        reasonDisinformation: reason === 'disinformation' ? 1 : 0,
+        reasonHarassment: reason === 'harassment' ? 1 : 0,
+        reasonHate: reason === 'hate' ? 1 : 0,
+        reasonIntellectualPropery: reason === 'intellectual property' ? 1 : 0,
+        reasonNudity: reason === 'nudity' ? 1 : 0,
+        reasonScam: reason === 'scam' ? 1 : 0,
       });
+      // TODO:
+      // create a reportedFrameUser
       await ReportUser.create({
         reportId,
         userId: currentUser.id,

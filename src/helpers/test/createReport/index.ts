@@ -14,6 +14,7 @@ export default async ({
   frameId?: string;
   numOfReports?: number;
   profilePictureId?: string;
+  reason?: string;
   userId?: string;
 }) => {
   const report = await Report.create({

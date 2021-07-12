@@ -237,7 +237,7 @@ export default class User extends Model implements UserI {
   >;
 
   @BelongsToMany(() => Report, () => ReportUser)
-  reports!: Array<Report & {GalerieUser: ReportUser}>;
+  reports!: Array<Report & {ReportUser: ReportUser}>;
 
   @HasMany(() => BetaKey, 'createdById')
   betaKeyCreatedBy!: BetaKey[];

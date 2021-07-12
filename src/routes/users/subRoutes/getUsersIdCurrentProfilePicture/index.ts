@@ -44,6 +44,9 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // TODO:
+  // check if frame is not reported by currentUser
+
   // Fetch current profile picture.
   try {
     currentProfilePicture = await fetchCurrentProfilePicture(user);

@@ -76,6 +76,9 @@ export default async (req: Request, res: Response) => {
   // Map galeries to an array of id.
   const galeriesId = galeries.map((galerie) => galerie.id);
 
+  // TODO:
+  // check if frame is not reported by currentUser
+
   // Fetch all frames
   // of every galeries.
   try {

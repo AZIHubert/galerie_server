@@ -95,6 +95,11 @@ describe('/users', () => {
                     token,
                     user.id,
                     profilePictureId,
+                    {
+                      body: {
+                        reason: 'scam',
+                      },
+                    },
                   );
                   await report.reload();
                   const reports = await Report.findAll({
@@ -116,6 +121,29 @@ describe('/users', () => {
                   expect(reportUser).not.toBeNull();
                   expect(status).toBe(200);
                 });
+                it('increment correct reason', async () => {
+                  const report = await createReport({
+                    profilePictureId,
+                  });
+                  await postUsersIdProfilePicturesIdReports(
+                    app,
+                    token,
+                    user.id,
+                    profilePictureId,
+                    {
+                      body: {
+                        reason: 'scam',
+                      },
+                    },
+                  );
+                  await report.reload();
+                  expect(report.reasonDisinformation).toBe(0);
+                  expect(report.reasonHarassment).toBe(0);
+                  expect(report.reasonHate).toBe(0);
+                  expect(report.reasonIntellectualPropery).toBe(0);
+                  expect(report.reasonNudity).toBe(0);
+                  expect(report.reasonScam).toBe(1);
+                });
                 it('set classed to false', async () => {
                   const report = await createReport({
                     classed: true,
@@ -126,6 +154,11 @@ describe('/users', () => {
                     token,
                     user.id,
                     profilePictureId,
+                    {
+                      body: {
+                        reason: 'scam',
+                      },
+                    },
                   );
                   await report.reload();
                   expect(report.classed).toBe(false);
@@ -139,6 +172,11 @@ describe('/users', () => {
                     token,
                     user.id,
                     profilePictureId,
+                    {
+                      body: {
+                        reason: 'scam',
+                      },
+                    },
                   );
                   const report = await Report.findOne({
                     include: [
@@ -159,6 +197,30 @@ describe('/users', () => {
                   expect(report.numOfReports).toBe(1);
                   expect(report.profilePictureId).toBe(profilePictureId);
                   expect(status).toBe(200);
+                });
+                it('increment correct reason', async () => {
+                  await postUsersIdProfilePicturesIdReports(
+                    app,
+                    token,
+                    user.id,
+                    profilePictureId,
+                    {
+                      body: {
+                        reason: 'scam',
+                      },
+                    },
+                  );
+                  const report = await Report.findOne({
+                    where: {
+                      profilePictureId,
+                    },
+                  }) as Report;
+                  expect(report.reasonDisinformation).toBe(0);
+                  expect(report.reasonHarassment).toBe(0);
+                  expect(report.reasonHate).toBe(0);
+                  expect(report.reasonIntellectualPropery).toBe(0);
+                  expect(report.reasonNudity).toBe(0);
+                  expect(report.reasonScam).toBe(1);
                 });
               });
             });
@@ -223,6 +285,46 @@ describe('/users', () => {
                 expect(status).toBe(400);
               });
               it('currentUser already post a report for this profile picture', async () => {
+                await createReport({
+                  profilePictureId,
+                  userId: currentUser.id,
+                });
+                const {
+                  body,
+                  status,
+                } = await postUsersIdProfilePicturesIdReports(
+                  app,
+                  token,
+                  user.id,
+                  profilePictureId,
+                  {
+                    body: {
+                      reason: 'scam',
+                    },
+                  },
+                );
+                expect(body.errors).toBe('you have already report this profile picture');
+                expect(status).toBe(400);
+              });
+              it('request.body.reason is invalid', async () => {
+                const {
+                  body,
+                  status,
+                } = await postUsersIdProfilePicturesIdReports(
+                  app,
+                  token,
+                  user.id,
+                  profilePictureId,
+                  {
+                    body: {
+                      reason: 'wrongReason',
+                    },
+                  },
+                );
+                expect(body.errors).toEqual({
+                  reason: 'invalid reason',
+                });
+                expect(status).toBe(400);
               });
             });
             describe('shouls return status 404 if', () => {
