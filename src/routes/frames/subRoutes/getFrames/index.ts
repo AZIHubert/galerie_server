@@ -1,10 +1,11 @@
 // GET /frames/
 
+import { Op } from 'sequelize';
+
 import {
   Request,
   Response,
 } from 'express';
-import { Op } from 'sequelize';
 
 import {
   Frame,
@@ -12,7 +13,6 @@ import {
   GaleriePicture,
   Image,
   Like,
-  Report,
   User,
 } from '#src/db/models';
 
@@ -36,9 +36,7 @@ export default async (req: Request, res: Response) => {
   let frames: Array<Frame>;
   let galeries: Array<Galerie>;
   let returnedFrames: Array<any>;
-  const where: {
-    autoIncrementId?: any;
-  } = {};
+  const where: { [key: string]: any } = {};
 
   // Fetch all galeries where
   // current user is subscribe.
@@ -76,9 +74,6 @@ export default async (req: Request, res: Response) => {
   // Map galeries to an array of id.
   const galeriesId = galeries.map((galerie) => galerie.id);
 
-  // TODO:
-  // check if frame is not reported by currentUser
-
   // Fetch all frames
   // of every galeries.
   try {
@@ -87,6 +82,17 @@ export default async (req: Request, res: Response) => {
         exclude: frameExcluder,
       },
       include: [
+        {
+          include: [
+            {
+              model: User,
+              where: {
+                id: currentUser.id,
+              },
+            },
+          ],
+          model: Galerie,
+        },
         {
           attributes: {
             exclude: galeriePictureExcluder,
@@ -108,24 +114,21 @@ export default async (req: Request, res: Response) => {
           model: GaleriePicture,
         },
         {
-          model: Like,
           limit: 1,
+          model: Like,
           required: false,
           where: {
             userId: currentUser.id,
           },
         },
         {
-          include: [
-            {
-              model: User,
-              required: false,
-              where: {
-                id: currentUser.id,
-              },
-            },
-          ],
-          model: Report,
+          as: 'usersReporting',
+          duplicating: false,
+          model: User,
+          required: false,
+          where: {
+            id: currentUser.id,
+          },
         },
         {
           as: 'user',
@@ -140,12 +143,31 @@ export default async (req: Request, res: Response) => {
       ],
       limit,
       order: [['autoIncrementId', 'DESC']],
+      subQuery: false,
       where: {
         ...where,
         galerieId: galeriesId,
+        [Op.or]: [
+          {
+            '$galerie.users.role$': {
+              [Op.not]: 'user',
+            },
+          },
+          {
+            '$galerie.users.GalerieUser.role$': {
+              [Op.not]: 'user',
+            },
+          },
+          {
+            '$usersReporting.id$': {
+              [Op.eq]: null,
+            },
+          },
+        ],
       },
     });
   } catch (err) {
+    console.log(err);
     return res.status(500).send(err);
   }
 
@@ -158,10 +180,10 @@ export default async (req: Request, res: Response) => {
           const isBlackListed = await checkBlackList(frame.user);
           return {
             ...normalizedFrame,
+            galerie: undefined,
             liked: !!frame.likes.length,
             likes: undefined,
-            report: undefined,
-            reported: !!(frame.report && frame.report.users.length),
+            usersReporting: undefined,
             user: {
               ...frame.user.toJSON(),
               isBlackListed,

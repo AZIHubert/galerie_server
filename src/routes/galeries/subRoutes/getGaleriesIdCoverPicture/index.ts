@@ -55,8 +55,12 @@ export default async (req: Request, res: Response) => {
   }
 
   try {
-    coverPicture = await fetchCoverPicture(galerie);
+    coverPicture = await fetchCoverPicture(galerie, {
+      id: galerie.users[0].id,
+      role: galerie.users[0].GalerieUser.role,
+    });
   } catch (err) {
+    console.log(err);
     return res.status(500).send(err);
   }
 

@@ -7,6 +7,7 @@ import {
   Frame,
   Galerie,
   Report,
+  ReportedFrameUser,
   ReportUser,
   User,
 } from '#src/db/models';
@@ -134,8 +135,6 @@ export default async (req: Request, res: Response) => {
         reportId: report.id,
         userId: currentUser.id,
       });
-      // TODO:
-      // create a reportedFrameUser
       await report.update({
         classed: false,
         numOfReports: report.numOfReports + 1,
@@ -174,8 +173,6 @@ export default async (req: Request, res: Response) => {
         reasonNudity: reason === 'nudity' ? 1 : 0,
         reasonScam: reason === 'scam' ? 1 : 0,
       });
-      // TODO:
-      // create a reportedFrameUser
       await ReportUser.create({
         reportId,
         userId: currentUser.id,
@@ -183,6 +180,15 @@ export default async (req: Request, res: Response) => {
     } catch (err) {
       return res.status(500).send(err);
     }
+  }
+
+  try {
+    await ReportedFrameUser.create({
+      frameId,
+      userId: currentUser.id,
+    });
+  } catch (err) {
+    return res.status(500).send(err);
   }
 
   return res.status(200).send({

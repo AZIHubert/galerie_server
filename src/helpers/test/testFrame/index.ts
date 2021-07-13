@@ -35,8 +35,7 @@ export default (
   expect(frame.likes).toBeUndefined();
   expect(frame.liked).not.toBeUndefined();
   expect(frame.notificationHasBeenSend).toBeUndefined();
-  expect(frame.report).toBeUndefined();
-  expect(frame.reported).not.toBeUndefined();
+  expect(frame.usersReporting).toBeUndefined();
   expect(frame.updatedAt).toBeUndefined();
   expect(frame.userId).toBeUndefined();
   if (refFrame) {

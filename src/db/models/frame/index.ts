@@ -17,6 +17,7 @@ import Like from '../like';
 import Notification from '../notification';
 import NotificationFramePosted from '../notificationFramePosted';
 import Report from '../report';
+import ReportedFrameUser from '../reportedFrameUser';
 import User from '../user';
 
 interface FrameI {
@@ -108,6 +109,12 @@ export default class Frame extends Model implements FrameI {
   Notification &
   {NotificationFramePosted: NotificationFramePosted}
   >;
+
+  @BelongsToMany(() => User, () => ReportedFrameUser)
+  usersReporting!: Array<
+  User &
+  {ReportedFrameUser: ReportedFrameUser}
+  >
 
   @HasMany(() => GaleriePicture, {
     hooks: true,

@@ -1,10 +1,11 @@
 // GET /galeries/:galerieId/frames/
 
+import { Includeable, Op } from 'sequelize';
+
 import {
   Request,
   Response,
 } from 'express';
-import { Op } from 'sequelize';
 
 import {
   Frame,
@@ -39,10 +40,63 @@ export default async (req: Request, res: Response) => {
   const {
     previousFrame,
   } = req.query;
-  const limit = 20;
   const currentUser = req.user as User;
+  const include: Includeable[] = [
+    {
+      attributes: {
+        exclude: galeriePictureExcluder,
+      },
+      include: [
+        {
+          as: 'cropedImage',
+          model: Image,
+        },
+        {
+          as: 'originalImage',
+          model: Image,
+        },
+        {
+          as: 'pendingImage',
+          model: Image,
+        },
+      ],
+      model: GaleriePicture,
+    },
+    {
+      limit: 1,
+      model: Like,
+      required: false,
+      where: {
+        userId: currentUser.id,
+      },
+    },
+    {
+      include: [
+        {
+          model: User,
+          required: false,
+          where: {
+            id: currentUser.id,
+          },
+        },
+      ],
+      model: Report,
+    },
+    {
+      as: 'user',
+      attributes: {
+        exclude: [
+          ...userExcluder,
+          'hasNewNotifications',
+        ],
+      },
+      model: User,
+    },
+  ];
+  const limit = 20;
   const whereFrame: {
-    autoIncrementId?: any
+    autoIncrementId?: any;
+    '$usersReporting.id$'?: any;
   } = {};
   const whereGalerie: {
     id?: string;
@@ -59,6 +113,9 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // Allow admin/moderator to access
+  // to the galerie even if they're not
+  // subscribe to it.
   if (currentUser.role === 'user') {
     whereGalerie.id = currentUser.id;
   }
@@ -66,10 +123,12 @@ export default async (req: Request, res: Response) => {
   // Fecth galerie,
   try {
     galerie = await Galerie.findByPk(galerieId, {
-      include: [{
-        model: User,
-        where: whereGalerie,
-      }],
+      include: [
+        {
+          model: User,
+          where: whereGalerie,
+        },
+      ],
     });
   } catch (err) {
     return res.status(500).send(err);
@@ -86,8 +145,23 @@ export default async (req: Request, res: Response) => {
     };
   }
 
-  // TODO:
-  // check if frame is not reported by currentUser
+  // Do not include reported coverPicture if
+  // currentUser's role is 'user' or
+  // currentUser's role for this galerie is 'user'.
+  if (galerie.users[0] && galerie.users[0].GalerieUser.role === 'user') {
+    include.push({
+      as: 'usersReporting',
+      duplicating: false,
+      model: User,
+      required: false,
+      where: {
+        id: currentUser.id,
+      },
+    });
+    whereFrame['$usersReporting.id$'] = {
+      [Op.eq]: null,
+    };
+  }
 
   // Fetch all frames relative to this galerie.
   try {
@@ -95,60 +169,10 @@ export default async (req: Request, res: Response) => {
       attributes: {
         exclude: frameExcluder,
       },
-      include: [
-        {
-          attributes: {
-            exclude: galeriePictureExcluder,
-          },
-          include: [
-            {
-              as: 'cropedImage',
-              model: Image,
-            },
-            {
-              as: 'originalImage',
-              model: Image,
-            },
-            {
-              as: 'pendingImage',
-              model: Image,
-            },
-          ],
-          model: GaleriePicture,
-        },
-        {
-          limit: 1,
-          model: Like,
-          required: false,
-          where: {
-            userId: currentUser.id,
-          },
-        },
-        {
-          include: [
-            {
-              model: User,
-              required: false,
-              where: {
-                id: currentUser.id,
-              },
-            },
-          ],
-          model: Report,
-        },
-        {
-          as: 'user',
-          attributes: {
-            exclude: [
-              ...userExcluder,
-              'hasNewNotifications',
-            ],
-          },
-          model: User,
-        },
-      ],
+      include,
       limit,
       order: [['autoIncrementId', 'DESC']],
+      subQuery: false,
       where: {
         ...whereFrame,
         galerieId,
@@ -163,23 +187,23 @@ export default async (req: Request, res: Response) => {
       frames.map(async (frame) => {
         const normalizedFrame = await fetchFrame(frame);
 
-        if (normalizedFrame) {
-          const isBlackListed = await checkBlackList(frame.user);
-          return {
-            ...normalizedFrame,
-            liked: !!frame.likes.length,
-            likes: undefined,
-            report: undefined,
-            reported: !!(frame.report && frame.report.users.length),
-            user: {
-              ...frame.user.toJSON(),
-              currentProfilePicture: null,
-              isBlackListed,
-            },
-          };
+        if (!normalizedFrame) {
+          await frame.destroy();
+          return null;
         }
-        await frame.destroy();
-        return null;
+
+        const isBlackListed = await checkBlackList(frame.user);
+        return {
+          ...normalizedFrame,
+          liked: !!frame.likes.length,
+          likes: undefined,
+          usersReporting: undefined,
+          user: {
+            ...frame.user.toJSON(),
+            currentProfilePicture: null,
+            isBlackListed,
+          },
+        };
       }),
     );
   } catch (err) {

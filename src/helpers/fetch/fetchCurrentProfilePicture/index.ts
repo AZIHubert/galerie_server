@@ -1,4 +1,9 @@
 import {
+  Includeable,
+  Op,
+} from 'sequelize';
+
+import {
   Image,
   ProfilePicture,
   User,
@@ -7,10 +12,43 @@ import {
 import gc from '#src/helpers/gc';
 import signedUrl from '#src/helpers/signedUrl';
 
-export default async (user: User, exlude?: Array<string>) => {
+export default async (user: User, currentUser?: User) => {
+  const where: { [key: string]: any} = {};
+  const include: Includeable[] = [
+    {
+      as: 'cropedImage',
+      model: Image,
+    },
+    {
+      as: 'originalImage',
+      model: Image,
+    },
+    {
+      as: 'pendingImage',
+      model: Image,
+    },
+  ];
+
+  // If currentUser.role === 'user'
+  // do not include reported profile picture.
+  if (currentUser && currentUser.role === 'user') {
+    include.push({
+      as: 'usersReporting',
+      duplicating: false,
+      model: User,
+      required: false,
+      where: {
+        id: currentUser.id,
+      },
+    });
+    where['$usersReporting.id$'] = {
+      [Op.eq]: null,
+    };
+  }
+
   const currentProfilePicture = await ProfilePicture.findOne({
     attributes: {
-      exclude: exlude || [
+      exclude: [
         'cropedImageId',
         'originalImageId',
         'pendingImageId',
@@ -18,21 +56,9 @@ export default async (user: User, exlude?: Array<string>) => {
         'userId',
       ],
     },
-    include: [
-      {
-        as: 'cropedImage',
-        model: Image,
-      },
-      {
-        as: 'originalImage',
-        model: Image,
-      },
-      {
-        as: 'pendingImage',
-        model: Image,
-      },
-    ],
+    include,
     where: {
+      ...where,
       userId: user.id,
       current: true,
     },
@@ -91,6 +117,7 @@ export default async (user: User, exlude?: Array<string>) => {
   }
   return {
     ...currentProfilePicture.toJSON(),
+    usersReporting: undefined,
     cropedImage: {
       ...cropedImage.toJSON(),
       bucketName: undefined,

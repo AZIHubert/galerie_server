@@ -20,6 +20,8 @@ import signedUrl from '#src/helpers/signedUrl';
 import {
   createFrame,
   createGalerie,
+  createGalerieUser,
+  createReport,
   createUser,
   getGaleriesIdCoverPicture,
   testGaleriePicture,
@@ -142,6 +144,53 @@ describe('/galeries', () => {
             expect(coverPicture).toBeNull();
             expect(galeriePictures.length).toBe(0);
             expect(images.length).toBe(0);
+          });
+          it('return coverPicture === null if currentUser has report the frame', async () => {
+            const { user: userTwo } = await createUser({
+              email: 'user2@email.com',
+              userName: 'user2',
+            });
+            await createGalerieUser({
+              galerieId,
+              userId: userTwo.id,
+            });
+            const { token: tokenTwo } = signAuthToken(userTwo);
+            const { id: frameId } = await createFrame({
+              current: true,
+              galerieId,
+              userId: user.id,
+            });
+            await createReport({
+              frameId,
+              userId: userTwo.id,
+            });
+            const {
+              body: {
+                data: {
+                  coverPicture,
+                },
+              },
+            } = await getGaleriesIdCoverPicture(app, tokenTwo, galerieId);
+            expect(coverPicture).toBeNull();
+          });
+          it('return coverPicture if currentUser has report the frame but his role for this galerie !== \'user\'', async () => {
+            const { id: frameId } = await createFrame({
+              current: true,
+              galerieId,
+              userId: user.id,
+            });
+            await createReport({
+              frameId,
+              userId: user.id,
+            });
+            const {
+              body: {
+                data: {
+                  coverPicture,
+                },
+              },
+            } = await getGaleriesIdCoverPicture(app, token, galerieId);
+            expect(coverPicture).not.toBeNull();
           });
         });
         describe('should return status 400 if', () => {

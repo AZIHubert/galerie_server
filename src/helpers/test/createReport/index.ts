@@ -1,5 +1,7 @@
 import {
   Report,
+  ReportedProfilePictureUser,
+  ReportedFrameUser,
   ReportUser,
 } from '#src/db/models';
 
@@ -28,6 +30,18 @@ export default async ({
       reportId: report.id,
       userId,
     });
+    if (frameId) {
+      await ReportedFrameUser.create({
+        frameId,
+        userId,
+      });
+    }
+    if (profilePictureId) {
+      await ReportedProfilePictureUser.create({
+        profilePictureId,
+        userId,
+      });
+    }
   }
   return report;
 };

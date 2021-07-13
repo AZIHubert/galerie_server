@@ -20,6 +20,7 @@ export default async (req: Request, res: Response) => {
   const {
     userId,
   } = req.params;
+  const currentUser = req.user as User;
   let currentProfilePicture;
   let user: User | null;
 
@@ -44,13 +45,11 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // TODO:
-  // check if frame is not reported by currentUser
-
   // Fetch current profile picture.
   try {
-    currentProfilePicture = await fetchCurrentProfilePicture(user);
+    currentProfilePicture = await fetchCurrentProfilePicture(user, currentUser);
   } catch (err) {
+    console.log(err);
     return res.status(500).send(err);
   }
 

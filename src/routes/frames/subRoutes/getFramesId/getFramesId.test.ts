@@ -188,60 +188,6 @@ describe('/galeries', () => {
               } = await getFramesId(app, token, frame.id);
               expect(returnedFrame.liked).toBe(false);
             });
-            it('return with reported === true if user have reported a frame', async () => {
-              const { id: frameId } = await createFrame({
-                galerieId,
-                userId: user.id,
-              });
-              const {
-                body: {
-                  data: {
-                    frame,
-                  },
-                },
-              } = await getFramesId(app, token, frameId);
-              expect(frame.reported).toBe(false);
-            });
-            it('return with reported === false if user do not have reported a frame', async () => {
-              const { id: frameId } = await createFrame({
-                galerieId,
-                userId: user.id,
-              });
-              await createReport({
-                frameId,
-                userId: user.id,
-              });
-              const {
-                body: {
-                  data: {
-                    frame,
-                  },
-                },
-              } = await getFramesId(app, token, frameId);
-              expect(frame.reported).toBe(true);
-            });
-            it('return with reported === false if anotheer user have reported a frame', async () => {
-              const { user: userTwo } = await createUser({
-                email: 'user2@email.com',
-                userName: 'user2@email.com',
-              });
-              const { id: frameId } = await createFrame({
-                galerieId,
-                userId: user.id,
-              });
-              await createReport({
-                frameId,
-                userId: userTwo.id,
-              });
-              const {
-                body: {
-                  data: {
-                    frame,
-                  },
-                },
-              } = await getFramesId(app, token, frameId);
-              expect(frame.reported).toBe(false);
-            });
             it('return frame.user.isBlackListed === true if he\'s black listed', async () => {
               const {
                 user: userTwo,
@@ -312,6 +258,76 @@ describe('/galeries', () => {
               await userTwo.reload();
               expect(isBlackListed).toBe(false);
               expect(userTwo.isBlackListed).toBe(false);
+            });
+            it('return frame if currentUser reported it but his role !== \'user\'', async () => {
+              const { user: admin } = await createUser({
+                email: 'admin@email.com',
+                role: 'admin',
+                userName: 'admin',
+              });
+              const { token: tokenTwo } = signAuthToken(admin);
+              await createGalerieUser({
+                galerieId,
+                userId: admin.id,
+              });
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              await createReport({
+                frameId,
+                userId: admin.id,
+              });
+              const {
+                body: {
+                  data: {
+                    frame,
+                  },
+                },
+              } = await getFramesId(app, tokenTwo, frameId);
+              expect(frame).not.toBeNull();
+            });
+            it('return frame if currentUser reported it but his role !== \'user\' and he\'s not subscribe to it', async () => {
+              const { user: admin } = await createUser({
+                email: 'admin@email.com',
+                role: 'admin',
+                userName: 'admin',
+              });
+              const { token: tokenTwo } = signAuthToken(admin);
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              await createReport({
+                frameId,
+                userId: admin.id,
+              });
+              const {
+                body: {
+                  data: {
+                    frame,
+                  },
+                },
+              } = await getFramesId(app, tokenTwo, frameId);
+              expect(frame).not.toBeNull();
+            });
+            it('return frame if currentUser reported it but his role for this galerie !== \'user\'', async () => {
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              await createReport({
+                frameId,
+                userId: user.id,
+              });
+              const {
+                body: {
+                  data: {
+                    frame,
+                  },
+                },
+              } = await getFramesId(app, token, frameId);
+              expect(frame).not.toBeNull();
             });
           });
           describe('should return status 400 if', () => {
@@ -396,6 +412,31 @@ describe('/galeries', () => {
               expect(frame).toBeNull();
               expect(galeriePictures.length).toBe(0);
               expect(images.length).toBe(0);
+              expect(status).toBe(404);
+            });
+            it('currentUser report this frame', async () => {
+              const { user: userTwo } = await createUser({
+                email: 'user2@email.com',
+                userName: 'user2',
+              });
+              const { token: tokenTwo } = signAuthToken(userTwo);
+              await createGalerieUser({
+                galerieId,
+                userId: userTwo.id,
+              });
+              const { id: frameId } = await createFrame({
+                galerieId,
+                userId: user.id,
+              });
+              await createReport({
+                frameId,
+                userId: userTwo.id,
+              });
+              const {
+                body,
+                status,
+              } = await getFramesId(app, tokenTwo, frameId);
+              expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
               expect(status).toBe(404);
             });
           });

@@ -35,6 +35,7 @@ export default (
   expect(profilePicture.pendingImage.updatedAt).toBeUndefined();
   expect(profilePicture.pendingImage.width).not.toBeUndefined();
   expect(profilePicture.pendingImageId).toBeUndefined();
+  expect(profilePicture.usersReporting).toBeUndefined();
   expect(profilePicture.updatedAt).toBeUndefined();
   expect(profilePicture.userId).toBeUndefined();
   if (refProfilePicture) {

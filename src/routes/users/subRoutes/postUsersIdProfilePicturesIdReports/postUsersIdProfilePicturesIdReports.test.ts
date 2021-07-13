@@ -7,6 +7,7 @@ import '#src/helpers/initEnv';
 import {
   Report,
   ReportUser,
+  ReportedProfilePictureUser,
   User,
 } from '#src/db/models';
 
@@ -107,6 +108,12 @@ describe('/users', () => {
                       profilePictureId,
                     },
                   });
+                  const reportedProfilePictureUser = await ReportedProfilePictureUser.findOne({
+                    where: {
+                      profilePictureId,
+                      userId: currentUser.id,
+                    },
+                  });
                   const reportUser = await ReportUser.findOne({
                     where: {
                       reportId: report.id,
@@ -118,6 +125,7 @@ describe('/users', () => {
                   expect(data.profilePictureId).toBe(profilePictureId);
                   expect(report.numOfReports).toBe(numOfReports + 1);
                   expect(reports.length).toBe(1);
+                  expect(reportedProfilePictureUser).not.toBeNull();
                   expect(reportUser).not.toBeNull();
                   expect(status).toBe(200);
                 });
@@ -191,11 +199,25 @@ describe('/users', () => {
                       profilePictureId,
                     },
                   }) as Report;
+                  const reportedProfilePictureUser = await ReportedProfilePictureUser.findOne({
+                    where: {
+                      profilePictureId,
+                      userId: currentUser.id,
+                    },
+                  });
+                  const reportUser = await ReportUser.findOne({
+                    where: {
+                      reportId: report.id,
+                      userId: currentUser.id,
+                    },
+                  });
                   expect(report).not.toBeNull();
                   expect(report.classed).toBe(false);
                   expect(report.frameId).toBeNull();
                   expect(report.numOfReports).toBe(1);
                   expect(report.profilePictureId).toBe(profilePictureId);
+                  expect(reportedProfilePictureUser).not.toBeNull();
+                  expect(reportUser).not.toBeNull();
                   expect(status).toBe(200);
                 });
                 it('increment correct reason', async () => {

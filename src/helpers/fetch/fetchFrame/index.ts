@@ -15,43 +15,6 @@ export default async (frame: Frame) => {
           pendingImage,
         } = galeriePicture;
 
-        // If one of the image doesn't
-        // exist, but one of them exist,
-        // destroy the Google images
-        // and the existing Image.
-        // Destroy the galerieImage
-        // and return null.
-
-        // if (
-        //   !cropedImage
-        //   || !originalImage
-        //   || !pendingImage
-        // ) {
-        //   if (cropedImage) {
-        //     await cropedImage.destroy();
-        //     await gc
-        //       .bucket(cropedImage.bucketName)
-        //       .file(cropedImage.fileName)
-        //       .delete();
-        //   }
-        //   if (originalImage) {
-        //     await originalImage.destroy();
-        //     await gc
-        //       .bucket(originalImage.bucketName)
-        //       .file(originalImage.fileName)
-        //       .delete();
-        //   }
-        //   if (pendingImage) {
-        //     await pendingImage.destroy();
-        //     await gc
-        //       .bucket(pendingImage.bucketName)
-        //       .file(pendingImage.fileName)
-        //       .delete();
-        //   }
-        //   await galeriePicture.destroy();
-        //   return null;
-        // }
-
         const cropedImageSignedUrl = await signedUrl(
           cropedImage.bucketName,
           cropedImage.fileName,

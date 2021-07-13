@@ -22,6 +22,8 @@ import NotificationFrameLiked from '../notificationFrameLiked';
 import NotificationUserSubscribe from '../notificationUserSubscribe';
 import ProfilePicture from '../profilePicture';
 import Report from '../report';
+import ReportedFrameUser from '../reportedFrameUser';
+import ReportedProfilePictureUser from '../reportedProfilePictureUser';
 import ReportUser from '../reportUser';
 import Ticket from '../ticket';
 
@@ -238,6 +240,18 @@ export default class User extends Model implements UserI {
 
   @BelongsToMany(() => Report, () => ReportUser)
   reports!: Array<Report & {ReportUser: ReportUser}>;
+
+  @BelongsToMany(() => ProfilePicture, () => ReportedProfilePictureUser)
+  reportedProfilePictures!: Array<
+  ProfilePicture &
+  {ReportedProfilePictureUser: ReportedProfilePictureUser}
+  >
+
+  @BelongsToMany(() => Frame, () => ReportedFrameUser)
+  reportedFrames!: Array<
+  Frame &
+  {ReportedFrameUser: ReportedFrameUser}
+  >
 
   @HasMany(() => BetaKey, 'createdById')
   betaKeyCreatedBy!: BetaKey[];

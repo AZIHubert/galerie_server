@@ -1,5 +1,7 @@
 // GET /frames/:frameId/
 
+import { Op } from 'sequelize';
+
 import {
   Request,
   Response,
@@ -10,7 +12,6 @@ import {
   Galerie,
   GaleriePicture,
   Like,
-  Report,
   User,
 } from '#src/db/models';
 
@@ -35,11 +36,9 @@ export default async (req: Request, res: Response) => {
     frameId,
   } = req.params;
   const currentUser = req.user as User;
-  const where: {
-    id?: string
-  } = {};
   let frame: Frame | null;
   let returnedFrame;
+  let where = {};
 
   // Check if request.params.frameId
   // is a UUID v4.
@@ -49,20 +48,53 @@ export default async (req: Request, res: Response) => {
     });
   }
 
+  // If currentUser's role === 'user'
+  // and currentUser's role for this galerie === 'user'
+  // do not return reported frame.
   if (currentUser.role === 'user') {
-    where.id = currentUser.id;
+    where = {
+      [Op.or]: [
+        {
+          '$galerie.users.role$': {
+            [Op.not]: 'user',
+          },
+        },
+        {
+          '$galerie.users.GalerieUser.role$': {
+            [Op.not]: 'user',
+          },
+        },
+        {
+          '$usersReporting.id$': {
+            [Op.eq]: null,
+          },
+        },
+      ],
+    };
   }
 
-  // TODO:
-  // check if frame is not reported by currentUser
-
-  // Fetch galerie.
+  // Fetch frame.
   try {
-    frame = await Frame.findByPk(frameId, {
+    frame = await Frame.findOne({
       attributes: {
         exclude: frameExcluder,
       },
       include: [
+        {
+          include: [
+            {
+              model: User,
+              // if currentUser role === 'user'
+              // currentUser should be subscribe to the galerie.
+              required: currentUser.role === 'user',
+              where: {
+                id: currentUser.id,
+              },
+            },
+          ],
+          required: true,
+          model: Galerie,
+        },
         {
           attributes: {
             exclude: galeriePictureExcluder,
@@ -83,32 +115,16 @@ export default async (req: Request, res: Response) => {
           },
         },
         {
-          include: [
-            {
-
-              model: User,
-              required: false,
-              where: {
-                id: currentUser.id,
-              },
-            },
-          ],
-          model: Report,
+          as: 'usersReporting',
+          duplicating: false,
+          model: User,
+          required: false,
+          where: {
+            id: currentUser.id,
+          },
         },
         {
-          include: [
-            {
-              model: User,
-              required: currentUser.role === 'user',
-              where: {
-                id: currentUser.id,
-              },
-            },
-          ],
-          required: true,
-          model: Galerie,
-        },
-        {
+          as: 'user',
           attributes: {
             exclude: [
               ...userExcluder,
@@ -118,8 +134,14 @@ export default async (req: Request, res: Response) => {
           model: User,
         },
       ],
+      subQuery: false,
+      where: {
+        ...where,
+        id: frameId,
+      },
     });
   } catch (err) {
+    console.log(err);
     return res.status(500).send(err);
   }
 
@@ -140,8 +162,7 @@ export default async (req: Request, res: Response) => {
         galerie: undefined,
         liked: !!frame.likes.length,
         likes: undefined,
-        report: undefined,
-        reported: !!(frame.report && frame.report.users.length),
+        usersReporting: undefined,
         user: {
           ...frame.user.toJSON(),
           isBlackListed,

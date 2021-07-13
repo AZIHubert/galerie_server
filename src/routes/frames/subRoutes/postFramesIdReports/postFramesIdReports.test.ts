@@ -6,6 +6,7 @@ import '#src/helpers/initEnv';
 
 import {
   Report,
+  ReportedFrameUser,
   ReportUser,
   User,
 } from '#src/db/models';
@@ -118,6 +119,12 @@ describe('/galeries', () => {
                     },
                   });
                   await report.reload();
+                  const reportedFrameUser = await ReportedFrameUser.findOne({
+                    where: {
+                      frameId,
+                      userId: user.id,
+                    },
+                  });
                   const reportUser = await ReportUser.findOne({
                     where: {
                       reportId: report.id,
@@ -129,6 +136,7 @@ describe('/galeries', () => {
                   expect(data.frameId).toBe(frameId);
                   expect(data.galerieId).toBe(galerieId);
                   expect(report.numOfReports).toBe(numOfReports + 1);
+                  expect(reportedFrameUser).not.toBeNull();
                   expect(reportUser).not.toBeNull();
                   expect(reports.length).toBe(1);
                   expect(status).toBe(200);
@@ -181,11 +189,25 @@ describe('/galeries', () => {
                       },
                     ],
                   });
+                  const reportedFrameUser = await ReportedFrameUser.findOne({
+                    where: {
+                      frameId,
+                      userId: user.id,
+                    },
+                  });
+                  const reportUser = await ReportUser.findOne({
+                    where: {
+                      reportId: reports[0].id,
+                      userId: user.id,
+                    },
+                  });
                   expect(reports.length).toBe(1);
                   expect(reports[0].numOfReports).toBe(1);
                   expect(reports[0].frameId).toBe(frameId);
                   expect(reports[0].profilePictureId).toBeNull();
                   expect(reports[0].users[0].id).toBe(user.id);
+                  expect(reportedFrameUser).not.toBeNull();
+                  expect(reportUser).not.toBeNull();
                 });
                 it('increment correct reason', async () => {
                   await postFramesIdReports(app, token, frameId, {

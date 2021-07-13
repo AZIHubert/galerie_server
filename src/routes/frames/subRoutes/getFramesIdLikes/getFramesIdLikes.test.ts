@@ -21,6 +21,7 @@ import {
   createGalerie,
   createGalerieUser,
   createLike,
+  createReport,
   createUser,
   getFramesIdLikes,
   testUser,
@@ -306,6 +307,20 @@ describe('/galeries', () => {
                 expect(likes[0].user.isBlackListed).toBe(false);
                 expect(userTwo.isBlackListed).toBe(false);
               });
+              it('return likes if currentUser report this frame but his role for this galerie !== \'user\'', async () => {
+                await createReport({
+                  frameId,
+                  userId: user.id,
+                });
+                const {
+                  body: {
+                    data: {
+                      likes,
+                    },
+                  },
+                } = await getFramesIdLikes(app, token, frameId);
+                expect(likes).not.toBeNull();
+              });
               describe('should return first likes if req.query.previousLike', () => {
                 let likeId: string;
 
@@ -397,6 +412,31 @@ describe('/galeries', () => {
                   body,
                   status,
                 } = await getFramesIdLikes(app, token, frameId);
+                expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
+                expect(status).toBe(404);
+              });
+              it('currentUser report this frame', async () => {
+                const { id: frameId } = await createFrame({
+                  galerieId,
+                  userId: user.id,
+                });
+                const { user: userTwo } = await createUser({
+                  email: 'user2@email.com',
+                  userName: 'user2',
+                });
+                const { token: tokenTwo } = signAuthToken(userTwo);
+                await createGalerieUser({
+                  galerieId,
+                  userId: userTwo.id,
+                });
+                await createReport({
+                  frameId,
+                  userId: userTwo.id,
+                });
+                const {
+                  body,
+                  status,
+                } = await getFramesIdLikes(app, tokenTwo, frameId);
                 expect(body.errors).toBe(MODEL_NOT_FOUND('frame'));
                 expect(status).toBe(404);
               });

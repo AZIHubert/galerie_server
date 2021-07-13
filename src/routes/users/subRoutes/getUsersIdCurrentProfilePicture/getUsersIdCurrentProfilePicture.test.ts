@@ -19,6 +19,7 @@ import { signAuthToken } from '#src/helpers/issueJWT';
 import signedUrl from '#src/helpers/signedUrl';
 import {
   createProfilePicture,
+  createReport,
   createUser,
   getUsersIdCurrentProfilePicture,
   testProfilePicture,
@@ -137,6 +138,46 @@ describe('/users', () => {
             expect(currentProfilePicture).toBeNull();
             expect(images.length).toBe(0);
             expect(profilePictures.length).toBe(0);
+          });
+          it('return null if currentUser report this profile picture', async () => {
+            const { id: profilePictureId } = await createProfilePicture({
+              userId: userTwo.id,
+            });
+            await createReport({
+              profilePictureId,
+              userId: user.id,
+            });
+            const {
+              body: {
+                data: {
+                  currentProfilePicture,
+                },
+              },
+            } = await getUsersIdCurrentProfilePicture(app, token, userTwo.id);
+            expect(currentProfilePicture).toBeNull();
+          });
+          it('return profile picture if currentUser report this profile picture but his role !=== \'user\'', async () => {
+            const { user: admin } = await createUser({
+              email: 'admin@email.com',
+              role: 'admin',
+              userName: 'admin',
+            });
+            const { id: profilePictureId } = await createProfilePicture({
+              userId: userTwo.id,
+            });
+            await createReport({
+              profilePictureId,
+              userId: user.id,
+            });
+            const { token: tokenTwo } = signAuthToken(admin);
+            const {
+              body: {
+                data: {
+                  currentProfilePicture,
+                },
+              },
+            } = await getUsersIdCurrentProfilePicture(app, tokenTwo, userTwo.id);
+            expect(currentProfilePicture).not.toBeNull();
           });
         });
         describe('should return status 400 if', () => {

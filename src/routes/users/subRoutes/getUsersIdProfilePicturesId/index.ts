@@ -49,6 +49,7 @@ export default async (req: Request, res: Response) => {
     user = await User.findByPk(userId, {
       include: [
         {
+          as: 'profilePictures',
           attributes: {
             exclude: profilePictureExcluder,
           },

@@ -46,12 +46,9 @@ export default async (req: Request, res: Response) => {
     });
   }
 
-  // TODO:
-  // check if frame is not reported by currentUser
-
   // Fetch galerie.
   try {
-    frame = await Frame.findByPk(frameId, {
+    frame = await Frame.findOne({
       include: [
         {
           include: [
@@ -66,7 +63,32 @@ export default async (req: Request, res: Response) => {
           required: true,
           model: Galerie,
         },
+        {
+          as: 'usersReporting',
+          duplicating: false,
+          model: User,
+          required: false,
+          where: {
+            id: currentUser.id,
+          },
+        },
       ],
+      subQuery: false,
+      where: {
+        id: frameId,
+        [Op.or]: [
+          {
+            '$galerie.users.GalerieUser.role$': {
+              [Op.not]: 'user',
+            },
+          },
+          {
+            '$usersReporting.id$': {
+              [Op.eq]: null,
+            },
+          },
+        ],
+      },
     });
   } catch (err) {
     return res.status(500).send(err);

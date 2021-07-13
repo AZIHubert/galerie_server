@@ -1,5 +1,6 @@
 import {
   BelongsTo,
+  BelongsToMany,
   Column,
   DataType,
   Default,
@@ -11,6 +12,7 @@ import {
 
 import Image from '../image';
 import Report from '../report';
+import ReportedProfilePictureUser from '../reportedProfilePictureUser';
 import User from '../user';
 
 interface ProfilePictureI {
@@ -102,6 +104,12 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
 
   @BelongsTo(() => User)
   user!: User;
+
+  @BelongsToMany(() => User, () => ReportedProfilePictureUser)
+  usersReporting!: Array<
+  User &
+  {ReportedProfilePictureUser: ReportedProfilePictureUser}
+  >
 
   @HasOne(() => Report)
   report!: Report;

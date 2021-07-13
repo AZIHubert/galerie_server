@@ -17,15 +17,6 @@ initSequelize(() => {
   });
 });
 
-// TODO:
-// reportUser
-// through model
-//   userId
-//   frameId
-// when fetch frame(s)
-// Check if reportUser model exist
-// Do not fetch the frame if true.
-
 // TODO: for later
 // when the admin delete his account
 // create an election

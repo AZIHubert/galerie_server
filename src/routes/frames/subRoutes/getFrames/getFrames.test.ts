@@ -329,69 +329,6 @@ describe('/galeries', () => {
           } = await getFrames(app, token);
           expect(frames[0].liked).toBe(false);
         });
-        it('return with reported === true if user have reported a frame', async () => {
-          const { id: galerieId } = await createGalerie({
-            userId: user.id,
-          });
-          await createFrame({
-            galerieId,
-            userId: user.id,
-          });
-          const {
-            body: {
-              data: {
-                frames,
-              },
-            },
-          } = await getFrames(app, token);
-          expect(frames[0].reported).toBe(false);
-        });
-        it('return with reported === false if user do not have reported a frame', async () => {
-          const { id: galerieId } = await createGalerie({
-            userId: user.id,
-          });
-          const { id: frameId } = await createFrame({
-            galerieId,
-            userId: user.id,
-          });
-          await createReport({
-            frameId,
-            userId: user.id,
-          });
-          const {
-            body: {
-              data: {
-                frames,
-              },
-            },
-          } = await getFrames(app, token);
-          expect(frames[0].reported).toBe(true);
-        });
-        it('return with reported === false if anotheer user have reported a frame', async () => {
-          const { user: userTwo } = await createUser({
-            email: 'user2@email.com',
-            userName: 'user2@email.com',
-          });
-          const { id: galerieId } = await createGalerie({
-            userId: user.id,
-          });
-          const { id: frameId } = await createFrame({
-            galerieId,
-            userId: user.id,
-          });
-          await createReport({
-            frameId,
-            userId: userTwo.id,
-          });
-          const {
-            body: {
-              data: {
-                frames,
-              },
-            },
-          } = await getFrames(app, token);
-          expect(frames[0].reported).toBe(false);
-        });
         it('return frame.user.isBlackListed === true if user is blackListed', async () => {
           const { id: galerieId } = await createGalerie({
             userId: user.id,
@@ -518,6 +455,88 @@ describe('/galeries', () => {
           expect(frame).toBeNull();
           expect(galeriePictures.length).toBe(0);
           expect(images.length).toBe(0);
+        });
+        it('do not include reported frame', async () => {
+          const { id: galerieId } = await createGalerie({
+            userId: user.id,
+          });
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const { token: tokenTwo } = signAuthToken(userTwo);
+          await createGalerieUser({
+            galerieId,
+            userId: userTwo.id,
+          });
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: user.id,
+          });
+          await createReport({
+            frameId,
+            userId: userTwo.id,
+          });
+          const {
+            body: {
+              data: {
+                frames,
+              },
+            },
+          } = await getFrames(app, tokenTwo);
+          expect(frames.length).toBe(0);
+        });
+        it('include reported frame if currentUser\'s role for this galerie !== \'user\'', async () => {
+          const { id: galerieId } = await createGalerie({
+            userId: user.id,
+          });
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: user.id,
+          });
+          await createReport({
+            frameId,
+            userId: user.id,
+          });
+          const {
+            body: {
+              data: {
+                frames,
+              },
+            },
+          } = await getFrames(app, token);
+          expect(frames.length).toBe(1);
+        });
+        it('include reported frame if currentUser\'s role !== \'user\'', async () => {
+          const { id: galerieId } = await createGalerie({
+            userId: user.id,
+          });
+          const { user: admin } = await createUser({
+            email: 'admin@email.com',
+            role: 'admin',
+            userName: 'admin',
+          });
+          const { token: tokenTwo } = signAuthToken(admin);
+          await createGalerieUser({
+            galerieId,
+            userId: admin.id,
+          });
+          const { id: frameId } = await createFrame({
+            galerieId,
+            userId: user.id,
+          });
+          await createReport({
+            frameId,
+            userId: admin.id,
+          });
+          const {
+            body: {
+              data: {
+                frames,
+              },
+            },
+          } = await getFrames(app, tokenTwo);
+          expect(frames.length).toBe(1);
         });
         describe('should return first frames if req.query.previousFrame', () => {
           let frameId: string;
