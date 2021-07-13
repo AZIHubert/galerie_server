@@ -29,6 +29,7 @@ import isNormalInteger from '#src/helpers/isNormalInteger';
 
 export default async (req: Request, res: Response) => {
   const {
+    me,
     previousFrame,
   } = req.query;
   const currentUser = req.user as User;
@@ -69,6 +70,13 @@ export default async (req: Request, res: Response) => {
     where.autoIncrementId = {
       [Op.lt]: previousFrame.toString(),
     };
+  }
+
+  // If ?me='true'
+  // return all frames only created
+  // by currentUser.
+  if (me === 'true') {
+    where.userId = currentUser.id;
   }
 
   // Map galeries to an array of id.
