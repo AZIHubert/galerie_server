@@ -5,18 +5,23 @@ export default async (
   app: Server,
   token: string,
   option: {
+    me?: string;
     previousFrame?: string,
   } = {},
 ) => {
-  let response: request.Response;
-  if (option.previousFrame) {
-    response = await request(app)
-      .get(`/frames?previousFrame=${option.previousFrame}`)
-      .set('authorization', token);
-  } else {
-    response = await request(app)
-      .get('/frames/')
-      .set('authorization', token);
+  const {
+    me,
+    previousFrame,
+  } = option;
+  let query = '';
+  if (me) {
+    query = `${query}${query === '' ? '' : '&'}me=${me}`;
   }
+  if (previousFrame) {
+    query = `${query}${query === '' ? '' : '&'}previousFrame=${previousFrame}`;
+  }
+  const response = await request(app)
+    .get(`/frames${query === '' ? '' : `?${query}`}`)
+    .set('authorization', token);
   return response;
 };

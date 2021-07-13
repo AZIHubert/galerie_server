@@ -538,6 +538,100 @@ describe('/galeries', () => {
           } = await getFrames(app, tokenTwo);
           expect(frames.length).toBe(1);
         });
+        it('return only frames posted by currentUser if request.query.me === \'true\'', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const galerieOne = await createGalerie({
+            userId: user.id,
+          });
+          const galerieTwo = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId: galerieOne.id,
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId: galerieTwo.id,
+            userId: user.id,
+          });
+          const frameOne = await createFrame({
+            galerieId: galerieOne.id,
+            userId: user.id,
+          });
+          const frameTwo = await createFrame({
+            galerieId: galerieTwo.id,
+            userId: user.id,
+          });
+          await createFrame({
+            galerieId: galerieOne.id,
+            userId: userTwo.id,
+          });
+          await createFrame({
+            galerieId: galerieTwo.id,
+            userId: userTwo.id,
+          });
+          const {
+            body: {
+              data: {
+                frames,
+              },
+            },
+          } = await getFrames(app, token, {
+            me: 'true',
+          });
+          expect(frames.length).toBe(2);
+          expect(frames[0].id).toBe(frameTwo.id);
+          expect(frames[1].id).toBe(frameOne.id);
+        });
+        it('return all frames if request.query.me !== \'true\'', async () => {
+          const { user: userTwo } = await createUser({
+            email: 'user2@email.com',
+            userName: 'user2',
+          });
+          const galerieOne = await createGalerie({
+            userId: user.id,
+          });
+          const galerieTwo = await createGalerie({
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId: galerieOne.id,
+            userId: userTwo.id,
+          });
+          await createGalerieUser({
+            galerieId: galerieTwo.id,
+            userId: user.id,
+          });
+          await createFrame({
+            galerieId: galerieOne.id,
+            userId: user.id,
+          });
+          await createFrame({
+            galerieId: galerieTwo.id,
+            userId: user.id,
+          });
+          await createFrame({
+            galerieId: galerieOne.id,
+            userId: userTwo.id,
+          });
+          await createFrame({
+            galerieId: galerieTwo.id,
+            userId: userTwo.id,
+          });
+          const {
+            body: {
+              data: {
+                frames,
+              },
+            },
+          } = await getFrames(app, token, {
+            me: 'false',
+          });
+          expect(frames.length).toBe(4);
+        });
         describe('should return first frames if req.query.previousFrame', () => {
           let frameId: string;
 
