@@ -49,7 +49,6 @@ export default async (req: Request, res: Response) => {
   try {
     currentProfilePicture = await fetchCurrentProfilePicture(user, currentUser);
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
 

@@ -9,7 +9,6 @@ export default async (profilePicture: ProfilePicture) => {
   const {
     cropedImage,
     originalImage,
-    pendingImage,
   } = profilePicture;
 
   const cropedImageSignedUrl = await signedUrl(
@@ -20,15 +19,10 @@ export default async (profilePicture: ProfilePicture) => {
     originalImage.bucketName,
     originalImage.fileName,
   );
-  const pendingImageSignedUrl = await signedUrl(
-    pendingImage.bucketName,
-    pendingImage.fileName,
-  );
 
   if (
     !cropedImageSignedUrl.OK
     || !originalImageSignedUrl.OK
-    || !pendingImageSignedUrl.OK
   ) {
     if (cropedImageSignedUrl.OK) {
       await gc
@@ -42,15 +36,8 @@ export default async (profilePicture: ProfilePicture) => {
         .file(originalImage.fileName)
         .delete();
     }
-    if (pendingImageSignedUrl.OK) {
-      await gc
-        .bucket(pendingImage.bucketName)
-        .file(pendingImage.fileName)
-        .delete();
-    }
     await cropedImage.destroy();
     await originalImage.destroy();
-    await pendingImage.destroy();
     await profilePicture.destroy();
     return null;
   }
@@ -73,15 +60,6 @@ export default async (profilePicture: ProfilePicture) => {
       fileName: undefined,
       id: undefined,
       signedUrl: originalImageSignedUrl.signedUrl,
-      updatedAt: undefined,
-    },
-    pendingImage: {
-      ...pendingImage.toJSON(),
-      bucketName: undefined,
-      createdAt: undefined,
-      fileName: undefined,
-      id: undefined,
-      signedUrl: pendingImageSignedUrl.signedUrl,
       updatedAt: undefined,
     },
   };

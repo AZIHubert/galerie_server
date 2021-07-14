@@ -60,7 +60,6 @@ export default async (req: Request, res: Response) => {
       role: galerie.users[0].GalerieUser.role,
     });
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
 

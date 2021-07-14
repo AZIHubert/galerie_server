@@ -27,6 +27,7 @@ interface FrameI {
   id: string;
   notificationHasBeenSend: boolean;
   numOfLikes: number;
+  pendingHexes: string;
   userId: string;
 }
 
@@ -88,6 +89,13 @@ export default class Frame extends Model implements FrameI {
     type: DataType.INTEGER,
   })
   numOfLikes!: number;
+
+  @Default('#0000,#0000')
+  @Column({
+    allowNull: false,
+    type: DataType.STRING,
+  })
+  pendingHexes!: string;
 
   // Id of the user who post this frame.
   @ForeignKey(() => User)

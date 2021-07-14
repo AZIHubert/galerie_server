@@ -126,7 +126,6 @@ describe('/reports', () => {
           expect(returnReport.profilePicture.current).not.toBeUndefined();
           expect(returnReport.profilePicture.originalImageId).toBeUndefined();
           expect(returnReport.profilePicture.id).not.toBeUndefined();
-          expect(returnReport.profilePicture.pendingImageId).toBeUndefined();
           expect(returnReport.profilePicture.updatedAt).toBeUndefined();
           expect(returnReport.profilePicture.userId).not.toBeUndefined();
           expect(returnReport.type).toBe('PROFILE_PICTURE');

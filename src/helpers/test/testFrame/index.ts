@@ -23,15 +23,7 @@ export default (
   expect(frame.galeriePictures[0].originalImage.updatedAt).toBeUndefined();
   expect(frame.galeriePictures[0].originalImage.width).not.toBeUndefined();
   expect(frame.galeriePictures[0].originalImageId).toBeUndefined();
-  expect(frame.galeriePictures[0].pendingImage.createdAt).toBeUndefined();
-  expect(frame.galeriePictures[0].pendingImage.format).not.toBeUndefined();
-  expect(frame.galeriePictures[0].pendingImage.height).not.toBeUndefined();
-  expect(frame.galeriePictures[0].pendingImage.id).toBeUndefined();
-  expect(typeof frame.galeriePictures[0].pendingImage.signedUrl).toBe('string');
-  expect(frame.galeriePictures[0].pendingImage.size).not.toBeUndefined();
-  expect(frame.galeriePictures[0].pendingImage.updatedAt).toBeUndefined();
-  expect(frame.galeriePictures[0].pendingImage.width).not.toBeUndefined();
-  expect(frame.galeriePictures[0].pendingImageId).toBeUndefined();
+  expect(frame.galeriePictures[0].pendingHexes).not.toBeUndefined();
   expect(frame.likes).toBeUndefined();
   expect(frame.liked).not.toBeUndefined();
   expect(frame.notificationHasBeenSend).toBeUndefined();

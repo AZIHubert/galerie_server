@@ -81,10 +81,4 @@ export default class Image extends Model implements ImageI {
 
   @HasOne(() => ProfilePicture)
   originalProfilePicture!: ProfilePicture;
-
-  @HasOne(() => GaleriePicture)
-  pendingGaleriePicture!: GaleriePicture;
-
-  @HasOne(() => ProfilePicture)
-  pendingProfilePicture!: ProfilePicture;
 }

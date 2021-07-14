@@ -18,7 +18,7 @@ interface GaleriePictureI {
   id: string;
   index: number;
   originalImageId: string;
-  pendingImageId: string;
+  pendingHexes: string;
 }
 
 @Table({
@@ -68,19 +68,17 @@ export default class GaleriePicture extends Model implements GaleriePictureI {
   })
   index!: number;
 
-  @ForeignKey(() => Image)
   @Column({
-    allowNull: false,
-    type: DataType.UUID,
+    type: DataType.STRING,
   })
-  originalImageId!: string;
+  pendingHexes!: string;
 
   @ForeignKey(() => Image)
   @Column({
     allowNull: false,
     type: DataType.UUID,
   })
-  pendingImageId!: string;
+  originalImageId!: string;
 
   @BelongsTo(() => Image, {
     foreignKey: 'cropedImageId',
@@ -95,13 +93,6 @@ export default class GaleriePicture extends Model implements GaleriePictureI {
     onDelete: 'CASCADE',
   })
   originalImage!: Image;
-
-  @BelongsTo(() => Image, {
-    foreignKey: 'pendingImageId',
-    hooks: true,
-    onDelete: 'CASCADE',
-  })
-  pendingImage!: Image;
 
   @BelongsTo(() => Frame)
   frame!: Frame;

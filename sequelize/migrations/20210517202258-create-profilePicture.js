@@ -35,13 +35,8 @@ module.exports.up = (queryInterface, DataTypes) => queryInterface.createTable('p
     },
     type: DataTypes.UUID,
   },
-  pendingImageId: {
-    allowNull: false,
-    references: {
-      key: 'id',
-      model: 'image',
-    },
-    type: DataTypes.UUID,
+  pendingHexes: {
+    type: DataTypes.STRING,
   },
   updatedAt: {
     allowNull: false,

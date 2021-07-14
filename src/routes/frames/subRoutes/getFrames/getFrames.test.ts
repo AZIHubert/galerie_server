@@ -179,7 +179,6 @@ describe('/galeries', () => {
                 current: false,
                 frameId,
                 originalImageId: imageId,
-                pendingImageId: imageId,
               });
             }),
           );

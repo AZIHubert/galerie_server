@@ -23,10 +23,6 @@ export default async (user: User, currentUser?: User) => {
       as: 'originalImage',
       model: Image,
     },
-    {
-      as: 'pendingImage',
-      model: Image,
-    },
   ];
 
   // If currentUser.role === 'user'
@@ -51,7 +47,6 @@ export default async (user: User, currentUser?: User) => {
       exclude: [
         'cropedImageId',
         'originalImageId',
-        'pendingImageId',
         'updatedAt',
         'userId',
       ],
@@ -71,7 +66,6 @@ export default async (user: User, currentUser?: User) => {
   const {
     cropedImage,
     originalImage,
-    pendingImage,
   } = currentProfilePicture;
 
   const cropedImageSignedUrl = await signedUrl(
@@ -82,15 +76,10 @@ export default async (user: User, currentUser?: User) => {
     originalImage.bucketName,
     originalImage.fileName,
   );
-  const pendingImageSignedUrl = await signedUrl(
-    pendingImage.bucketName,
-    pendingImage.fileName,
-  );
 
   if (
     !cropedImageSignedUrl.OK
       || !originalImageSignedUrl.OK
-      || !pendingImageSignedUrl.OK
   ) {
     if (cropedImageSignedUrl.OK) {
       await gc
@@ -104,15 +93,8 @@ export default async (user: User, currentUser?: User) => {
         .file(originalImage.fileName)
         .delete();
     }
-    if (pendingImageSignedUrl.OK) {
-      await gc
-        .bucket(pendingImage.bucketName)
-        .file(pendingImage.fileName)
-        .delete();
-    }
     await cropedImage.destroy();
     await originalImage.destroy();
-    await pendingImage.destroy();
     return null;
   }
   return {
@@ -134,15 +116,6 @@ export default async (user: User, currentUser?: User) => {
       fileName: undefined,
       id: undefined,
       signedUrl: originalImageSignedUrl.signedUrl,
-      updatedAt: undefined,
-    },
-    pendingImage: {
-      ...pendingImage.toJSON(),
-      bucketName: undefined,
-      createdAt: undefined,
-      fileName: undefined,
-      id: undefined,
-      signedUrl: pendingImageSignedUrl.signedUrl,
       updatedAt: undefined,
     },
   };

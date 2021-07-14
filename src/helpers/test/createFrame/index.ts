@@ -42,7 +42,6 @@ export default async ({
         frameId: frame.id,
         index,
         originalImageId: imageId,
-        pendingImageId: imageId,
       });
       return galeriePicture;
     }),
@@ -66,7 +65,6 @@ export default async ({
       id: string;
       index: number;
       originalImageId: string;
-      pendingImageId: string;
     }>;
   };
 };

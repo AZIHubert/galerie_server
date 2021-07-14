@@ -84,7 +84,7 @@ describe('/profilePicture', () => {
         const images = await Image.findAll();
         expect(action).toBe('POST');
         expect(status).toBe(200);
-        expect(images.length).toBe(3);
+        expect(images.length).toBe(2);
         testProfilePicture(profilePicture);
       });
       it('should set all other profile picture\'s to null', async () => {

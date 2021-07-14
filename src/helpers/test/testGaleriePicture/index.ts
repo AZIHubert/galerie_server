@@ -26,17 +26,7 @@ export default (
   expect(galeriePicture.originalImage.size).not.toBeUndefined();
   expect(galeriePicture.originalImage.updatedAt).toBeUndefined();
   expect(galeriePicture.originalImage.width).not.toBeUndefined();
-  expect(galeriePicture.pendingImageId).toBeUndefined();
-  expect(galeriePicture.pendingImage.bucketName).toBeUndefined();
-  expect(galeriePicture.pendingImage.createdAt).toBeUndefined();
-  expect(galeriePicture.pendingImage.fileName).toBeUndefined();
-  expect(galeriePicture.pendingImage.format).not.toBeUndefined();
-  expect(galeriePicture.pendingImage.height).not.toBeUndefined();
-  expect(galeriePicture.pendingImage.id).toBeUndefined();
-  expect(galeriePicture.pendingImage.signedUrl).not.toBeUndefined();
-  expect(galeriePicture.pendingImage.size).not.toBeUndefined();
-  expect(galeriePicture.pendingImage.updatedAt).toBeUndefined();
-  expect(galeriePicture.pendingImage.width).not.toBeUndefined();
+  expect(galeriePicture.pendingHexes).not.toBeUndefined();
   expect(galeriePicture.updatedAt).toBeUndefined();
 
   if (refGaleriePicture) {

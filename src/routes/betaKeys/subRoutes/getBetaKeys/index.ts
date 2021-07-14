@@ -21,16 +21,24 @@ export default async (req: Request, res: Response) => {
   const currentUser = req.user as User;
   const limit = 20;
   const {
+    email,
     me,
     previousBetaKey,
     used,
   } = req.query;
   const where: {
+    email?: any;
     autoIncrementId?: any;
     createdById?: string;
     userId?: any;
   } = {};
   let betaKeys: Array<BetaKey>;
+
+  if (email) {
+    where.email = {
+      [Op.iLike]: `%${email.toString().trim().toLowerCase()}%`,
+    };
+  }
 
   // If ?me='false'
   // return all betaKey created

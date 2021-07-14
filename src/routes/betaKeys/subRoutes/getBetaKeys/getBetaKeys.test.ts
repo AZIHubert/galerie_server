@@ -406,6 +406,79 @@ describe('/betaKeys', () => {
           expect(betaKeys[0].id).toBe(betaKeyTwo.id);
           expect(betaKeys[1].id).toBe(betaKeyOne.id);
         });
+        it('return one beta key with request.body.email === \'.com\'', async () => {
+          await createBetaKey({
+            email: 'user2@email.com',
+            createdById: user.id,
+          });
+          const {
+            body: {
+              data: {
+                betaKeys,
+              },
+            },
+          } = await getBetaKeys(app, token, {
+            email: '.com',
+          });
+          expect(betaKeys.length).toBe(1);
+        });
+        it('return one beta key with request.body.email === \'@em\'', async () => {
+          await createBetaKey({
+            email: 'user2@email.com',
+            createdById: user.id,
+          });
+          const {
+            body: {
+              data: {
+                betaKeys,
+              },
+            },
+          } = await getBetaKeys(app, token, {
+            email: '@e',
+          });
+          expect(betaKeys.length).toBe(1);
+        });
+        it('request.params.email is case insensitive', async () => {
+          const email = 'user';
+          await createBetaKey({
+            email: `${email}@email.com`,
+            createdById: user.id,
+          });
+          await createBetaKey({
+            email: `new${email}@email.com`,
+            createdById: user.id,
+          });
+          const {
+            body: {
+              data: {
+                betaKeys,
+              },
+            },
+          } = await getBetaKeys(app, token, {
+            email: email.toUpperCase(),
+          });
+          expect(betaKeys.length).toBe(2);
+        });
+        it('do not include betaKey.email not match with request.params.email', async () => {
+          await createBetaKey({
+            email: 'user@email.com',
+            createdById: user.id,
+          });
+          await createBetaKey({
+            email: 'user2@email.com',
+            createdById: user.id,
+          });
+          const {
+            body: {
+              data: {
+                betaKeys,
+              },
+            },
+          } = await getBetaKeys(app, token, {
+            email: 'emmail',
+          });
+          expect(betaKeys.length).toBe(0);
+        });
       });
     });
   });

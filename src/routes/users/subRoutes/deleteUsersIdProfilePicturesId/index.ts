@@ -76,7 +76,6 @@ export default async (req: Request, res: Response) => {
   const {
     cropedImage,
     originalImage,
-    pendingImage,
   } = user.profilePictures[0];
 
   try {
@@ -88,10 +87,6 @@ export default async (req: Request, res: Response) => {
     await gc
       .bucket(cropedImage.bucketName)
       .file(cropedImage.fileName)
-      .delete();
-    await gc
-      .bucket(pendingImage.bucketName)
-      .file(pendingImage.fileName)
       .delete();
   } catch (err) {
     return res.status(500).send(err);

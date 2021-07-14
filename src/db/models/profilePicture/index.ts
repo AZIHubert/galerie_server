@@ -21,7 +21,7 @@ interface ProfilePictureI {
   current: boolean;
   id: string;
   originalImageId: string;
-  pendingImageId?: string;
+  pendingHexes: string;
   userId: string;
 }
 
@@ -67,12 +67,10 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
   })
   originalImageId!: string;
 
-  @ForeignKey(() => Image)
   @Column({
-    allowNull: false,
-    type: DataType.UUID,
+    type: DataType.STRING,
   })
-  pendingImageId!: string;
+  pendingHexes!: string;
 
   @ForeignKey(() => User)
   @Column({
@@ -94,13 +92,6 @@ export default class ProfilePicture extends Model implements ProfilePictureI {
     onDelete: 'CASCADE',
   })
   originalImage!: Image;
-
-  @BelongsTo(() => Image, {
-    foreignKey: 'pendingImageId',
-    hooks: true,
-    onDelete: 'CASCADE',
-  })
-  pendingImage!: Image;
 
   @BelongsTo(() => User)
   user!: User;
