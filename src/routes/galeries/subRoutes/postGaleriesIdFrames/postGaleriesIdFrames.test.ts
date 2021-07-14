@@ -41,7 +41,6 @@ import initApp from '#src/server';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 let app: Server;
 let galerieId: string;
 let sequelize: Sequelize;
@@ -124,27 +123,20 @@ describe('/galeries', () => {
               .findByPk(createdGaleriePicture[0].cropedImageId);
             const createdOriginalImage = await Image
               .findByPk(createdGaleriePicture[0].originalImageId);
-            const createdPendingImage = await Image
-              .findByPk(createdGaleriePicture[0].pendingImageId);
             const [bucketCropedImages] = await gc
               .bucket(GALERIES_BUCKET_PP_CROP)
               .getFiles();
             const [bucketOriginalImages] = await gc
               .bucket(GALERIES_BUCKET_PP)
               .getFiles();
-            const [bucketPendingImages] = await gc
-              .bucket(GALERIES_BUCKET_PP_PENDING)
-              .getFiles();
             expect(action).toBe('POST');
             expect(bucketCropedImages.length).toBe(1);
             expect(bucketOriginalImages.length).toBe(1);
-            expect(bucketPendingImages.length).toBe(1);
             expect(createdCropedImage).not.toBeNull();
             expect(createdFrames.length).toBe(1);
             expect(createdFrames[0].numOfLikes).toBe(0);
             expect(createdGaleriePicture.length).toBe(1);
             expect(createdOriginalImage).not.toBeNull();
-            expect(createdPendingImage).not.toBeNull();
             expect(returnedFrame.user.hasNewNotifications).toBeUndefined();
             expect(returnedGalerieId).toBe(galerieId);
             testFrame(returnedFrame);
@@ -178,30 +170,20 @@ describe('/galeries', () => {
               .findByPk(createdGaleriePicture[0].originalImageId);
             const createdOriginalImageSecond = await Image
               .findByPk(createdGaleriePicture[1].originalImageId);
-            const createdPendingImageFirst = await Image
-              .findByPk(createdGaleriePicture[0].pendingImageId);
-            const createdPendingImageSecond = await Image
-              .findByPk(createdGaleriePicture[1].pendingImageId);
             const [bucketCropedImages] = await gc
               .bucket(GALERIES_BUCKET_PP_CROP)
               .getFiles();
             const [bucketOriginalImages] = await gc
               .bucket(GALERIES_BUCKET_PP)
               .getFiles();
-            const [bucketPendingImages] = await gc
-              .bucket(GALERIES_BUCKET_PP_PENDING)
-              .getFiles();
             expect(bucketCropedImages.length).toBe(2);
             expect(bucketOriginalImages.length).toBe(2);
-            expect(bucketPendingImages.length).toBe(2);
             expect(createdCropedImageFirst).not.toBeNull();
             expect(createdCropedImageSecond).not.toBeNull();
             expect(createdFrames.length).toBe(1);
             expect(createdGaleriePicture.length).toBe(2);
             expect(createdOriginalImageFirst).not.toBeNull();
             expect(createdOriginalImageSecond).not.toBeNull();
-            expect(createdPendingImageFirst).not.toBeNull();
-            expect(createdPendingImageSecond).not.toBeNull();
             expect(frame.galeriePictures.length).toBe(2);
           });
           it('create a frame width 3 images', async () => {
@@ -236,24 +218,14 @@ describe('/galeries', () => {
               .findByPk(createdGaleriePicture[1].originalImageId);
             const createdOriginalImageThird = await Image
               .findByPk(createdGaleriePicture[2].originalImageId);
-            const createdPendingImageFirst = await Image
-              .findByPk(createdGaleriePicture[0].pendingImageId);
-            const createdPendingImageSecond = await Image
-              .findByPk(createdGaleriePicture[1].pendingImageId);
-            const createdPendingImageThird = await Image
-              .findByPk(createdGaleriePicture[2].pendingImageId);
             const [bucketCropedImages] = await gc
               .bucket(GALERIES_BUCKET_PP_CROP)
               .getFiles();
             const [bucketOriginalImages] = await gc
               .bucket(GALERIES_BUCKET_PP)
               .getFiles();
-            const [bucketPendingImages] = await gc
-              .bucket(GALERIES_BUCKET_PP_PENDING)
-              .getFiles();
             expect(bucketCropedImages.length).toBe(3);
             expect(bucketOriginalImages.length).toBe(3);
-            expect(bucketPendingImages.length).toBe(3);
             expect(createdCropedImageFirst).not.toBeNull();
             expect(createdCropedImageSecond).not.toBeNull();
             expect(createdCropedImageThird).not.toBeNull();
@@ -262,9 +234,6 @@ describe('/galeries', () => {
             expect(createdOriginalImageFirst).not.toBeNull();
             expect(createdOriginalImageSecond).not.toBeNull();
             expect(createdOriginalImageThird).not.toBeNull();
-            expect(createdPendingImageFirst).not.toBeNull();
-            expect(createdPendingImageSecond).not.toBeNull();
-            expect(createdPendingImageThird).not.toBeNull();
             expect(frame.galeriePictures.length).toBe(3);
           });
           it('create a frame width 4 images', async () => {
@@ -282,9 +251,6 @@ describe('/galeries', () => {
               .getFiles();
             const [bucketOriginalImages] = await gc
               .bucket(GALERIES_BUCKET_PP)
-              .getFiles();
-            const [bucketPendingImages] = await gc
-              .bucket(GALERIES_BUCKET_PP_PENDING)
               .getFiles();
             const createdFrames = await Frame.findAll({
               where: {
@@ -312,17 +278,8 @@ describe('/galeries', () => {
               .findByPk(createdGaleriePicture[1].originalImageId);
             const createdOriginalImageThird = await Image
               .findByPk(createdGaleriePicture[2].originalImageId);
-            const createdPendingImageFirst = await Image
-              .findByPk(createdGaleriePicture[0].pendingImageId);
-            const createdPendingImageFourth = await Image
-              .findByPk(createdGaleriePicture[3].pendingImageId);
-            const createdPendingImageSecond = await Image
-              .findByPk(createdGaleriePicture[1].pendingImageId);
-            const createdPendingImageThird = await Image
-              .findByPk(createdGaleriePicture[2].pendingImageId);
             expect(bucketCropedImages.length).toBe(4);
             expect(bucketOriginalImages.length).toBe(4);
-            expect(bucketPendingImages.length).toBe(4);
             expect(frame.galeriePictures.length).toBe(4);
             expect(createdFrames.length).toBe(1);
             expect(createdCropedImageFirst).not.toBeNull();
@@ -334,10 +291,6 @@ describe('/galeries', () => {
             expect(createdOriginalImageFourth).not.toBeNull();
             expect(createdOriginalImageSecond).not.toBeNull();
             expect(createdOriginalImageThird).not.toBeNull();
-            expect(createdPendingImageFirst).not.toBeNull();
-            expect(createdPendingImageFourth).not.toBeNull();
-            expect(createdPendingImageSecond).not.toBeNull();
-            expect(createdPendingImageThird).not.toBeNull();
           });
           it('create a frame width 5 images', async () => {
             const {
@@ -354,9 +307,6 @@ describe('/galeries', () => {
               .getFiles();
             const [bucketOriginalImages] = await gc
               .bucket(GALERIES_BUCKET_PP)
-              .getFiles();
-            const [bucketPendingImages] = await gc
-              .bucket(GALERIES_BUCKET_PP_PENDING)
               .getFiles();
             const createdFrames = await Frame.findAll({
               where: {
@@ -388,19 +338,8 @@ describe('/galeries', () => {
               .findByPk(createdGaleriePicture[1].originalImageId);
             const createdOriginalImageThird = await Image
               .findByPk(createdGaleriePicture[2].originalImageId);
-            const createdPendingImageFifth = await Image
-              .findByPk(createdGaleriePicture[4].pendingImageId);
-            const createdPendingImageFirst = await Image
-              .findByPk(createdGaleriePicture[0].pendingImageId);
-            const createdPendingImageFourth = await Image
-              .findByPk(createdGaleriePicture[3].pendingImageId);
-            const createdPendingImageSecond = await Image
-              .findByPk(createdGaleriePicture[1].pendingImageId);
-            const createdPendingImageThird = await Image
-              .findByPk(createdGaleriePicture[2].pendingImageId);
             expect(bucketCropedImages.length).toBe(5);
             expect(bucketOriginalImages.length).toBe(5);
-            expect(bucketPendingImages.length).toBe(5);
             expect(frame.galeriePictures.length).toBe(5);
             expect(createdFrames.length).toBe(1);
             expect(createdCropedImageFifth).not.toBeNull();
@@ -414,11 +353,6 @@ describe('/galeries', () => {
             expect(createdOriginalImageFourth).not.toBeNull();
             expect(createdOriginalImageSecond).not.toBeNull();
             expect(createdOriginalImageThird).not.toBeNull();
-            expect(createdPendingImageFifth).not.toBeNull();
-            expect(createdPendingImageFirst).not.toBeNull();
-            expect(createdPendingImageFourth).not.toBeNull();
-            expect(createdPendingImageSecond).not.toBeNull();
-            expect(createdPendingImageThird).not.toBeNull();
           });
           it('create a frame width 6 images', async () => {
             const {
@@ -435,9 +369,6 @@ describe('/galeries', () => {
               .getFiles();
             const [bucketOriginalImages] = await gc
               .bucket(GALERIES_BUCKET_PP)
-              .getFiles();
-            const [bucketPendingImages] = await gc
-              .bucket(GALERIES_BUCKET_PP_PENDING)
               .getFiles();
             const createdFrames = await Frame.findAll({
               where: {
@@ -473,21 +404,8 @@ describe('/galeries', () => {
               .findByPk(createdGaleriePicture[5].originalImageId);
             const createdOriginalImageThird = await Image
               .findByPk(createdGaleriePicture[2].originalImageId);
-            const createdPendingImageFifth = await Image
-              .findByPk(createdGaleriePicture[4].pendingImageId);
-            const createdPendingImageFirst = await Image
-              .findByPk(createdGaleriePicture[0].pendingImageId);
-            const createdPendingImageFourth = await Image
-              .findByPk(createdGaleriePicture[3].pendingImageId);
-            const createdPendingImageSecond = await Image
-              .findByPk(createdGaleriePicture[1].pendingImageId);
-            const createdPendingImageSixth = await Image
-              .findByPk(createdGaleriePicture[1].pendingImageId);
-            const createdPendingImageThird = await Image
-              .findByPk(createdGaleriePicture[2].pendingImageId);
             expect(bucketCropedImages.length).toBe(6);
             expect(bucketOriginalImages.length).toBe(6);
-            expect(bucketPendingImages.length).toBe(6);
             expect(frame.galeriePictures.length).toBe(6);
             expect(createdFrames.length).toBe(1);
             expect(createdCropedImageFifth).not.toBeNull();
@@ -503,12 +421,6 @@ describe('/galeries', () => {
             expect(createdOriginalImageSecond).not.toBeNull();
             expect(createdOriginalImageSixth).not.toBeNull();
             expect(createdOriginalImageThird).not.toBeNull();
-            expect(createdPendingImageFifth).not.toBeNull();
-            expect(createdPendingImageFirst).not.toBeNull();
-            expect(createdPendingImageFourth).not.toBeNull();
-            expect(createdPendingImageSecond).not.toBeNull();
-            expect(createdPendingImageSixth).not.toBeNull();
-            expect(createdPendingImageThird).not.toBeNull();
           });
           it('should sign notificationToken', async () => {
             const {

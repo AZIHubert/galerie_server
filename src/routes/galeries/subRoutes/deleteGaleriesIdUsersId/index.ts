@@ -134,7 +134,6 @@ export default async (req: Request, res: Response) => {
       ],
     });
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
 
@@ -225,13 +224,8 @@ export default async (req: Request, res: Response) => {
                 const {
                   originalImage,
                   cropedImage,
-                  pendingImage,
                 } = galeriePicture;
 
-                await gc
-                  .bucket(pendingImage.bucketName)
-                  .file(pendingImage.fileName)
-                  .delete();
                 await gc
                   .bucket(originalImage.bucketName)
                   .file(originalImage.fileName)

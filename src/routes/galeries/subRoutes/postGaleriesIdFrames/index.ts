@@ -7,6 +7,7 @@ import {
 import { Op } from 'sequelize';
 import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
+import getDominantColors from '#src/helpers/getDominantColors';
 
 import {
   Frame,
@@ -43,7 +44,6 @@ import uuidValidatev4 from '#src/helpers/uuidValidateV4';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
 export default async (req: Request, res: Response) => {
   const { files } = req;
@@ -260,70 +260,9 @@ export default async (req: Request, res: Response) => {
             });
         });
     });
-    const pendingImagePromise: Promise<Image> = new Promise((resolve, reject) => {
-      const fileName = `penging_${Date.now()}_${uuidv4()}.jpg`;
-      const image = sharp(buffer)
-        .blur(10)
-        .modulate({
-          saturation: 2.2,
-          brightness: 1.4,
-        })
-        .resize(1, 1);
-      image
-        .toBuffer({ resolveWithObject: true })
-        .then((e) => {
-          const {
-            info: {
-              format,
-              size,
-              width,
-              height,
-            },
-          } = e;
-          const blobStream = gc
-            .bucket(GALERIES_BUCKET_PP_PENDING)
-            .file(fileName)
-            .createWriteStream({
-              resumable: false,
-            });
-          image
-            .pipe(blobStream)
-            .on('error', (err) => {
-              reject(err);
-            }).on('finish', async () => {
-              if (rejection) {
-                try {
-                  gc
-                    .bucket(GALERIES_BUCKET_PP_PENDING)
-                    .file(fileName)
-                    .delete();
-                } catch (err) {
-                  reject(err);
-                }
-                reject(new Error(DEFAULT_ERROR_MESSAGE));
-              } else {
-                try {
-                  const pendingImage = await Image.create({
-                    bucketName: GALERIES_BUCKET_PP_PENDING,
-                    fileName,
-                    format,
-                    height,
-                    size,
-                    width,
-                  });
-                  createdImages.push(pendingImage);
-                  resolve(pendingImage);
-                } catch (err) {
-                  reject(err);
-                }
-              }
-            });
-        });
-    });
     return [
       cropedImagePromise,
       originalImagePromise,
-      pendingImagePromise,
     ];
   });
 
@@ -359,7 +298,6 @@ export default async (req: Request, res: Response) => {
         const [
           cropedImage,
           originalImage,
-          pendingImage,
         ] = image;
           // ...fetch the signed urls,...
         const cropedImageSignedUrl = await signedUrl(
@@ -370,10 +308,6 @@ export default async (req: Request, res: Response) => {
           originalImage.bucketName,
           originalImage.fileName,
         );
-        const pendingImageSignedUrl = await signedUrl(
-          pendingImage.bucketName,
-          pendingImage.fileName,
-        );
 
         // Check if all image from Google Bucket exists.
         // If one of theme doesn\'t exist,
@@ -382,7 +316,6 @@ export default async (req: Request, res: Response) => {
         if (
           !cropedImageSignedUrl.OK
             || !originalImageSignedUrl.OK
-            || !pendingImageSignedUrl.OK
         ) {
           if (cropedImageSignedUrl.OK) {
             await gc
@@ -396,24 +329,19 @@ export default async (req: Request, res: Response) => {
               .file(originalImage.fileName)
               .delete();
           }
-          if (pendingImageSignedUrl.OK) {
-            await gc
-              .bucket(pendingImage.bucketName)
-              .file(pendingImage.fileName)
-              .delete();
-          }
           await cropedImage.destroy();
           await originalImage.destroy();
-          await pendingImage.destroy();
           await frame.destroy();
           throw new Error(DEFAULT_ERROR_MESSAGE);
         }
+
+        const pendingHexes = await getDominantColors(convertToArray()[index].buffer, 2);
 
         const galeriePicture = await GaleriePicture.create({
           cropedImageId: cropedImage.id,
           frameId: frame.id,
           originalImageId: originalImage.id,
-          pendingImageId: pendingImage.id,
+          pendingHexes,
           index,
         });
 
@@ -441,13 +369,6 @@ export default async (req: Request, res: Response) => {
             bucketName: undefined,
             fileName: undefined,
             signedUrl: originalImageSignedUrl.signedUrl,
-          },
-          pendingImage: {
-            ...pendingImage.toJSON(),
-            ...objectImageExcluder,
-            bucketName: undefined,
-            fileName: undefined,
-            signedUrl: pendingImageSignedUrl.signedUrl,
           },
         };
       }),

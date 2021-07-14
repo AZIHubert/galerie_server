@@ -12,7 +12,6 @@ export default async (frame: Frame) => {
         const {
           cropedImage,
           originalImage,
-          pendingImage,
         } = galeriePicture;
 
         const cropedImageSignedUrl = await signedUrl(
@@ -22,10 +21,6 @@ export default async (frame: Frame) => {
         const originalImageSignedUrl = await signedUrl(
           originalImage.bucketName,
           originalImage.fileName,
-        );
-        const pendingImageSignedUrl = await signedUrl(
-          pendingImage.bucketName,
-          pendingImage.fileName,
         );
 
         // If all images exist but one of them
@@ -38,7 +33,6 @@ export default async (frame: Frame) => {
         if (
           !cropedImageSignedUrl.OK
           || !originalImageSignedUrl.OK
-          || !pendingImageSignedUrl.OK
         ) {
           if (cropedImageSignedUrl.OK) {
             await gc
@@ -52,16 +46,9 @@ export default async (frame: Frame) => {
               .file(originalImage.fileName)
               .delete();
           }
-          if (pendingImageSignedUrl.OK) {
-            await gc
-              .bucket(pendingImage.bucketName)
-              .file(pendingImage.fileName)
-              .delete();
-          }
           await galeriePicture.destroy();
           await cropedImage.destroy();
           await originalImage.destroy();
-          await pendingImage.destroy();
           return null;
         }
 
@@ -84,15 +71,6 @@ export default async (frame: Frame) => {
             fileName: undefined,
             id: undefined,
             signedUrl: originalImageSignedUrl.signedUrl,
-            updatedAt: undefined,
-          },
-          pendingImage: {
-            ...pendingImage.toJSON(),
-            bucketName: undefined,
-            createdAt: undefined,
-            fileName: undefined,
-            id: undefined,
-            signedUrl: pendingImageSignedUrl.signedUrl,
             updatedAt: undefined,
           },
         };

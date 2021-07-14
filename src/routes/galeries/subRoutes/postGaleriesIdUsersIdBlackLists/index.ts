@@ -251,22 +251,17 @@ export default async (req: Request, res: Response) => {
               frame.galeriePictures.map(
                 async (galeriePicture) => {
                   const {
-                    originalImage,
                     cropedImage,
-                    pendingImage,
+                    originalImage,
                   } = galeriePicture;
 
                   await gc
-                    .bucket(pendingImage.bucketName)
-                    .file(pendingImage.fileName)
+                    .bucket(cropedImage.bucketName)
+                    .file(cropedImage.fileName)
                     .delete();
                   await gc
                     .bucket(originalImage.bucketName)
                     .file(originalImage.fileName)
-                    .delete();
-                  await gc
-                    .bucket(cropedImage.bucketName)
-                    .file(cropedImage.fileName)
                     .delete();
                 },
               ),

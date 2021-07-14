@@ -194,7 +194,6 @@ export default async (req: Request, res: Response) => {
               const {
                 cropedImage,
                 originalImage,
-                pendingImage,
               } = galeriePicture;
               await gc
                 .bucket(originalImage.bucketName)
@@ -203,10 +202,6 @@ export default async (req: Request, res: Response) => {
               await gc
                 .bucket(cropedImage.bucketName)
                 .file(cropedImage.fileName)
-                .delete();
-              await gc
-                .bucket(pendingImage.bucketName)
-                .file(pendingImage.fileName)
                 .delete();
             },
           ),
