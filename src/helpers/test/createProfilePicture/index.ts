@@ -24,7 +24,6 @@ export default async ({
     cropedImageId: imageId,
     current,
     originalImageId: imageId,
-    pendingImageId: imageId,
     userId,
   });
   return profilePicture;

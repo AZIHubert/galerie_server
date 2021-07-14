@@ -24,12 +24,12 @@ import {
   imageExcluder,
   profilePictureExcluder,
 } from '#src/helpers/excluders';
+import getDominantColors from '#src/helpers/getDominantColors';
 import gc from '#src/helpers/gc';
 import signedUrl from '#src/helpers/signedUrl';
 
 const GALERIES_BUCKET_PP = accEnv('GALERIES_BUCKET_PP');
 const GALERIES_BUCKET_PP_CROP = accEnv('GALERIES_BUCKET_PP_CROP');
-const GALERIES_BUCKET_PP_PENDING = accEnv('GALERIES_BUCKET_PP_PENDING');
 
 export default async (req: Request, res: Response) => {
   const { id: userId } = req.user as User;
@@ -40,7 +40,6 @@ export default async (req: Request, res: Response) => {
   let cropedImageSignedUrl;
   let images: Array<Image>;
   let originalImageSignedUrl;
-  let pendingImageSignedUrl;
   let profilePicture: ProfilePicture;
   let rejection: boolean = false;
 
@@ -174,76 +173,12 @@ export default async (req: Request, res: Response) => {
       });
   });
 
-  // Save a pending image (1x1px) on Google Bucket.
-  const pendingImagePromise: Promise<Image> = new Promise((resolve, reject) => {
-    const fileName = `pending_${Date.now()}_${uuidv4()}.jpg`;
-    // Need to twist saturation and brightness,
-    // if not, the image is to grayish.
-    const image = sharp(buffer)
-      .blur(10)
-      .modulate({
-        saturation: 2.2,
-        brightness: 1.4,
-      })
-      .resize(1, 1);
-    image
-      .toBuffer({ resolveWithObject: true })
-      .then(({
-        info: {
-          format,
-          size,
-          width,
-          height,
-        },
-      }) => {
-        const blobStream = gc
-          .bucket(GALERIES_BUCKET_PP_PENDING)
-          .file(fileName)
-          .createWriteStream({
-            resumable: false,
-          });
-        image
-          .pipe(blobStream)
-          .on('error', (err) => {
-            reject(err);
-          }).on('finish', async () => {
-            if (rejection) {
-              try {
-                await gc
-                  .bucket(GALERIES_BUCKET_PP_CROP)
-                  .file(fileName)
-                  .delete();
-              } catch (err) {
-                reject(err);
-              }
-              reject(new Error(DEFAULT_ERROR_MESSAGE));
-            }
-            try {
-              const pendingImage = await Image.create({
-                bucketName: GALERIES_BUCKET_PP_PENDING,
-                fileName,
-                format,
-                height,
-                size,
-                width,
-                userId,
-              });
-              createdImages.push(pendingImage);
-              resolve(pendingImage);
-            } catch (err) {
-              reject(err);
-            }
-          });
-      });
-  });
-
   // Saved all three images
   // on Google Cloud
   try {
     images = await Promise.all([
       cropedImagePromise,
       originalImagePromise,
-      pendingImagePromise,
     ]);
   } catch (err) {
     // If error, set rejection to false
@@ -284,7 +219,6 @@ export default async (req: Request, res: Response) => {
   const [
     cropedImage,
     originalImage,
-    pendingImage,
   ] = images;
 
   // Fetch signedUrl for all three
@@ -298,10 +232,6 @@ export default async (req: Request, res: Response) => {
       originalImage.bucketName,
       originalImage.fileName,
     );
-    pendingImageSignedUrl = await signedUrl(
-      pendingImage.bucketName,
-      pendingImage.fileName,
-    );
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -313,7 +243,6 @@ export default async (req: Request, res: Response) => {
     if (
       !cropedImageSignedUrl.OK
       || !originalImageSignedUrl.OK
-      || !pendingImageSignedUrl.OK
     ) {
       if (cropedImageSignedUrl.OK) {
         await gc
@@ -327,15 +256,8 @@ export default async (req: Request, res: Response) => {
           .file(originalImage.fileName)
           .delete();
       }
-      if (pendingImageSignedUrl.OK) {
-        await gc
-          .bucket(pendingImage.bucketName)
-          .file(pendingImage.fileName)
-          .delete();
-      }
       await cropedImage.destroy();
       await originalImage.destroy();
-      await pendingImage.destroy();
       return res.status(500).send({
         errors: DEFAULT_ERROR_MESSAGE,
       });
@@ -346,11 +268,12 @@ export default async (req: Request, res: Response) => {
 
   // Create profile picture.
   try {
+    const pendingHexes = await getDominantColors(file.buffer, 2);
     profilePicture = await ProfilePicture.create({
       cropedImageId: cropedImage.id,
       current: true,
       originalImageId: originalImage.id,
-      pendingImageId: pendingImage.id,
+      pendingHexes,
       userId,
     });
   } catch (err) {
@@ -380,13 +303,6 @@ export default async (req: Request, res: Response) => {
       bucketName: undefined,
       fileName: undefined,
       signedUrl: originalImageSignedUrl.signedUrl,
-    },
-    pendingImage: {
-      ...pendingImage.toJSON(),
-      ...objectImageExcluder,
-      bucketName: undefined,
-      fileName: undefined,
-      signedUrl: pendingImageSignedUrl.signedUrl,
     },
   };
 

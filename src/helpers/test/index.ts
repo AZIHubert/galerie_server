@@ -35,7 +35,6 @@ export { default as deleteUsersIdProfilePicturesId } from './deleteUsersIdProfil
 export { default as deleteUsersMe } from './deleteUsersMe';
 
 export { default as getBetaKeys } from './getBetaKeys';
-export { default as getBetaKeysEmailEmail } from './getBetaKeysEmailEmail';
 export { default as getBetaKeysId } from './getBetaKeysId';
 export { default as getGaleries } from './getGaleries';
 export { default as getFrames } from './getFrames';

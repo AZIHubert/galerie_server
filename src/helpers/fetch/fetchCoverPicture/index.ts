@@ -132,13 +132,6 @@ export default async (galerie: Galerie, currentUser?: {
       signedUrl: originalImageSignedUrl.signedUrl,
       updatedAt: undefined,
     },
-    pendingImage: {
-      bucketName: undefined,
-      createdAt: undefined,
-      fileName: undefined,
-      id: undefined,
-      updatedAt: undefined,
-    },
   };
   return normalizeCurrentCoverPicrure;
 };

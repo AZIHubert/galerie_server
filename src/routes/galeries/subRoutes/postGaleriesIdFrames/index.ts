@@ -7,7 +7,6 @@ import {
 import { Op } from 'sequelize';
 import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
-import getDominantColors from '#src/helpers/getDominantColors';
 
 import {
   Frame,
@@ -33,6 +32,7 @@ import {
   imageExcluder,
   userExcluder,
 } from '#src/helpers/excluders';
+import getDominantColors from '#src/helpers/getDominantColors';
 import gc from '#src/helpers/gc';
 import { signNotificationToken } from '#src/helpers/issueJWT';
 import signedUrl from '#src/helpers/signedUrl';
@@ -268,7 +268,7 @@ export default async (req: Request, res: Response) => {
 
   try {
     // Resolve promise for each images and
-    // each of its croped/original/pending image.
+    // each of its croped/original image.
     images = await Promise.all(
       promiseImages.map((promiseImage) => Promise.all(promiseImage)),
     );

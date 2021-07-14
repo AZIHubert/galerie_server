@@ -68,7 +68,6 @@ export default async (req: Request, res: Response) => {
             exclude: [
               'cropedImageId',
               'originalImageId',
-              'pendingImageId',
               'updatedAt',
             ],
           },

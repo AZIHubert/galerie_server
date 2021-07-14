@@ -82,10 +82,6 @@ export default async (req: Request, res: Response) => {
           as: 'originalImage',
           model: Image,
         },
-        {
-          as: 'pendingImage',
-          model: Image,
-        },
       ],
       limit,
       order: [['autoIncrementId', 'DESC']],

@@ -3,6 +3,5 @@ export default [
   'cropedImageId',
   'frameId',
   'originalImageId',
-  'pendingImageId',
   'updatedAt',
 ];

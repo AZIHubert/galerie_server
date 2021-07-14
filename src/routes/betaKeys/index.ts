@@ -9,7 +9,6 @@ import {
   deleteBetaKeysId,
 
   getBetaKeys,
-  getBetaKeysEmailEmail,
   getBetaKeysId,
 
   postBetaKeys,
@@ -24,7 +23,6 @@ const betaKeyRoutes: () => Router = () => {
   router.delete('/:betaKeyId', shouldBeAuth, shouldBeAdmin, deleteBetaKeysId);
 
   router.get('/', shouldBeAuth, shouldBeAdmin, getBetaKeys);
-  router.get('/email/:email', shouldBeAuth, shouldBeAdmin, getBetaKeysEmailEmail);
   router.get('/:betaKeyId', shouldBeAuth, shouldBeAdmin, getBetaKeysId);
 
   router.post('/', shouldBeAuth, shouldBeAdmin, postBetaKeys);
